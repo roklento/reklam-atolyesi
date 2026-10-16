@@ -1,0 +1,16 @@
+{
+  "name": "reklam-atolyesi",
+  "owner": {
+    "name": "Reklam Atölyesi"
+  },
+  "metadata": {
+    "description": "Reklam Atölyesi: Meta video reklam üretimi, rakip analizi, koçluk ve öğrenen hafıza."
+  },
+  "plugins": [
+    {
+      "name": "reklam-atolyesi",
+      "source": "./reklam-atolyesi",
+      "description": "Meta video reklamlarını stratejiden yayın paketine üreten, koçluk yapan ve öğrenen reklam sistemi (sürüm 1.4.0)."
+    }
+  ]
+}

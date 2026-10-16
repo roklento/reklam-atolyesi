@@ -1,0 +1,41 @@
+{
+  "_comment": "Ortak kreatif sözlüğü (spec 4.7). Kodlar İngilizce, etiketler Türkçe. Sabit eksenler kapalı listedir; değer eklemek sözlük sürümü (plugin güncellemesi) gerektirir. Profil eksenlerinin değerleri kurulumdan gelmez; taxonomy_values tablosunda profil kapsamlı doğar (ilke 12). 'unknown' her eksende geçerlidir; tahmin edilen değer yazılmaz.",
+  "taxonomy_version": "1.4.0",
+  "fixed_axes": {
+    "video_type": {
+      "label": "Video türü",
+      "values": {"reveal": "Gerçek çekimli reveal", "process": "Süreç", "testimonial": "Müşteri yorumu", "raw_ugc": "Ham / UGC", "ai_assisted": "AI destekli"}
+    },
+    "first_frame": {
+      "label": "Açılış karesi",
+      "values": {"product": "Ürün", "product_in_hand": "Elde ürün", "person": "Kişi", "text_card": "Yazı kartı", "process": "Süreç", "result": "Sonuç", "context": "Bağlam"}
+    },
+    "proof": {
+      "label": "Kanıt türü",
+      "values": {"none": "Yok", "process": "Süreç", "review": "Yorum", "number": "Sayı", "document": "Belge", "before_after": "Önce/sonra", "demo": "Gösterim", "expert": "Uzman"}
+    },
+    "offer": {
+      "label": "Teklif",
+      "values": {"none": "Yok", "discount": "İndirim", "free_shipping": "Ücretsiz kargo", "bundle": "Paket", "gift_with_purchase": "Hediyeli", "limited": "Sınırlı"}
+    },
+    "price_shown": {"label": "Fiyat ekranda", "values": {"yes": "Evet", "no": "Hayır"}},
+    "media": {"label": "Medya", "values": {"video": "Video", "static": "Statik", "carousel": "Carousel"}},
+    "duration_band": {"label": "Süre bandı", "values": {"le6": "≤ 6 sn", "7_15": "7–15 sn", "16_30": "16–30 sn", "gt30": "> 30 sn"}},
+    "vo": {"label": "Seslendirme", "values": {"none": "Yok", "generated": "Üretilmiş", "user": "Kullanıcının sesi", "original_speech": "Çekimdeki konuşma"}},
+    "people": {"label": "Kişi", "values": {"none": "Yok", "hands": "Eller", "person": "Kişi"}},
+    "text_density": {"label": "Yazı yoğunluğu", "values": {"low": "Düşük", "medium": "Orta", "high": "Yüksek"}},
+    "cta": {
+      "label": "CTA (Meta CTA türü)",
+      "values": {"SHOP_NOW": "Şimdi alışveriş yap", "LEARN_MORE": "Daha fazla bilgi", "ORDER_NOW": "Sipariş ver", "BUY_NOW": "Hemen al", "SIGN_UP": "Kaydol", "CONTACT_US": "Bize ulaşın", "SEND_MESSAGE": "Mesaj gönder", "SEND_WHATSAPP_MESSAGE": "WhatsApp mesajı gönder", "GET_OFFER": "Teklifi al", "BOOK_NOW": "Rezervasyon yap", "SUBSCRIBE": "Abone ol", "NO_BUTTON": "Düğme yok"}
+    }
+  },
+  "profile_axes": {
+    "angle": {"label": "Açı (konseptin konusu; sahne rolü değildir)"},
+    "moment": {"label": "Satın alma anı (S00c ile aynı kayıt)"},
+    "emotion": {"label": "Duygu"},
+    "tone": {"label": "Ton (S00a marka tonu)"}
+  },
+  "special_values": {"unknown": "Bilinmiyor", "other_prefix": "other:"},
+  "diversity_axes": ["emotion", "moment", "proof", "first_frame"],
+  "distance": {"min_axes_besides_angle": 2, "max_4gram_overlap": 0.20}
+}

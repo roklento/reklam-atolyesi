@@ -1,0 +1,111 @@
+"""Koçluk raporu (spec 6.12): bölümler sabit; dil sade, hükümlerin yanında veri yeterliliği; rekabet bağlamında nedensellik dili yok.
+
+Kullanım: report.py --analysis analysis.json --snapshot input.json --charts charts.json --out reports/c1-coach-report-v1.md
+          [--calibration calib.json] [--actions actions.json] [--next next.md]
+Bölümler: Özet (3 cümle) · Kararlar · Grafikler · Sahne düzeyinde izleyici kaybı · Uygulama listesi ve durumu · Rekabet bağlamı ·
+Öğrenilenler · Sonraki tur · Veri yeterliliği · Koçluğun isabeti
+"""
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+from common import atomic_write, emit, read_json  # noqa: E402
+from admem.util import tr_fold  # noqa: E402
+
+CAUSAL = [r"\bnedeniyle\b", r"\byuzunden\b", r"\bsebep (oldu|olmus)", r"\betkisiyle\b", r"\bdolayisiyla\b", r"\bbecause\b", r"\bcaused\b",
+          r"\byol acti\b", r"\bsonucunda\b"]
+SECTIONS = ["Özet", "Kararlar", "Grafikler", "Sahne düzeyinde izleyici kaybı", "Uygulama listesi ve durumu", "Rekabet bağlamı",
+            "Öğrenilenler", "Sonraki tur", "Veri yeterliliği", "Koçluğun isabeti"]
+
+
+def causal_terms(text: str) -> list[str]:
+    t = tr_fold(text)
+    return [p for p in CAUSAL if re.search(p, t)]
+
+
+def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions: list | None, next_md: str | None) -> str:
+    camp = snap["campaign"]
+    cyc = snap["cycle"]
+    q = an.get("verdict_qualifier") or ""
+    dec = an["decisions"]
+    lines = [f"# Koçluk raporu — {camp['name']} · tur {cyc['cycle']}", "",
+             f"_Girdi kopyası: `{Path(an['snapshot']['path']).name}` (SHA-256 {an['snapshot']['sha256'][:12]}…), model {an.get('model_version')}, tohum {(an.get('params') or {}).get('seed')}._", ""]
+    n_ev = sum(1 for d in dec if d["label"].startswith("kanıt"))
+    lines += ["## Özet", "",
+              f"Bu turda {len(an['concepts'])} konsept ve {len(an['creatives'])} kreatif ölçüldü; {n_ev} konseptin verisi karar eşiğini geçti"
+              + (f" ({q})." if q else "."),
+              (f"Sonuç maliyetine dair hüküm yalnızca yeterli sonuç (≥ 10) olan konseptlerde verildi; " if any(c.get("threshold_met") for c in an["cost"].values())
+               else "Sonuç sayısı az olduğu için bu hüküm satışa değil, dikkat ve tıklamaya dayanıyor; ")
+              + "eşik altındaki bulgular 'yön' etiketlidir.",
+              ("Onaylı harcama sınırı uyarısı var: ayrıntı Kararlar bölümünde." if an["limit_alerts"] else "Harcama sınırı uyarısı yok."), ""]
+    lines += ["## Kararlar", ""]
+    for d in dec:
+        lines.append(f"- **{d['concept']}** → {d['decision']} ({d['label']}): {d['why']}" + (f" — Ads Manager: {d['ads_manager']}" if d.get("ads_manager") else ""))
+    for a in an["limit_alerts"]:
+        lines.append(f"- ⚠ Sınır: {a['msg']} ({a.get('creative_key') or ''} {a.get('spend', '')} / {a.get('limit', a.get('budget_total', ''))})")
+    lines += ["", "## Grafikler", ""]
+    captions = {"funnel": "Konsept başına izlenme, tıklama ve sonuç oranları kendi paydalarıyla; oranlar birbirleriyle çarpılmaz.",
+                "intervals_hook": "Hook oranı aralıkları; açık renkli noktalar eşik altıdır ve yalnızca yön gösterir.",
+                "intervals_ctr": "Bağlantı CTR aralıkları; 3.000 gösterim altı yön etiketlidir.",
+                "spend": "Meta'nın bütçeyi nasıl dağıttığı; aç kalan konsept kaybeden sayılmaz.",
+                "timeseries": "Günlük hook oranı; düşüş yorgunluk olasılığıdır, nedeni kesin değildir.",
+                "retention": "Beklenenden hızlı kayıp görülen aralıklar; 5 ölçüm noktasıyla olasılık cümlesidir."}
+    for k, p in charts.items():
+        lines += [f"![{k}]({Path(p).parent.name}/{Path(p).name})", f"_{captions.get(k, '')}_", ""]
+    lines += ["## Sahne düzeyinde izleyici kaybı", ""]
+    lines += [f"- {r['statement']}" for r in an["retention"]] or ["- Beklenen eğriden belirgin sapma yok ya da karşılaştırma için yeterli kreatif yok."]
+    lines += ["", "## Uygulama listesi ve durumu", ""]
+    lines += [f"- [{a.get('status', 'proposed')}] {a['action']}" for a in (actions or [])] or ["- Bu raporla yeni madde önerilmedi."]
+    lines += ["", "## Rekabet bağlamı", ""]
+    cc = an.get("competitive_context") or {}
+    stm = cc.get("statements") or []
+    lines += [f"- {s}" for s in stm] or ["- Test penceresinde kayda değer rakip değişikliği görülmedi ya da fark görüntüsü yok."]
+    lines += ["_Rekabet bağlamı bilgi içindir; nedensellik iddia edilmez ve hüküm diline girmez._", ""]
+    lines += ["## Öğrenilenler", ""]
+    roles = an.get("roles") or {}
+    if roles:
+        for r, v in sorted(roles.items()):
+            hr = (v["rates"].get("hook_rate") or {})
+            lines.append(f"- Portföy rolü **{r}**: hook oranı ortalaması {hr.get('mean', 0):.3f} ({hr.get('label', '—')}) — keşif karşılaştırmasıdır.")
+    lines += [f"- Yorgunluk/anomali: {f['msg']} ({f['creative']})" for f in an["fatigue"]]
+    lines += ["", "## Sonraki tur", "", next_md or "- Sonraki tur önerileri S17'de brief taslağına işlenir; rakip görüntüsü tazelenmeli mi notu eklenir.", ""]
+    lines += ["## Veri yeterliliği", ""]
+    w = an["window"]
+    lines.append(f"- Test penceresi tam günleri: {len(w['full_days'])}; dışlanan sınır günleri: {', '.join(w['excluded_boundary_days']) or 'yok'} (bölünmez, toplam harcamada sayılır).")
+    lines += [f"- {q_['kind']}: {q_.get('msg', '')} {q_.get('days', q_.get('ads', ''))}" for q_ in an["data_quality"]] or ["- Veri kalitesi kontrollerinde sorun yok."]
+    lines.append("- Son 72 saatin verisi geçicidir; sonuç metrikleri olgunluk penceresi dolmadan kesin sayılmaz.")
+    lines += ["", "## Koçluğun isabeti", ""]
+    if calibration:
+        lines.append(f"- {calibration.get('summary', '')}" + (f" · {calibration.get('note')}" if calibration.get("note") else ""))
+    else:
+        lines.append("- Henüz çözülmüş tahmin yok.")
+    text = "\n".join(lines) + "\n"
+    comp_part = text.split("## Rekabet bağlamı", 1)[1].split("## Öğrenilenler", 1)[0]
+    bad = causal_terms(comp_part)
+    if bad:
+        raise SystemExit(f"Rekabet bağlamında nedensellik dili: {bad} (6.16)")
+    return text
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--analysis", required=True)
+    ap.add_argument("--snapshot", required=True)
+    ap.add_argument("--charts")
+    ap.add_argument("--calibration")
+    ap.add_argument("--actions")
+    ap.add_argument("--next")
+    ap.add_argument("--out", required=True)
+    a = ap.parse_args()
+    md = build(read_json(a.analysis), read_json(a.snapshot), read_json(a.charts) if a.charts else {}, read_json(a.calibration) if a.calibration else None,
+               read_json(a.actions) if a.actions else None, Path(a.next).read_text(encoding="utf-8") if a.next else None)
+    sha = atomic_write(a.out, md, overwrite=False)
+    emit({"out": a.out, "sha256": sha, "sections": [s for s in SECTIONS if f"## {s}" in md]})
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,28 @@
+{
+  "_comment": "Aşama bağlam paketi reçeteleri (spec 8.4). Sunucu paketi bütçe içinde öncelik sırasıyla kurar; bütçeye sığmayanların yalnızca başlığı ve kimliği verilir (Claude gerekirse memory_search ile açar). Kaynak adları store.memory_context içindeki üreticilere karşılık gelir.",
+  "default_budget_tokens": 2000,
+  "card_budget_tokens": 1500,
+  "stages": {
+    "S00a": {"sources": ["profile_summary", "brand", "onboarding_answers", "preferences:tone", "procedural:onboarding"]},
+    "S00b": {"sources": ["profile_summary", "brand", "meta_sync_state", "benchmarks", "priors"]},
+    "S00c": {"sources": ["profile_summary", "brand", "products", "onboarding_answers", "preferences:product"]},
+    "S01":  {"sources": ["profile_summary", "product", "campaign", "last_cycle_brief_draft", "playbook:active", "hypotheses:open", "economics"]},
+    "S01b": {"sources": ["competitor_set", "competitor_last_snapshot", "competitive_insights:previous", "semantic:competitor_notes", "brand_docs_competitors", "product"]},
+    "S02":  {"sources": ["economics", "benchmarks", "competitive_map_summary", "portfolio_results:previous", "budget_state", "calendar", "hypotheses:candidate_primary"]},
+    "S03":  {"sources": ["preferences", "playbook:scoped", "coaching_summary:last2", "competitive_map_summary", "strategy:current", "concepts:rejected_deferred", "product", "brand_docs", "hypotheses:open", "shoot_library_summary"]},
+    "S04":  {"sources": ["product_shoot_profile", "concepts:selected", "procedural:shooting", "preferences:shooting"]},
+    "S05":  {"sources": ["product_shoot_profile", "procedural:shooting", "shoot_feedback:previous"]},
+    "S06":  {"sources": ["procedural:ingest", "assets:campaign_summary"]},
+    "S07":  {"sources": ["concepts:selected", "shoot_menu", "assets:campaign_summary", "procedural:analysis"]},
+    "S08":  {"sources": ["style:current", "preferences:style", "brand", "procedural:style", "reference_board"]},
+    "S09":  {"sources": ["procedural:generation", "model_acceptance", "preferences:sound", "concepts:selected", "cost_summary"]},
+    "S10":  {"sources": ["style:current", "procedural:compose", "preferences:edit", "edit_plans:current"]},
+    "S11":  {"sources": ["procedural:sound", "preferences:sound", "edit_plans:current"]},
+    "S12":  {"sources": ["procedural:compose", "creative_cap", "edit_plans:current"]},
+    "S13":  {"sources": ["procedural:qc", "legal_state", "concepts:distance"]},
+    "S14":  {"sources": ["budget_state", "risk_limits", "creatives:test", "calendar"]},
+    "S15":  {"sources": ["action_items:open", "measurement", "risk_limits", "budget_state"]},
+    "S16":  {"sources": ["hypotheses:open", "calibration", "action_items:open", "playbook:scoped", "competitive_context", "portfolio_results:previous"]},
+    "S17":  {"sources": ["hypotheses:all_cycle", "playbook:all", "calibration", "consolidation_state", "portfolio_results:current"]}
+  }
+}

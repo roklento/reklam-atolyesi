@@ -1,0 +1,21 @@
+{
+  "_comment": "Meta yazma koruması İZİN LİSTESİDİR (spec 9.3): listede tam adıyla olmayan Meta aracı reddedilir; joker kullanılmaz. Listeye ekleme insan onayıyla ve araç tanımı okunarak yapılır. ads_library_search için plugin modunda görüntü başına sorgu bütçesi uygulanır (9.2, 13.6).",
+  "version": "1.4.0",
+  "allow": [
+    "ads_get_ad_accounts", "ads_get_ad_account_pages", "ads_get_pages_for_business",
+    "ads_get_user_pages", "ads_get_ig_accounts", "ads_get_ig_media",
+    "ads_get_ad_entities", "ads_get_field_context", "ads_get_creatives",
+    "ads_get_creative_ads", "ads_get_ad_images", "ads_get_ad_videos",
+    "ads_get_ad_preview", "ads_get_ad_preview_screenshot", "ads_get_errors",
+    "ads_get_opportunity_score", "ads_get_datasets", "ads_get_dataset_details",
+    "ads_get_dataset_quality", "ads_get_dataset_stats", "ads_get_customconversions",
+    "ads_get_help_article", "ads_account_get_activity_logs",
+    "ads_insights_performance_trend", "ads_insights_anomaly_signal", "ads_insights_industry_benchmark",
+    "ads_insights_auction_ranking_benchmarks", "ads_insights_advertiser_context",
+    "ads_catalog_list_catalogs", "ads_catalog_list_products", "ads_catalog_list_product_sets",
+    "ads_catalog_get_diagnostics", "ads_library_search",
+    "ads_experiment_list_tests", "ads_experiment_abtest_get_test"
+  ],
+  "library_tool": "ads_library_search",
+  "library_query_budget_default": 20
+}

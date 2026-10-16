@@ -1,0 +1,139 @@
+"""Sahne sesi uygulaması ve miks (spec 5.13, S11).
+
+Sahne başına audio.mode: original (çekim sesi aynen) · original_clean (afftdn ile temizlenmiş) · user_vo (kullanıcı kaydı) ·
+generated (çekim sesi kaldırılır; üretilmiş VO/müzik/efekt) · none (çekim sesi kaldırılır; müzik + efekt).
+Çekim sesi ile üretilmiş ses arasındaki geçişler kısa çapraz geçişle; müzik VO/konuşmanın 4–5 dB altında + sidechain;
+efektler kare hassasiyetinde; iki geçişli loudnorm → -14 LUFS, ≤ -1 dBTP. Stem'ler ayrı yazılır.
+
+Kullanım: mix.py --plan plan.json --scene-audio scenes_map.json [--music m.wav] [--vo vo.wav] [--sfx-dir dir] --out-dir audio/stems
+"""
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+from common import emit, read_json, write_json  # noqa: E402
+import loudness as LN  # noqa: E402
+
+SR = 48000
+XFADE = 0.03
+
+
+def _read(path: str | None, dur: float | None = None) -> np.ndarray | None:
+    if not path or not Path(path).exists():
+        return None
+    import soundfile as sf
+    y, sr = sf.read(path, always_2d=True, dtype="float32")
+    if sr != SR:
+        from scipy.signal import resample_poly
+        from math import gcd
+        g = gcd(sr, SR)
+        y = resample_poly(y, SR // g, sr // g, axis=0).astype(np.float32)
+    if y.shape[1] == 1:
+        y = np.repeat(y, 2, axis=1)
+    if dur is not None:
+        n = int(dur * SR)
+        y = y[:n] if len(y) >= n else np.pad(y, ((0, n - len(y)), (0, 0)))
+    return y
+
+
+def _place(track: np.ndarray, clip: np.ndarray, at_s: float, fade_s: float = XFADE) -> None:
+    i = int(round(at_s * SR))
+    if i >= len(track):
+        return
+    c = clip[: len(track) - i].copy()
+    f = min(int(fade_s * SR), len(c) // 2)
+    if f > 0:
+        ramp = np.linspace(0, 1, f, dtype=np.float32)[:, None]
+        c[:f] *= ramp
+        c[-f:] *= ramp[::-1]
+    track[i:i + len(c)] += c
+
+
+def _write(path: Path, y: np.ndarray) -> str:
+    import soundfile as sf
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sf.write(str(path), np.clip(y, -1, 1), SR, subtype="PCM_16")
+    return str(path)
+
+
+def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: dict[str, str], out_dir: Path,
+        duck_db: float = 4.5) -> dict:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    total = float(plan["duration_s"])
+    n = int(total * SR)
+    dialog = np.zeros((n, 2), np.float32)
+    effects = np.zeros((n, 2), np.float32)
+    applied = []
+    speech_mask = np.zeros(n, bool)
+    for s in plan["scenes"]:
+        mode = s["audio"]["mode"]
+        seg_path = scene_audio.get(s["id"])
+        if mode in ("original", "original_clean") and seg_path:
+            src = seg_path
+            if mode == "original_clean":
+                cleaned = out_dir / f"{s['id']}_clean.wav"
+                LN.clean(seg_path, str(cleaned))
+                src = str(cleaned)
+            clip = _read(src, s["dur_s"])
+            if clip is not None:
+                _place(dialog, clip, s["start_s"])
+                a, b = int(s["start_s"] * SR), int((s["start_s"] + s["dur_s"]) * SR)
+                speech_mask[a:b] = True
+        applied.append({"scene": s["id"], "mode": mode, "source": seg_path if mode in ("original", "original_clean") else None})
+        for cue in s.get("audio_cues", []) or []:
+            p = sfx.get(cue.get("sfx", ""))
+            clip = _read(p)
+            if clip is not None:
+                _place(effects, clip * (10 ** (float(cue.get("gain_db", 0)) / 20)), s["start_s"] + float(cue["at_s"]), 0.004)
+    vo_track = np.zeros((n, 2), np.float32)
+    vo_clip = _read(vo, total) if vo and any(s["audio"]["mode"] in ("generated", "user_vo") for s in plan["scenes"]) else None
+    if vo_clip is not None:
+        for s in plan["scenes"]:
+            if s["audio"]["mode"] in ("generated", "user_vo"):
+                a, b = int(s["start_s"] * SR), int((s["start_s"] + s["dur_s"]) * SR)
+                vo_track[a:b] = vo_clip[a:b]
+                speech_mask[a:b] |= np.abs(vo_clip[a:b]).max(axis=1) > 0.01
+    music_track = np.zeros((n, 2), np.float32)
+    m = _read(music, total)
+    if m is not None:
+        off = float((plan.get("music") or {}).get("offset_s", 0.0))
+        g = 10 ** (float((plan.get("music") or {}).get("gain_db", -6.0)) / 20)
+        _place(music_track, m * g, off, 0.5)
+        env = np.where(speech_mask, 10 ** (-duck_db / 20), 1.0).astype(np.float32)
+        k = int(0.15 * SR)
+        env = np.convolve(env, np.ones(k) / k, mode="same").astype(np.float32)
+        music_track *= env[:, None]
+    stems = {"dialog": _write(out_dir / "stem_dialog.wav", dialog), "vo": _write(out_dir / "stem_vo.wav", vo_track),
+             "music": _write(out_dir / "stem_music.wav", music_track), "sfx": _write(out_dir / "stem_sfx.wav", effects)}
+    pre = dialog + vo_track + music_track + effects
+    pre_path = _write(out_dir / "mix_pre.wav", pre * 0.8)
+    ln = LN.loudnorm(pre_path, str(out_dir / "mix_final.wav"))
+    rep = {"stems": stems, "pre": pre_path, "final": ln["out"], "loudness": ln["verify"], "loudness_ok": ln["ok"], "applied_modes": applied,
+           "duck_db": duck_db}
+    write_json(out_dir / "mix_report.json", rep)
+    return rep
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--plan", required=True)
+    ap.add_argument("--scene-audio", required=True, help="scenes.py çıktısı (audio_segments) ya da {sahne: wav}")
+    ap.add_argument("--music")
+    ap.add_argument("--vo")
+    ap.add_argument("--sfx-map", help="{sfx_anahtarı: wav_yolu}")
+    ap.add_argument("--out-dir", required=True)
+    ap.add_argument("--duck-db", type=float, default=4.5)
+    a = ap.parse_args()
+    sa = read_json(a.scene_audio)
+    sa = sa.get("audio_segments", sa)
+    rep = mix(read_json(a.plan), sa, a.music, a.vo, read_json(a.sfx_map) if a.sfx_map else {}, Path(a.out_dir), a.duck_db)
+    emit(rep)
+
+
+if __name__ == "__main__":
+    main()

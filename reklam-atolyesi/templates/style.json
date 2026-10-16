@@ -1,0 +1,10 @@
+{
+  "_comment": "Kurulumdaki NÖTR stil şablonu (spec 5.6, ilke 12): nötr gri palet, tek nötr sans-serif (Inter; Türkçe karakter destekli, latin + latin-ext), LUT yok, gren ve vinyet 0, efekt bütçesi varsayılanı (bütçe yalnızca üst sınırdır; nötr şablonda hiçbir efekt ya da bileşen plana varsayılan olarak girmez). Yalnızca stil seçilmeden önceki önizlemeler içindir; hiçbir yöne başlangıç noktası yapılmaz. Profilin style.json'u S00a'da logodan çıkarılan renklerle iskelet olarak doğar, S08'de dolar; onaylanan her stil styles/v<N>.json olarak değişmez kopyaya yazılır.",
+  "palette": { "ink": "#1F1F1F", "accent": "#6B6B6B", "bg": "#E6E6E6" },
+  "fonts": { "display": "Inter", "displayStyle": "normal", "displayWeight": 700, "body": "Inter", "brand": "Inter", "brandTracking": "0em" },
+  "grade": { "lut": null, "grain": 0, "vignette": 0 },
+  "motion": { "easeIn": [0.16, 1, 0.3, 1], "charStaggerMs": 0, "revealMs": 400 },
+  "effects": { "signatureMax": 1, "transitionTypesMax": 2, "persistentAtmosphere": false },
+  "sound": { "signatureReveal": null, "transition": null, "musicBpmRange": null },
+  "layout": { "9x16": { "titleY": 0.14 }, "4x5": { "titleY": 0.19 }, "1x1": { "titleY": 0.1 } }
+}

@@ -1,0 +1,34 @@
+[project]
+name = "ad-memory"
+version = "1.4.0"
+description = "reklam-atolyesi veri deposu ve hafızası (MCP, stdio, SQLite)"
+requires-python = ">=3.11"
+dependencies = [
+  "mcp<2",            # MCP sunucu SDK'sı (2.x'te API değişti, bu yüzden sabitlenir; 12.6)
+  "numpy",
+  "scipy",
+  "pandas",           # analiz, istatistik (6.6)
+  "matplotlib",       # grafikler (6.12)
+  "librosa",
+  "soundfile",        # vuruş/enerji analizi (5.8, 5.13)
+  "pyloudnorm",       # LUFS ölçümü (5.13)
+  "opencv-python<5",  # netlik, pozlama, sarsıntı puanlama, kişi tespiti (5.5); 5.x CascadeClassifier'ı kaldırdı
+  "pillow",
+  "pillow-heif",      # kontak sayfası, fotoğraflar (HEIC, 5.4)
+  "jsonschema",       # kurgu planı doğrulama (5.2)
+  "duckdb",           # (isteğe bağlı) analitik sorgular (7.1)
+]
+
+[project.scripts]
+ad-memory = "server:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["server"]
+packages = ["admem"]

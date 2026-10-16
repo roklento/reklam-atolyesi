@@ -1,0 +1,45 @@
+{
+  "_comment": "ElevenLabs MCP araç sınıfları (9.1, 13.6). Plugin modunda: 'paid' gerçek çağrı yalnızca onaylı rezervasyonla; estimate_only yalnızca canlı şemada desteği doğrulanmış araçta ücretsiz geçer. 'free' listesi ücret harcamayan okuma/flow düzenleme araçlarıdır. Listede olmayan (sınıflandırılmamış) her ElevenLabs aracı plugin modunda reddedilir. Liste değişikliği insan onayıyla yapılır; canlı kontrol (12.10) gerçek araç adlarıyla karşılaştırır.",
+  "version": "1.4.0",
+  "server_name_patterns": ["ElevenLabs", "elevenlabs"],
+  "tool_prefixes": ["creative_"],
+  "paid": {
+    "creative_generate_speech":   {"kind": "tts",        "defaults": {"generations_count": 4}},
+    "creative_generate_image":    {"kind": "image",      "defaults": {"generations_count": 4}},
+    "creative_generate_video":    {"kind": "video",      "defaults": {"generations_count": 1}},
+    "creative_edit_image":        {"kind": "image_edit", "defaults": {"generations_count": 4}},
+    "creative_generate_in_flow":  {"kind": "flow",       "defaults": {"generations_count": 4}},
+    "creative_run_flow_nodes":    {"kind": "flow_run",   "defaults": {"generations_count": 4}},
+    "creative_design_voice":      {"kind": "voice_design", "defaults": {}},
+    "creative_transcribe_audio":  {"kind": "transcription", "defaults": {}}
+  },
+  "free": [
+    "creative_list_voices",
+    "creative_get_flow",
+    "creative_get_flow_node",
+    "creative_get_flow_node_types",
+    "creative_get_flow_run_status",
+    "creative_get_model_guide",
+    "creative_get_model_schema",
+    "creative_get_available_assets",
+    "creative_show_flow_results",
+    "creative_create_flow",
+    "creative_add_flow_node",
+    "creative_add_flow_asset_node",
+    "creative_connect_flow_nodes",
+    "creative_disconnect_flow_nodes",
+    "creative_delete_flow_nodes",
+    "creative_update_flow_nodes",
+    "creative_update_node",
+    "creative_get_voice_design_previews",
+    "creative_save_designed_voice",
+    "get_more_tools"
+  ],
+  "upload": [
+    "creative_attach_reference_file",
+    "creative_upload_flow_reference",
+    "creative_create_asset_upload",
+    "creative_finalize_asset_upload"
+  ],
+  "_upload_comment": "Yükleme araçları ücretsizdir ama dosyayı dış sağlayıcıya gönderir: plugin modunda yalnızca oturuma bağlı profil için processing_permission_check sonucu kaydedilmişse geçer (bölüm 10, yükleme öncesi izin kapısı)."
+}

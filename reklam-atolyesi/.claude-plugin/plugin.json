@@ -1,0 +1,41 @@
+{
+  "name": "reklam-atolyesi",
+  "displayName": "Reklam Atölyesi",
+  "version": "1.4.0",
+  "description": "Meta video reklamlarını rakip analiziyle stratejiden yayın paketine kadar üreten, yayındaki reklamları matematikle okuyup koçluk yapan ve her turda öğrenen reklam sistemi. Başlatmak için yalnızca 'reklam-atolyesi' yazın.",
+  "author": {
+    "name": "Reklam Atölyesi"
+  },
+  "keywords": ["meta-ads", "video-reklam", "remotion", "elevenlabs", "koçluk", "rakip-analizi", "türkçe"],
+  "skills": ["./skills/"],
+  "userConfig": {
+    "data_dir": {
+      "type": "directory",
+      "title": "Veri klasörü (data_dir)",
+      "description": "Bütün profillerin verisi, veritabanı, hafıza, kayıtlar, yedekler ve bağımlılıklar (.venv, .node) bu klasörde tutulur. Kurulumda verilen yol kullanılır.",
+      "required": true
+    },
+    "currency": {
+      "type": "string",
+      "title": "Varsayılan para birimi",
+      "description": "Profil para birimi bilinmediğinde kullanılan varsayılan (TRY, USD, EUR). Reklam hesabının para birimi profil başına tutulur.",
+      "options": ["TRY", "USD", "EUR"],
+      "default": "TRY"
+    },
+    "language": {
+      "type": "string",
+      "title": "Dil",
+      "description": "Arayüz ve rapor dili (tr, en).",
+      "options": ["tr", "en"],
+      "default": "tr"
+    },
+    "exploration_share": {
+      "type": "number",
+      "title": "Kreatif test bütçesi payı",
+      "description": "Kreatif test bütçesinin reklam seti bütçesine oranı (0,05–0,2; Meta kreatif test aracının ~%20 üst sınırını aşamaz).",
+      "min": 0.05,
+      "max": 0.2,
+      "default": 0.2
+    }
+  }
+}

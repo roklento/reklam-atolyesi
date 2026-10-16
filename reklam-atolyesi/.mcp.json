@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "ad-memory": {
+      "type": "stdio",
+      "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/servers/ad_memory/server.py"
+      ],
+      "env": {
+        "AD_MEMORY_DB": "${user_config.data_dir}/db/ad-memory.sqlite",
+        "AD_MEMORY_DATA_DIR": "${user_config.data_dir}",
+        "PYTHONIOENCODING": "utf-8"
+      }
+    },
+    "meta-ads": {
+      "type": "http",
+      "url": "https://mcp.facebook.com/ads"
+    },
+    "ElevenLabs": {
+      "type": "http",
+      "url": "https://api.us.elevenlabs.io/v1/mcp"
+    }
+  }
+}

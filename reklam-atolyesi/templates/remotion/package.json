@@ -1,0 +1,29 @@
+{
+  "name": "reklam-atolyesi-remotion",
+  "version": "1.4.0",
+  "private": true,
+  "description": "reklam-atolyesi Remotion proje şablonu ve bileşen kütüphanesi (nötr varsayılanlar; spec 5.12). Bağımlılıklar <data_dir>/.node/node_modules altına kurulur (12.6).",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "dependencies": {
+    "@fontsource/inter": "5.3.0",
+    "@react-three/fiber": "9.8.2",
+    "@remotion/bundler": "4.0.532",
+    "@remotion/cli": "4.0.532",
+    "@remotion/media-utils": "4.0.532",
+    "@remotion/motion-blur": "4.0.532",
+    "@remotion/renderer": "4.0.532",
+    "@remotion/three": "4.0.532",
+    "@remotion/zod-types": "4.0.532",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.532",
+    "three": "0.178.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "@types/three": "0.178.1",
+    "typescript": "5.9.3"
+  }
+}

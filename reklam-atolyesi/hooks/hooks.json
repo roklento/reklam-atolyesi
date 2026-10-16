@@ -1,0 +1,120 @@
+{
+  "description": "reklam-atolyesi: plugin modu ve navigator, Meta izin listesi (hata durumunda engelleme), ElevenLabs maliyet koruması, render mini-QC, kaydedilmemiş çıktı/devam notu uyarısı (spec 13.6). Plugin modu dışında yalnızca kendi Meta sunucusunun izin listesi çalışır.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/navigator.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptExpansion": [
+      {
+        "matcher": "^reklam-atolyesi:.*$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/navigator.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "resume|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^mcp__.*__ads_[a-z0-9_]+$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/meta_guard.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "^mcp__plugin_reklam-atolyesi_ElevenLabs__.*$|^mcp__.*__(creative_[a-z0-9_]+|agents_[a-z0-9_]+|get_more_tools)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/cost_guard.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/render_qc.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/stop_check.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
