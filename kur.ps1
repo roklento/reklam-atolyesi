@@ -9,7 +9,7 @@ Reklam Atölyesi — Windows kurulum ve güncelleme betiği.
   5. Plugin'in kendi kurulum adımlarını çalıştırır: araçlar, Python ve Remotion bağımlılıkları, bu bilgisayarda doğrulama
 #>
 param(
-    [string]$DepoUrl = "__DEPO_URL__",
+    [string]$DepoUrl = "https://github.com/roklento/reklam-atolyesi.git",
     [string]$PazarAdi = "reklam-atolyesi",
     [string]$VeriKlasoru = "",
     [switch]$DogrulamaYok   # destek/tanı: yalnızca kurulum adımları, bu bilgisayardaki doğrulama atlanır (kurulum tamamlanmış sayılmaz)
