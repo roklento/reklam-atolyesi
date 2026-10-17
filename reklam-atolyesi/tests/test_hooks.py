@@ -48,11 +48,67 @@ def test_navigator_command_turkish_i_and_exit(ddir):
     assert run_hook("navigator.py", {"session_id": "s-cmd-0003", "hook_event_name": "UserPromptSubmit", "prompt": "selam"}, ddir) is None
 
 
-def test_navigator_number_resolves_last_menu(ddir, store):
+def _menu_block(c: str) -> str:
+    assert "<<<MENÜ" in c and "MENÜ>>>" in c, c
+    return c.split("<<<MENÜ", 1)[1].split("MENÜ>>>", 1)[0].strip()
+
+
+def _say(ddir, text, sid=SID, pid="px"):
+    return ctx_of(run_hook("navigator.py", {"session_id": sid, "hook_event_name": "UserPromptSubmit", "prompt": text, "prompt_id": pid}, ddir))
+
+
+def test_navigator_fixed_menu_same_in_every_session(ddir, store):
+    """Ana menü sabittir (1.4.1): metni hook üretir, iki oturumda birebir aynıdır; 9 madde, numaralar değişmez."""
+    make_active_profile(store)
+    m1 = _menu_block(ctx_of(enter_mode(ddir)))
+    m2 = _menu_block(ctx_of(enter_mode(ddir, sid="other-session-0002")))
+    assert m1 == m2
+    lines = [ln for ln in m1.splitlines() if ln[:2] in {f"{i}." for i in range(1, 10)}]
+    assert [ln.split(".")[0] for ln in lines] == [str(i) for i in range(1, 10)]
+    assert lines[0].startswith("1. Devam et → yeni kampanya brief'i: Ürün A")
+    assert lines[2] == "3. Performans ve koçluk (henüz yayında reklam yok)"
+    assert lines[7] == "8. Profiller: değiştir / yeni profil ekle" and lines[8] == "9. Sistem ve hesap durumu"
+    assert m1.startswith("**Marka A** · aktif kampanya yok")
+    # sunucu aracı aynı metni verir
+    r = store.menu_render("third-session-0003")
+    assert r["kind"] == "menu" and r["text"] == m1
+
+
+def test_navigator_number_only_on_menu_and_home(ddir, store):
+    make_active_profile(store)
     enter_mode(ddir)
-    store.session_menu_set(SID, ["Yeni video reklam oluştur", "Neler yaptık"])
-    out = run_hook("navigator.py", {"session_id": SID, "hook_event_name": "UserPromptSubmit", "prompt": "2", "prompt_id": "p2"}, ddir)
-    assert "«Neler yaptık»" in ctx_of(out)
+    c = _say(ddir, "3", pid="p2")
+    assert "ana menünün 3. maddesini seçti: «Performans ve koçluk (henüz yayında reklam yok)»" in c and "reklam-atolyesi:track" in c
+    # artık aşama/iş içindeyiz: aynı sayı menü maddesi sayılmaz (sorunun cevabıdır)
+    c = _say(ddir, "3", pid="p3")
+    assert "maddesini seçti" not in c and "son ekran: ana menü" not in c
+    # home: her yerden "menü" ana menüyü verir ve devam notu ister
+    c = _say(ddir, "Menü", pid="p4")
+    assert "ana menüye döndü" in c and "checkpoint_save" in c and "9. Sistem ve hesap durumu" in _menu_block(c)
+    c = _say(ddir, "12", pid="p5")
+    assert "ana menüde 9 madde var" in c
+    _say(ddir, "ana menü", pid="p6")
+    assert "«Neler yaptık»" in _say(ddir, "7.", pid="p7")
+
+
+def test_navigator_no_menu_without_profile(ddir):
+    c = ctx_of(enter_mode(ddir))
+    assert "<<<MENÜ" not in c and "brand-onboarding" in c
+    assert "maddesini seçti" not in _say(ddir, "1", pid="p2")
+
+
+def test_hook_output_survives_non_utf8_stdout(ddir):
+    """Host hook'u PYTHONIOENCODING olmadan başlatır; Windows'ta stdout cp1254'tür. Çıktı ASCII kaçışlı JSON olmalı (1.4.1)."""
+    import os
+    import subprocess
+    import sys as _sys
+    e = dict(os.environ, PYTHONIOENCODING="cp1254")
+    r = subprocess.run([_sys.executable, str(ROOT / "hooks" / "navigator.py"), "--data-dir", str(ddir)],
+                       input=json.dumps({"session_id": SID, "hook_event_name": "UserPromptSubmit", "prompt": "reklam atölyesi"}).encode("utf-8"),
+                       capture_output=True, timeout=30, env=e)
+    assert r.returncode == 0
+    r.stdout.decode("ascii")  # bayt düzeyinde yalnızca ASCII
+    assert "plugin modu: açık" in ctx_of(json.loads(r.stdout))
 
 
 def test_navigator_expansion_dedupe(ddir):

@@ -159,7 +159,9 @@ if (-not $script:ClaudeExe) {
     if (-not (Read-EvetHayir "Anthropic'in resmi kurulum betiğiyle (claude.ai/install.ps1) Claude Code kurulsun mu?")) {
         Stop-Kurulum "Claude Code gerekli. https://code.claude.com adresinden kurup tekrar çalıştırın."
     }
-    Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression
+    # Alt kapsamda çalıştırılır: resmi betik Set-StrictMode -Version Latest açar; bu kapsama sızarsa sonraki adımlar katı modda çalışır.
+    & { Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression }
+    Set-StrictMode -Off
     Update-YolDegiskeni
     $script:ClaudeExe = Find-Claude
     if (-not $script:ClaudeExe) { Stop-Kurulum "Claude Code kurulamadı." }

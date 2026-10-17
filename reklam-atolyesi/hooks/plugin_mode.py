@@ -135,7 +135,9 @@ def ro_db(data_dir: Path) -> sqlite3.Connection | None:
 
 
 def emit(obj: dict) -> None:
-    sys.stdout.write(json.dumps(obj, ensure_ascii=False))
+    # ASCII kaçışlı JSON: host hook'u PYTHONIOENCODING olmadan başlatır; Windows'ta stdout kod sayfası (cp1254) UTF-8 değildir ve
+    # Türkçe karakterler bozulur. \uXXXX kaçışları her kod sayfasında aynı baytlardır, host JSON'u çözünce metin doğru gelir.
+    sys.stdout.write(json.dumps(obj, ensure_ascii=True))
     sys.stdout.flush()
 
 

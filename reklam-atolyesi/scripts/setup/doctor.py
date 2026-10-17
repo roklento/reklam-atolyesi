@@ -185,14 +185,25 @@ def check_vendor(r: Report) -> None:
     vm = (ROOT / "skills" / "ref-vendor-map" / "SKILL.md").read_text(encoding="utf-8")
     if "Remotion — resmi belge yolu" not in vm or "remotion.dev/docs" not in vm:
         problems.append("ref-vendor-map: Remotion resmi belge eşlemesi yok")
+    r.add("vendor", "Vendor skill'ler pinli; LICENSE/OVERRIDES yerinde; yalnızca ./skills/ kayıtlı; Remotion resmi belgeye bağlı",
+          not problems, problems)
+
+
+def global_skill_clash() -> list[str]:
+    """~/.claude/skills altında vendor skill'leriyle ya da Remotion ile aynı adlı genel skill'ler (kullanıcının başka işler için kurduğu)."""
+    vd = ROOT / "vendor-skills"
     gskills = Path.home() / ".claude" / "skills"
     globals_ = sorted(p.name for p in gskills.iterdir()) if gskills.exists() else []
     vendor_names = {p.name for p in vd.iterdir() if p.is_dir()} | {"remotion", "remotion-best-practices"}
-    clash = [g for g in globals_ if g in vendor_names or g.startswith("remotion")]
-    if clash:
-        problems.append(f"global skill kaydı var: {clash}")
-    r.add("vendor", "Vendor skill'ler pinli; LICENSE/OVERRIDES yerinde; yalnızca ./skills/ kayıtlı; Remotion resmi belgeye bağlı; global kayıt yok",
-          not problems, problems)
+    return [g for g in globals_ if g in vendor_names or g.startswith("remotion")]
+
+
+def check_global_skills(r: Report, deviations: dict) -> None:
+    # Ayrı madde (1.4.1): kullanıcı bu skill'leri başka işlerde kullanıyorsa dokunulmamasını seçebilir; karar install_deviations'a
+    # 'global_skills' sapması olarak yazılır, madde kırmızı görünür ama kurulumu engellemez. Plugin bu skill'leri okumaz (ref-vendor-map).
+    clash = global_skill_clash()
+    r.add("global_skills", "~/.claude/skills altında plugin'inkilerle çakışan genel skill yok", not clash,
+          {"clash": clash, "path": "~/.claude/skills"} if clash else None, deviation=deviations.get("global_skills") if clash else None)
 
 
 def check_components(r: Report) -> None:
@@ -518,6 +529,7 @@ def write_ok(data_dir: Path, manifest_sha: str, report: Report, dev_records: lis
             s.journal_log(f"kurulum tamamlandı · reklam-atolyesi {ver} · statik kontrol yeşil", None, type="setup", detail=detail)
         elif update:
             s.journal_log(f"güncelleme doğrulandı · reklam-atolyesi {ver} · statik kontrol yeşil", None, type="setup", detail=detail)
+        s.mark_verified_if_ready()  # canlı maddeler daha önce geçtiyse kurulum şimdi doğrulanmış olur (1.4.1)
         for sub in ("logs", "backups", "memory/system", ".sessions"):
             (data_dir / sub).mkdir(parents=True, exist_ok=True)
         mark = data_dir / ".kurulum-statik-tamam"
@@ -568,6 +580,7 @@ def main() -> None:
     r = Report()
     check_tools(r, data_dir)
     check_vendor(r)
+    check_global_skills(r, deviations)
     check_components(r)
     check_scripts_map(r, manifest)
     check_hooks_exec(r, data_dir)

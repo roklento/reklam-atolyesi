@@ -130,3 +130,31 @@ def test_support_summary_masks_user_folder():
 
 def test_plugin_version_from_manifest():
     assert DR.plugin_version() == json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))["version"]
+
+
+def test_global_skills_separate_check_and_user_decision(tmp_path, monkeypatch, data_dir):
+    """Çakışan genel skill'ler ayrı doctor maddesidir; 'dokunma' sapma kaydı olur, 'taşı' silmeden yedeğe taşır (1.4.1)."""
+    home = tmp_path / "ev"
+    (home / ".claude" / "skills" / "remotion-render").mkdir(parents=True)
+    (home / ".claude" / "skills" / "baska-skill").mkdir()
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: home))
+    assert DR.global_skill_clash() == ["remotion-render"]
+    rec, det = KD.handle_global_skills(data_dir, "sor", interactive=False)
+    assert rec is None and "verilmedi" in det["karar"]
+    rec, det = KD.handle_global_skills(data_dir, "birak", interactive=False)
+    assert rec["check"] == "global_skills" and rec["decided_by"] == "user" and rec["status"] == "accepted"
+    r = DR.Report()
+    DR.check_global_skills(r, {"global_skills": rec["deviation"]})
+    assert r.items[0]["ok"] is False and r.items[0]["accepted_deviation"] and not r.blocking()
+    rec, det = KD.handle_global_skills(data_dir, "tasi", interactive=False)
+    assert rec is None and det["tasinan"] == ["remotion-render"]
+    assert (home / ".claude" / "skills-yedek" / "remotion-render").is_dir() and DR.global_skill_clash() == []
+
+
+def test_kurulum_ps1_survives_inherited_strict_mode():
+    """Claude Code'u kuran resmi betik Set-StrictMode -Version Latest açar ve kur.ps1 kapsamında kalır (1.4.0 ilk kurulum hatası)."""
+    t = (ROOT / "scripts" / "setup" / "windows" / "kurulum.ps1").read_text(encoding="utf-8-sig")
+    body = re.split(r"^\)\s*$", t, maxsplit=1, flags=re.M)[1]  # param(...) bloğundan sonrası
+    first = [ln.strip() for ln in body.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+    assert "Set-StrictMode -Off" in first[:3]
+    assert "$miss = Get-EksikFfmpegFiltreleri" not in t and t.count("$miss = @(Get-EksikFfmpegFiltreleri)") == 2

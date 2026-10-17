@@ -45,7 +45,8 @@ Yok (spec 15: S01b hazır skill kullanmaz). Yöntem bu skill'de ve `ref-creative
    Her sonucu normalize et: `PY PR/scripts/competitive/comp_tools.py library-normalize --raw <sonuç.json> --competitor-id <id>`.
 4. **Kayıt ve fark:** `competitor_snapshot_save(profile_id, mode="full"|"diff", ads, n_calls, scope={competitors, terms, country,
    date_range, query_budget}, campaign_id, cycle_id, source="ad_library")` (tek işlem: UPSERT, ilk/son görülme, varyant grupları,
-   SHA-256). Fark: `competitor_diff(profile_id, snapshot_id)` → yeni · süren · durmuş.
+   SHA-256). `ads` öğelerinin her biri `library_id` ve **sayısal** `competitor_id` taşır (önce `competitor_upsert`; rakip adı değil —
+   normalize çıktısı bunu `--competitor-id` ile ekler). Fark: `competitor_diff(profile_id, snapshot_id)` → yeni · süren · durmuş.
 5. **Varyant gruplama:** aynı metin ya da görsel çekirdeği paylaşan reklamlar tek **rakip konsepti** (Andromeda mantığı); varyant sayısı
    ayrıca tutulur (sunucu ve `comp_tools.py group` aynı kodu kullanır).
 6. **Kodlama** (rakip başına paralel): workflow `analyze-competitors` (`PR/workflows/analyze-competitors.js`, args: `{profile_id,

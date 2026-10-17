@@ -107,6 +107,12 @@ class CompMixin:
         budget = int((scope or {}).get("query_budget", 20))
         if n_calls > budget:
             raise AdMemoryError(f"sorgu bütçesi aşıldı ({n_calls} > {budget}); görüntü kaydedilmedi (9.2, 13.6)")
+        bad = [str(a.get("library_id") or f"#{i}") for i, a in enumerate(ads or [])
+               if not isinstance(a, dict) or not a.get("library_id") or isinstance(a.get("competitor_id"), bool)
+               or not isinstance(a.get("competitor_id"), int) and not str(a.get("competitor_id") or "").isdigit()]
+        if bad:
+            raise AdMemoryError("her reklamda library_id ve sayısal competitor_id gerekli (competitor_upsert/competitor_list'ten; rakip adı değil). "
+                                f"Eksik/hatalı: {', '.join(bad[:10])}" + (f" (+{len(bad) - 10})" if len(bad) > 10 else "") + "; görüntü kaydedilmedi")
         payload = canonical_json({"mode": mode, "scope": scope, "ads": sorted(ads, key=lambda a: str(a.get("library_id")))})
         sha = sha256_text(payload)
         now = now_iso()

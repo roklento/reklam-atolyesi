@@ -1,0 +1,26 @@
+{
+  "_comment": "Ana menü (spec 17.1, 1.4.1): numaralar ve adlar SABİTTİR; model menü yazmaz, hooks/menu.py bu dosyadan ve veritabanından üretir. Duruma göre değişen yalnızca üst satır, 1. maddenin '→' sonrası ve maddeye eklenen kısa not. Menüye her an 'menü' yazılarak dönülür (home). Sayı yalnızca son ekran menüyse menü maddesi sayılır; aşama içindeyken o aşamanın sorusuna cevaptır.",
+  "version": "1.4.1",
+  "home_words": ["menü", "menu", "ana menü", "ana menu", "anamenü", "anamenu"],
+  "footer": "Numara yaz ya da ne yapmak istediğini anlat. Her an \"menü\" yazarak buraya dönebilirsin.",
+  "items": [
+    {"no": 1, "key": "devam", "label": "Devam et",
+     "action": "Aktif kampanyanın mevcut aşamasını yürüt (kapıdaysa özet ve açık onay sorusu); kampanya yoksa '→' sonrasında yazan işi başlat (tanışma adımı ya da ürün için yeni kampanya: campaign_create → reklam-atolyesi:brief). Açık devam notu varsa önce stage_resume ile doğrula."},
+    {"no": 2, "key": "yeni_reklam", "label": "Yeni video reklam",
+     "action": "Ürün seç (product_list; tanışması bitmemiş ürün için reklam-atolyesi:product-onboarding) → campaign_create → reklam-atolyesi:brief (S01)."},
+    {"no": 3, "key": "performans", "label": "Performans ve koçluk",
+     "action": "Yayındaki reklamlar için reklam-atolyesi:track, ardından reklam-atolyesi:coach. Yayında reklam yoksa bunu söyle ve 1. ya da 2. maddeyi öner."},
+    {"no": 4, "key": "gecmis_rakip", "label": "Reklam geçmişi ve rakip analizi",
+     "action": "Hangisi istendiğini sor (AskUserQuestion): Meta geçmişi (reklam-atolyesi:meta-history, artımlı) ya da rakip analizi (reklam-atolyesi:competitor-analysis; aktif kampanya yoksa profil düzeyinde)."},
+    {"no": 5, "key": "urunler", "label": "Ürünler / yeni ürün ekle",
+     "action": "product_list ile ürünleri ve tanışma durumlarını göster; yeni ürün için reklam-atolyesi:product-onboarding."},
+    {"no": 6, "key": "marka", "label": "Marka, stil ve rakipler",
+     "action": "onboarding_get / brand_upsert ile marka bilgileri, DD/profiles/<slug>/style.json stil kitabı, competitor_list rakipler: göster, düzeltme isterse güncelle."},
+    {"no": 7, "key": "neler_yaptik", "label": "Neler yaptık",
+     "action": "reklam-atolyesi:memory görünürlük adımı (journal_summary, aktif kurallar, tercihler; düzelt/unut)."},
+    {"no": 8, "key": "profiller", "label": "Profiller: değiştir / yeni profil ekle",
+     "action": "profile_list ile profilleri göster; değiştirmek için profile_set_active(profile_id, session_id); yeni profil için reklam-atolyesi:brand-onboarding (mevcut profiller etkilenmez)."},
+    {"no": 9, "key": "sistem", "label": "Sistem ve hesap durumu",
+     "action": "reklam-atolyesi:ref-system-map + system_manifest_get özeti: kurulum (statik ve canlı), OAuth, disk, son yedek, cost_summary, calibration_get."}
+  ]
+}

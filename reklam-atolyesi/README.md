@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.0
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.1
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -32,7 +32,9 @@ reklam-atolyesi
 ```
 
 İlk açılışta: canlı kurulum kontrolü → `/mcp` ile **ElevenLabs** ve **Meta Ads (salt okuma)** OAuth bağlantıları → marka tanışması.
-Sonrasında arayüz numaralı menüdür (navigator); komut yazmanız beklenmez. "menü" menüyü yeniden gösterir, "çık" plugin modundan çıkar.
+Sonrasında arayüz **sabit** numaralı ana menüdür (navigator); komut yazmanız beklenmez. Maddeler ve numaralar hiç değişmez
+(`hooks/menu.json`); metni model değil `hooks/menu.py` üretir. Her an "menü" yazmak ana menüye döndürür (yarım iş devam notuna
+kaydedilir, "1. Devam et" oradan sürdürür). Tek sayı yalnızca son ekran ana menüyse menü maddesidir. "çık" plugin modundan çıkar.
 
 ## Döngü
 Brief → rakip analizi → strateji (kapı) → konsept görüşmesi (kapı) → çekim rehberi (kapı) → deneme → çekim → ingest → analiz →
@@ -67,6 +69,8 @@ Bütün durum `data_dir` altındadır (userConfig; plugin klasörüne durum yaz�
 migration öncesi alınır; son 8 yedek tutulur.
 
 ## Geliştirici notları
+- Kurulumu Claude'un yürüttüğü (etkileşimsiz) durumda: `kurulum.ps1 -DataDir <data_dir> -GlobalSkills tasi|birak` (çakışan genel skill
+  kararı; varsayılan `sor` kurulum penceresinde sorar).
 - `<py>` = `<data_dir>/.venv/Scripts/python.exe` (Windows) ya da `<data_dir>/.venv/bin/python` (macOS/Linux).
 - Testler (plugin kökünden): `<py> -m pytest tests -q -p no:cacheprovider` (FFmpeg PATH'te olmalı).
 - Statik kurulum kontrolü: `<py> scripts/setup/doctor.py --data-dir <data_dir>`.
@@ -79,3 +83,15 @@ migration öncesi alınır; son 8 yedek tutulur.
   - Gerekçe: Dağıtılan kurulumda her sürüm ayrı bir önbellek klasörüne kopyalanır.
 - Vendor güncelleme: `scripts/setup/update-vendor.sh <repo> <commit>` (fark incelemesi ve insan onayı).
 - Lisanslar: `vendor-skills/THIRD_PARTY_NOTICES.md`; Remotion ve ElevenLabs kullanım koşulları `skills/ref-legal-tr-meta`.
+
+## Sürüm notları
+**1.4.1**
+- Sabit ana menü (9 madde, `hooks/menu.json` + `hooks/menu.py`); "menü" her yerden ana ekrana döner; sayılar yalnızca menüdeyken menü
+  maddesidir. Yeni `menu_render(session_id)` aracı hook'la aynı metni verir.
+- İlk kurulum düzeltmesi: Claude Code'u kuran resmi betiğin açtığı katı mod `kurulum.ps1`'i 1/5'te durduruyordu (`Set-StrictMode -Off`).
+- Hook çıktısı ASCII kaçışlı JSON: Windows kod sayfasında Türkçe karakterler artık bozulmaz.
+- Doctor: çakışan genel skill'ler ayrı madde (`global_skills`); "dokunma" kararı sapma olarak kaydedilir. `setup_verified_at` statik kontrol
+  geçmeden yazılmaz.
+- `meta_fields.json` canlı doğrulanmış kanonik adlarla; ekonomi hesabında bilinmeyen maliyet kalemi çökme yerine "bilinmiyor"; rakip görüntüsünde
+  `competitor_id` doğrulaması; profil düzeyinde tek açık devam notu; `memory_add` kaynak değeri skill'de düzeltildi.
+- Güncelleme: aynı kurulum dosyası (`kur.cmd`) yeniden çalıştırılır; veriler korunur, canlı kontrollerin etkilenen maddeleri yeniden yapılır.

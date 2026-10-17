@@ -14,10 +14,17 @@ param(
     [Parameter(Mandatory = $true)][string]$DataDir,
     [string]$Claude = "",
     [switch]$Guncelleme,
-    [switch]$DogrulamaYok
+    [switch]$DogrulamaYok,
+    # ~/.claude/skills altında çakışan genel skill'ler: sor (pencerede sorulur), tasi (yedeğe taşı), birak (sapma olarak kaydet).
+    # Eski kur.ps1 bu parametreyi vermez; varsayılan "sor" kurulum penceresinde kullanıcıya sorar.
+    [ValidateSet("sor", "tasi", "birak")][string]$GlobalSkills = "sor"
 )
 
 $ErrorActionPreference = "Stop"
+# Çağıran betikten devralınan katı modu kapat: kur.ps1, Claude Code yoksa resmi install.ps1'i kendi kapsamında çalıştırır ve o betik
+# Set-StrictMode -Version Latest açar. Katı mod alt betiklere geçer; boş dizi dönen işlevde .Count "özellik yok" hatası verip kurulumu
+# 1/5'te durduruyordu (1.4.0, ilk kurulum). Bu satır yalnızca bu betiğin kapsamını etkiler.
+Set-StrictMode -Off
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
@@ -119,11 +126,11 @@ if (-not (Test-Komut "uv")) { Install-Winget "astral-sh.uv" "uv" }
 if (-not (Test-Komut "uv")) { Stop-Kurulum "uv bulunamadı. https://docs.astral.sh/uv/ adresindeki Windows kurulumunu yapıp tekrar deneyin." }
 Write-Tamam ((& uv --version) -join " ")
 
-$miss = Get-EksikFfmpegFiltreleri
+$miss = @(Get-EksikFfmpegFiltreleri)
 if ($miss.Count -gt 0) {
     if (Test-Komut "ffmpeg") { Write-Uyari ("Mevcut FFmpeg'de eksik filtreler: " + ($miss -join ", ") + " - tam sürüm kuruluyor.") }
     Install-Winget "Gyan.FFmpeg" "FFmpeg (tam sürüm)"
-    $miss = Get-EksikFfmpegFiltreleri
+    $miss = @(Get-EksikFfmpegFiltreleri)
 }
 if ($miss.Count -gt 0) {
     $where = (Get-Command ffmpeg -ErrorAction SilentlyContinue).Source
@@ -206,7 +213,7 @@ if ($have -eq $lockSha -and (Test-Path (Join-Path $nd "node_modules\remotion")))
 # --- 5. Doğrulama -------------------------------------------------------------------------------------------------------
 if ($DogrulamaYok) { Write-Uyari "Doğrulama atlandı (-DogrulamaYok). Kurulum tamamlanmış sayılmaz."; exit 0 }
 Write-Adim "5/5 Bu bilgisayarda doğrulama (yaklaşık 15-20 dk; ilk render tarayıcı bileşenini indirir)"
-$args2 = @((Join-Path $Root "scripts\setup\kurulum_dogrula.py"), "--data-dir", $DataDir, "--etkilesimli")
+$args2 = @((Join-Path $Root "scripts\setup\kurulum_dogrula.py"), "--data-dir", $DataDir, "--etkilesimli", "--global-skills", $GlobalSkills)
 if ($Claude) { $args2 += @("--claude", $Claude) }
 if ($devFile) { $args2 += @("--deviations-json", $devFile) }
 if ($Guncelleme) { $args2 += "--guncelleme" }

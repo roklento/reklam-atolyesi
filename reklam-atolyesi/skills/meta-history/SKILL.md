@@ -43,7 +43,7 @@ Yok.
 6. **Hesap sağlık raporu:** `PR/templates/reports/hesap-sagligi.md` şablonuyla `DD/profiles/<slug>/reports/<YYYY-MM-DD>-hesap-sagligi.md`
    (piksel/CAPI, hesap hataları, kıyaslar, fırsat puanı; atomik yazma).
 7. **Hipotez adayları:** anomali ve geçmiş bulgulardan **önerilen** durumda — `memory_add(layer="semantic", kind="hypothesis_candidate",
-   source="meta", …)`; kampanya hipotezi değildir (hipotez S03'te konseptten doğar).
+   source="data", tags=["meta"], …)` (kaynak değerleri: `user | claude | data | system`; Meta verisinden çıkan bulgu `data`dır); kampanya hipotezi değildir (hipotez S03'te konseptten doğar).
 8. `profile_update(profile_id, history_status="ready"|"no_history", last_meta_sync_at=<şimdi>)`.
 9. Tanışmada: `stage_complete(profile_id, "S00b", outputs=[{path: sağlık raporu}], summary, scope_key="profile:<id>")` (kapı yok).
    Profil, S00a onayı + S00b sonucu + veri yolu kaydıyla `active` olur (`profile_onboarding_state.activation_blockers` boşalır).

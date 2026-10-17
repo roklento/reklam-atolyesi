@@ -28,7 +28,8 @@ kayıtla cevaplamak.
    (ör. workflow yerine yedek yol; bu kurulumdaki disk alanı kararı).
 3. **Canlı kayıt yazma:** yalnızca canlı kontrol gerçekten yürütüldüğünde `runtime_record(item_id, status, scope, evidence_ref,
    component_hashes, not_applicable_reason?)`. Uygulanamaz madde gerekçe ister; başarısız güvenlik kontrolü "uygulanamaz" etiketiyle
-   gizlenmez. Ortak zorunlu maddeler geçince `setup_verified_at` sunucu tarafından yazılır. Dağıtılan manifest değiştirilmez.
+   gizlenmez. Ortak zorunlu maddeler geçince ve statik kontrol (`setup_static_ok_at`, doctor) kayıtlıysa `setup_verified_at` sunucu tarafından
+   yazılır; statik kayıt yoksa kurulum dosyası (`kur.cmd`) yeniden çalıştırılır. Dağıtılan manifest değiştirilmez.
 4. **"Sistem ve hesap durumu" ekranı:** bağlantılar (ElevenLabs, Meta MCP ya da CSV yolu), OAuth durumu, disk (`data_dir` sürücüsü ve
    sistem sürücüsü), son yedek (`settings.last_backup_at`), hata kayıtları (`DD/logs/`), `cost_summary`, render süreleri (sistem
    hafızası), `calibration_get` (koçluk isabeti), kullanım raporu (`memory_tools.py usage-report`).

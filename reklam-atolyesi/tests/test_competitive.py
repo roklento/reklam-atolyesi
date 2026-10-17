@@ -121,3 +121,11 @@ def test_differentiator_only_from_provable_claims(store):
                                            "evidence": {"claim_ref": "c1"}}], campaign_id=c["campaign"]["id"])
     with pytest.raises(AdMemoryError):
         store.competitive_insights_save(pid, [{"kind": "proven_angle", "label": "observation", "statement": "x"}])
+
+
+def test_snapshot_requires_numeric_competitor_id(store):
+    """Rakip adıyla gelen reklam çıplak KeyError yerine açıklayıcı hatayla reddedilir; hiçbir şey yazılmaz (1.4.1)."""
+    pid = make_active_profile(store)["profile"]["id"]
+    with pytest.raises(AdMemoryError, match="competitor_id"):
+        store.competitor_snapshot_save(pid, "full", [{"library_id": "111", "competitor": "Rakip X"}], 1, {"query_budget": 20})
+    assert store.qa("SELECT id FROM competitor_snapshots WHERE profile_id=?", (pid,)) == []

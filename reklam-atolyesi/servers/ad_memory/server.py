@@ -106,8 +106,14 @@ def session_get(session_id: str) -> dict:
 
 
 @mcp.tool()
+def menu_render(session_id: str) -> dict:
+    """Sabit ana menünün metni (hook'la aynı kod). Metni olduğu gibi göster; oturuma 'son ekran: menü' yazılır."""
+    return call(lambda s: s.menu_render(session_id))
+
+
+@mcp.tool()
 def session_menu_set(session_id: str, items: list[str], header: str | None = None) -> dict:
-    """Gösterilen numaralı menüyü kaydeder; kullanıcı yalnızca sayı yazarsa hook 'son menünün N. maddesi' diye çözer."""
+    """Eski sürümlerle uyumluluk için kalır; ana menü sabittir (menu_render). Kullanılmaz."""
     return call(lambda s: s.session_menu_set(session_id, items, header))
 
 

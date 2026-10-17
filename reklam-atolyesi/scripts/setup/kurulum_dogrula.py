@@ -129,6 +129,57 @@ def review_record(cmp: dict, what: str, images: list[Path], interactive: bool, q
     return {"ok": human, "by": "kullanıcı (görsel inceleme, eşik geçilmediği için soruldu)", "at": today, "comparison": cmp}
 
 
+def accepted_deviation(data_dir: Path, check: str) -> bool:
+    import doctor as DR
+    return any(d.get("check") == check and d.get("decided_by") == "user" and d.get("status") == "accepted"
+               for d in DR.load_install_deviations(data_dir))
+
+
+def handle_global_skills(data_dir: Path, choice: str, interactive: bool) -> tuple[dict | None, dict]:
+    """~/.claude/skills altında çakışan genel skill'ler (1.4.1). 'tasi': ~/.claude/skills-yedek'e taşınır (silinmez);
+    'birak': kullanıcı kararı 'global_skills' sapması olarak kaydedilir; 'sor': etkileşimli konsolda sorulur, değilse karar yok
+    (doctor maddeyi kırmızı gösterir ve ne yapılacağını söyler). Dönüş: (sapma kaydı ya da None, adım ayrıntısı)."""
+    import doctor as DR
+    clash = DR.global_skill_clash()
+    if not clash:
+        return None, {"clash": []}
+    if accepted_deviation(data_dir, "global_skills"):
+        return None, {"clash": clash, "karar": "daha önce kabul edilmiş sapma (dokunulmadı)"}
+    if choice == "sor":
+        if interactive and sys.stdin and sys.stdin.isatty():
+            say(f"  ~/.claude/skills altında plugin'in Remotion başvurularıyla aynı adlı genel skill'ler var: {', '.join(clash)}")
+            say("  Plugin bunları kullanmaz. Başka işlerde kullanıyorsanız dokunmayın; kullanmıyorsanız yedek klasörüne taşınabilir (silinmez).")
+            while True:
+                ans = input("  [T] yedeğe taşı  /  [D] dokunma: ").strip().lower()
+                if ans in ("t", "taşı", "tasi"):
+                    choice = "tasi"
+                    break
+                if ans in ("d", "dokunma", "b", "birak", "bırak"):
+                    choice = "birak"
+                    break
+        else:
+            return None, {"clash": clash, "karar": "verilmedi (etkileşimsiz); --global-skills tasi|birak ile yeniden çalıştırın"}
+    if choice == "tasi":
+        src = Path.home() / ".claude" / "skills"
+        dst = Path.home() / ".claude" / "skills-yedek"
+        dst.mkdir(parents=True, exist_ok=True)
+        moved = []
+        for name in clash:
+            target = dst / name
+            i = 2
+            while target.exists():
+                target = dst / f"{name}-{i}"
+                i += 1
+            shutil.move(str(src / name), str(target))
+            moved.append(target.name)
+        return None, {"clash": clash, "karar": "yedeğe taşındı", "yedek": "~/.claude/skills-yedek", "tasinan": moved}
+    rec = {"id": "global_remotion_skills", "check": "global_skills", "spec": "12.4, 12.5",
+           "deviation": (f"~/.claude/skills altında genel skill'ler var ({', '.join(clash)}); kullanıcı başka işlerde kullandığı için dokunulmamasına "
+                         "karar verdi. Plugin bunları okumaz; Remotion için ref-remotion-components ve ref-vendor-map geçerlidir."),
+           "decided_by": "user", "decided_at": dt.date.today().isoformat(), "status": "accepted"}
+    return rec, {"clash": clash, "karar": "dokunulmadı (sapma olarak kaydedilecek)"}
+
+
 def backup_before_update(data_dir: Path, version: str) -> dict:
     db = data_dir / "db" / "ad-memory.sqlite"
     if not db.exists():
@@ -149,6 +200,8 @@ def main() -> None:
     ap.add_argument("--deviations-json")
     ap.add_argument("--guncelleme", action="store_true", help="kullanımdaki data_dir'de sürüm güncellemesi")
     ap.add_argument("--etkilesimli", action="store_true", help="eşik geçilmezse kareleri açıp kullanıcıya sor")
+    ap.add_argument("--global-skills", choices=("sor", "tasi", "birak"), default="sor",
+                    help="~/.claude/skills altında çakışan genel skill'ler: sor (etkileşimli), tasi (yedeğe taşı), birak (sapma olarak kaydet)")
     ap.add_argument("--work")
     ap.add_argument("--json-out")
     a = ap.parse_args()
@@ -212,13 +265,22 @@ def main() -> None:
     else:
         step("Animasyon galerisi ve görsel karşılaştırma", False, cp.stderr.decode("utf-8", "replace")[-2000:])
 
+    dev_json = a.deviations_json
+    rec, gdet = handle_global_skills(data_dir, a.global_skills, a.etkilesimli)
+    if gdet.get("clash"):
+        step("Çakışan genel skill'ler (~/.claude/skills)", gdet.get("karar", "").startswith(("yedeğe", "dokunulmadı", "daha önce")), gdet)
+    if rec:
+        recs = json.loads(Path(a.deviations_json).read_text(encoding="utf-8")) if a.deviations_json else []
+        dev_json = str(work / "sapmalar.json")
+        Path(dev_json).write_text(json.dumps([*recs, rec], ensure_ascii=False, indent=1), encoding="utf-8")
+
     say("• Statik kontrol (doctor; otomatik testler dahil, yaklaşık 5 dk)…")
     args = [str(ROOT / "scripts" / "setup" / "doctor.py"), "--data-dir", str(data_dir), "--results-dir", str(work),
             "--write-ok", "--json-out", str(work / "doctor.json")]
     if a.claude:
         args += ["--claude", a.claude]
-    if a.deviations_json:
-        args += ["--deviations-json", a.deviations_json]
+    if dev_json:
+        args += ["--deviations-json", dev_json]
     if a.guncelleme:
         args.append("--update")
     cp = run_py(args, 7200)

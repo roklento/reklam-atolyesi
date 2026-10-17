@@ -276,7 +276,11 @@ def test_runtime_record_scoped_and_stale(store, tmp_path):
     (store.plugin_root / "system_manifest.json").write_text(json.dumps(m), encoding="utf-8")
     store.runtime_record("x1", "passed", component_hashes={"c": "h1"})
     v = store.system_manifest_get()
-    assert v["live"]["common_required_ok"] and v["setup_verified_at"]
+    # statik kontrol (doctor) geçmeden canlı maddeler kurulumu doğrulanmış saydırmaz (1.4.1)
+    assert v["live"]["common_required_ok"] and not v["setup_verified_at"] and not v["setup_verified_effective"]
+    store.settings_set("setup_static_ok_at", "2026-03-02T09:00:00Z")
+    v = store.mark_verified_if_ready()
+    assert v["setup_verified_at"] and v["setup_verified_effective"]
     store.runtime_record("x1", "failed", scope="profile:7")
     assert store.system_manifest_get()["live"]["checks"][0]["status"] == "passed"  # başka kapsamın kaydı ezilmez
     m["component_hashes"]["c"] = "h2"
@@ -297,3 +301,36 @@ def test_install_deviations_live_in_data_dir_not_manifest(store):
     store.settings_set("install_deviations_json", _json.dumps(rec, ensure_ascii=False))
     v = store.system_manifest_get()
     assert v["install_deviations"] == rec
+
+
+def test_economics_unknown_cost_and_range(store):
+    """Bilinmeyen maliyet kalemi (null/metin) çökme yerine 'bilinmiyor'; verilen aralık kalemlerden çıkan tek sayıyla ezilmez (1.4.1)."""
+    eco = {"net_basket": 850, "variable_costs": {"product": 300, "shipping": 50, "commission": 34, "expected_returns": None},
+           "contribution_low": 425, "contribution_high": 466}
+    r = store.economics({"economics_json": eco})
+    assert r["status"] == "range" and r["breakeven_cpa_range"] == [425.0, 466.0]
+    eco2 = {"net_basket": 850, "variable_costs": {"product": 300, "expected_returns": "bilinmiyor; %0-5 varsayımı"}}
+    r = store.economics({"economics_json": eco2})
+    assert r["status"] == "unknown" and r["unknown_costs"] == ["expected_returns"] and "bilinmeyen kalemler" in r["note"]
+    r = store.economics({"economics_json": {"net_basket": 850, "variable_costs": {"product": "300", "shipping": 50}}})
+    assert r["status"] == "assumed" and r["breakeven_cpa"] == 500.0
+
+
+def test_profile_level_single_open_checkpoint(store):
+    """Tanışmada tek 'kaldığımız yer' vardır: yeni profil düzeyi not öncekini kapatır; kampanya notlarına dokunmaz (1.4.1)."""
+    pid = store.profile_create("Marka C")["id"]
+    st = {"completed_steps": [], "decisions": [], "open_questions": [], "next_step": "x", "refs": {}}
+    store.checkpoint_save(pid, "S00a", st, scope_key=f"profile:{pid}")
+    store.checkpoint_save(pid, "S00b", {**st, "next_step": "y"}, scope_key=f"profile:{pid}")
+    open_ = store.checkpoint_get(pid)["open"]
+    assert [o["stage"] for o in open_] == ["S00b"]
+
+
+def test_campaign_create_closes_onboarding_checkpoints(store):
+    pid, cid, cyid = new_campaign(store)
+    st = {"completed_steps": [], "decisions": [], "open_questions": [], "next_step": "x", "refs": {}}
+    store.checkpoint_save(pid, "S03", st, campaign_id=cid, cycle_id=cyid)
+    store.checkpoint_save(pid, "S00b", st, scope_key=f"profile:{pid}")
+    prod = store.product_list(pid)["products"][0]
+    store.campaign_create(pid, prod["id"], "İkinci kampanya")
+    assert [o["stage"] for o in store.checkpoint_get(pid)["open"]] == ["S03"]  # kampanya notuna dokunulmaz

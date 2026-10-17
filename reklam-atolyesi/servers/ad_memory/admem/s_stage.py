@@ -45,6 +45,9 @@ class StageMixin:
             cyc = self.ex("INSERT INTO cycles(campaign_id,cycle,status,created_at) VALUES(?,1,'production',?)", (cid, now_iso()))
             if trial and prod["onboarding_status"] == "pending":
                 self.ex("UPDATE products SET onboarding_status='skipped_trial' WHERE id=?", (prod["id"],))
+            # kampanya açılınca tanışmanın "kaldığımız yer" notları biter (1.4.1); kaldığımız yer artık kampanyadır
+            self.ex("""UPDATE resume_state SET closed_at=? WHERE profile_id=? AND campaign_id IS NULL AND origin='interactive'
+                       AND closed_at IS NULL""", (now_iso(), profile_id))
         cdir = self.campaign_dir(profile_id, cid)
         for sub in ("edit_plans", "competitive", "footage/raw", "footage/proxy", "footage/graded", "footage/stab",
                     "footage/scenes", "photos/raw", "photos", "analysis", "audio/raw", "audio/music", "audio/vo",
@@ -173,6 +176,11 @@ class StageMixin:
             rid = self.ex("""INSERT INTO resume_state(profile_id,campaign_id,cycle_id,stage_run_id,stage,scope_key,origin,state_json,updated_at)
                              VALUES(?,?,?,?,?,?,?,?,?)""",
                           (profile_id, campaign_id, cycle_id, stage_run_id, stage, sk, origin, txt, now_iso())).lastrowid
+        if campaign_id is None and origin == "interactive":
+            # Profil düzeyinde (tanışma) tek "kaldığımız yer" vardır (1.4.1): yeni not öncekileri kapatır; tanışma sıralı ilerler ve
+            # S00a'da kaydedilip S00b/S00c'de unutulan not "açık devam notu" olarak kalmaz.
+            self.ex("""UPDATE resume_state SET closed_at=? WHERE profile_id=? AND campaign_id IS NULL AND origin='interactive'
+                       AND closed_at IS NULL AND id!=?""", (now_iso(), profile_id, rid))
         return self.q1("SELECT * FROM resume_state WHERE id=?", (rid,))
 
     def checkpoint_save(self, profile_id: int, stage: str, state: dict, campaign_id: int | None = None,
@@ -428,6 +436,9 @@ class StageMixin:
                                         run["stage"], ST.GATES.get(run["stage"]), "approved",
                                         (note + " — " if note else "") + f"onay: «{approval_text.strip()}»", "user")
             nxt = self._advance(profile_id, run["stage"], c, cy, run["scope_key"], run["id"])
+            # onaylanan aşamanın kapı görüşmesi sırasında kaydedilmiş notu kapanır (1.4.1); gerekiyorsa aşağıda yeni not yazılır
+            self._checkpoint_close_in_tx(profile_id, run["stage"], "", run["campaign_id"], run["cycle_id"],
+                                         None if run["campaign_id"] else run["scope_key"])
             if checkpoint:
                 self._checkpoint_in_tx(profile_id, nxt or run["stage"], checkpoint, run["campaign_id"],
                                        (self.q1("SELECT id FROM cycles WHERE campaign_id=? AND cycle=(SELECT cycle FROM campaigns WHERE id=?)",

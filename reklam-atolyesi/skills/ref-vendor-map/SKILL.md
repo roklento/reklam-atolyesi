@@ -63,3 +63,6 @@ OAuth). `elevenlabs-mcp/mcp.json` yalnızca resmi uzak MCP adresinin kaynağı.
 | studio (önizleme) | öz denetim kontak sayfaları (studio kullanılmaz) | https://www.remotion.dev/docs/studio |
 | docs / upgrade | sürüm pinleri (4.0.532) | https://www.remotion.dev/docs/ , https://www.remotion.dev/docs/upgrading |
 Lisans: https://www.remotion.dev/docs/license/faq (`ref-legal-tr-meta`). Repoya lisans eklenirse vendoring'e alınabilir (12.10).
+Makinede `~/.claude/skills` altında genel `remotion-*` skill'leri varsa (kullanıcı başka işler için kurmuş olabilir) plugin işlerinde
+**okunmaz ve uygulanmaz**; Remotion için yalnızca bu tablo ve `ref-remotion-components` geçerlidir. Kurulumda kullanıcı bu skill'lere
+dokunulmamasını seçerse doctor bunu `global_skills` sapması olarak kaydeder.

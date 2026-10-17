@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.4.0",
+ "plugin_version": "1.4.1",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -161,13 +161,13 @@
    "name": "competitor-analysis",
    "kind": "stage",
    "description": "reklam-atolyesi S01b rakip analizi — rakip seti, Meta Reklam Kütüphanesi görüntüsü ve farkı, rakip satış sayfaları, ortak sözlükle kodlama, rekabet haritası (vekil sinyal). Kapısız.",
-   "sha256": "103bbd568c005792af509ca1ba502ba214320fef528a75550f73befc79426ae1"
+   "sha256": "d7719c4fa9cc7297aeac03b2d902d5845f409cfa234915ad8909eecced575485"
   },
   {
    "name": "compose",
    "kind": "stage",
    "description": "reklam-atolyesi S10 kurgu — kurgu planını kesin zamanlama, katman ve geçişlerle tamamlar, vuruşa yaslar, sahne ara dosyalarından Remotion render eder ve görsel öz denetimden geçirir.",
-   "sha256": "cf44b06ca257e2d83c30634dbc6407b8016cfdbaf4d73f07adf3954c7c4aa3c8"
+   "sha256": "e20d6f5ede0e1194dfd42dd64833ba40baa396a518d73d7d3584d1662a0feb9e"
   },
   {
    "name": "concepts",
@@ -209,13 +209,13 @@
    "name": "meta-history",
    "kind": "stage",
    "description": "reklam-atolyesi S00b Meta geçmişi — meta-historian ajanını salt okumayla çalıştırır; varlıklar, günlük metrikler, önseller, kıyaslar, hesap sağlık raporu; CSV yedek yolu.",
-   "sha256": "4d60c337875a765be47cb3c77b8eb4f1e7193c1ecd080c551adac8b1b3c886ad"
+   "sha256": "6e1083f3ef1e20cbd8269bd9cd49b47f56a472902f4113fdd348445c7173e249"
   },
   {
    "name": "navigator",
    "kind": "entry",
    "description": "reklam-atolyesi ana menüsü ve plugin modu. Kullanıcı yalnızca \"reklam-atolyesi\"/\"reklam atölyesi\" yazınca ya da /reklam-atolyesi komutu gelince çalışır; ilk açılış, profil, devam notu, menü.",
-   "sha256": "f28dad102d37dcf1f931766e9f684fb2439e25a38bb0b9593dfff5e82fce4862"
+   "sha256": "654c005e7d39ffd69d94820b5aa6fd23b238a426d7a75f8477433e7c0386d6a2"
   },
   {
    "name": "product-onboarding",
@@ -269,13 +269,13 @@
    "name": "ref-system-map",
    "kind": "system",
    "description": "reklam-atolyesi'nin kendi haritası (system_manifest). \"Ne yapabilirsin\", \"sistem durumu\", sürüm, bileşen ve canlı doğrulama sorularında plugin modunda kullanılır.",
-   "sha256": "1a96a557546571480b6bd3d3a25b529cdf85335e39e7c43329a8c46b964a0ade"
+   "sha256": "897fcf998092bf33ca739ed110829a1e296abe5de6aefcc3af47546ad3804863"
   },
   {
    "name": "ref-vendor-map",
    "kind": "reference",
    "description": "reklam-atolyesi hazır skill eşlemesi — hangi aşamada hangi vendor dosyasının hangi bölümü okunur, önce OVERRIDES kuralı, devre dışı kısımlar ve Remotion için resmi belge yolu.",
-   "sha256": "b67a5b7e14bd6b584055fde36815bcfab33412233cdd23458f6790fd658b14f1"
+   "sha256": "e8cef52e0dd28d9b37bbd09b30e03e04dbb4d59cf2dd11f19c8e08a818c65749"
   },
   {
    "name": "shoot-feedback",
@@ -386,7 +386,7 @@
   {
    "name": "/reklam-atolyesi:basla",
    "description": "Reklam Atölyesi ana menüsünü (navigator) açar",
-   "sha256": "6ee7441077842518c190a97c6263e84eb09fb4276348b0bb44e11377ce653dde"
+   "sha256": "ac6c1b0d2de68b2bd5ed4bab165836684a061e0823067d98e37398e0e53d72eb"
   },
   {
    "name": "/reklam-atolyesi:durum",
@@ -411,7 +411,7 @@
   {
    "name": "/reklam-atolyesi:kurulum-kontrol",
    "description": "Canlı kurulum kontrolü: hesap bağlantıları, hook tetiklenmeleri, MCP şemaları, canlı kabul listesi",
-   "sha256": "9d13b52523247bc124d7fddcb59a48e4a07251d9028e91777f28c537ff5acef3"
+   "sha256": "e8d90cc6004fe004285b6ebeab379d65aa0e042c0fc3d480ad83c8a04e27c0eb"
   },
   {
    "name": "/reklam-atolyesi:meta-gecmis",
@@ -431,12 +431,12 @@
   {
    "name": "/reklam-atolyesi:profil-sec",
    "description": "Bu oturumun profilini ve yeni oturum varsayılanını değiştirir",
-   "sha256": "1500bd2e4fb572e90dde91bd0eea3d7c2f96104ea887f2592af4301ef8d88a1a"
+   "sha256": "ffd0e64298c741a936316d921e3ab3425e8fdbc86cc97bc7097879bc09290274"
   },
   {
    "name": "/reklam-atolyesi:profiller",
    "description": "Profil listesini gösterir",
-   "sha256": "4bc44de9cc5dfe08557bf7cf88f7347d74fc8e2433e283643f874d8aa2de0087"
+   "sha256": "1d4e470545e7f5703551072ca739e8dc2bf7a6be3d5b8ab3e671fdf1f74c56c0"
   },
   {
    "name": "/reklam-atolyesi:rakip-analizi",
@@ -518,14 +518,14 @@
    "matcher": null,
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "19c3579ed50b5e29ea625f9657d954c1aaecd5c6836bbe8cd4899380154dda89"
+   "sha256": "68b117d363b7b284cf54a09afe9a0001d5dd579f462407920074e0a8285da89f"
   },
   {
    "event": "UserPromptExpansion",
    "matcher": "^reklam-atolyesi:.*$",
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "19c3579ed50b5e29ea625f9657d954c1aaecd5c6836bbe8cd4899380154dda89"
+   "sha256": "68b117d363b7b284cf54a09afe9a0001d5dd579f462407920074e0a8285da89f"
   },
   {
    "event": "SessionStart",
@@ -661,6 +661,7 @@
    "memory_observe",
    "memory_search",
    "memory_update",
+   "menu_render",
    "meta_entities_upsert",
    "metrics_daily_rows",
    "metrics_export_csv",
@@ -829,23 +830,23 @@
  },
  "tests": {
   "pytest": {
-   "passed": 120,
+   "passed": 130,
    "failed": 0,
    "returncode": 0,
-   "summary": "120 passed (tam paket, dağıtım değişikliklerinden sonra); sonraki küçük düzeltmelerden sonra yalnızca tests/test_dagitim.py yeniden çalıştırıldı",
+   "summary": "130 passed (tam paket, 1.4.1: sabit menü ve kurulum düzeltmeleri dahil)",
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
-   "at": "2026-10-16"
+   "at": "2026-10-17"
   },
   "smoke": {
    "ok": true,
    "partial": false,
-   "seconds": 305.0,
+   "seconds": 144.1,
    "steps": [
     {
      "step": 1,
      "title": "profiller ve yalıtım",
      "ok": true,
-     "seconds": 2.1,
+     "seconds": 1.7,
      "detail": {
       "profiles_0_to_1": [
        0,
@@ -858,7 +859,7 @@
         "tests/test_store_stage.py"
        ],
        "k": "profile or isolation or explicit or activation",
-       "passed": 3,
+       "passed": 4,
        "failed": 0,
        "errors": 0,
        "returncode": 0
@@ -869,7 +870,7 @@
      "step": 2,
      "title": "aşama makinesi ve takvim",
      "ok": true,
-     "seconds": 2.6,
+     "seconds": 1.9,
      "detail": {
       "calendar_7_14": {
        "G0_launch": "2026-03-07",
@@ -927,7 +928,7 @@
      "step": 3,
      "title": "ingest ve analiz (4K dikey)",
      "ok": true,
-     "seconds": 67.8,
+     "seconds": 43.9,
      "detail": {
       "footage": 4,
       "photos": 2,
@@ -942,7 +943,7 @@
        "S04_t1.mov": []
       },
       "shake": {
-       "shake_permille": 51.194,
+       "shake_permille": 50.083,
        "frames": 119,
        "threshold_permille": 4.0
       },
@@ -954,16 +955,16 @@
      "step": 4,
      "title": "render, ses, öz denetim, varyasyon, QC",
      "ok": true,
-     "seconds": 210.3,
+     "seconds": 71.1,
      "detail": {
       "tempo": 117.45,
       "render_916": {
-       "ms": 73738,
+       "ms": 19484,
        "segments": 5,
        "scale": 0.5
       },
       "render_45": {
-       "ms": 31796,
+       "ms": 15466,
        "segments": 5
       },
       "render_11_still": "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/kare_11.png",
@@ -998,7 +999,7 @@
       },
       "variant_6s": {
        "version": 2,
-       "ms": 20918
+       "ms": 10359
       },
       "final_scene": {
        "resolution_ok": true,
@@ -1014,7 +1015,7 @@
      "step": 5,
      "title": "metrik CSV ve koçluk",
      "ok": true,
-     "seconds": 6.1,
+     "seconds": 4.5,
      "detail": {
       "csv_check": {
        "rows": 30,
@@ -1045,7 +1046,7 @@
      "step": 6,
      "title": "hafıza",
      "ok": true,
-     "seconds": 3.0,
+     "seconds": 2.5,
      "detail": {
       "unit": {
        "targets": [
@@ -1053,7 +1054,7 @@
         "tests/test_store_stage.py"
        ],
        "k": "memory or checkpoint or resume or test_memory",
-       "passed": 13,
+       "passed": 15,
        "failed": 0,
        "errors": 0,
        "returncode": 0
@@ -1064,7 +1065,7 @@
      "step": 7,
      "title": "hata senaryoları",
      "ok": true,
-     "seconds": 10.4,
+     "seconds": 15.9,
      "detail": {
       "unit": {
        "targets": [
@@ -1073,7 +1074,7 @@
         "tests/test_store_stage.py"
        ],
        "k": "generation or reservation or hook or cost or meta or gate or jobs or runtime or risk",
-       "passed": 30,
+       "passed": 34,
        "failed": 0,
        "errors": 0,
        "returncode": 0
@@ -1084,7 +1085,7 @@
      "step": 8,
      "title": "rekabet",
      "ok": true,
-     "seconds": 2.7,
+     "seconds": 2.6,
      "detail": {
       "unit": {
        "targets": [
@@ -1093,7 +1094,7 @@
         "tests/test_hooks.py"
        ],
        "k": "competitive or snapshot or diff or map or distance or strategy or taxonomy or differentiator or competitor or library",
-       "passed": 10,
+       "passed": 11,
        "failed": 0,
        "errors": 0,
        "returncode": 0
@@ -1283,7 +1284,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1 farkı: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1320,6 +1321,13 @@
     "files_reviewed": 7,
     "kusur": 0,
     "not": 1
+   },
+   {
+    "scope": "1.4.1: değişen/yeni dosyalar (sabit menü, kurulum ve sunucu düzeltmeleri; diğer bileşen hash'leri 1.4.0 denetimiyle aynı)",
+    "files_reviewed": 29,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu"
    }
   ],
   "remaining_defects": [],
@@ -1330,16 +1338,16 @@
    }
   ],
   "component_hashes": {
-   "skills": "371e9b45d44ee416cb3d3e013d7416c8d5da88a0f9e29903c5d3f0c1aea876c1",
+   "skills": "69c89e1b25ca8f18a6e997103ccfe90a713cfd636f877602016eb015bd192d61",
    "agents": "32f7e73cdc0594c913239b962621485f23a1e6b9b2902d7d03c7cf271c9d48d9",
-   "commands": "4b45b54f6751c00b47ff46a4be3034d54769a9b662eb34204921ba01cf97b53d",
+   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
-   "hooks": "3473dd7604cae001cc4ff891e5ae60561022cbaf0825dbd6015e6748d90aef41",
-   "ad_memory": "9c1eee5bbf58db31df64b03c771e3d359e7096a8eee3d3d009c061cef8ab7f77",
-   "scripts": "60a5df7e2d1822d3bf1f6df47db779b989e30faa6f0e9b8f168c1ef832ed63b0",
+   "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
+   "ad_memory": "4538fd885fb8ae48dbee5a1e03e182ccb2aaa9e350a11685bd503d240996d19d",
+   "scripts": "06b2570930bafe08a020e05ab84f5675d6b334ad4079f971b9288a615c579970",
    "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f"
   },
-  "checked_at": "2026-10-16"
+  "checked_at": "2026-10-17"
  },
  "live_checks": [
   {
@@ -1496,15 +1504,15 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "efae8dc0af0bc00c34428b690991df294b289af3a3654296a1bc694cadf767e6",
+  "plugin_json": "8c1e1572007c08c95e1867dc18d8402d2d677e780761ebdcda1e35867365c103",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "371e9b45d44ee416cb3d3e013d7416c8d5da88a0f9e29903c5d3f0c1aea876c1",
+  "skills": "69c89e1b25ca8f18a6e997103ccfe90a713cfd636f877602016eb015bd192d61",
   "agents": "32f7e73cdc0594c913239b962621485f23a1e6b9b2902d7d03c7cf271c9d48d9",
-  "commands": "4b45b54f6751c00b47ff46a4be3034d54769a9b662eb34204921ba01cf97b53d",
+  "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
-  "hooks": "3473dd7604cae001cc4ff891e5ae60561022cbaf0825dbd6015e6748d90aef41",
-  "ad_memory": "9c1eee5bbf58db31df64b03c771e3d359e7096a8eee3d3d009c061cef8ab7f77",
-  "scripts": "60a5df7e2d1822d3bf1f6df47db779b989e30faa6f0e9b8f168c1ef832ed63b0",
+  "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
+  "ad_memory": "4538fd885fb8ae48dbee5a1e03e182ccb2aaa9e350a11685bd503d240996d19d",
+  "scripts": "06b2570930bafe08a020e05ab84f5675d6b334ad4079f971b9288a615c579970",
   "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f",
   "vendor_skills": "c4e8472a2cb0e6f2dd15a6fb0cd1bdb178a462bf7a40b5fce65344f49dbcc743"
  },

@@ -359,8 +359,25 @@ class BaseStore:
         contrib = eco.get("contribution")
         low, high = eco.get("contribution_low"), eco.get("contribution_high")
         basket = eco.get("net_basket") or prod.get("aov") or prod.get("price")
-        if contrib is None and eco.get("net_basket") is not None and isinstance(eco.get("variable_costs"), dict):
-            contrib = float(eco["net_basket"]) - sum(float(v) for v in eco["variable_costs"].values())
+
+        def num(v) -> float | None:
+            if isinstance(v, bool) or v is None:
+                return None
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None
+
+        vc = eco.get("variable_costs")
+        # Kalemlerden katkı yalnızca açık katkı ya da aralık verilmemişse ve bütün kalemler sayıysa hesaplanır (1.4.1): bilinmeyen kalem
+        # (ör. iade oranı null/metin) sıfır sayılmaz; aralık verildiyse kalemlerden çıkan tek sayı aralığı ezmez.
+        if contrib is None and low is None and high is None and eco.get("net_basket") is not None and isinstance(vc, dict):
+            vals = {k: num(v) for k, v in vc.items()}
+            unknown = sorted(k for k, v in vals.items() if v is None)
+            if unknown:
+                out["unknown_costs"] = unknown
+            elif num(eco["net_basket"]) is not None:
+                contrib = num(eco["net_basket"]) - sum(vals.values())
         if contrib is not None:
             contrib = float(contrib)
             if contrib <= 0:
@@ -377,7 +394,8 @@ class BaseStore:
                        target_cpa_range=[round(lo * sf, 2), round(hi * sf, 2)],
                        note="Katkı aralık: kesin kârlılık veya büyütme hükmü verilmez (6.2)")
         else:
-            out["note"] = "Katkı bilinmiyor: ekonomi VARSAYIMSAL; kesin kârlılık hükmü verilmez (6.2)"
+            out["note"] = "Katkı bilinmiyor: ekonomi VARSAYIMSAL; kesin kârlılık hükmü verilmez (6.2)" + (
+                f" · bilinmeyen kalemler: {', '.join(out['unknown_costs'])} (contribution_low/high ile aralık verilebilir)" if out.get("unknown_costs") else "")
         return out
 
     def product_list(self, profile_id: int) -> dict:
@@ -454,6 +472,21 @@ class BaseStore:
         if stage is not None:
             s["stage"] = stage
         return self._session_write(session_id, s)
+
+    def menu_render(self, session_id: str) -> dict:
+        """Sabit ana menünün metni (17.1; hooks/menu.py ile hook'la aynı kod). Gösterildiği oturuma 'son ekran: menü' yazılır;
+        sonraki tek sayı bu menüye göre çözülür. kind 'menu' değilse metin yoktur (profil yok / seçim gerekli)."""
+        import sys
+        hooks_dir = str(PLUGIN_ROOT / "hooks")
+        if hooks_dir not in sys.path:
+            sys.path.insert(0, hooks_dir)
+        import menu as MN  # noqa: E402  (yalnızca standart kütüphane)
+        s = self.session_get(session_id)
+        r = MN.render(self.data_dir, s)
+        if r["kind"] == "menu":
+            self._session_write(session_id, MN.mark_shown(s, r, now_iso()))
+            r["rule"] = "Bu metni olduğu gibi göster; madde ekleme, çıkarma ya da yeniden adlandırma."
+        return r
 
     def session_menu_set(self, session_id: str, items: list[str], header: str | None = None) -> dict:
         if not isinstance(items, list) or len(items) > 12:
@@ -615,13 +648,19 @@ class BaseStore:
                           "env_id": env_id or self._setting("env_id")}
             self.ex("INSERT INTO settings(key,value,updated_at) VALUES('runtime_verification_json',?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
                     (jdump(data), now_iso()))
+        view = self.mark_verified_if_ready()
+        return {"recorded": items[key], "live": view["live"]}
+
+    def mark_verified_if_ready(self) -> dict:
+        """setup_verified_at yalnızca statik kontrol (doctor --write-ok → setup_static_ok_at) VE ortak zorunlu canlı maddeler geçince
+        yazılır (1.4.1). Hangisi son gelirse onu yazan çağrı işaretler: runtime_record ya da doctor."""
         view = self.system_manifest_get()
-        if view["live"]["common_required_ok"] and not self._setting("setup_verified_at"):
+        if view["live"]["common_required_ok"] and view["setup_static_ok_at"] and not self._setting("setup_verified_at"):
             with self.tx():
                 self.ex("INSERT INTO settings(key,value,updated_at) VALUES('setup_verified_at',?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
                         (now_iso(), now_iso()))
             view = self.system_manifest_get()
-        return {"recorded": items[key], "live": view["live"]}
+        return view
 
     def system_manifest_get(self, section: str | None = None) -> dict:
         manifest, msha = self._manifest()
@@ -656,7 +695,8 @@ class BaseStore:
                "meta_data_mode_default": mode,
                "live": {"common_required_ok": bool(checks) and req_ok, "checks": live_rows,
                         "note": "Eşleşmeyen/eski kayıt başarı sayılmaz; ilk açılışta canlı kayıt yoksa bütün uygulanabilir maddeler bekliyor görünür."}}
-        out["setup_verified_effective"] = bool(out["setup_verified_at"]) and out["live"]["common_required_ok"]
+        # Statik kontrol geçmeden kurulum doğrulanmış sayılmaz (1.4.1; 1.4.0'da canlı maddeler tek başına yetiyordu).
+        out["setup_verified_effective"] = bool(out["setup_verified_at"]) and bool(out["setup_static_ok_at"]) and out["live"]["common_required_ok"]
         # Kuruluma/makineye özgü, kullanıcının kabul ettiği sapmalar dağıtılan manifestte değil bu data_dir'de tutulur (12.13).
         out["install_deviations"] = jload(self._setting("install_deviations_json"), []) or []
         if section and manifest:

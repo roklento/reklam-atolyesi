@@ -7,7 +7,8 @@ description: "reklam-atolyesi ana menüsü ve plugin modu. Kullanıcı yalnızca
 
 ## Amaç
 Plugin modundaki oturumda kullanıcının tek arayüzüdür. Kullanıcı komut yazmaz; **numara seçer ya da serbest yazar**. Navigator
-durumu tablolardan okur, doğru skill'e yönlendirir, her işten sonra kısa sonuç + önerilen sonraki adım verir ve menüyü yeniler.
+durumu tablolardan okur, doğru skill'e yönlendirir, her işten sonra kısa sonuç + önerilen sonraki adım verir. Ana menü sabittir (bölüm 3):
+metnini kod üretir, model yazmaz.
 
 Yol kısaltmaları (bütün skill'lerde aynı): `PR` = `${CLAUDE_PLUGIN_ROOT}` (plugin kökü), `DD` = `${user_config.data_dir}` (veri
 klasörü), `PY` = `DD/.venv/Scripts/python.exe` (Windows) ya da `DD/.venv/bin/python` (macOS/Linux). PATH'teki Python'a güvenilmez.
@@ -33,7 +34,9 @@ Yok. Navigator yalnızca plugin skill'lerine yönlendirir (`reklam-atolyesi:<ski
 ## Adımlar
 
 ### 1. Açılış sırası (17.2) — her plugin adı yazılışında
-1. **Kurulum canlı doğrulandı mı?** `settings_get("setup_verified_at")` boşsa ya da `system_manifest_get` güncel zorunlu bir
+1. **Kurulum doğrulandı mı?** `system_manifest_get().setup_static_ok_at` boşsa statik kurulum doğrulaması (doctor) hiç geçmemiştir:
+   kullanıcıya kurulum dosyasını (`kur.cmd`) yeniden çalıştırmasını söyle; veri kaybı olmaz, mevcut kurulum güncelleme olarak
+   tanınır. `setup_verified_at` boşsa ya da `system_manifest_get` güncel zorunlu bir
    canlı maddeyi `pending | failed | stale` gösteriyorsa menüden önce `reklam-atolyesi:kurulum-kontrol` akışını yürüt (canlı kontrol,
    hesap bağlantıları: kullanıcıyı `/mcp` ile ElevenLabs ve Meta Ads OAuth'una adım adım yönlendir; Meta'da **salt okuma**).
    Meta MCP erişilemiyorsa CSV yolu açıkça seçilir. Ortak zorunlu kontroller geçmeden Faz 2 (tanışma) başlamaz; eksik ve çözümü söylenir.
@@ -41,7 +44,7 @@ Yok. Navigator yalnızca plugin skill'lerine yönlendirir (`reklam-atolyesi:<ski
    `reklam-atolyesi:brand-onboarding` (yeni profil `onboarding` durumunda açılır).
 3. **Birden çok profil var, oturuma bağlı yok ve aktif varsayılan da yok mu?** Listeyi göster (ad, durum, son iş), seçtir.
 4. **Profil seçildi:** `session_bind(session_id, profile_id)`; tanışması bitmemişse (`profile_onboarding_state`) kaldığı adımdan
-   devam et (S00a → S00b → S00c); bittiyse menü.
+   devam et (S00a → S00b → S00c); bittiyse menü (hook bağlamındaki MENÜ bloğu ya da `menu_render(session_id)`).
 5. **Kaldığımız yer:** açık devam notu varsa (`checkpoint_get`) menüden önce tek cümleyle göster (örnek: "S03'te kalmıştık: 2 yön seçildi,
    hook'lar bekliyor. Devam edelim mi?"). Kullanıcı devam derse önce `stage_resume` ile tablo ve dosya hash tutarlılığı doğrulanır;
    tamamlanmış iş tekrarlanmaz, `running/unknown` ücretli iş yeniden başlatılmaz.
@@ -63,51 +66,56 @@ Her iş için yalnızca tetiklendiğine değil **başarılı çıktı/veri sür�
 - **1.3'ten yükseltilmiş kurulumda** (12.14): S01 ya da S02'deki tur için bir kez sor: "Rakip analizini şimdi ekleyelim mi?" Evet →
   `stage_back(..., target_stage="S01b")`; hayır → S01b `stage_complete(..., skipped_reason=…)` ile `skipped`.
 
-### 3. Menü (17.1)
-Üst satır **her zaman**: aktif profil · aktif kampanya ve aşaması · bekleyen kapı · uyarılar · bekleyen uygulama adımları ·
-**tur takvimi** (örnek biçim: "Tur <n> · G<gün>/<test günü> · test sürüyor · plan günü: <tarih>"; kayma varsa yeni tarih önerisi; `cycles` alanlarından hesaplanır).
+### 3. Ana menü (17.1) — sabit
+Menü **sabittir** ve modelden bağımsızdır: maddeler `PR/hooks/menu.json`'da, metin `PR/hooks/menu.py`'de üretilir. Kullanıcı plugin adını
+ya da "menü" yazdığında navigator hook'u menü metnini bağlama `<<<MENÜ … MENÜ>>>` arasında ekler. Hook metni veremediyse (ör. tanışma yeni
+bitti, profil yeni seçildi) aynı metin `menu_render(session_id)` aracından alınır. İki yol da aynı metni verir.
 
 ```
-<Marka adı> · aktif kampanya: Tur 1 (S08 Stil yönleri, onay bekliyor)
-⚠ 2 reklamda yorgunluk uyarısı · uygulama listesinde 1 adım bekliyor
+**<Profil>** · aktif kampanya: <ad> · Tur <n> · <aşama> · <n onay bekliyor | bekleyen onay yok>
+<uyarılar: uygulama listesi, belirsiz ücretli üretim, kurulum eksikliği>
 
-1. Bekleyen onaya bak: stil yönleri
-2. Yeni video reklam oluştur
-3. Yayındaki reklamların performansı ve koçluk raporu
+1. Devam et → <sıradaki iş>
+2. Yeni video reklam
+3. Performans ve koçluk
 4. Reklam geçmişi ve rakip analizi
-5. Yeni ürün ekle
-6. Marka bilgileri, stil kitabı ve rakipler
+5. Ürünler / yeni ürün ekle
+6. Marka, stil ve rakipler
 7. Neler yaptık
-8. Sistem ve hesap durumu
+8. Profiller: değiştir / yeni profil ekle
+9. Sistem ve hesap durumu
 
-Numara yaz ya da ne yapmak istediğini anlat.
+Numara yaz ya da ne yapmak istediğini anlat. Her an "menü" yazarak buraya dönebilirsin.
 ```
-(Yukarıdaki satırlar biçim örneğidir; içerik daima tablolardan gelir.)
 
 Kurallar:
-- En fazla 8 madde. Bekleyen onay ya da yarım kalan iş ilk sırada; ilgisiz madde gösterilmez.
-- Sabit çekirdek: yeni video reklam · performans/koçluk · geçmiş ve rakip analizi · yeni ürün · marka/stil/rakipler · neler yaptık ·
-  profil değiştir / yeni hesap ekle · sistem durumu. Duruma göre: "Satış gir" (piksel yoksa, 6.2), "Uygulama listesine bak"
-  (bekleyen adım varsa, 6.11). 8'i aşarsa en az ilgili çekirdek madde "Diğer…" altına alınır.
-- Menüyü gösterdikten hemen sonra `session_menu_set(session_id, items, header)` ile kaydet; hook bir sonraki mesajdaki tek sayıyı
-  bu listeye göre çözer ("Kullanıcı son menünün N. maddesini seçti").
-- Serbest metinde isteği anla ve ilgili skill'e git; belirsizse en fazla 3 seçenekle sor (alt seçimlerde AskUserQuestion).
-- "menü" → menüyü yeniden göster. "çık" / "menüden çık" → hook modu kapatır; kısaca onayla.
+- Menü metni **olduğu gibi** gösterilir: madde eklenmez, çıkarılmaz, yeniden adlandırılmaz, sırası değişmez. Duruma göre değişen yalnızca
+  üst satır, 1. maddenin "→" sonrası ve 3. maddedeki "(henüz yayında reklam yok)" notudur; bunları da kod üretir.
+- Bakım ya da "kaldığımız yer" notu varsa menünün **üstünde** en fazla 2 kısa satır olabilir. Tur takvimi üst satırdadır.
+- **Home:** Kullanıcı her an (aşama içinde de) "menü" yazabilir. Hook ana menüyü verir; yarım kalan aşama ya da soru varsa önce
+  `checkpoint_save` ile devam notu kaydedilir (tek çağrı, kullanıcıya sorulmaz), sonra menü gösterilir. "1. Devam et" oradan sürdürür.
+- **Sayı:** Tek sayı yalnızca **son ekran ana menüyse** menü maddesidir; hook bunu "Kullanıcı ana menünün N. maddesini seçti … Yapılacak: …"
+  diye bildirir. Aşama içindeki sorulara verilen sayılar o sorunun cevabıdır; menüyle karıştırılmaz.
+- Serbest metinde isteği anla ve ilgili skill'e git; belirsizse en fazla 3 seçenekle sor (alt seçimlerde AskUserQuestion). Menüde olmayan
+  işler (satış girme, uygulama listesi) serbest metinle istenir.
+- "çık" / "menüden çık" → hook modu kapatır; kısaca onayla.
 
 ### 4. Menü maddesi → iş
-| Madde | Çalışan |
-|---|---|
-| Bekleyen onaya bak / devam et | aktif kampanyanın mevcut aşamasının skill'i; kapıda ise özet ve açık onay sorusu |
-| Yeni video reklam oluştur | ürün seç (yoksa `product-onboarding`) → `campaign_create` → `brief` (S01'den aşama makinesi) |
-| Performans ve koçluk raporu | `track` + `coach` |
-| Reklam geçmişi ve rakip analizi | hangisi istendiği sorulur: `meta-history` (artımlı + sağlık raporu; CSV verilirse yedek yol) ya da `competitor-analysis` (aktif kampanya yoksa profil düzeyinde görüntü) |
-| Yeni ürün ekle | `product-onboarding` |
-| Marka bilgileri, stil kitabı ve rakipler | `brand_upsert`/`onboarding_get` görüntüleme-düzenleme, `DD/profiles/<slug>/style.json`, `competitor_list` |
-| Neler yaptık | `memory` skill'inin görünürlük adımı (8.8): `journal_summary`, aktif kurallar, tercihler; düzelt/unut |
-| Profil değiştir / yeni hesap ekle | 17.3 (aşağıda) |
-| Sistem ve hesap durumu | `ref-system-map` + canlı kontrol özeti: OAuth, disk (iki sürücü), son yedek, `cost_summary`, render süreleri, `calibration_get` |
-| Satış gir | `sales_add` (tarih aralığı, adet, ciro, kaynak notu); atıf varsayımı söylenir |
-| Uygulama listesine bak | `action_items_list` + `action_items_verify` (salt okuma) |
+Her maddenin işi `menu.json`'daki `action` alanıdır; hook seçimde bunu bağlama ekler. Özet:
+
+| No | Madde | Çalışan |
+|---|---|---|
+| 1 | Devam et | aktif kampanyanın mevcut aşamasının skill'i (kapıdaysa özet ve açık onay sorusu); kampanya yoksa "→" sonrasındaki iş (tanışma adımı ya da ürün için `campaign_create` → `brief`) |
+| 2 | Yeni video reklam | ürün seç (tanışması yoksa `product-onboarding`) → `campaign_create` → `brief` (S01'den aşama makinesi) |
+| 3 | Performans ve koçluk | `track` + `coach`; yayında reklam yoksa söylenir |
+| 4 | Reklam geçmişi ve rakip analizi | hangisi istendiği sorulur: `meta-history` (artımlı + sağlık raporu; CSV verilirse yedek yol) ya da `competitor-analysis` (aktif kampanya yoksa profil düzeyinde görüntü) |
+| 5 | Ürünler / yeni ürün ekle | `product_list`; yeni ürün için `product-onboarding` |
+| 6 | Marka, stil ve rakipler | `brand_upsert`/`onboarding_get` görüntüleme-düzenleme, `DD/profiles/<slug>/style.json`, `competitor_list` |
+| 7 | Neler yaptık | `memory` skill'inin görünürlük adımı (8.8): `journal_summary`, aktif kurallar, tercihler; düzelt/unut |
+| 8 | Profiller | 17.3 (aşağıda): değiştir ya da yeni profil (`brand-onboarding`) |
+| 9 | Sistem ve hesap durumu | `ref-system-map` + kurulum özeti (statik ve canlı): OAuth, disk (iki sürücü), son yedek, `cost_summary`, render süreleri, `calibration_get` |
+| — | Satış gir (serbest metin) | `sales_add` (tarih aralığı, adet, ciro, kaynak notu); atıf varsayımı söylenir |
+| — | Uygulama listesi (serbest metin) | `action_items_list` + `action_items_verify` (salt okuma) |
 
 ### 5. Profil yönetimi (17.3)
 - **Yeni hesap ekle:** yeni profil için `brand-onboarding`; mevcut profiller etkilenmez.
@@ -138,11 +146,14 @@ gerçek JSON nesnesi olarak; zaman bilgisi `args.now_iso` ile verilir. Workflow 
 aşama skill'indeki **yedek yol** (ajanı klip/format/kreatif/rakip başına alt ajan olarak çağırmak) kullanılır ve `journal_log`'a yazılır.
 
 ### 8. Her işin sonunda
-Kısa sonuç + önerilen sonraki adım; tablolardan çıkarılamayan anlatı 1–3 satırla `journal_log`'a; menüyü yeniden göster.
+Kısa sonuç + önerilen sonraki adım (genellikle "1. Devam et" ile aynı iş); tablolardan çıkarılamayan anlatı 1–3 satırla `journal_log`'a.
+Menü her işin sonunda kendiliğinden tekrar basılmaz; son satır: `Menüye dönmek için "menü" yaz.` Kullanıcı açıkça isterse ya da iş
+menüden başka bir seçim gerektiriyorsa `menu_render(session_id)` metni gösterilir.
 
 ## Çıktılar
-- `.sessions/<session_id>.json` (hook yazar): plugin modu, bağlı kimlikler, son menü — geçici; hafıza değildir.
-- `session_bind`, `session_menu_set`, `profile_set_active` kayıtları; işe göre `journal_log`. Navigator kendisi aşama çıktısı üretmez.
+- `.sessions/<session_id>.json` (hook ve `menu_render` yazar): plugin modu, bağlı kimlikler, son ekran (`screen`), son menü — geçici;
+  hafıza değildir.
+- `session_bind`, `profile_set_active` kayıtları; işe göre `journal_log`. Navigator kendisi aşama çıktısı üretmez.
 
 ## Kontroller
 - Mutasyon yapan her `ad-memory` çağrısında açık `profile_id` (aktif profile düşülmez).

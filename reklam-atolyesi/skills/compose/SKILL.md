@@ -17,6 +17,8 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
 `edit_plan_get`, `analysis/material-map.json`, `audio/music/*.beats.json`, `audio/vo/*.words.json`, `ref-remotion-components`.
 
 ## Kullanılan hazır skill'ler ve OVERRIDES
+- Remotion: yalnızca `ref-remotion-components` ve `ref-vendor-map` → "Remotion — resmi belge yolu". Makinede genel `remotion-*`
+  skill'leri kurulu olsa bile okunmaz (sürüm ve kurallar plugin'in pinli sürümüyle uyuşmayabilir).
 - **launch-video**: `PR/vendor-skills/launch-video/OVERRIDES.md` → `SKILL.md`, `references/launch-structure.md` (hook → tease → reveal →
   montaj → son kart yayı, "drop'ta reveal" vuruş kilidi; iart.ai ve 16:9 varsayımı uygulanmaz).
 - **promo-video**: `PR/vendor-skills/promo-video/OVERRIDES.md` → `SKILL.md` `## Beats & music` (beat-lock) ve `## Hard-won gotchas`

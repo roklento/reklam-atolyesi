@@ -36,5 +36,6 @@ Canlı kurulum kontrolünü yürüt (spec 12.10 canlı liste, 16.5, 12.13). Stat
     sonunda sentetik profil arşivlenir.
 
 Her madde `runtime_record(item_id, status, scope, evidence_ref, component_hashes, not_applicable_reason?)` ile kaydedilir; `component_hashes` içine maddenin `components` listesindeki her anahtarın `system_manifest_get(section="component_hashes")` değeri konur (sürüm değişince yalnızca etkilenen maddeler `stale` olur; 12.13). Profil/hesap/veri yoluna özgü sonuçlar `scope="profile:<id>" | "account:<id>" | "data_path:mcp|csv"` ile yazılır. Ortak zorunlu
-maddeler geçince `setup_verified_at` sunucu tarafından yazılır. Geçmeyen madde kullanıcıya nasıl düzeltileceğiyle söylenir; başarısız
+maddeler geçince ve statik kontrol kayıtlıysa (`setup_static_ok_at`) `setup_verified_at` sunucu tarafından yazılır. `setup_static_ok_at` boşsa
+kullanıcıya kurulum dosyasını (`kur.cmd`) yeniden çalıştırmasını söyle (veri korunur, güncelleme olarak tanınır). Geçmeyen madde kullanıcıya nasıl düzeltileceğiyle söylenir; başarısız
 güvenlik kontrolü "uygulanamaz" diye gizlenmez.
