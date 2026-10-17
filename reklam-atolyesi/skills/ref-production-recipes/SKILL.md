@@ -108,7 +108,7 @@ yalnızca bitmiş ve hash'i doğrulanmış dosya. Yarıda kalan render doğrulan
 
 ## Export, formatlar, adlandırma (5.16, 5.18, 5.19)
 - Export: H.264 High, yuv420p, 30 fps CFR, CRF 16–18 (ya da 12–16 Mbps), AAC 48 kHz 256 kbps, `+faststart`.
-- Formatlar: 9:16 1080×1920 (Reels/Stories; yazı güvenli alanı üst %14, alt %35, yanlar %6) · 4:5 1080×1350 (Feed; üst/alt ~250 px, yanlar
+- Formatlar: 9:16 1080×1920 (Reels/Stories; yazı güvenli alanı üst %14, alt %35, yanlar %6; açıklama metni ya da AI içeren reklamda alt %40 — Meta, `ref-legal-tr-meta` §7) · 4:5 1080×1350 (Feed; üst/alt ~250 px, yanlar
   ~100 px) · 1:1 1080×1080 isteğe bağlı. Varsayılan teslim 9:16 + 4:5.
 - Dosya adı `<MARKA>_<KAMPANYA>_<KONSEPT>_<MEDYA>_<SÜRE>_<HOOK>_<VO>_<KAYNAK>_<TUR>_<REV>_<FORMAT>[_k<KART>]` (örnek biçim:
   `MRK_K1_A_video_15_h1_vo_ai_c1_r1_916.mp4`); `MEDYA`: video|static|carousel; `KAYNAK`: real|ai; statik/carousel süresi `na`.

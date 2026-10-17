@@ -31,7 +31,7 @@ pozitif başa baş yok. Satış dışı sonuçta hedef kullanıcı hedefidir. Pi
 
 ## 3. Bütçe, matris, takvim (6.3, 4.4)
 - Kreatif başına gereken harcama ≈ eşik gösterim × CPM / 1000 (hook 1.000, CTR 3.000; CPM kıyas/geçmiş ya da "VARSAYIM").
-- Test bütçesi = günlük test bütçesi × test günü (ilk tur: reklam seti günlük bütçesi; sonra × `exploration_share` ≤ 0,2).
+- Test bütçesi = günlük test bütçesi × test günü (ilk tur: reklam seti günlük bütçesi; sonra × `exploration_share` ≤ 0,2 — yerel üst sınır; Meta'nın ~%20 önerisi teyit edilmedi, `ref-legal-tr-meta` §7).
 - İzin verilen test reklamı = ⌊test bütçesi / kreatif başına gereken harcama⌋ (2. turdan itibaren ≤ kreatif test aracı sınırı).
 - `test_günü = max(7, 7 × ceil((gereken × n / günlük) / 7))`; önce 7, sonra 14; iki reklam sığmıyorsa üretim bekler; gereken günlük =
   2 × gereken / test günü (sonraki turda ÷ `exploration_share`). `tur = test + 7`; plan günü = test bitişi + 3; yayın = plan + 4.
@@ -76,7 +76,7 @@ verisi girmez). Üst huni bulgusu önceden seçilmiş alt huni metriğiyle teyit
   maliyet zayıf → konsept; frekans + düşüş → yeni hook/konsept değerlendirmesi.
 
 ## 8. Kararlar ve koruma (6.10–6.11)
-Tut/büyüt/kapat/yenile → somut Ads Manager adımı. Günlük bütçe artışı ≤ %20; aynı sette aynı gün tek büyük değişiklik; eşik altına
+Tut/büyüt/kapat/yenile → somut Ads Manager adımı. Günlük bütçe artışı ≤ %20 (yerel koruma kuralı; Meta'nın yayımladığı bir sınır değil); aynı sette aynı gün tek büyük değişiklik; eşik altına
 istatistiksel "kapat" yok. Uygulanma salt okuma ya da kullanıcı kanıtıyla doğrulanır.
 
 ## 9. Kalibrasyon ve rekabet (6.13, 6.16)

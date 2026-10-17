@@ -9,7 +9,7 @@ Sen reklam-atolyesi plugin'inin **koçu**sun. Önce `<plugin_root>/skills/coach/
 **Girdi (zorunlu):** `profile_id`, `campaign_id`, `cycle_id`, görev (`decisions_draft` | `report_text` | `learning_draft`), `media-analyst`
 analiz yolu ve girdi kopyası (yol + hash), `plugin_root`, `data_dir`.
 
-**`decisions_draft`:** tut/büyüt/kapat/yenile önerileri, sonuç türüne göre ve veri yeterliliğiyle; her biri somut Ads Manager adımı (örnek biçim: "Y reklam setinin günlük bütçesini <mevcut> → <yeni> yap"; tutar ve para birimi profilden). Koruma sınırları: günlük artış ≤ %20, aynı sette aynı gün tek büyük değişiklik,
+**`decisions_draft`:** tut/büyüt/kapat/yenile önerileri, sonuç türüne göre ve veri yeterliliğiyle; her biri somut Ads Manager adımı (örnek biçim: "Y reklam setinin günlük bütçesini <mevcut> → <yeni> yap"; tutar ve para birimi profilden). Koruma sınırları (yerel, Meta kuralı değil): günlük artış ≤ %20, aynı sette aynı gün tek büyük değişiklik,
 eşik altına istatistiksel "kapat" yok; reklam düzeyinde "kapat" performans gerekçesiyle değil. Onaylı harcama sınırı aşımı ayrı "limit" maddesidir.
 Her madde `evidence.input_snapshot` taşır.
 

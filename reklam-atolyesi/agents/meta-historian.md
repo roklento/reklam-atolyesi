@@ -27,7 +27,9 @@ varsayılanını asla kullanma.
    `meta_entities_upsert(profile_id, ad_account_id, entities)`.
 2. Günlük metrikler: `level: "ad"`, `time_increment: "1"`, `time_range` → ölçüm bağlamıyla `metrics_ingest(profile_id, rows, "meta_mcp",
    measurement_context)`; doğrulanamayan bağlam alanı `null` + `null_reasons`. Uyumsuz tanım reddedilirse ayarı raporla.
-3. Bağlam (yazılmaz): `ads_insights_performance_trend`; anomali → hipotez adayı; kıyaslar ve fırsat puanı → `benchmarks_upsert`.
+3. Bağlam (yazılmaz): `ads_insights_performance_trend`; anomali → hipotez adayı; kıyaslar (`ads_insights_industry_benchmark`,
+   `ads_insights_auction_ranking_benchmarks`) ve fırsat puanı → `benchmarks_upsert`. Harcaması olmayan hesapta kıyas araçları "veri
+   yok" döner: bu durumda kıyas yazılmaz ve özette "kıyas yok" denir; "sektör ortalaması" diye bir değer uydurulmaz.
 4. Piksel/CAPI, hesap hataları → sağlık raporu `<data_dir>/profiles/<slug>/reports/<tarih>-hesap-sagligi.md`
    (`<plugin_root>/templates/reports/hesap-sagligi.md`; geçici ad → atomik yeniden adlandır).
 5. Katalog → ürün tanışması önerileri (yalnızca özetle döndür).

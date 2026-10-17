@@ -33,7 +33,7 @@ Yok.
    - **İlk tur (`bootstrap`):** tek kampanya, tek reklam seti, teklif stratejisi "En yüksek hacim"; turun konseptleri birlikte.
      Hükümler "Meta'nın dağıtımı altında".
    - **Sonraki turlar (`creative_test`):** aynı reklam setinde, yayındaki bir reklamdan başlatılan Meta kreatif testi; yeni konseptler
-     test reklamı (araç sınırı içinde); test bütçesi ≤ ~%20 (`exploration_share`); süre 7 gün (ya da S02'nin seçtiği); "En yüksek hacim".
+     test reklamı (araç sınırı içinde); test bütçesi ≤ `exploration_share` (plugin'in yerel üst sınırı 0,2; Meta'nın ~%20 önerisi teyit edilmedi, §7); reklam sayısı Ads Manager ekranından; süre 7 gün (ya da S02'nin seçtiği); "En yüksek hacim".
      Maliyet hedefi/teklif sınırı/ROAS hedefi kreatif testi engeller. ABO ve Meta A/B testi desteklenmez.
    - Test başlangıcı mümkünse hesap saat diliminde **gece yarısı** (günlük veride sınır günleri dışlanır, 6.4).
 6. **Harcama ve bitiş sınırları:** kampanya toplam sınırı, gerçekleşen ve kalan; insanın uygulayacağı, hesabın desteklediği kapsamlı
@@ -63,6 +63,8 @@ Yayın paketi, `cycles.risk_limits_json.mapping`, güncel bütçe planı; yayın
 `launch_confirm` kararı, görev kayıtları, devam notu.
 
 ## Kontroller
+- Meta platform kuralı (sınır, format, güvenli alan, politika) kullanıldıysa durumu `ref-legal-tr-meta` §7'ye göre belli: resmi
+  (bağlantı + tarih), yerel koruma kuralı ya da teyit edilmedi; teyit edilmeyen kural kesin diye sunulmadı.
 - Yükleme listesinde yalnızca QC'den geçmiş test kreatifleri; her birinin risk sınırı eşlemesi var; tavan aşılmadı.
 - Kurulum talimatı yapıya uygun; insan uygulayacak; plugin hiçbir Meta yazma aracını çağırmadı.
 - `launch_confirm` olmadan S15'e geçilmedi.

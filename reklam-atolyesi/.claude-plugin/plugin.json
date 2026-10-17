@@ -1,7 +1,7 @@
 {
   "name": "reklam-atolyesi",
   "displayName": "Reklam Atölyesi",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Meta video reklamlarını rakip analiziyle stratejiden yayın paketine kadar üreten, yayındaki reklamları matematikle okuyup koçluk yapan ve her turda öğrenen reklam sistemi. Başlatmak için yalnızca 'reklam-atolyesi' yazın.",
   "author": {
     "name": "Reklam Atölyesi"
@@ -32,7 +32,7 @@
     "exploration_share": {
       "type": "number",
       "title": "Kreatif test bütçesi payı",
-      "description": "Kreatif test bütçesinin reklam seti bütçesine oranı (0,05–0,2; Meta kreatif test aracının ~%20 üst sınırını aşamaz).",
+      "description": "Kreatif test bütçesinin reklam seti bütçesine oranı (0,05–0,2). 0,2 plugin'in yerel üst sınırıdır; Meta'nın kreatif test aracı için ~%20 önerdiği üçüncü taraf kaynaklarda geçer, resmi metinle teyit edilmedi.",
       "min": 0.05,
       "max": 0.2,
       "default": 0.2

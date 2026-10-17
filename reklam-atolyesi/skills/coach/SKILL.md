@@ -45,7 +45,7 @@ Yok.
    Hook × CTR × CVR çarpımı yapılmaz; erişim toplamından frekans türetilmez. Konsept önceliği yalnızca sonraki test adaylarını sıralar.
    Reklam düzeyinde "kapat" performans gerekçesiyle önerilmez (Meta zaten harcama vermiyorsa gereksiz); onaylı sınır aşımı ayrı kuraldır.
 7. **Uygulama listesi:** her karar somut bir Ads Manager adımı (örnek biçim: "Y reklam setinin günlük bütçesini <mevcut> → <yeni> yap"; tutarlar ve para birimi profilden).
-   **Koruma sınırları:** günlük bütçe artışı ≤ %20; aynı reklam setinde aynı gün birden fazla büyük değişiklik yok; eşik altı kreatife
+   **Koruma sınırları (yerel; Meta kuralı diye sunulmaz, §7):** günlük bütçe artışı ≤ %20; aynı reklam setinde aynı gün birden fazla büyük değişiklik yok; eşik altı kreatife
    istatistiksel "kapat" yok. → `action_items_set(profile_id, campaign_id, items=[{action, reason_kind:"performance", target_meta_id,
    before, after, evidence:{input_snapshot}}], cycle_id)` (onay S16 kapısında).
 8. **Tahminler:** her P(kazanır)/beklenen aralık `prediction_log(profile_id, campaign_id, cycle_id, subject, metric, input_snapshot=<yol/hash>,
@@ -67,6 +67,9 @@ Girdi kopyası (hash'li), analiz JSON'u, grafikler, sürümlü koçluk raporu, `
 çözülen tahminler, devam notu.
 
 ## Kontroller
+- Kıyas (`benchmarks_get`) yalnızca bağlam satırıdır; hüküm ve önsel girdisi değildir; yoksa "kıyas yok" yazılır.
+- Meta platform kuralı (sınır, format, güvenli alan, politika) kullanıldıysa durumu `ref-legal-tr-meta` §7'ye göre belli: resmi
+  (bağlantı + tarih), yerel koruma kuralı ya da teyit edilmedi; teyit edilmeyen kural kesin diye sunulmadı.
 - Rapor ve hesap aynı kopyayı referans veriyor (yol/hash/sürüm); hesap sırasında tablodan yeniden veri alınmadı.
 - Eşik altı hüküm yok; sonuç türleri, medya türleri, test dönemi/sonrası ve atıf ayarları karışmadı.
 - Koruma sınırları aşılmadı; Meta'ya yazılmadı; rekabet bağlamında nedensellik dili yok.

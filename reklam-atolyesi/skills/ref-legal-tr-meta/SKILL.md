@@ -1,6 +1,6 @@
 ---
 name: ref-legal-tr-meta
-description: "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, lisanslar."
+description: "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), lisanslar."
 ---
 
 # ref-legal-tr-meta — yasal kurallar ve kaynakları (spec bölüm 10, 9.1, 11)
@@ -113,3 +113,34 @@ Yazılar güvenli alanda ve ≥ 1,5 sn · ses -14 LUFS, telefon hoparlöründe V
 yok · iddia listesi kontrol edildi · AI içeren varyasyonlarda Meta açıklama/etiket talimatı güncel kurala uygun · ayırt edilmesi zor AI
 içerikte görünür açıklama · yazım ve Türkçe karakterler · yorum izinleri (satın alma doğrulaması dahil) ve kişi izinleri eşleşti · ses
 kararları uygulandı · rakipten türeyen konseptler uzaklık kuralını geçti; kreatifte rakip adı, logosu ya da varlığı yok.
+
+## 7. Meta platform kuralları — kaynak protokolü (1.4.2)
+Meta'nın platformuna dair her sayı, sınır ya da politika (format ve güvenli alan, kreatif test aracı sınırları, öğrenme ve bütçe
+davranışı, AI etiketi, alan adları) kullanıcıya söylenmeden ya da hesaba katılmadan önce **durumu** bellidir:
+- **Resmi:** bu oturumda resmi kaynaktan okundu: `ads_get_help_article(search_query)` (Meta yardım merkezi) ya da canlı araç
+  (`ads_get_field_context`, hesabın Ads Manager ekranı). Kullanıcıya makale başlığı ve bağlantısıyla söylenir.
+- **Yerel koruma kuralı:** plugin'in kendi temkinli tercihidir; "Meta kuralı" diye sunulmaz.
+- **Teyit edilmedi:** yalnızca ikincil kaynak ya da eski bilgi; kesin zorunluluk ya da sınır diye sunulmaz.
+
+Uygulama:
+1. Aşama bir Meta kuralına dayanıyorsa önce sistem hafızasındaki kayda bakılır (`memory_search("<konu> meta", profile_id=None, layer="semantic")`; `kind="policy_check"` olan öğeler);
+   30 günden eski ya da hiç yoksa `ads_get_help_article` ile kontrol edilir. Araç kavram, politika, özellik ve teknik şart içindir;
+   performans ya da teklif önerisi için kullanılmaz (aracın kendi kuralı).
+2. Okunan resmi bilgi kontrol tarihiyle yazılır: `memory_add(layer="semantic", kind="policy_check", source="data", profile_id=None,
+   content="<kural> — <makale başlığı> <bağlantı> (kontrol: <tarih>)", tags=["meta", "<konu>"])`.
+3. Araç ilgili makale döndürmezse durum "teyit edilmedi" kalır; sayı uydurulmaz, yakın bir makaleden çıkarım yapılmaz.
+4. Resmi bilgi aşağıdaki tablodaki yerel değerle çelişirse resmi olan uygulanır ve tablo bir sonraki sürümde düzeltilmek üzere
+   kullanıcıya bildirilir.
+
+| Kural (plugin'deki kullanımı) | Durum (kontrol: 2026-10-17) |
+|---|---|
+| 9:16 yazı güvenli alanı üst %14, alt %35, yanlar %6 (qc, compose, `checks.py safe`) | Yerel değer. Resmi sayfa yüzde vermiyor; kenarların boş bırakılmasını ve Ads Manager'daki güvenli alan kılavuzunun kullanılmasını öneriyor ([About text overlays and the safe zone](https://www.facebook.com/business/help/980593475366490)) |
+| Açıklama metni (disclaimer) içeren 9:16 reklamda alttaki %40 boş (`checks.py safe`: `disclaimer.on` ya da `ai_share > 0`) | **Resmi** (aynı makale) |
+| Uzun ekranlarda Meta görüntüyü yakınlaştırıp güvenli alan dışını kırpabilir; kritik öğe güvenli alanın rahatça içinde | **Resmi** (aynı makale) |
+| Kreatif test aracında test bütçesi ~%20 (`exploration_share` üst sınırı 0,2) | Teyit edilmedi: üçüncü taraf kaynaklarda Meta'nın **önerisi** olarak geçer, sınır değil. 0,2 plugin'in yerel üst sınırıdır |
+| Kreatif test aracında reklam sayısı (2–5; bazı hesaplarda 10 bildiriliyor) | Teyit edilmedi; hesabın Ads Manager ekranından okunur |
+| Günlük bütçe artışı ≤ %20, aynı sette aynı gün tek büyük değişiklik (coach) | Yerel koruma kuralı (öğrenmeyi bozmamak için temkin; Meta'nın yayımladığı bir sınır değildir) |
+| 3 sn izlenme reklam düzeyinde sayı olarak gelmez, `amount_spent / cost_per_video_view` ile türetilir (track) | **Resmi** (canlı `ads_get_field_context`) |
+| Meta alan adları (`meta_fields.json`) | **Resmi** (canlı `ads_get_field_context`) |
+| AI açıklama/etiket politikası (launch-pack) | Teyit edilmedi (bölüm 4) |
+| Sektör kıyası (`ads_insights_industry_benchmark`) | **Resmi araç**; harcaması olmayan hesapta "veri yok" döner. Kıyas önsel değildir (bkz. track) |

@@ -47,7 +47,8 @@ Yok.
 8. `profile_update(profile_id, history_status="ready"|"no_history", last_meta_sync_at=<şimdi>)`.
 9. Tanışmada: `stage_complete(profile_id, "S00b", outputs=[{path: sağlık raporu}], summary, scope_key="profile:<id>")` (kapı yok).
    Profil, S00a onayı + S00b sonucu + veri yolu kaydıyla `active` olur (`profile_onboarding_state.activation_blockers` boşalır).
-10. Ana oturuma 3–5 cümlelik özet: kaç kampanya/reklam/gün, önseller (kaynak ve kesim), sağlık bulguları, aday hipotezler.
+10. Ana oturuma 3–5 cümlelik özet: kaç kampanya/reklam/gün, önseller (kaynak ve kesim), kıyas (yoksa "kıyas yok"), sağlık bulguları,
+    aday hipotezler. Geçmiş ve kıyas yoksa "sektör ortalaması" vaat edilmez: ilk test önsel varsayım olmadan (Beta(1,1)) başlar.
 
 ## Çıktılar
 `meta_entities`, `ads`, `metrics_daily` (ölçüm bağlamı ve parmak iziyle), `account_benchmarks`, `priors`, sağlık raporu dosyası,

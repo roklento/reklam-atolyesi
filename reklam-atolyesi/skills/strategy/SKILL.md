@@ -44,7 +44,9 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    - **Tur takvimi:** `test_days`, `cycle_days = test_days + 7`, plan günü = test bitişi + 3, yayın = plan günü + 4; ilk turda hazırlık
      takvimi (G1 plan … G7 yayın).
    - Test yapısı sabittir: ilk tur `bootstrap` (tek reklam seti, "En yüksek hacim"); sonraki turlar Meta **kreatif test** aracı (test
-     payı ≤ ~%20). Araç sınırları hesabın güncel Ads Manager ekranı ya da resmi belgeyle doğrulanır; doğrulanmayan sınır kesin sayılmaz.
+     payı ≤ 0,2: plugin'in yerel üst sınırı; Meta'nın ~%20 önerisi teyit edilmedi). Araç sınırları (test payı, reklam sayısı: 2–5, bazı
+     hesaplarda 10 bildiriliyor) hesabın güncel Ads Manager ekranı ya da `ads_get_help_article` ile doğrulanır; doğrulanmayan sınır kesin
+     sayılmaz (`ref-legal-tr-meta` §7).
 4. **Zarar-risk sınırı:** kullanıcıya sor: "Testteki her ayrı reklam için riske etmeyi kabul ettiğin azami reklam harcaması nedir?"
    (sonlu, pozitif; net zarar/kârlılık tahmini değil; otomatik CPA çarpanı atanmaz). Sınır kreatif başına gereken harcamadan düşükse o
    reklam eşiğe ulaşması beklenenlerden sayılmaz; asgari iki reklam koşulu yeniden sınanır.
@@ -85,6 +87,8 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
 belgesi, hipotez adayları, devam notu.
 
 ## Kontroller
+- Meta platform kuralı (sınır, format, güvenli alan, politika) kullanıldıysa durumu `ref-legal-tr-meta` §7'ye göre belli: resmi
+  (bağlantı + tarih), yerel koruma kuralı ya da teyit edilmedi; teyit edilmeyen kural kesin diye sunulmadı.
 - Portföy toplamı tavanı ve (2. turdan itibaren) kreatif test aracının sınırını aşmıyor; doğrulama çifti önce (sunucu da reddeder).
 - Rakip bağlamı yokken `general` etiketi ve rol yok.
 - İki reklama yetmeyen bütçede, toplam sınır aşımında ya da onaysız risk sınırında kapı **açılmaz** (sunucu `_s02_blockers`).

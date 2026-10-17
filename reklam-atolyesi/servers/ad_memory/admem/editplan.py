@@ -109,6 +109,9 @@ SCHEMA: dict[str, Any] = {
         "music": {"type": ["object", "null"], "properties": {"asset": {"type": "string"}, "offset_s": {"type": "number"}, "beats": {"type": "string"}, "gain_db": {"type": "number"}}},
         "vo": {"type": ["object", "null"], "properties": {"asset": {"type": "string"}, "words": {"type": "string"}}},
         "captions": {"type": ["object", "null"], "properties": {"on": {"type": "boolean"}, "preset": {"type": "string"}}},
+        # videoda görünen açıklama metni (AI açıklaması, yasal not); 9:16'da alt %40 boş kalır (checks.py safe; ref-legal-tr-meta §7)
+        "disclaimer": {"type": ["object", "null"], "properties": {"on": {"type": "boolean"}, "text": {"type": "string"},
+                                                                   "reason": {"enum": ["ai", "legal", "price", "other"]}}},
         "scenes": {"type": "array", "minItems": 1, "items": _scene},
         "missing": {"type": "array", "items": {"type": "string"}},
         "provenance": {"type": "object", "properties": {"ai_share": {"type": "number", "minimum": 0, "maximum": 1},

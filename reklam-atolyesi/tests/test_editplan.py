@@ -97,3 +97,25 @@ def test_ai_share_and_patch():
     t = editplan.apply_patch(p, [{"op": "trim", "duration_s": 6.0, "keep_roles": ["hook", "endcard"]}, {"op": "reformat", "format": "4x5"}])
     assert t["format"] == "4x5" and t["version"] == 2 and abs(sum(s["dur_s"] for s in t["scenes"]) - 6.0) < 1e-6
     assert editplan.validate(t)["valid"] or True
+
+
+def test_disclaimer_field_and_safe_zone_40():
+    """Açıklama metni (ya da AI) içeren 9:16 planda yazılar alttaki %40'a girmez; varsayılan plan değişmez (1.4.2, Meta resmi kılavuzu)."""
+    import checks as CK
+    p = plan(disclaimer={"on": True, "text": "Bu reklamda yapay zekâ ile üretilmiş görüntü vardır.", "reason": "ai"})
+    r = editplan.validate(p, beats=[0.0, 2.0, 4.0])
+    assert r["valid"], r["errors"]
+    low = plan()
+    low["scenes"][0]["layers"][1] = {"type": "text", "preset": "text_reveal", "text": "Örnek", "props": {"y": 0.62}}
+    assert CK.safe_zone(low)["ok"] and CK.safe_zone(low)["zone"]["bottom"] == 0.35
+    with_d = copy.deepcopy(low)
+    with_d["disclaimer"] = {"on": True}
+    z = CK.safe_zone(with_d)
+    assert not z["ok"] and z["zone"]["bottom"] == 0.40 and "alt %40" in z["issues"][0]["issue"]
+    with_ai = copy.deepcopy(low)
+    with_ai["provenance"] = {"ai_share": 0.2}
+    assert not CK.safe_zone(with_ai)["ok"]
+    feed = copy.deepcopy(with_d)
+    feed["format"] = "4x5"
+    feed["scenes"][0]["layers"][1]["props"]["y"] = 0.7
+    assert CK.safe_zone(feed)["zone"]["bottom"] == 250 / 1350  # %40 kuralı yalnızca 9:16

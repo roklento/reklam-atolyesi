@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.1
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.2
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -85,6 +85,17 @@ migration öncesi alınır; son 8 yedek tutulur.
 - Lisanslar: `vendor-skills/THIRD_PARTY_NOTICES.md`; Remotion ve ElevenLabs kullanım koşulları `skills/ref-legal-tr-meta`.
 
 ## Sürüm notları
+**1.4.2**
+- Meta platform kuralları için kaynak protokolü (`ref-legal-tr-meta` §7): her kural resmi (yardım merkezi `ads_get_help_article` ya da
+  canlı araç, bağlantı + tarih), yerel koruma kuralı ya da "teyit edilmedi" olarak işaretlenir. Strateji, yayın paketi, QC, takip,
+  koçluk ve kurgu bu durumu denetler.
+- Güvenli alan: açıklama metni (`disclaimer.on`) ya da AI (`ai_share > 0`) içeren 9:16 planda alttaki %40 boş (Meta resmi kılavuzu).
+- Kreatif test payı ~%20 artık "Meta sınırı" diye değil, plugin'in yerel üst sınırı ve teyit edilmemiş Meta önerisi diye yazılır;
+  günlük bütçe artışı ≤ %20 yerel koruma kuralıdır.
+- Takip: ilk harcamadan sonra Meta kıyas araçları (`ads_insights_industry_benchmark`, `ads_insights_auction_ranking_benchmarks`)
+  bağlam olarak; veri yoksa "kıyas yok". Kıyas önsel değildir.
+- Geçmiş ve kıyas yokken "sektör ortalaması" vaadi engellendi.
+
 **1.4.1**
 - Sabit ana menü (9 madde, `hooks/menu.json` + `hooks/menu.py`); "menü" her yerden ana ekrana döner; sayılar yalnızca menüdeyken menü
   maddesidir. Yeni `menu_render(session_id)` aracı hook'la aynı metni verir.

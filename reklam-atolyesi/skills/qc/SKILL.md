@@ -64,6 +64,8 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
 QC raporu ve düzeltme listesi, `creatives.qc_status`, teknik rapor JSON'ları, insan kontrolü notları, devam notu.
 
 ## Kontroller
+- Meta platform kuralı (sınır, format, güvenli alan, politika) kullanıldıysa durumu `ref-legal-tr-meta` §7'ye göre belli: resmi
+  (bağlantı + tarih), yerel koruma kuralı ya da teyit edilmedi; teyit edilmeyen kural kesin diye sunulmadı.
 - `qc-reviewer` üretim bağlamını görmedi; seyrek karelerden hareket/ses için onay verilmedi.
 - Her ReviewCard ve her kişili klip izin kaydıyla eşleşti; eşleşmeyen kreatif reddedildi.
 - Teknik kontroller bütün video üzerinde; örnek karelerden "geçti" denmedi.

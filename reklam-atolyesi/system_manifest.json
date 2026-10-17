@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.4.1",
+ "plugin_version": "1.4.2",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -143,7 +143,7 @@
    "name": "brand-onboarding",
    "kind": "stage",
    "description": "reklam-atolyesi S00a marka tanışması — yeni profil, reklam hesabı/sayfa, logo ve renkler, marka sesi, CTA linki, kaçınılacaklar, yorum izinleri. Navigator/tanis-marka çağırır.",
-   "sha256": "9a75e06053d79be81d44b12155f8a77cd49a4d1f93780b80ca1ecbacf3689f42"
+   "sha256": "f7577b84327ab19cdede6d7019e6cd5ca6d799b34d22ad97f06660a0a1825af5"
   },
   {
    "name": "brief",
@@ -155,7 +155,7 @@
    "name": "coach",
    "kind": "stage",
    "description": "reklam-atolyesi S16 koçluk — değişmez girdi kopyasından Beta-Binom/Gamma analizi, hüküm dili, sahne kaybı, rekabet bağlamı, grafikler, kararlar ve Ads Manager uygulama listesi. Kapılı.",
-   "sha256": "e2cab7740af530ef0cb4a9ec40ce8d559d56065a8beabc8d066576a0cc94e2b2"
+   "sha256": "4552f78718353034bcf0263be9cd07f15323eda18f019c0082a18b86f3353576"
   },
   {
    "name": "competitor-analysis",
@@ -167,7 +167,7 @@
    "name": "compose",
    "kind": "stage",
    "description": "reklam-atolyesi S10 kurgu — kurgu planını kesin zamanlama, katman ve geçişlerle tamamlar, vuruşa yaslar, sahne ara dosyalarından Remotion render eder ve görsel öz denetimden geçirir.",
-   "sha256": "e20d6f5ede0e1194dfd42dd64833ba40baa396a518d73d7d3584d1662a0feb9e"
+   "sha256": "6d932d554275cf5eb735ba83894ee03dfcca14852f9fa9b4f9a1d46a3caa7c2b"
   },
   {
    "name": "concepts",
@@ -185,7 +185,7 @@
    "name": "launch-pack",
    "kind": "stage",
    "description": "reklam-atolyesi S14 yayın paketi — reklam adları, metinler, Ads Manager kurulum talimatı, harcama/risk sınırları, AI açıklaması, takvim; insan yayınından sonra launch_confirm. Kapılı.",
-   "sha256": "39d0bd50dd635fb81d014c98b900ba7aaa23ec1aa46cf29f4fb770ae855b9ac9"
+   "sha256": "abd6bb13a99a577993e4f3afa69bd5145302d654d59566b0d06ba461fb18baaa"
   },
   {
    "name": "learn",
@@ -209,13 +209,13 @@
    "name": "meta-history",
    "kind": "stage",
    "description": "reklam-atolyesi S00b Meta geçmişi — meta-historian ajanını salt okumayla çalıştırır; varlıklar, günlük metrikler, önseller, kıyaslar, hesap sağlık raporu; CSV yedek yolu.",
-   "sha256": "6e1083f3ef1e20cbd8269bd9cd49b47f56a472902f4113fdd348445c7173e249"
+   "sha256": "8bba0c4d442c1d7737ce2d14ecdca40a03f75445e430485a44ecf8a24eafdfa8"
   },
   {
    "name": "navigator",
    "kind": "entry",
    "description": "reklam-atolyesi ana menüsü ve plugin modu. Kullanıcı yalnızca \"reklam-atolyesi\"/\"reklam atölyesi\" yazınca ya da /reklam-atolyesi komutu gelince çalışır; ilk açılış, profil, devam notu, menü.",
-   "sha256": "654c005e7d39ffd69d94820b5aa6fd23b238a426d7a75f8477433e7c0386d6a2"
+   "sha256": "835126152e4b0e6fee3b68408ba10f2148d920b8c12bf6f634806d37ca4afb3d"
   },
   {
    "name": "product-onboarding",
@@ -227,7 +227,7 @@
    "name": "qc",
    "kind": "stage",
    "description": "reklam-atolyesi S13 kalite kontrol — teknik QC, bağımsız qc-reviewer incelemesi (workflow ya da yedek yol), yasal liste, yorum/kişi izni ve rakip uzaklığı; QC raporu. Kapılı.",
-   "sha256": "cb267a6b0971f3ae9daa3bf5b4d276d1e738bf853d89e1c639b84271e0003223"
+   "sha256": "d34815f93493f8c677d9421115bf274a44730c1e651eb46b88ca6bf79eb0bcc5"
   },
   {
    "name": "ref-creative-taxonomy",
@@ -238,26 +238,26 @@
   {
    "name": "ref-legal-tr-meta",
    "kind": "reference",
-   "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, lisanslar.",
-   "sha256": "f3c0c10636c61dbe42fb2cc02dea429dc831fd66d85fe4fffb58077afb029550"
+   "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), lisanslar.",
+   "sha256": "e217d0ea8e56b636408bf0f89b4d5328da4613b1ae3edeab1ec4d86f86ac3cd4"
   },
   {
    "name": "ref-metrics-math",
    "kind": "reference",
    "description": "reklam-atolyesi koçluk matematiği — metrikler, ekonomi, bütçe/matris, test penceresi ve olgunluk, Beta-Binom/Gamma, eşikler, hüküm dili, yorgunluk, kalibrasyon, bağımsız doğrulama.",
-   "sha256": "bc3d35aeebbb67c7c0fc3344af258e2508b36dbd16b6a6a4fbe93cead3635833"
+   "sha256": "b9ef47e02ae5663580257aa12e53835533f884bf6a795c6e3f4ef79c1463a353"
   },
   {
    "name": "ref-production-recipes",
    "kind": "reference",
    "description": "reklam-atolyesi üretim tarifleri — script haritası, ffmpeg komutları, ses hedefleri, AI model yönlendirme, çekim kurtarma, render altyapısı, export/adlandırma, maliyet kuralları.",
-   "sha256": "97d7a178c60c311c4f3a2ad80dc2ca63360f175cba8b99dcb5936a9b3fa65603"
+   "sha256": "d92bd8292dd42cb78c1cd719d27784f17e6b216d7a0b174e9419bbcabec3598c"
   },
   {
    "name": "ref-remotion-components",
    "kind": "reference",
    "description": "reklam-atolyesi Remotion bileşen kütüphanesi — kompozisyonlar, plan katmanı → bileşen eşlemesi, bileşen prop'ları, geçiş/kamera/yazı presetleri, determinizm, yeni bileşen kuralı.",
-   "sha256": "b296af5938f70dbb1c2195ab1cfba298aebda525daed1d2cf62c21e577cbb1f3"
+   "sha256": "4e4589a8fb86e5e2426c74a4aad0823de1dc7149a547aa09ba9df3578773d8a8"
   },
   {
    "name": "ref-shooting-basics",
@@ -299,7 +299,7 @@
    "name": "strategy",
    "kind": "stage",
    "description": "reklam-atolyesi S02 strateji — (A) ekonomi, kreatif tavanı, tur takvimi, toplam harcama planı, zarar-risk sınırı; (B) rakibe dayalı konumlandırma, mesaj sırası, açı portföyü. Kapılı.",
-   "sha256": "9b6e99f5df80889fd89decc0dc8c0d3077dbacf160d06f72f6d51ce6b3e3a5d9"
+   "sha256": "005d5af4db983c273b1a84eb5ac2b0166e68a8e3fcdf9521b5eac29ffa16286b"
   },
   {
    "name": "style-directions",
@@ -311,7 +311,7 @@
    "name": "track",
    "kind": "stage",
    "description": "reklam-atolyesi S15 takip — günlük Meta okuması/CSV, ölçüm bağlamı, test yapısı tespiti, veri kalitesi, olgunluk, yorgunluk/anomali, bütçe ve risk uyarıları, uygulandı mı kontrolü.",
-   "sha256": "cddd55bd7fbbc2f70e132bd152862aef454ec2c373ed2ec645ca5d0243fc3c8b"
+   "sha256": "649181ffb236c0b93276cff0583ae16d09849f20a299ad84b4e11852af772b9b"
   },
   {
    "name": "variants",
@@ -334,7 +334,7 @@
   {
    "name": "coach",
    "description": "reklam-atolyesi koçu. Analizi insan diline çevirir, kararları koruma sınırlarıyla somut Ads Manager adımlarına dönüştürür, uygulama listesini ve sonraki turu kurar, öğrenilenleri hipotez/playbook yaşam döngüsüne aktarır. S16 ve S17.",
-   "sha256": "831aa54ce945b5ca74ae561870a582f650b2186abab1279de4c5a865d0a5b384"
+   "sha256": "a446de6cff2a4b49c7ae011fbcd3083efbbe4c69faf0955db230248c2487839b"
   },
   {
    "name": "competitor-analyst",
@@ -364,7 +364,7 @@
   {
    "name": "meta-historian",
    "description": "reklam-atolyesi Meta geçmişi uzmanı. Meta'dan YALNIZCA izin listesindeki salt okuma araçlarıyla geçmişi çeker, ad-memory'ye profil bağlı yazar, önsel/kıyas/sağlık raporunu kurar, kısa özet döner. S00b, açılış bakımı, koçluk öncesi.",
-   "sha256": "c035e07ba5a1d50bd1b84880f0b5188afc409f9bfbb1b17465bf3ad0fc5b5931"
+   "sha256": "77bd473dd437ce96c461a35c9926b9c62ede971675cee6636ebc091bae1e31cc"
   },
   {
    "name": "qc-reviewer",
@@ -830,23 +830,23 @@
  },
  "tests": {
   "pytest": {
-   "passed": 130,
+   "passed": 132,
    "failed": 0,
    "returncode": 0,
-   "summary": "130 passed (tam paket, 1.4.1: sabit menü ve kurulum düzeltmeleri dahil)",
+   "summary": "132 passed (tam paket, 1.4.2: Meta kaynak protokolü, %40 güvenli alan dahil)",
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-17"
   },
   "smoke": {
    "ok": true,
    "partial": false,
-   "seconds": 144.1,
+   "seconds": 144.4,
    "steps": [
     {
      "step": 1,
      "title": "profiller ve yalıtım",
      "ok": true,
-     "seconds": 1.7,
+     "seconds": 1.6,
      "detail": {
       "profiles_0_to_1": [
        0,
@@ -928,7 +928,7 @@
      "step": 3,
      "title": "ingest ve analiz (4K dikey)",
      "ok": true,
-     "seconds": 43.9,
+     "seconds": 45.2,
      "detail": {
       "footage": 4,
       "photos": 2,
@@ -959,12 +959,12 @@
      "detail": {
       "tempo": 117.45,
       "render_916": {
-       "ms": 19484,
+       "ms": 19526,
        "segments": 5,
        "scale": 0.5
       },
       "render_45": {
-       "ms": 15466,
+       "ms": 15704,
        "segments": 5
       },
       "render_11_still": "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/kare_11.png",
@@ -999,7 +999,7 @@
       },
       "variant_6s": {
        "version": 2,
-       "ms": 10359
+       "ms": 9965
       },
       "final_scene": {
        "resolution_ok": true,
@@ -1015,7 +1015,7 @@
      "step": 5,
      "title": "metrik CSV ve koçluk",
      "ok": true,
-     "seconds": 4.5,
+     "seconds": 4.0,
      "detail": {
       "csv_check": {
        "rows": 30,
@@ -1046,7 +1046,7 @@
      "step": 6,
      "title": "hafıza",
      "ok": true,
-     "seconds": 2.5,
+     "seconds": 2.4,
      "detail": {
       "unit": {
        "targets": [
@@ -1065,7 +1065,7 @@
      "step": 7,
      "title": "hata senaryoları",
      "ok": true,
-     "seconds": 15.9,
+     "seconds": 15.7,
      "detail": {
       "unit": {
        "targets": [
@@ -1085,7 +1085,7 @@
      "step": 8,
      "title": "rekabet",
      "ok": true,
-     "seconds": 2.6,
+     "seconds": 2.5,
      "detail": {
       "unit": {
        "targets": [
@@ -1284,7 +1284,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1 farkı: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1 ve 1.4.2 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1328,6 +1328,13 @@
     "kusur": 0,
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu"
+   },
+   {
+    "scope": "1.4.2: değişen dosyalar (Meta kaynak protokolü, %40 güvenli alan, %20 ifadesi, kıyas araçları, vaat kuralı; diğer bileşen hash'leri 1.4.1 denetimiyle aynı)",
+    "files_reviewed": 22,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; yalnızca Meta'nın herkese açık yardım bağlantısı eklendi"
    }
   ],
   "remaining_defects": [],
@@ -1338,13 +1345,13 @@
    }
   ],
   "component_hashes": {
-   "skills": "69c89e1b25ca8f18a6e997103ccfe90a713cfd636f877602016eb015bd192d61",
-   "agents": "32f7e73cdc0594c913239b962621485f23a1e6b9b2902d7d03c7cf271c9d48d9",
+   "skills": "a3e1be411b356bdbdda0b334c4568ed3e13483f854edb49a24ac74cd9eb6ffcb",
+   "agents": "de4634c9f451b626a6b4e522e01baa064adac038d8a7e7270aca2ebf9f70c322",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
    "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
-   "ad_memory": "4538fd885fb8ae48dbee5a1e03e182ccb2aaa9e350a11685bd503d240996d19d",
-   "scripts": "06b2570930bafe08a020e05ab84f5675d6b334ad4079f971b9288a615c579970",
+   "ad_memory": "2214b1230edc7dc1a6f5013878f9c87c3744bb91b70db60037e6ae5ec3a27728",
+   "scripts": "8c0a1f43c01e27dd6748393b2a64d510a8bdb4162a1e6835b582011219498634",
    "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f"
   },
   "checked_at": "2026-10-17"
@@ -1504,15 +1511,15 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "8c1e1572007c08c95e1867dc18d8402d2d677e780761ebdcda1e35867365c103",
+  "plugin_json": "5ef9fa302c6763fffbf543c6941a1583600974ef308ef4853df0053c7e7f027a",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "69c89e1b25ca8f18a6e997103ccfe90a713cfd636f877602016eb015bd192d61",
-  "agents": "32f7e73cdc0594c913239b962621485f23a1e6b9b2902d7d03c7cf271c9d48d9",
+  "skills": "a3e1be411b356bdbdda0b334c4568ed3e13483f854edb49a24ac74cd9eb6ffcb",
+  "agents": "de4634c9f451b626a6b4e522e01baa064adac038d8a7e7270aca2ebf9f70c322",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
   "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
-  "ad_memory": "4538fd885fb8ae48dbee5a1e03e182ccb2aaa9e350a11685bd503d240996d19d",
-  "scripts": "06b2570930bafe08a020e05ab84f5675d6b334ad4079f971b9288a615c579970",
+  "ad_memory": "2214b1230edc7dc1a6f5013878f9c87c3744bb91b70db60037e6ae5ec3a27728",
+  "scripts": "8c0a1f43c01e27dd6748393b2a64d510a8bdb4162a1e6835b582011219498634",
   "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f",
   "vendor_skills": "c4e8472a2cb0e6f2dd15a6fb0cd1bdb178a462bf7a40b5fce65344f49dbcc743"
  },

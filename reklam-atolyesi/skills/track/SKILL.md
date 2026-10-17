@@ -50,6 +50,13 @@ Yok.
 7. **Yorgunluk ve anomali (6.7):** 7 günlük hook oranı ilk 3 gün bazının %20'den fazla altında · frekans artarken CTR düşüyor · CPM bazın
    1,5 katı. İlk kez gösterim oranı alanı yoksa "mevcut değil". Aynı döneme denk gelen rakip olayı (fark görüntüsü) yalnızca bağlam;
    neden olarak sunulmaz. `ads_insights_anomaly_signal` bağlam olarak okunabilir.
+7b. **Kıyas (bağlam; ilk harcamadan sonra, günde en fazla bir kez):** test reklam setleri için
+   `ads_insights_industry_benchmark(ad_account_id, entity_ids=[reklam seti], date_preset="last_7d")` ve
+   `ads_insights_auction_ranking_benchmarks` (salt okuma, izin listesinde). Dönen değerler
+   `benchmarks_upsert(profile_id, items=[{kind: "industry"|"auction_ranking", metric, value, context: {source_tool, date_range,
+   peer_group, entity_id}}])`. Maliyet metriğinde "kıyasın üstü" daha iyi demektir (aracın kendi tanımı); kullanıcıya bu yönle söylenir.
+   "Veri yok" dönerse hiçbir şey yazılmaz ve "kıyas yok" denir; değer uydurulmaz, başka hesaptan taşınmaz. Kıyas **önsel değildir**
+   (önsel yalnızca aynı profilin geçmişinden, 6.6) ve hüküm vermez; yalnızca koçluk raporunda bağlam satırıdır.
 8. **Bütçe ve zarar-risk (6.3, 6.10):** her aktif reklamın (eski turlarınkiler dahil) ilk yayından biriken harcaması kendi onaylı sınırıyla;
    kampanya toplamı `budget_total` ile. Sınıra ulaşma/aşma ya da kalan tutarın bir sonraki kontrole yetmemesi → sonuç sayısı 10'un altında,
    hatta sıfır olsa da **beklemeden** `action_items_set(profile_id, campaign_id, items=[{action:"<Ads Manager adımı>", reason_kind:"limit",
@@ -70,6 +77,8 @@ Yok.
 (önerilen sınır adımları; doğrulama sonuçları), `sales_manual`, devam notu, uyarılar.
 
 ## Kontroller
+- Meta platform kuralı (sınır, format, güvenli alan, politika) kullanıldıysa durumu `ref-legal-tr-meta` §7'ye göre belli: resmi
+  (bağlantı + tarih), yerel koruma kuralı ya da teyit edilmedi; teyit edilmeyen kural kesin diye sunulmadı.
 - Hiçbir Meta yazma ya da ücretli araç çağrılmadı; zamanlanmış işte soru sorulmadı.
 - Uyarılar sabit girdi kopyasından üretildi; kopya yazılamadıysa uyarı tamamlandı sayılmadı.
 - Eski veriyle güncel güvence verilmedi; CSV profilinde otomatik doğrulama iddiası yok.

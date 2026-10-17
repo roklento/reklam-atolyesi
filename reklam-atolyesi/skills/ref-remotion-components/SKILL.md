@@ -56,7 +56,7 @@ Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` ·
   kenar, final yaklaşma payını taşıyan en küçük çözünürlük).
 - Hareket bulanıklığı `@remotion/motion-blur` ya da alt-kare ortalama.
 - Formatlar ayrı kompozisyondur; sahneler paylaşılır; yazı/grafik format başına yeniden yerleşir; video formatın oranına göre kadrajlanır.
-  Güvenli alan (5.19): 9:16 üst %14, alt %35, yanlar %6 boş; 4:5 üst/alt ~250 px, yanlar ~100 px; 1:1 kenarlardan pay.
+  Güvenli alan (5.19): 9:16 üst %14, alt %35, yanlar %6 boş (açıklama metni ya da AI içeren planda alt %40: `disclaimer.on` / `ai_share > 0`); 4:5 üst/alt ~250 px, yanlar ~100 px; 1:1 kenarlardan pay.
 - Fontlar `@fontsource/<ad>` ile, **`latin` + `latin-ext`** CSS birlikte; nötr şablonda yalnızca `Inter`.
 - Render: önizleme 0,5 ölçek (tek sayı → çift), final ölçek 1; işçi bütçesi `max(1, floor(CPU/2))`; sahne önbelleği (5.21).
 - Lisans: Remotion lisansı kullanıcı/kuruluş ve ekip kapsamına göre belirlenir (`ref-legal-tr-meta` → Remotion).

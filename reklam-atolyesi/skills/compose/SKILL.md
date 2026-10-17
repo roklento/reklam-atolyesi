@@ -40,6 +40,8 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
      kartta). Hiçbir bileşen varsayılan değildir.
    - Altyazı (5.14): VO ya da tutulan konuşma varsa `captions.on=true`, kelime zamanlarından; metin VO ile birebir.
    - `provenance.ai_share` ve `ai_layers` katmanlardan hesaplanır.
+   - Videoda açıklama metni (AI açıklaması, yasal not) varsa `disclaimer: {on: true, text, reason}`; 9:16'da yazılar alttaki %40'a girmez
+     (Meta resmi kılavuzu; `ai_share > 0` iken de uygulanır, `ref-legal-tr-meta` §7).
 3. **Doğrula:** `edit_plan_save(...)` → `edit_plan_validate(profile_id, campaign_id, plan_id, beats=<beats.json yolu>)` (şema, zamanlar,
    kamerada konuşan sahne ↔ `original*`, efekt bütçesi, kilitli anlar, rakip kaynağı reddi). Yerel kontrol için aynı kod:
    `PY PR/scripts/compose/validate_plan.py <plan.json> --style <style> --beats <beats.json>`.
@@ -68,6 +70,8 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
 önbelleği kayıtları (`scene_cache_*`), devam notu (render başında ve sonunda).
 
 ## Kontroller
+- Meta platform kuralı (sınır, format, güvenli alan, politika) kullanıldıysa durumu `ref-legal-tr-meta` §7'ye göre belli: resmi
+  (bağlantı + tarih), yerel koruma kuralı ya da teyit edilmedi; teyit edilmeyen kural kesin diye sunulmadı.
 - Plan doğrulamadan geçti; rakip kaynağı yok; efekt bütçesi aşılmadı; kilitli anlar vuruşta (≤ 3 kare).
 - Render deterministik (tohumlu); final değil önizleme; öz denetim yapıldı ve tur sayısı kayıtlı.
 - S10 yeni sahne eklediyse ya da onaylı ses seçimini değiştirdiyse yalnızca etkilenen sahnenin ses kararı yeniden soruldu; yeni maliyet ayrıca onaylandı.

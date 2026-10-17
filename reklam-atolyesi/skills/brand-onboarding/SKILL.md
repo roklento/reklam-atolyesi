@@ -67,6 +67,9 @@ Yok.
 - Devam notu her cevaptan sonra (`checkpoint_save(profile_id, "S00a", state, scope_key="profile:<id>")`); `gate_approve` notu birlikte kaydeder.
 
 ## Kontroller
+- Kapanış özetinde geçmiş ve kıyas yoksa kullanıcıya "sektör ortalaması" ya da başka bir dış başlangıç değeri **vaat edilmez**; doğru cümle:
+  "İlk test önsel varsayım olmadan başlar (Beta(1,1)); ilk sonuçlardan öğreniriz. Harcama başladıktan sonra Meta'nın kıyas aracı
+  veri verirse bağlam olarak eklenir."
 - En fazla 6 soru; çıkarılabilen bilgi sorulmadı.
 - Aynı reklam hesabı iki profile bağlanmadı; saat dilimi doğrulandı.
 - Yorumların hepsinde izin kanıtı ve ad gösterim biçimi var; sahte/uydurma yorum yok.

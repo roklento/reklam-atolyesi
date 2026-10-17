@@ -21,6 +21,24 @@ from common import emit, ffmpeg, ffprobe_json, read_json  # noqa: E402
 FORMAT_SIZE = {"9x16": (1080, 1920), "4x5": (1080, 1350), "1x1": (1080, 1080)}
 SAFE = {"9x16": {"top": 0.14, "bottom": 0.35, "side": 0.06}, "4x5": {"top": 250 / 1350, "bottom": 250 / 1350, "side": 100 / 1080},
         "1x1": {"top": 0.08, "bottom": 0.08, "side": 0.08}}
+# Meta: açıklama metni (disclaimer) içeren 9:16 reklamda alttaki %40 boş bırakılır (resmi: facebook.com/business/help/980593475366490,
+# kontrol 2026-10-17; ref-legal-tr-meta §7). Plan açıklama taşıyorsa (disclaimer.on) ya da AI içeriyorsa (ai_share > 0) uygulanır.
+DISCLAIMER_BOTTOM_9X16 = 0.40
+
+
+def has_disclaimer(plan: dict) -> bool:
+    d = plan.get("disclaimer") or {}
+    ai = float((plan.get("provenance") or {}).get("ai_share") or 0)
+    return bool(d.get("on")) or ai > 0
+
+
+def safe_box(plan: dict) -> dict:
+    fmt = plan["format"]
+    z = dict(SAFE[fmt])
+    if fmt == "9x16" and has_disclaimer(plan):
+        z["bottom"] = max(z["bottom"], DISCLAIMER_BOTTOM_9X16)
+        z["reason"] = "açıklama/AI içeren 9:16: alt %40 (Meta)"
+    return z
 
 
 def black_freeze(video: str, black_min: float = 0.12, freeze_min: float = 0.5) -> dict:
@@ -47,7 +65,7 @@ def _text_y(layer: dict, scene_role: str, fmt: str, title_y: float) -> float:
 
 def safe_zone(plan: dict, style: dict | None = None) -> dict:
     fmt = plan["format"]
-    z = SAFE[fmt]
+    z = safe_box(plan)
     title_y = ((style or {}).get("layout") or {}).get(fmt, {}).get("titleY", 0.12)
     issues, checked = [], 0
     for s in plan["scenes"]:
@@ -58,11 +76,12 @@ def safe_zone(plan: dict, style: dict | None = None) -> dict:
             checked += 1
             y = _text_y(l, s["role"], fmt, title_y)
             if y < z["top"] - 1e-6 or y > 1 - z["bottom"] + 1e-6:
-                issues.append({"scene": s["id"], "layer": i, "y": round(y, 3), "issue": f"yazı güvenli alan dışında ({fmt}: üst %{z['top']*100:.0f}, alt %{z['bottom']*100:.0f})"})
+                issues.append({"scene": s["id"], "layer": i, "y": round(y, 3), "issue": f"yazı güvenli alan dışında ({fmt}: üst %{z['top']*100:.0f}, alt %{z['bottom']*100:.0f}"
+                               + (f"; {z['reason']}" if z.get("reason") else "") + ")"})
             dur = float(l.get("dur_s", s["dur_s"] - float(l.get("start_s", 0))))
             if dur < 1.5:
                 issues.append({"scene": s["id"], "layer": i, "issue": f"yazı {dur:.2f} sn ekranda (< 1,5 sn)"})
-    return {"checked_text_layers": checked, "issues": issues, "ok": not issues}
+    return {"checked_text_layers": checked, "zone": z, "issues": issues, "ok": not issues}
 
 
 def tech(video: str, plan: dict | None, expect_duration: float | None, fmt: str | None) -> dict:

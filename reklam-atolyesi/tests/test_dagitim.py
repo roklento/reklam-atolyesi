@@ -158,3 +158,22 @@ def test_kurulum_ps1_survives_inherited_strict_mode():
     first = [ln.strip() for ln in body.splitlines() if ln.strip() and not ln.strip().startswith("#")]
     assert "Set-StrictMode -Off" in first[:3]
     assert "$miss = Get-EksikFfmpegFiltreleri" not in t and t.count("$miss = @(Get-EksikFfmpegFiltreleri)") == 2
+
+
+def test_meta_rules_have_source_status():
+    """Meta platform kuralları kaynak protokolüne bağlı (1.4.2): ~%20 kesin sınır diye yazılmaz, ilgili skill'ler §7'yi denetler,
+    'sektör ortalaması' vaadi engellenir."""
+    pj = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+    desc = pj["userConfig"]["exploration_share"]["description"]
+    assert "aşamaz" not in desc and "teyit edilmedi" in desc
+    legal = (ROOT / "skills" / "ref-legal-tr-meta" / "SKILL.md").read_text(encoding="utf-8")
+    assert "## 7. Meta platform kuralları — kaynak protokolü" in legal and "ads_get_help_article" in legal
+    for s in ("strategy", "launch-pack", "qc", "track", "coach", "compose"):
+        t = (ROOT / "skills" / s / "SKILL.md").read_text(encoding="utf-8")
+        kontrol = t.replace("\r\n", "\n").split("## Kontroller", 1)[1].split("\n## ", 1)[0]
+        assert "ref-legal-tr-meta` §7" in kontrol, s
+    track = (ROOT / "skills" / "track" / "SKILL.md").read_text(encoding="utf-8")
+    assert "ads_insights_industry_benchmark" in track and "önsel değildir" in track
+    for s in ("navigator", "brand-onboarding", "meta-history"):
+        t = (ROOT / "skills" / s / "SKILL.md").read_text(encoding="utf-8")
+        assert "vaat edilmez" in t and "Beta(1,1)" in t, s
