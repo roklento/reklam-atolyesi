@@ -34,6 +34,14 @@ Yok. Navigator yalnızca plugin skill'lerine yönlendirir (`reklam-atolyesi:<ski
 ## Adımlar
 
 ### 1. Açılış sırası (17.2) — her plugin adı yazılışında
+**Müşteri güncellemesi istisnası:** `system_manifest_get().customer_update_without_tests` true ise
+ilk kurulum daha önce tamamlanmıştır ve bu sürüm testsiz güncelleme yoluyla alınmıştır. Aşağıdaki 1. adımdaki
+toplu kurulum/canlı kabul testlerini yeniden başlatma; 2. adımdan devam et. Eski `stale` kayıtları başarılıya
+çevirme ve "test edildi" deme. Kullanıcı özellikle tanı isterse ilgili kontrol yapılabilir.
+Gerçek kullanımda bağlantı/araç hatası çıkarsa kullanıcıya hatayı ve log yolunu bildir;
+"Bu hata kaydını sağlayıcınıza gönderin" de. Otomatik yeniden kurulum veya test başlatma.
+Bu istisna ilk kurulumdaki eksik hesap bağlantılarını tamamlanmış saymaz.
+
 1. **Kurulum doğrulandı mı?** `system_manifest_get().setup_static_ok_at` boşsa statik kurulum doğrulaması (doctor) hiç geçmemiştir:
    kullanıcıya kurulum dosyasını (`kur.cmd`) yeniden çalıştırmasını söyle; veri kaybı olmaz, mevcut kurulum güncelleme olarak
    tanınır. `setup_verified_at` boşsa ya da `system_manifest_get` güncel zorunlu bir

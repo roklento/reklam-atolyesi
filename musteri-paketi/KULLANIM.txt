@@ -1,0 +1,25 @@
+﻿REKLAM ATÖLYESİ — MÜŞTERİ PAKETİ
+
+ZIP dosyasını bir klasöre çıkarın. Dosyalar yan yana kalmalı.
+
+İLK KURULUM: kur.cmd dosyasına çift tıklayın.
+Araçları, bağımlılıkları ve ilk kurulum doğrulamasını yapar.
+GitHub davetini kabul etmiş hesabınızla giriş yapın. Veri klasörünü seçin.
+Zaten kuruluysa sizi guncelle.cmd dosyasına yönlendirir.
+
+GÜNCELLEME: Claude masaüstü uygulamasını sistem tepsisinden tamamen kapatın.
+Açık Claude Code oturumlarını da kapatın. Sonra guncelle.cmd dosyasına çift tıklayın.
+Kayıtlı veri klasörü kullanılır, veritabanının yedeği alınır, yayımlanan sürüm yüklenir.
+Yalnızca değişen bağımlılıklar alınır; gerekli veritabanı geçişleri uygulanır.
+Test, örnek render, galeri, doctor ve toplu canlı kabul testi çalıştırılmaz.
+İlk kurulumda tamamlanmamış hesap bağlantıları ayrıca tamamlanmalıdır.
+İş bitince Claude'u yeniden açıp yeni oturumda reklam-atolyesi yazın.
+
+HATA OLURSA: Ekrandaki mesajı ve belirtilen günlük dosyasını sağlayıcınıza gönderin.
+Güncelleme günlükleri veri klasöründeki logs klasörüne de kopyalanır.
+Kullanım sırasında araç hataları Claude içinde bildirilir; logs/kullanim-hatasi-*.json
+dosyası belirtilir. Kullanıcının iptal ettiği işlemler hata bildirimi oluşturmaz.
+Claude veya Python hiç başlayamıyorsa ekrandaki hata mesajını sağlayıcınıza iletin.
+Loglar kendiliğinden gönderilmez. Paylaşmadan önce kişisel bilgi bulunup bulunmadığına bakın.
+Başarısız güncellemede sürüm kısmen değişmiş olabilir; otomatik geri alma yapılmaz.
+Sorun çözüldükten sonra guncelle.cmd yeniden çalıştırılabilir; yedek backups klasöründedir.

@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.3
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.4
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -84,7 +84,20 @@ migration öncesi alınır; son 8 yedek tutulur.
 - Vendor güncelleme: `scripts/setup/update-vendor.sh <repo> <commit>` (fark incelemesi ve insan onayı).
 - Lisanslar: `vendor-skills/THIRD_PARTY_NOTICES.md`; Remotion ve ElevenLabs kullanım koşulları `skills/ref-legal-tr-meta`.
 
+## Müşteri paketi
+Deponun `musteri-paketi/` klasöründe ilk kurulum (`kur.cmd`) ve testsiz güncelleme (`guncelle.cmd`) ayrıdır.
+Eski kök kurulum betikleri aynı davranışı korur. Yeni güncelleyici SQLite yedeği alır, plugin'i günceller,
+yalnızca değişen bağımlılıkları alır ve gerekli migration'ları uygular. İlk kurulumu tamamlamış kullanıcıda
+toplu canlı kabul testleri açılışta tekrarlanmaz; önceki test kayıtları değiştirilmez.
+Gerçek araç hataları `PostToolUseFailure` ile yerel loga yazılır ve kullanıcıya sağlayıcısına göndermesi söylenir.
+Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
+Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
+
 ## Sürüm notları
+**1.4.4**
+- Ayrı müşteri kurulum/güncelleme paketi; güncellemede test ve örnek render yok.
+- Kullanım hatalarında yerel log ve kullanıcı bildirimi; otomatik veri gönderimi yok.
+
 **1.4.3**
 - Meta reklam standartları (`ref-legal-tr-meta` §8, resmi yardım merkezi metinlerinden): kişisel özellikler, sansasyonel içerik, sağlık
   ve görünüm, önce/sonra sahnesinin kategoriye göre kuralı. Konsept, çekim planı, QC, yayın paketi ve QC incelemecisi bunu denetler.

@@ -141,7 +141,7 @@ def main() -> int:
         if trig:
             out += menu_context(data_dir, sess,
                                 "Kullanıcı plugin adını yazdı: navigator skill'ini (reklam-atolyesi:navigator) çalıştır — açılış sırası (canlı doğrulama, "
-                                "profil, açık devam notu varsa 'kaldığımız yer', açılış bakımı), sonra ana menü.")
+                                "profil, açık devam notu varsa 'kaldığımız yer', açılış bakımı), sonra ana menü. customer_update_without_tests true ise toplu doğrulamayı tekrarlama; navigator istisnasını uygula.")
         elif cmd:
             out.append(f"Komut: /reklam-atolyesi:{cmd} — oturum plugin modunda; korumalar (maliyet, Meta izin listesi) geçerli.")
         elif mn.is_home(prompt):

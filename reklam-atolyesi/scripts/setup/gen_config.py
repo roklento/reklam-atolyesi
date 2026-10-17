@@ -44,6 +44,7 @@ def hooks_json(target_os: str) -> dict:
                 {"matcher": ELEVEN_MATCHER, "hooks": [hook("cost_guard.py", target_os)]},
             ],
             "PostToolUse": [{"matcher": "Bash|PowerShell", "hooks": [hook("render_qc.py", target_os)]}],
+            "PostToolUseFailure": [{"hooks": [hook("error_notify.py", target_os)]}],
             "Stop": [{"hooks": [hook("stop_check.py", target_os)]}],
         },
     }

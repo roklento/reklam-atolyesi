@@ -100,6 +100,22 @@
         ]
       }
     ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/error_notify.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

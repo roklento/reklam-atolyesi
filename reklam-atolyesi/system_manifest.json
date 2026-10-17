@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.4.3",
+ "plugin_version": "1.4.4",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -215,7 +215,7 @@
    "name": "navigator",
    "kind": "entry",
    "description": "reklam-atolyesi ana menüsü ve plugin modu. Kullanıcı yalnızca \"reklam-atolyesi\"/\"reklam atölyesi\" yazınca ya da /reklam-atolyesi komutu gelince çalışır; ilk açılış, profil, devam notu, menü.",
-   "sha256": "835126152e4b0e6fee3b68408ba10f2148d920b8c12bf6f634806d37ca4afb3d"
+   "sha256": "7c6a1d08d4106dc673e654445ba1d9c8f6328d07ddd4c53623b5076c7be2af78"
   },
   {
    "name": "product-onboarding",
@@ -518,14 +518,14 @@
    "matcher": null,
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "68b117d363b7b284cf54a09afe9a0001d5dd579f462407920074e0a8285da89f"
+   "sha256": "f50f00deb2064c31add4319d7b21b47913ca9c979ca50d35b6f1e70eb367c762"
   },
   {
    "event": "UserPromptExpansion",
    "matcher": "^reklam-atolyesi:.*$",
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "68b117d363b7b284cf54a09afe9a0001d5dd579f462407920074e0a8285da89f"
+   "sha256": "f50f00deb2064c31add4319d7b21b47913ca9c979ca50d35b6f1e70eb367c762"
   },
   {
    "event": "SessionStart",
@@ -554,6 +554,13 @@
    "script": "render_qc.py",
    "timeout": 10,
    "sha256": "df5078f3768a8cf71ac04ae1b01f80bddeffad8fbb12881adbd1aa4daddd312f"
+  },
+  {
+   "event": "PostToolUseFailure",
+   "matcher": null,
+   "script": "error_notify.py",
+   "timeout": 10,
+   "sha256": "89018729e1e0da52cf58ecc4ba4e9b3d049c4d5b6da0a2589a4eabc8680c94b3"
   },
   {
    "event": "Stop",
@@ -835,7 +842,8 @@
    "returncode": 0,
    "summary": "134 passed (tam paket, 1.4.3: Meta reklam standartları ve meta-text taraması dahil)",
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
-   "at": "2026-10-17"
+   "at": "2026-10-17",
+   "carried_from_release": "1.4.3"
   },
   "smoke": {
    "ok": true,
@@ -1112,7 +1120,8 @@
      }
     }
    ],
-   "selftest_dir_removed": true
+   "selftest_dir_removed": true,
+   "carried_from_release": "1.4.3"
   },
   "gallery": {
    "gallery": "templates/remotion/gallery.png",
@@ -1126,7 +1135,8 @@
     "by": "kurulum oturumu (Claude), galeri görseli ve kırpılmış satırlar incelendi",
     "at": "2026-10-15",
     "notes": "37 bileşen × 2 sn testten 4 kare; tamamen siyah kare yok; geçiş bileşenlerinde ara kareler (DipToColor koyu, WhipPan bulanık, MaskReveal iris) görünüyor; LightRays/ParticleSwirl/HeatShimmer nötr arka planda düşük yoğunlukta ama çalışıyor; yer tutucular nötr (Ürün A, Marka A, Örnek …). Galeri bileşenlerin çalıştığını kanıtlar; gerçek çekimdeki estetik uygunluk S08/S11 kapısında belirlenir. Nötrlük düzeltmelerinden sonra yeniden üretildi ve incelendi: soyut demo öznesi, beyaz LightRays/LensFlareSoft, nötr geçiş demo renkleri, StillTurn parlaması yalnızca demoda açık."
-   }
+   },
+   "carried_from_release": "1.4.3"
   },
   "turkish": {
    "out": null,
@@ -1146,7 +1156,8 @@
     "by": "kurulum oturumu (Claude), kare 30 incelendi",
     "at": "2026-10-15",
     "notes": "ğ ş ı İ ç ö ü / Ğ Ş I Ç Ö Ü ve anlamsız sınama satırı doğru çiziliyor (Inter latin + latin-ext); taşma yok."
-   }
+   },
+   "carried_from_release": "1.4.3"
   },
   "workflow_trial": {
    "path": "fallback",
@@ -1168,7 +1179,8 @@
     ]
    },
    "fallback": "Aşama skill'leri (analyze, competitor-analysis, variants, qc) aynı işi ilgili ajanı klip/rakip/format/kreatif başına alt ajan olarak çağırarak yapar (13.2); hangi yolun kullanıldığı günlüğe yazılır.",
-   "live": "İlk açılıştaki canlı kontrolde 'workflows_live' maddesiyle workflow ya da yedek yol sentetik girdide denenir (16.5)."
+   "live": "İlk açılıştaki canlı kontrolde 'workflows_live' maddesiyle workflow ya da yedek yol sentetik girdide denenir (16.5).",
+   "carried_from_release": "1.4.3"
   },
   "install_checks": {
    "checked_at": "2026-10-15",
@@ -1235,7 +1247,12 @@
      "source": "https://elevenlabs.io/eleven-music-model-specific-terms (son güncelleme 09.10.2026)",
      "result": "okundu; plan/kuruluş büyüklüğü/kullanım kısıtları ref-legal-tr-meta'da"
     }
-   ]
+   ],
+   "carried_from_release": "1.4.3"
+  },
+  "customer_update": {
+   "scope": "tests/test_customer_update.py, tests/test_hooks.py, tests/test_dagitim.py",
+   "note": "Geliştirici ortamında 43 ilgili kontrol geçti; müşteri güncelleyicisi test çağırmaz. Kapsam MUSTERI-PAKETI-YAYIN.md dosyasında açıklanmıştır."
   }
  },
  "deviations": [
@@ -1284,7 +1301,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1343,6 +1360,12 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama; fark satır satır okundu",
     "fixed": "test ve §8 örneklerinde bir profilin ürün kategorisinden ve eski reklam bulgusundan türeyen ifadeler vardı; nötr örneklerle değiştirildi"
+   },
+   {
+    "scope": "1.4.4: navigator, hata bildirimi, güncelleme durumu ve hook tanımı",
+    "method": "Değişen üretim kodu ve metinleri okundu; marka/hesap/ürün ve makineye özel yol eklenmedi.",
+    "kusur": 0,
+    "not": 0
    }
   ],
   "remaining_defects": [],
@@ -1353,13 +1376,13 @@
    }
   ],
   "component_hashes": {
-   "skills": "217f77be378d4b22b2001a2da75d8f6bcbc4a3b7d3d764023e30ccd4519ebf02",
+   "skills": "3b8b2a389e2e667e2d04db58906f1a59c9239ea4f49597683fe35c03a32c7505",
    "agents": "21a8f545470621bba6097df4942e0320789a85d52545c53a0195e759fa9e026e",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
-   "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
-   "ad_memory": "ec962d2a45ebcfc43c6b0bfe3a1d6a323ce5a2ea572107912427dfee5a154b83",
-   "scripts": "8ad6465eff50a304ae6ad6c44d54bf2ab36720be78977a6a4a8f74e65b1be52f",
+   "hooks": "8c5995b9023d667569c2d37af37e57af972d7659a51b820c4eec6141a6ba8153",
+   "ad_memory": "1ba5026299c15aa6d672ab533f5ff4b582c12076198d1da24f5982c0816c8fed",
+   "scripts": "a02efe064ec5600d42ae9cf38df9c6194467a14556f6da2bf1a2103971bd3e6b",
    "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f"
   },
   "checked_at": "2026-10-17"
@@ -1519,15 +1542,15 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "5fbf2ce51f5e5868922b7496e0ed797536a926df73520bc9446253aedbd279b9",
+  "plugin_json": "da8cab5ca5e8043900b4024ffa9da9bb2d729770fc7577987fb223b25fabfb87",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "217f77be378d4b22b2001a2da75d8f6bcbc4a3b7d3d764023e30ccd4519ebf02",
+  "skills": "3b8b2a389e2e667e2d04db58906f1a59c9239ea4f49597683fe35c03a32c7505",
   "agents": "21a8f545470621bba6097df4942e0320789a85d52545c53a0195e759fa9e026e",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
-  "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
-  "ad_memory": "ec962d2a45ebcfc43c6b0bfe3a1d6a323ce5a2ea572107912427dfee5a154b83",
-  "scripts": "8ad6465eff50a304ae6ad6c44d54bf2ab36720be78977a6a4a8f74e65b1be52f",
+  "hooks": "8c5995b9023d667569c2d37af37e57af972d7659a51b820c4eec6141a6ba8153",
+  "ad_memory": "1ba5026299c15aa6d672ab533f5ff4b582c12076198d1da24f5982c0816c8fed",
+  "scripts": "a02efe064ec5600d42ae9cf38df9c6194467a14556f6da2bf1a2103971bd3e6b",
   "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f",
   "vendor_skills": "c4e8472a2cb0e6f2dd15a6fb0cd1bdb178a462bf7a40b5fce65344f49dbcc743"
  },

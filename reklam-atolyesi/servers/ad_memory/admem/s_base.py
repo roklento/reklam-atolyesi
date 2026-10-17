@@ -697,6 +697,17 @@ class BaseStore:
                         "note": "Eşleşmeyen/eski kayıt başarı sayılmaz; ilk açılışta canlı kayıt yoksa bütün uygulanabilir maddeler bekliyor görünür."}}
         # Statik kontrol geçmeden kurulum doğrulanmış sayılmaz (1.4.1; 1.4.0'da canlı maddeler tek başına yetiyordu).
         out["setup_verified_effective"] = bool(out["setup_verified_at"]) and bool(out["setup_static_ok_at"]) and out["live"]["common_required_ok"]
+        # Müşteri güncellemesi test sonucu değildir. Önceki ilk kurulum tamamlandıysa açılışta test zorlamaz.
+        update = {}
+        try:
+            update = json.loads((self.data_dir / ".musteri-guncelleme.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            pass
+        out["customer_update_without_tests"] = bool(
+            isinstance(update, dict) and update.get("tests_run") is False
+            and update.get("version") == manifest.get("plugin_version")
+            and update.get("manifest_sha256") == msha
+            and out["setup_verified_at"] and out["setup_static_ok_at"])
         # Kuruluma/makineye özgü, kullanıcının kabul ettiği sapmalar dağıtılan manifestte değil bu data_dir'de tutulur (12.13).
         out["install_deviations"] = jload(self._setting("install_deviations_json"), []) or []
         if section and manifest:
