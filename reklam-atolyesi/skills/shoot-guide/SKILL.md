@@ -55,6 +55,8 @@ Ayrıca `c<tur>-hooks.csv`, `strategy_get`, `products.provable_claims_json` (ön
 Çekim rehberi, `shoot_menu.json`, fotoğraf listesi ve `sfx_plan` (rehber içinde), izin kayıtları, devam notu.
 
 ## Kontroller
+- Önce/sonra çekimi varsa ürün kategorisi `ref-legal-tr-meta` §8d'ye göre işaretli (kozmetik/kilo: 18+ notu, yakın plan ve
+  kadraj kuralı kartta; kalıcı cilt beyazlatma tanıtılmaz); şok/korku çağrıştıran açılış çekimi yok (§8b).
 - Kart yapısı tam; ürün tarifi genel kuralın önünde; ses talimatı yalnızca ses niyeti gerektiren çekimlerde.
 - Hook satırları ayrı; AI planlı her sahnenin gerçek eşi yazılı; izin hatırlatması var; 7 kural var; fotoğraf listesi var.
 - Rehber jargonsuz; teknik sorunlar (VFR, HDR) çekimciye yüklenmez (ingest çözer).

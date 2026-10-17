@@ -15,7 +15,7 @@ kontrolü, özellik keşfi ve tur karşılaştırması aynı dili konuşur. Kayn
 |---|---|
 | `video_type` | `reveal` · `process` · `testimonial` · `raw_ugc` · `ai_assisted` |
 | `first_frame` | `product` · `product_in_hand` · `person` · `text_card` · `process` · `result` · `context` |
-| `proof` | `none` · `process` · `review` · `number` · `document` · `before_after` · `demo` · `expert` |
+| `proof` | `none` · `process` · `review` · `number` · `document` · `before_after` (Meta kuralı kategoriye bağlı: `ref-legal-tr-meta` §8d) · `demo` · `expert` |
 | `offer` | `none` · `discount` · `free_shipping` · `bundle` · `gift_with_purchase` · `limited` |
 | `price_shown` | `yes` · `no` |
 | `media` | `video` · `static` · `carousel` |

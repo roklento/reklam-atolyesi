@@ -119,3 +119,24 @@ def test_disclaimer_field_and_safe_zone_40():
     feed["format"] = "4x5"
     feed["scenes"][0]["layers"][1]["props"]["y"] = 0.7
     assert CK.safe_zone(feed)["zone"]["bottom"] == 250 / 1350  # %40 kuralı yalnızca 9:16
+
+
+def test_meta_text_scan_flags_policy_language_not_ordinary_copy():
+    """Meta reklam standartları (§8) taraması: ihlal kalıplarını işaretler, sıradan ürün metnine alarm vermez; uyarıdır, karar değil (1.4.3)."""
+    import checks as CK
+    flagged = {"Kilo mu aldın? Bu çayla eri!": "8a", "Diyabetin varsa bunu dene.": "8a", "Borç batağında mısın?": "8a",
+               "40'ını geçtin mi?": "8a", "ŞOK! Bunu görmeden kahve içme.": "8b", "7 günde 5 kilo verin, garantili!": "8c",
+               "Kanseri tamamen iyileştirir.": "8c", "Öncesi ve sonrası: cildindeki fark": "8d"}
+    for text, rule in flagged.items():
+        w = CK.meta_text([("t", text)])["warnings"]
+        assert w and any(x["rule"].endswith(rule) for x in w), text
+        assert all(x["source"].startswith("https://www.facebook.com/business/help/") for x in w)
+    for text in ("Akşamları evi ısıtan yün battaniye.", "Annene sıcak bir hediye.", "İncelikle hazırlanmış hediye kutusu.",
+                 "2 yıl garanti, ücretsiz kargo.", "Yeni ev hediyesi arıyorsan bu set tam sana göre.", "Kahvenin demlendiği an, buharın dansı."):
+        assert CK.meta_text([("t", text)])["warnings"] == [], text
+    p = plan(disclaimer={"on": True, "text": "Kilo mu aldın?"})
+    p["scenes"][2]["layers"][0]["props"]["logo"] = "profiles/x/brand/logo.png"
+    texts = [t for _, t in CK._plan_texts(p)]
+    assert "Örnek" in texts and "Marka A" in texts and "Kilo mu aldın?" in texts and not any("logo.png" in t for t in texts)
+    r = CK.meta_text(CK._plan_texts(p))
+    assert not r["ok"] and r["warnings"][0]["where"] == "disclaimer" and "karar değildir" in r["note"]

@@ -78,6 +78,7 @@ haritası ve onaylı strateji, reddedilen/ertelenen fikirler, ürün, marka belg
 `campaigns.mode`, `c<tur>-hooks.csv`, görüşme özeti, referans tahtası, tercih gözlemleri, devam notu.
 
 ## Kontroller
+- Hook ve metinler Meta reklam standartları (`ref-legal-tr-meta` §8): kişisel özellik ima eden ifade yok, şok/korku taktiği yok, sağlık ve görünümde olumsuz öz algı ya da süreli/kesin sonuç vaadi yok; önce/sonra ürün kategorisine göre (8d); `checks.py meta-text --text` ön taraması yapıldı, her uyarı kararıyla kayıtlı.
 - Kullanıcı kararı olmadan hiçbir konsept/hook `accepted` değil; her önerinin kaynağı ve kararı kayıtlı.
 - Her seçilen konseptin seçilmiş hook'u ve hipotezi var; rakipten türeyenler uzaklık kuralını geçti (sunucu kapıda denetler).
 - Test reklamı sayısı ≤ S02 tavanı; yedekler ayrı.

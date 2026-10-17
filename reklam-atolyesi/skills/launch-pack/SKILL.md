@@ -28,7 +28,8 @@ Yok.
    `cycle_set(profile_id, cycle_id, {risk_limits_json: {per_ad:{…aynı onay…}, mapping:{<creative_key>: {amount, currency}}}})`.
    Sınır değişikliği yeni açık kullanıcı onayı ister; eski onay kanıtı korunur. Eşleme eksikse paket onaya açılmaz (sunucu da reddeder).
 4. **Metinler:** birincil metin, başlık, açıklama, CTA (Meta CTA türü) — yalnızca kanıtlanabilir iddialar; fiyat/indirim satış
-   sayfasıyla birebir ve indirimde referans fiyat kanıtı; marka tonu; kaçınılacaklar.
+   sayfasıyla birebir ve indirimde referans fiyat kanıtı; marka tonu; kaçınılacaklar. Metinler `checks.py meta-text --text` ile taranır
+   ve Meta reklam standartları (`ref-legal-tr-meta` §8): kişisel özellik ima eden ifade yok, şok/korku taktiği yok, sağlık ve görünümde olumsuz öz algı ya da süreli/kesin sonuç vaadi yok; önce/sonra ürün kategorisine göre (8d); 18+ hedefleme gerekiyorsa kurulum talimatına yazılır.
 5. **Ads Manager kurulum talimatı** (adım adım, hesabın güncel ekranında doğrulanacağı notuyla):
    - **İlk tur (`bootstrap`):** tek kampanya, tek reklam seti, teklif stratejisi "En yüksek hacim"; turun konseptleri birlikte.
      Hükümler "Meta'nın dağıtımı altında".

@@ -19,7 +19,8 @@ Python yolu. Üretim gerekçesi, sohbet özeti ya da "bu iyi oldu" yorumu **iste
    yana), efekt bütçesi, kilitli anların vuruşa oturması (plan + beats).
 3. Yasal: iddiaları `products.provable_claims_json` ile; fiyat/indirim; plandaki her `ReviewCard` `review_query` kaydıyla (izin + satın alma
    doğrulaması; `withdrawn_at` boş) — yoksa **red**; kişi tespit edilen her klip `consent_query` ile — yoksa **red**; yüz/eller gerçek; ses klonu
-   yok; AI içerikte açıklama talimatı gerekliliği; rakipten türeyen konseptte uzaklık kaydı geçmiş mi, kreatifte rakip adı/logosu/ürünü/
+   yok; AI içerikte açıklama talimatı gerekliliği; Meta reklam standartları (`ref-legal-tr-meta` §8): `checks.py meta-text --plan` uyarıları
+   tek tek karara bağlanır, görüntüde şok/korku öğesi ve önce/sonra kategorisi kontak sayfasından denetlenir; rakipten türeyen konseptte uzaklık kaydı geçmiş mi, kreatifte rakip adı/logosu/ürünü/
    ambalajı/sloganı var mı (kaynak `library_id` önizlemesi yalnızca analiz önbelleğinden, yan yana); plan katmanlarında rakip klasörü kaynağı var mı.
 4. **Kanıt sınırı:** seyrek karelerden hareket akıcılığı, kısa süreli ürün bozulması ve ses kalitesi için **onay verme**; bunları
    `human_check_required` olarak işaretle. Dosyayı gerçekten dinleyemiyorsan ses maddeleri insan kontrolüdür.

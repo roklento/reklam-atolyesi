@@ -1,6 +1,6 @@
 ---
 name: ref-legal-tr-meta
-description: "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), lisanslar."
+description: "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar."
 ---
 
 # ref-legal-tr-meta — yasal kurallar ve kaynakları (spec bölüm 10, 9.1, 11)
@@ -111,7 +111,7 @@ TÜRMOB RG arşivi kopyası: https://www.turmob.org.tr/arsiv/mbs/resmigazete/299
 ## 6. Teslimat öncesi son kontrol listesi (S13)
 Yazılar güvenli alanda ve ≥ 1,5 sn · ses -14 LUFS, telefon hoparlöründe VO net · AI klipleri gerçek fotoğrafla karşılaştırıldı, bozulma
 yok · iddia listesi kontrol edildi · AI içeren varyasyonlarda Meta açıklama/etiket talimatı güncel kurala uygun · ayırt edilmesi zor AI
-içerikte görünür açıklama · yazım ve Türkçe karakterler · yorum izinleri (satın alma doğrulaması dahil) ve kişi izinleri eşleşti · ses
+içerikte görünür açıklama · Meta reklam standartları (§8) uyarıları karara bağlandı · yazım ve Türkçe karakterler · yorum izinleri (satın alma doğrulaması dahil) ve kişi izinleri eşleşti · ses
 kararları uygulandı · rakipten türeyen konseptler uzaklık kuralını geçti; kreatifte rakip adı, logosu ya da varlığı yok.
 
 ## 7. Meta platform kuralları — kaynak protokolü (1.4.2)
@@ -143,4 +143,62 @@ Uygulama:
 | 3 sn izlenme reklam düzeyinde sayı olarak gelmez, `amount_spent / cost_per_video_view` ile türetilir (track) | **Resmi** (canlı `ads_get_field_context`) |
 | Meta alan adları (`meta_fields.json`) | **Resmi** (canlı `ads_get_field_context`) |
 | AI açıklama/etiket politikası (launch-pack) | Teyit edilmedi (bölüm 4) |
+| Meta reklam standartları: kişisel özellikler, sansasyonel içerik, sağlık ve görünüm, önce/sonra (§8) | **Resmi** (yardım merkezi, bağlantılar §8'de) |
 | Sektör kıyası (`ads_insights_industry_benchmark`) | **Resmi araç**; harcaması olmayan hesapta "veri yok" döner. Kıyas önsel değildir (bkz. track) |
+
+## 8. Meta reklam standartları — metin, görüntü ve hook (resmi; kontrol: 2026-10-17)
+Kaynak: [About Meta advertising standards](https://www.facebook.com/business/help/488043719226449). Tam liste Meta Şeffaflık Merkezi'ndedir.
+Bu bölüm plugin'in ürettiği reklamlarla ilgili dört başlığı özetler. Bağlayıcı olan resmi metindir: şüphede §7'deki protokolle yeniden
+okunur. Türkçe örnekler plugin'in uyarlamasıdır; resmi örnekler İngilizcedir. Bu kurallar ürün kategorisinden bağımsız olarak her
+reklamda uygulanır; marka ya da ürün adı içermez.
+
+### 8a. Kişisel özellikler ([politika](https://www.facebook.com/business/help/2557868957763449))
+- Reklam, izleyicinin kişisel özelliğini **iddia edemez ve ima edemez**; soru biçiminde ima da yasaktır. Liste: ırk, etnik köken, renk,
+  ulusal köken, din, yaş, cinsiyet, cinsel yönelim, cinsiyet kimliği, aile durumu, engellilik, tıbbi ya da genetik durum, fiziksel ya da
+  ruh sağlığı, kırılgan maddi durum, oy durumu, sendika üyeliği, sabıka kaydı, ad.
+- "Sen/siz" kullanılabilir; yasak olan, izleyicide bu özelliğin olduğunu varsaymaktır.
+- Mahremiyet: kişisel bilgi (kimlik, iletişim, adres, finansal, tıbbi) reklamda paylaşılmaz ve istenmez.
+- Türkçe örnekler: ✗ "Kilo mu aldın?", "Diyabetin varsa…", "Borç batağında mısın?", "40'ını geçtin mi?", "Yeni mi evlendin?" ·
+  ✓ ürünün faydasını anlatan ya da ürün/an odaklı ifade ("Akşamları evi ısıtan yün battaniye", "Yeni ev hediyesi").
+
+### 8b. Sansasyonel içerik ([politika](https://www.facebook.com/business/help/304110064285796))
+- Dikkat çekmek için şok edici ya da korkutucu taktik kullanılamaz.
+- Görüntüde yok: şiddet, yaralanma, kan; kaza ya da suç sahnesi; ölüm ya da hayati tehlike; çürüme; vücut atığı; grafik hijyen/bakım
+  ayrıntısı (ör. sivilce sıkma); hayvana eziyet; izleyiciye doğrultulmuş ya da kullanıma hazırlanan silah.
+- Hook kuralı: ilk saniyelerin durdurma etkisi şok, korku ya da tehlike imasıyla kurulmaz (ör. yangın/kaza çağrıştıran açılış, alarm sesi
+  ve korku metni). Görsel merak, süreç, sonuç ve ürün anı kullanılır.
+
+### 8c. Sağlık ve iyi oluş, kişisel sağlık ve görünüm ([politika](https://www.facebook.com/business/help/2489235377779939))
+- Diyet, kilo ya da sağlık ürünü tanıtmak için **olumsuz öz algı** yaratılamaz.
+- Kilo verme/alma ürün ve hizmetleri: belirli vücut bölgesinde sıkıştırılmış yağ yakın planı yok; sonucun yalnızca giyilebilir ürünle
+  elde edildiği iddiası yok.
+- Kilo ya da kozmetik ürün/işlem: görünümü, vücut bölgesini ya da hijyeni aşağılayan ifade veya soru yok.
+- Kalıcı cilt rengi değişikliği yapan beyazlatma ürünleri tanıtılamaz.
+- Tedavisi olmayan hastalıkları (diyabet, herpes, tiroid, sedef, ebola, kanser, otizm, Alzheimer, Parkinson, ALS, HIV) iyileştirme ya da
+  ortadan kaldırma iddiası yok; sağlık profesyoneli ağzından da yok. Belirti yönetimi iddiası bu yasağın dışındadır.
+- Sağlık ya da kilo bağlamında tıklama tuzağı yok: abartılı/uç iddia ya da açıklama/koşul olmadan "belirli sürede belirli sonuç" vaadi.
+- Yalnızca 18 yaş ve üzeri hedeflemeyle: diyet ürünleri (kullanım, etki ve sonuç süresi gösterilebilir), kozmetik işlem ve ameliyatlar,
+  genel kozmetik ürün/işlemlerde önce/sonra dönüşümü.
+
+### 8d. Önce/sonra sahnesi — kategori uyarısı
+Meta önce/sonrayı genel olarak yasaklamaz; kural ürün kategorisine bağlıdır. Bazı ikincil kaynaklar "Facebook önce/sonrayı yasaklar" der;
+resmi metin kategoriye göre kısıt koyar.
+
+| Ürün kategorisi | Meta kuralı (8c) |
+|---|---|
+| Sağlık, kilo ve kozmetik dışı (ev, dekor, temizlik, onarım, el işi…) | Bu politikanın kapsamı dışında. TR hukukuna göre sahne gerçekten çekilir (§3) |
+| Genel kozmetik ürün ya da işlem | Yalnızca 18+ hedeflemeyle; görünümü aşağılayan ifade yok |
+| Kilo verme/alma | 18+; sıkıştırılmış yağ yakın planı yok; olumsuz öz algı yok; koşulsuz süre vaadi yok |
+| Kalıcı cilt beyazlatma | Tanıtılamaz |
+| Sağlık iddiası taşıyan ürün | 8c'deki hastalık ve tıklama tuzağı kuralları; TR'de sağlık beyanı ayrıca belge ister (§3) |
+
+### 8e. Uygulama
+- **S03 konsept:** hook ve metin 8a–8c'ye göre yazılır; `PY PR/scripts/qc/checks.py meta-text --text <taslak.txt>` ön taraması.
+  `proof=before_after` seçilirse ürün kategorisi 8d'ye göre işaretlenir; 18+ gerekiyorsa not S14'e taşınır.
+- **S04 çekim planı:** önce/sonra çekimi 8d'ye göre; kozmetik ve kilo kategorisinde yakın plan ve kadraj kuralı karta yazılır.
+- **S13 QC:** `checks.py meta-text --plan <plan.json>` ekrandaki her yazıyı tarar. Tarama kelime/kalıp tabanlı bir **uyarıdır, karar
+  değildir**: her uyarı gözle incelenip "sorun yok" ya da "düzelt" diye kayda geçer. Görüntüdeki sansasyonel öğe (8b) ve önce/sonra
+  kategorisi (8d) kontak sayfasından gözle denetlenir.
+- **S14 yayın paketi:** birincil metin, başlık ve açıklama `checks.py meta-text --text` ile taranır; 18+ hedefleme gerekiyorsa kurulum
+  talimatına yazılır.
+- Kurallar §7 protokolüyle 30 günde bir yeniden kontrol edilir; resmi metin değişmişse bu bölüm bir sonraki sürümde güncellenir.

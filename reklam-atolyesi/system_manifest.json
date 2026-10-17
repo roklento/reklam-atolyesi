@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.4.2",
+ "plugin_version": "1.4.3",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -173,7 +173,7 @@
    "name": "concepts",
    "kind": "stage",
    "description": "reklam-atolyesi S03 konsept görüşmesi — ürün, veri, rakip haritası ve strateji çerçevesinde kullanıcıyla birlikte konsept, hook (4 parça), ses niyeti, hipotez ve çekim yolu kararı. Kapılı.",
-   "sha256": "425db6f44dcdd17475d4f39009045561a415a1c9514e81e16fe330e49fdbe260"
+   "sha256": "cd68919285b5fe95b748f68a3970ac5e9f4b5f1ed08925313d11a1b6e080e415"
   },
   {
    "name": "ingest",
@@ -185,7 +185,7 @@
    "name": "launch-pack",
    "kind": "stage",
    "description": "reklam-atolyesi S14 yayın paketi — reklam adları, metinler, Ads Manager kurulum talimatı, harcama/risk sınırları, AI açıklaması, takvim; insan yayınından sonra launch_confirm. Kapılı.",
-   "sha256": "abd6bb13a99a577993e4f3afa69bd5145302d654d59566b0d06ba461fb18baaa"
+   "sha256": "a5bac7e6dd9754b92a376f87317555fed6c5e5b413fdaefa3ca488508ffbe37f"
   },
   {
    "name": "learn",
@@ -227,19 +227,19 @@
    "name": "qc",
    "kind": "stage",
    "description": "reklam-atolyesi S13 kalite kontrol — teknik QC, bağımsız qc-reviewer incelemesi (workflow ya da yedek yol), yasal liste, yorum/kişi izni ve rakip uzaklığı; QC raporu. Kapılı.",
-   "sha256": "d34815f93493f8c677d9421115bf274a44730c1e651eb46b88ca6bf79eb0bcc5"
+   "sha256": "d865a6973498e207c2749159dff8ef03d86dcc5ea33332831b69de50bf3287ad"
   },
   {
    "name": "ref-creative-taxonomy",
    "kind": "reference",
    "description": "reklam-atolyesi ortak kreatif sözlüğü — kendi konsept/hook/kreatiflerimiz ve rakip konseptleri için aynı eksenler; sabit ve profil eksenleri, unknown kuralı, çeşitlilik ve uzaklık eşikleri.",
-   "sha256": "c29a6c40fe16ebf1a45e811d3997c500c0d697c16dcca98134d63abc745f4d8d"
+   "sha256": "994b958f315773398a0a85cf207d0e701dd262c04eae5e9aeb55a650b18ec5d5"
   },
   {
    "name": "ref-legal-tr-meta",
    "kind": "reference",
-   "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), lisanslar.",
-   "sha256": "e217d0ea8e56b636408bf0f89b4d5328da4613b1ae3edeab1ec4d86f86ac3cd4"
+   "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar.",
+   "sha256": "9e67dae482b1e6b0d4caa1835946f59c0335c95def564c41721f10db957a933f"
   },
   {
    "name": "ref-metrics-math",
@@ -287,7 +287,7 @@
    "name": "shoot-guide",
    "kind": "stage",
    "description": "reklam-atolyesi S04 çekim planı — hiç video çekmemiş biri için ürün tarifini uygulayan kartlar, numaralı çekim menüsü (her hook ayrı satır), fotoğraf listesi, ses talimatı, sfx_plan. Kapılı.",
-   "sha256": "7649f7875b0d7e1f9d0477fc0168c9a5dc1c5a26cad02100cc04f87860477fb1"
+   "sha256": "90ecb526e5658b2ecce7eb2c7ef7e21d6d29171f802a7df1c1c4720e28d81267"
   },
   {
    "name": "sound",
@@ -369,7 +369,7 @@
   {
    "name": "qc-reviewer",
    "description": "reklam-atolyesi bağımsız kalite kontrolcüsü. Üretimi görmemiş gözle teslim dosyalarını teknik, görsel ve yasal ölçütlerle inceler; görmediği/duymadığı kanıta onay vermez. S13'te kreatif başına (workflow ya da yedek yol).",
-   "sha256": "9b1b52a5a5232221b45a06ca4842755997734a731774c96b9880079a7883857e"
+   "sha256": "e379da1a22ca5ea82ebf51135fc8ed66ed3c2b4d8c1be2a7891b771cc19e2d01"
   },
   {
    "name": "sound-designer",
@@ -830,17 +830,17 @@
  },
  "tests": {
   "pytest": {
-   "passed": 132,
+   "passed": 134,
    "failed": 0,
    "returncode": 0,
-   "summary": "132 passed (tam paket, 1.4.2: Meta kaynak protokolü, %40 güvenli alan dahil)",
+   "summary": "134 passed (tam paket, 1.4.3: Meta reklam standartları ve meta-text taraması dahil)",
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-17"
   },
   "smoke": {
    "ok": true,
    "partial": false,
-   "seconds": 144.4,
+   "seconds": 142.7,
    "steps": [
     {
      "step": 1,
@@ -928,7 +928,7 @@
      "step": 3,
      "title": "ingest ve analiz (4K dikey)",
      "ok": true,
-     "seconds": 45.2,
+     "seconds": 44.3,
      "detail": {
       "footage": 4,
       "photos": 2,
@@ -955,16 +955,16 @@
      "step": 4,
      "title": "render, ses, öz denetim, varyasyon, QC",
      "ok": true,
-     "seconds": 71.1,
+     "seconds": 70.4,
      "detail": {
       "tempo": 117.45,
       "render_916": {
-       "ms": 19526,
+       "ms": 19425,
        "segments": 5,
        "scale": 0.5
       },
       "render_45": {
-       "ms": 15704,
+       "ms": 15454,
        "segments": 5
       },
       "render_11_still": "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/kare_11.png",
@@ -999,7 +999,7 @@
       },
       "variant_6s": {
        "version": 2,
-       "ms": 9965
+       "ms": 9901
       },
       "final_scene": {
        "resolution_ok": true,
@@ -1046,7 +1046,7 @@
      "step": 6,
      "title": "hafıza",
      "ok": true,
-     "seconds": 2.4,
+     "seconds": 2.3,
      "detail": {
       "unit": {
        "targets": [
@@ -1284,7 +1284,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1 ve 1.4.2 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1335,6 +1335,14 @@
     "kusur": 0,
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; yalnızca Meta'nın herkese açık yardım bağlantısı eklendi"
+   },
+   {
+    "scope": "1.4.3: değişen dosyalar (Meta reklam standartları §8, meta-text taraması, aşama bağlantıları; diğer bileşen hash'leri 1.4.2 denetimiyle aynı)",
+    "files_reviewed": 13,
+    "kusur": 1,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama; fark satır satır okundu",
+    "fixed": "test ve §8 örneklerinde bir profilin ürün kategorisinden ve eski reklam bulgusundan türeyen ifadeler vardı; nötr örneklerle değiştirildi"
    }
   ],
   "remaining_defects": [],
@@ -1345,13 +1353,13 @@
    }
   ],
   "component_hashes": {
-   "skills": "a3e1be411b356bdbdda0b334c4568ed3e13483f854edb49a24ac74cd9eb6ffcb",
-   "agents": "de4634c9f451b626a6b4e522e01baa064adac038d8a7e7270aca2ebf9f70c322",
+   "skills": "217f77be378d4b22b2001a2da75d8f6bcbc4a3b7d3d764023e30ccd4519ebf02",
+   "agents": "21a8f545470621bba6097df4942e0320789a85d52545c53a0195e759fa9e026e",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
    "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
-   "ad_memory": "2214b1230edc7dc1a6f5013878f9c87c3744bb91b70db60037e6ae5ec3a27728",
-   "scripts": "8c0a1f43c01e27dd6748393b2a64d510a8bdb4162a1e6835b582011219498634",
+   "ad_memory": "ec962d2a45ebcfc43c6b0bfe3a1d6a323ce5a2ea572107912427dfee5a154b83",
+   "scripts": "8ad6465eff50a304ae6ad6c44d54bf2ab36720be78977a6a4a8f74e65b1be52f",
    "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f"
   },
   "checked_at": "2026-10-17"
@@ -1511,15 +1519,15 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "5ef9fa302c6763fffbf543c6941a1583600974ef308ef4853df0053c7e7f027a",
+  "plugin_json": "5fbf2ce51f5e5868922b7496e0ed797536a926df73520bc9446253aedbd279b9",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "a3e1be411b356bdbdda0b334c4568ed3e13483f854edb49a24ac74cd9eb6ffcb",
-  "agents": "de4634c9f451b626a6b4e522e01baa064adac038d8a7e7270aca2ebf9f70c322",
+  "skills": "217f77be378d4b22b2001a2da75d8f6bcbc4a3b7d3d764023e30ccd4519ebf02",
+  "agents": "21a8f545470621bba6097df4942e0320789a85d52545c53a0195e759fa9e026e",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
   "hooks": "189dab561a91d189cf6faa56e9af1ac84467319195a2630cc1c311e0f4880bd1",
-  "ad_memory": "2214b1230edc7dc1a6f5013878f9c87c3744bb91b70db60037e6ae5ec3a27728",
-  "scripts": "8c0a1f43c01e27dd6748393b2a64d510a8bdb4162a1e6835b582011219498634",
+  "ad_memory": "ec962d2a45ebcfc43c6b0bfe3a1d6a323ce5a2ea572107912427dfee5a154b83",
+  "scripts": "8ad6465eff50a304ae6ad6c44d54bf2ab36720be78977a6a4a8f74e65b1be52f",
   "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f",
   "vendor_skills": "c4e8472a2cb0e6f2dd15a6fb0cd1bdb178a462bf7a40b5fce65344f49dbcc743"
  },

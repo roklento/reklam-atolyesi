@@ -42,7 +42,9 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
    marka tutarlılığı, kilitli vurgu anlarının vuruşa oturması, efekt bütçesi.
 5. **Yasal ölçütler (`ref-legal-tr-meta`):** yalnızca kanıtlanabilir iddialar · fiyat/indirim satış sayfasıyla birebir ve indirimde
    referans fiyat kanıtı · yüz ve eller gerçek çekimden; AI insan yok · ses klonu yok · AI içeren varyasyon için Meta açıklama/etiket
-   talimatı ve Türkiye'de ayırt edilmesi zor AI içerik açıklaması · **her `ReviewCard`** `reviews` kaydıyla eşleşir (izin kanıtı yoksa
+   talimatı ve Türkiye'de ayırt edilmesi zor AI içerik açıklaması · **Meta reklam standartları (§8):** `checks.py meta-text --plan <plan>`
+   uyarılarının her biri gözle "sorun yok" ya da "düzelt" diye karara bağlanır; görüntüde sansasyonel öğe (8b) ve önce/sonra kategorisi
+   (8d) kontak sayfasından denetlenir · **her `ReviewCard`** `reviews` kaydıyla eşleşir (izin kanıtı yoksa
    ya da `withdrawn_at` doluysa kreatif **reddedilir**; ad `name_display_mode`'a göre) · kişi tespit edilen **her klip** `person_consents`
    ile eşleşir (izin yoksa/geri çekildiyse klip kullanılamaz) · rakipten türeyen konseptler uzaklık kuralını geçmiş; kreatifte rakip adı,
    logosu, ürünü, tanınır ambalajı, sloganı yok; kurgu planında rakip kaynağı yok (yan yana kontrol için kaynak `library_id` önizlemesi
@@ -55,7 +57,7 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
    Tekrarlayan bulgular `memory_add(layer="procedural", kind="qc")`; ürün tarifiyle ilgili bulgu ürün tarifine önerilir.
 8. **Son kontrol listesi** (raporun başında, tümü işaretli): yazılar güvenli alanda ve ≥ 1,5 sn · ses -14 LUFS, telefon hoparlöründe VO net ·
    AI klipleri gerçek fotoğrafla karşılaştırıldı, bozulma yok · iddia listesi kontrol edildi · AI içeren varyasyonlarda Meta açıklama
-   talimatı güncel kurala uygun · yazım ve Türkçe karakterler · yorum ve kişi izinleri eşleşti · ses kararları uygulandı · rakipten
+   talimatı güncel kurala uygun · Meta reklam standartları (§8) uyarıları karara bağlandı · yazım ve Türkçe karakterler · yorum ve kişi izinleri eşleşti · ses kararları uygulandı · rakipten
    türeyen konseptler uzaklık kuralını geçti; rakip adı/logosu/varlığı yok.
 9. Rapor: `DD/profiles/<slug>/campaigns/<k>/reports/c<tur>-qc-raporu.md` (atomik). `stage_complete(profile_id, "S13", outputs=[{path:
    rapor}], summary, campaign_id, cycle_id)` → `awaiting_gate`. Sunucu, QC'den geçmemiş test kreatifi varken kapıyı açmaz.

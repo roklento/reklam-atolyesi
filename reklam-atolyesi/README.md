@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.2
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.3
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -85,6 +85,12 @@ migration öncesi alınır; son 8 yedek tutulur.
 - Lisanslar: `vendor-skills/THIRD_PARTY_NOTICES.md`; Remotion ve ElevenLabs kullanım koşulları `skills/ref-legal-tr-meta`.
 
 ## Sürüm notları
+**1.4.3**
+- Meta reklam standartları (`ref-legal-tr-meta` §8, resmi yardım merkezi metinlerinden): kişisel özellikler, sansasyonel içerik, sağlık
+  ve görünüm, önce/sonra sahnesinin kategoriye göre kuralı. Konsept, çekim planı, QC, yayın paketi ve QC incelemecisi bunu denetler.
+- `checks.py meta-text --plan | --text`: Türkçe metinde kişisel özellik imaları, şok/korku dili, sağlıkta kesin/süreli sonuç vaadi ve
+  önce/sonra için uyarı taraması. Uyarıdır, karar değildir; her uyarı QC'de gözle karara bağlanır.
+
 **1.4.2**
 - Meta platform kuralları için kaynak protokolü (`ref-legal-tr-meta` §7): her kural resmi (yardım merkezi `ads_get_help_article` ya da
   canlı araç, bağlantı + tarih), yerel koruma kuralı ya da "teyit edilmedi" olarak işaretlenir. Strateji, yayın paketi, QC, takip,

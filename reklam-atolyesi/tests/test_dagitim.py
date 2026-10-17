@@ -177,3 +177,15 @@ def test_meta_rules_have_source_status():
     for s in ("navigator", "brand-onboarding", "meta-history"):
         t = (ROOT / "skills" / s / "SKILL.md").read_text(encoding="utf-8")
         assert "vaat edilmez" in t and "Beta(1,1)" in t, s
+
+
+def test_meta_ad_standards_section_and_wiring():
+    """Meta reklam standartları (§8) resmi kaynaklı ve konsept, çekim, QC, yayın paketi ile QC incelemecisine bağlı (1.4.3)."""
+    legal = (ROOT / "skills" / "ref-legal-tr-meta" / "SKILL.md").read_text(encoding="utf-8")
+    sec = legal.split("## 8. Meta reklam standartları", 1)[1]
+    for k, url in (("8a", "2557868957763449"), ("8b", "304110064285796"), ("8c", "2489235377779939")):
+        assert f"### {k}." in sec and url in sec, k
+    assert "### 8d. Önce/sonra" in sec and "genel olarak yasaklamaz" in sec
+    for f in ("skills/concepts/SKILL.md", "skills/shoot-guide/SKILL.md", "skills/qc/SKILL.md", "skills/launch-pack/SKILL.md",
+              "agents/qc-reviewer.md"):
+        assert "§8" in (ROOT / f).read_text(encoding="utf-8"), f
