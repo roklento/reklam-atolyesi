@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.4
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.5
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,17 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.4.5**
+- Kreatif çeşitliliği: test hakkı önce farklı alıcılara konuşan farklı fikirlere gider. Yeni `buyer` (kime konuşuyor) sözlük ekseni
+  (sözlük 1.5.0); ürün tanışmasının 5. sorusu alıcıları ve anları ayrı kaydeder (`buyers_json`, migration 003).
+- S03 kapısı keşif konseptlerini denetler: konsept başına tek test hook'u (öteki açılışlar yedek, sonraki turun karşılaştırması için),
+  tek alıcı, konseptler arasında farklı alıcı ve `emotion/moment/proof/first_frame`'den en az ikisinde fark. Aynı denetim görüşme
+  sırasında `concept_diversity_check` ile. Birincil doğrulama çifti muaf. Yedek hook'tan üretilen çıktı test reklamı olarak kaydedilemez.
+- `concept_upsert` / `hook_upsert` güncellemede verilmeyen alanları korur; ses niyeti gibi tek alanlı güncelleme kararı, alıcıyı ve
+  yedek işaretini silmez.
+- Meta dayanağı `ref-legal-tr-meta` §7'de: Advantage+ kitle, kreatif yorgunluğu ve öğrenme aşaması resmi; "benzer reklamlar aynı
+  kişilere gider" teyit edilmedi, kural yerel koruma kuralıdır. Alıcı etiketi reklam metninde izleyiciye atfedilmez (§8a).
+
 **1.4.4**
 - Ayrı müşteri kurulum/güncelleme paketi; güncellemede test ve örnek render yok.
 - Kullanım hatalarında yerel log ve kullanıcı bildirimi; otomatik veri gönderimi yok.

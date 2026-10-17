@@ -1,6 +1,6 @@
 {
-  "_comment": "Ortak kreatif sözlüğü (spec 4.7). Kodlar İngilizce, etiketler Türkçe. Sabit eksenler kapalı listedir; değer eklemek sözlük sürümü (plugin güncellemesi) gerektirir. Profil eksenlerinin değerleri kurulumdan gelmez; taxonomy_values tablosunda profil kapsamlı doğar (ilke 12). 'unknown' her eksende geçerlidir; tahmin edilen değer yazılmaz.",
-  "taxonomy_version": "1.4.0",
+  "_comment": "Ortak kreatif sözlüğü (spec 4.7). Kodlar İngilizce, etiketler Türkçe. Sabit eksenler kapalı listedir; değer eklemek sözlük sürümü (plugin güncellemesi) gerektirir. Profil eksenlerinin değerleri kurulumdan gelmez; taxonomy_values tablosunda profil kapsamlı doğar (ilke 12). 'unknown' her eksende geçerlidir; tahmin edilen değer yazılmaz. 1.5.0: 'buyer' (kime konuşuyor) profil ekseni; S03 keşif konseptleri ikişer ikişer farklı alıcıya konuşur ve diversity_axes'ten en az diversity_min_axes kadarında farklıdır (kapı denetler).",
+  "taxonomy_version": "1.5.0",
   "fixed_axes": {
     "video_type": {
       "label": "Video türü",
@@ -32,10 +32,13 @@
   "profile_axes": {
     "angle": {"label": "Açı (konseptin konusu; sahne rolü değildir)"},
     "moment": {"label": "Satın alma anı (S00c ile aynı kayıt)"},
+    "buyer": {"label": "Alıcı: video kime konuşuyor (S00c ile aynı kayıt; an değil kişi)"},
     "emotion": {"label": "Duygu"},
     "tone": {"label": "Ton (S00a marka tonu)"}
   },
   "special_values": {"unknown": "Bilinmiyor", "other_prefix": "other:"},
   "diversity_axes": ["emotion", "moment", "proof", "first_frame"],
+  "diversity_distinct_axis": "buyer",
+  "diversity_min_axes": 2,
   "distance": {"min_axes_besides_angle": 2, "max_4gram_overlap": 0.20}
 }

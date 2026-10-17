@@ -385,6 +385,8 @@ class StageMixin:
                     n_test += len(self.qa("SELECT 1 FROM hooks WHERE concept_id=? AND decision IN ('accepted','merged') AND reserve=0", (k["id"],)))
                 if n_test > cap:
                     out.append(f"seçilen test reklamı sayısı {n_test} > S02 kreatif tavanı {cap} (6.3); fazlası yedek işaretlenmeli")
+            # Test hakkı önce farklı alıcılara konuşan farklı fikirlere: tek test açılışı, farklı alıcı, çeşitlilik eksenleri (4.3, 4.7; 1.4.5)
+            out += self._s03_portfolio_check(cy["id"])["issues"]
         elif stage == "S13":
             bad = self.qa("SELECT creative_key, format, qc_status FROM creatives WHERE cycle_id=? AND delivery_role='test' AND qc_status!='passed'", (cy["id"],))
             if bad:

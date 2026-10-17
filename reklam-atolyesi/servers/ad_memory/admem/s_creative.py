@@ -15,6 +15,12 @@ DECISIONS = ("accepted", "merged", "rejected", "deferred")
 ROLES = ("proven", "gap", "counter", "free")
 
 
+def _known(v: Any) -> set[str]:
+    """Sözlük değer(ler)inin bilinen kısmı: boş ve 'unknown' fark sayılmaz (4.7, bölüm 10 ile aynı ilke)."""
+    vals = v if isinstance(v, (list, tuple, set)) else [v]
+    return {str(x).strip() for x in vals if x is not None and str(x).strip() and str(x).strip() != "unknown"}
+
+
 class CreativeMixin:
     # --- sözlük doğrulaması (4.7) ------------------------------------------------
     def _validate_features(self, profile_id: int, features: dict | None) -> dict:
@@ -50,6 +56,9 @@ class CreativeMixin:
                        source_competitor_ad_ids: list[int] | None = None, features: dict | None = None,
                        sound_intent: str | None = None, hypothesis_id: int | None = None,
                        checkpoint: dict | None = None) -> dict:
+        """Yeni konsept ya da güncelleme. Güncellemede verilmeyen (None) alanlar korunur; features eksen bazında birleşir (bir ekseni
+        boşaltmak için 'unknown'). Ses niyeti ya da hipotez bağı gibi tek alanlı bir güncelleme kararı, alıcıyı ve sözlük özelliklerini
+        silmez (1.4.5; S03 kapısı bu alanlara dayanır)."""
         c = self._campaign(profile_id, campaign_id)
         cy = self._cycle(profile_id, cycle_id, campaign_id)
         if c["stage"] != "S03":
@@ -62,10 +71,6 @@ class CreativeMixin:
             raise AdMemoryError("konsept kararı kullanıcının ifadesiyle kaydedilir (user_said); Claude tek başına 'approved' yazamaz (4.3)")
         if competitive_role is not None and competitive_role not in ROLES:
             raise AdMemoryError(f"portföy rolü: {', '.join(ROLES)}")
-        if source == "competitor" and competitive_role not in ("proven", "gap", "counter"):
-            raise AdMemoryError("rakipten türeyen öneri proven | gap | counter rolü taşır (4.3)")
-        if competitive_role in ("proven", "counter") and not source_competitor_ad_ids:
-            raise AdMemoryError("proven/counter konsept kaynak rakip reklam kimliklerini taşır (uzaklık kuralı için)")
         if source_competitor_ad_ids:
             for aid in source_competitor_ad_ids:
                 r = self.q1("SELECT profile_id FROM competitor_ads WHERE id=?", (int(aid),))
@@ -73,14 +78,30 @@ class CreativeMixin:
                     raise AdMemoryError(f"rakip reklamı {aid} bu profile ait değil")
         feats = self._validate_features(profile_id, features)
         tv = self._taxonomy()["taxonomy_version"]
-        status = "selected" if decision in ("accepted", "merged") else ("dropped" if decision == "rejected" else "proposed")
         with self.tx():
             ex = self.q1("SELECT * FROM concepts WHERE cycle_id=? AND code=?", (cy["id"], code))
-            vals = dict(campaign_id=c["id"], cycle_id=cy["id"], code=code, name=name, angle=angle, source=source,
-                        decision=decision, status=status, rationale=rationale, competitive_role=competitive_role,
-                        source_competitor_ad_ids_json=jdump(source_competitor_ad_ids) if source_competitor_ad_ids else None,
-                        features_json=jdump(feats) if feats else None, taxonomy_version=tv, sound_intent=sound_intent,
-                        hypothesis_id=hypothesis_id, updated_at=now_iso())
+            old = ex or {}
+
+            def keep(new: Any, col: str) -> Any:
+                return old.get(col) if new is None else new
+
+            role = keep(competitive_role, "competitive_role")
+            src_ids = source_competitor_ad_ids if source_competitor_ad_ids is not None else old.get("source_competitor_ad_ids_json")
+            if source == "competitor" and role not in ("proven", "gap", "counter"):
+                raise AdMemoryError("rakipten türeyen öneri proven | gap | counter rolü taşır (4.3)")
+            if role in ("proven", "counter") and not src_ids:
+                raise AdMemoryError("proven/counter konsept kaynak rakip reklam kimliklerini taşır (uzaklık kuralı için)")
+            if ex:
+                old_feats = old.get("features_json") if isinstance(old.get("features_json"), dict) else {}
+                feats = {**old_feats, **feats} if features is not None else old_feats
+            dec = keep(decision, "decision")
+            status = "selected" if dec in ("accepted", "merged") else ("dropped" if dec == "rejected" else "proposed")
+            vals = dict(campaign_id=c["id"], cycle_id=cy["id"], code=code, name=name, angle=keep(angle, "angle"), source=source,
+                        decision=dec, status=status, rationale=keep(rationale, "rationale"), competitive_role=role,
+                        source_competitor_ad_ids_json=jdump(src_ids) if src_ids else None,
+                        features_json=jdump(feats) if feats else None, taxonomy_version=tv,
+                        sound_intent=keep(sound_intent, "sound_intent"), hypothesis_id=keep(hypothesis_id, "hypothesis_id"),
+                        updated_at=now_iso())
             if ex:
                 if ex["distance_check_json"] and (features is not None or source_competitor_ad_ids is not None):
                     vals["distance_check_json"] = None  # içerik değişti: uzaklık kontrolü yeniden
@@ -98,8 +119,10 @@ class CreativeMixin:
 
     def hook_upsert(self, profile_id: int, concept_id: int, code: str, first_frame_type: str, first_frame_desc: str,
                     first_motion: str, first_sound: str, text: str, vo: str | None = None, duration_s: float = 1.5,
-                    decision: str | None = None, user_said: str | None = None, reserve: bool = False,
+                    decision: str | None = None, user_said: str | None = None, reserve: bool | None = None,
                     checkpoint: dict | None = None) -> dict:
+        """Hook = dört parça + metin. Güncellemede verilmeyen karar ve yedek (reserve) işareti korunur (1.4.5); yeni hook'ta reserve
+        verilmezse test hook'udur."""
         k = self.q1("SELECT * FROM concepts WHERE id=?", (int(concept_id),))
         if not k:
             raise AdMemoryError("konsept yok")
@@ -120,9 +143,11 @@ class CreativeMixin:
             raise AdMemoryError("hook kararı kullanıcının ifadesiyle kaydedilir (user_said)")
         with self.tx():
             ex = self.q1("SELECT * FROM hooks WHERE concept_id=? AND code=?", (k["id"], code))
+            dec = decision if decision is not None or not ex else ex["decision"]
+            res = (1 if reserve else 0) if reserve is not None or not ex else ex["reserve"]
             vals = dict(concept_id=k["id"], code=code, first_frame_type=first_frame_type, first_frame_desc=first_frame_desc,
                         first_motion=first_motion, first_sound=first_sound, text=text, vo=vo, duration_s=float(duration_s),
-                        decision=decision, reserve=1 if reserve else 0)
+                        decision=dec, reserve=res)
             if ex:
                 self.ex(f"UPDATE hooks SET {', '.join(f'{x}=?' for x in vals)} WHERE id=?", (*vals.values(), ex["id"]))
                 hid = ex["id"]
@@ -164,6 +189,68 @@ class CreativeMixin:
             raise AdMemoryError(f"{path.name} zaten var; önceki dosyanın üzerine yazılmaz (sürüm adıyla yeniden üretin)")
         sha = atomic_write(path, buf.getvalue(), overwrite=False)
         return {"path": str(path), "sha256": sha, "rows": len(rows)}
+
+    # --- S03 test portföyü: farklı alıcı, tek açılış (4.3, 4.7; 1.4.5) --------------------------
+    def concept_diversity_check(self, profile_id: int, campaign_id: int, cycle_id: int) -> dict:
+        """S03 kapısının çeşitlilik denetimi; görüşme sırasında da çağrılır, hiçbir şey yazmaz."""
+        self._campaign(profile_id, campaign_id)
+        cy = self._cycle(profile_id, cycle_id, campaign_id)
+        return self._s03_portfolio_check(cy["id"])
+
+    def _s03_portfolio_check(self, cycle_id: int) -> dict:
+        """Keşif konsepti: seçilmiş (accepted|merged), birincil doğrulama hipotezine bağlı olmayan ve en az bir test (yedek olmayan) hook'u
+        olan konsept. Her keşif konseptinin tek test hook'u ve tek alıcısı (buyer) olur; keşif konseptleri ikişer ikişer farklı alıcıya
+        konuşur ve diversity_axes'ten en az diversity_min_axes kadarında farklıdır. Açılış karesi test hook'undan okunur. Bilinmeyen
+        (unknown) ya da boş değer fark sayılmaz. Doğrulama çifti (birincil hipotez) muaftır; tümüyle yedek konsept bu turda test edilmez."""
+        tax = self._taxonomy()
+        axes = list(tax["diversity_axes"])
+        distinct = tax.get("diversity_distinct_axis") or "buyer"
+        min_axes = int(tax.get("diversity_min_axes", 2))
+        prim = self.q1("SELECT id FROM hypotheses WHERE cycle_id=? AND is_primary=1", (cycle_id,))
+        sel = self.qa("SELECT * FROM concepts WHERE cycle_id=? AND decision IN ('accepted','merged') ORDER BY code", (cycle_id,))
+        explore: list[dict] = []
+        validation, reserve_only, issues = [], [], []
+        for k in sel:
+            if prim and k["hypothesis_id"] == prim["id"]:
+                validation.append(k["code"])
+                continue
+            tests = self.qa("""SELECT code, first_frame_type FROM hooks WHERE concept_id=? AND decision IN ('accepted','merged')
+                               AND reserve=0 ORDER BY code""", (k["id"],))
+            if not tests:
+                reserve_only.append(k["code"])
+                continue
+            feats = k["features_json"] if isinstance(k["features_json"], dict) else {}
+            vals = {ax: _known(feats.get(ax)) for ax in axes}
+            if "first_frame" in vals and len(tests) == 1 and _known(tests[0]["first_frame_type"]):
+                vals["first_frame"] = _known(tests[0]["first_frame_type"])
+            buyer = _known(feats.get(distinct))
+            if len(tests) > 1:
+                issues.append(f"konsept {k['code']}: keşifte tek test açılışı olur, {len(tests)} test hook'u var "
+                              f"({', '.join(t['code'] for t in tests)}); birini seçin, diğerleri yedek (reserve) kalsın. "
+                              "Aynı konseptin açılış karşılaştırması yalnızca birincil doğrulama çiftiyle yapılır (6.6)")
+            if not buyer:
+                issues.append(f"konsept {k['code']}: kime konuştuğu ({distinct}) kayıtlı değil; görüşmede kullanıcıyla seçilir")
+            elif len(buyer) > 1:
+                issues.append(f"konsept {k['code']}: tek bir alıcıya konuşur ({distinct}: {', '.join(sorted(buyer))})")
+            explore.append({"code": k["code"], "buyer": buyer, "vals": vals, "tests": [t["code"] for t in tests]})
+        pairs = []
+        for i, a in enumerate(explore):
+            for b in explore[i + 1:]:
+                same_buyer = sorted(a["buyer"] & b["buyer"])
+                differing = [ax for ax in axes if a["vals"][ax] and b["vals"][ax] and not (a["vals"][ax] & b["vals"][ax])]
+                pairs.append({"concepts": [a["code"], b["code"]], "same_buyer": same_buyer, "differing_axes": differing})
+                if same_buyer:
+                    issues.append(f"konsept {a['code']} ve {b['code']} aynı alıcıya konuşuyor ({distinct}: {', '.join(same_buyer)}); "
+                                  "keşifte her konsept farklı bir alıcıya konuşur")
+                if len(differing) < min_axes:
+                    issues.append(f"konsept {a['code']} ve {b['code']} yalnızca {len(differing)} eksende farklı "
+                                  f"({', '.join(differing) or 'hiçbiri'}); {', '.join(axes)} eksenlerinden en az {min_axes} gerekir, "
+                                  "bilinmeyen eksen fark sayılmaz")
+        return {"passed": not issues, "issues": issues,
+                "exploration": [{"code": e["code"], "buyer": sorted(e["buyer"]), "test_hooks": e["tests"],
+                                 "axes": {ax: sorted(v) for ax, v in e["vals"].items()}} for e in explore],
+                "pairs": pairs, "validation": validation, "reserve_only": reserve_only,
+                "rule": {"distinct_axis": distinct, "diversity_axes": axes, "min_axes": min_axes, "test_hooks_per_concept": 1}}
 
     # --- hipotezler (4.3, 6.6, 6.14) ---------------------------------------------------
     def hypothesis_add(self, profile_id: int, statement: str, metric: str, campaign_id: int | None = None,
@@ -475,6 +562,9 @@ class CreativeMixin:
                     raise AdMemoryError(f"{key}/{parsed['format']} farklı içerikle zaten kayıtlı; üzerine yazılmaz, yeni revizyon (r{int(parsed['rev'][1:]) + 1}) açın (5.18)")
                 return {**ex, "idempotent": True}
             if delivery_role == "test":
+                if hook and hook["reserve"]:
+                    raise AdMemoryError(f"hook {parsed['concept']}/{parsed['hook']} S03'te yedek seçildi: keşifte konsept başına tek test "
+                                        "açılışı olur (4.3); bu çıktı 'reserve' olarak kaydedilmeli ya da hook rolü S03'te değiştirilmeli")
                 keys = {r["creative_key"] for r in self.qa("SELECT DISTINCT creative_key FROM creatives WHERE cycle_id=? AND delivery_role='test'", (cy["id"],))}
                 keys.add(key)
                 bp = jload(cy["budget_plan_json"], {}) or {}

@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.4.4",
+ "plugin_version": "1.4.5",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -172,8 +172,8 @@
   {
    "name": "concepts",
    "kind": "stage",
-   "description": "reklam-atolyesi S03 konsept görüşmesi — ürün, veri, rakip haritası ve strateji çerçevesinde kullanıcıyla birlikte konsept, hook (4 parça), ses niyeti, hipotez ve çekim yolu kararı. Kapılı.",
-   "sha256": "cd68919285b5fe95b748f68a3970ac5e9f4b5f1ed08925313d11a1b6e080e415"
+   "description": "reklam-atolyesi S03 konsept görüşmesi — ürün, veri, rakip haritası ve strateji çerçevesinde kullanıcıyla birlikte konsept ve kime konuştuğu, hook (4 parça; keşifte konsept başına tek test hook'u), ses niyeti, hipotez ve çekim yolu kararı. Kapılı.",
+   "sha256": "81f5fd5a0040de8ad1fabddb0e06469f67ea76f4ed23fc79fc9a0b237dc3f202"
   },
   {
    "name": "ingest",
@@ -220,8 +220,8 @@
   {
    "name": "product-onboarding",
    "kind": "stage",
-   "description": "reklam-atolyesi S00c ürün tanışması — ürün gözlemi (foto/video), fiyat ve katkı, başa baş CPA, satın alma anları, kanıtlanabilir iddialar, ürüne özgü çekim tarifi. Her yeni üründe.",
-   "sha256": "97cadb78f08a503ec8db1119645dde168f994fb1deecea2eb8d3496eee29d2dc"
+   "description": "reklam-atolyesi S00c ürün tanışması — ürün gözlemi (foto/video), fiyat ve katkı, başa baş CPA, alıcılar ve satın alma anları, kanıtlanabilir iddialar, ürüne özgü çekim tarifi. Her yeni üründe.",
+   "sha256": "1c20b99b25158e41eea793c0e8faaccddc64f41461e8f5f86e0b91821f45589b"
   },
   {
    "name": "qc",
@@ -233,13 +233,13 @@
    "name": "ref-creative-taxonomy",
    "kind": "reference",
    "description": "reklam-atolyesi ortak kreatif sözlüğü — kendi konsept/hook/kreatiflerimiz ve rakip konseptleri için aynı eksenler; sabit ve profil eksenleri, unknown kuralı, çeşitlilik ve uzaklık eşikleri.",
-   "sha256": "994b958f315773398a0a85cf207d0e701dd262c04eae5e9aeb55a650b18ec5d5"
+   "sha256": "ee1c9ec65fe684672a9b1871fc53ac22d5ea92eacf6ec873afee82982b5f8dab"
   },
   {
    "name": "ref-legal-tr-meta",
    "kind": "reference",
    "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar.",
-   "sha256": "9e67dae482b1e6b0d4caa1835946f59c0335c95def564c41721f10db957a933f"
+   "sha256": "f6a6d6e3b4f483b6e9ebdd5e7016885c8ca19c4eb3295af5cfc0b2f1235a86c5"
   },
   {
    "name": "ref-metrics-math",
@@ -287,7 +287,7 @@
    "name": "shoot-guide",
    "kind": "stage",
    "description": "reklam-atolyesi S04 çekim planı — hiç video çekmemiş biri için ürün tarifini uygulayan kartlar, numaralı çekim menüsü (her hook ayrı satır), fotoğraf listesi, ses talimatı, sfx_plan. Kapılı.",
-   "sha256": "90ecb526e5658b2ecce7eb2c7ef7e21d6d29171f802a7df1c1c4720e28d81267"
+   "sha256": "115295f03263c9e8bcd7d0f9be289b95155af8e6d15f2a97f888e067f968b157"
   },
   {
    "name": "sound",
@@ -299,7 +299,7 @@
    "name": "strategy",
    "kind": "stage",
    "description": "reklam-atolyesi S02 strateji — (A) ekonomi, kreatif tavanı, tur takvimi, toplam harcama planı, zarar-risk sınırı; (B) rakibe dayalı konumlandırma, mesaj sırası, açı portföyü. Kapılı.",
-   "sha256": "005d5af4db983c273b1a84eb5ac2b0166e68a8e3fcdf9521b5eac29ffa16286b"
+   "sha256": "f0f203780f0fcace942772b59a1859fcca33890584d2a8fbf8d9669734ccb196"
   },
   {
    "name": "style-directions",
@@ -317,7 +317,7 @@
    "name": "variants",
    "kind": "stage",
    "description": "reklam-atolyesi S12 varyasyon ve export — plan yamaları, 9:16 + 4:5 final render (workflow ya da editor yedek yolu), statik/carousel, AI'sız eş, adlandırma ve kreatif kaydı.",
-   "sha256": "0d31e49a3d2fc006c5f9492445e627e4856d8fdbb09672980d66bf4b9467be91"
+   "sha256": "e973d9fc14cd8b85eeb716a01b39abafd8f2d7a800d6fef65e481a302382ccee"
   }
  ],
  "agents": [
@@ -343,8 +343,8 @@
   },
   {
    "name": "creative-strategist",
-   "description": "reklam-atolyesi strateji ve konsept görüşmesi uzmanı. S02 ekonomi/bütçe/takvim/risk hesaplarını ve rakibe dayalı yön adaylarını hazırlar; S03'te aday yön, hook alternatifi ve çeşitlilik/uzaklık kontrolü üretir — karar kullanıcınındır.",
-   "sha256": "7f433d6246e4a8834c138a4136ed56f94c85d424fe338a7bbf188a957637a861"
+   "description": "reklam-atolyesi strateji ve konsept görüşmesi uzmanı. S02 ekonomi/bütçe/takvim/risk hesaplarını ve rakibe dayalı yön adaylarını hazırlar; S03'te farklı alıcılara konuşan aday yön, hook alternatifi ve çeşitlilik/uzaklık kontrolü üretir — karar kullanıcınındır.",
+   "sha256": "a068cc4e32b26cc614112169be3bbf60273e48d3a026e79f1fa011deb68e76af"
   },
   {
    "name": "editor",
@@ -621,6 +621,7 @@
    "competitor_snapshot_save",
    "competitor_upsert",
    "concept_distance_check",
+   "concept_diversity_check",
    "concept_upsert",
    "consent_add",
    "consent_query",
@@ -837,13 +838,28 @@
  },
  "tests": {
   "pytest": {
-   "passed": 134,
-   "failed": 0,
-   "returncode": 0,
-   "summary": "134 passed (tam paket, 1.4.3: Meta reklam standartları ve meta-text taraması dahil)",
+   "passed": 145,
+   "failed": 3,
+   "skipped": 5,
+   "returncode": 1,
+   "summary": "145 passed, 3 failed, 5 skipped (1.4.5, Linux geliştirici ortamı: alıcı ekseni, S03 test portföyü kapısı, migration 003 ve kısmi güncelleme testleri dahil). 3 hata değişiklikten önce de vardı ve ortama bağlı; 5 atlanan test Windows'a özgü. Windows'ta tam paket bu sürümde çalıştırılmadı (son Windows tam paketi: 134 passed, 1.4.3).",
+   "known_environment_failures": [
+    {
+     "test": "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
+     "reason": "üretilmiş .mcp.json Windows yolu (.venv/Scripts/python.exe) taşır; Linux'ta gen_config.py ile yeniden üretilmedi"
+    },
+    {
+     "test": "tests/test_media.py::test_ingest_outputs",
+     "reason": "bu ffmpeg derlemesinde ingest'in kullandığı filtre yok"
+    },
+    {
+     "test": "tests/test_media.py::test_measure_contact_sheet_material_map",
+     "reason": "aynı ingest hatasının devamı"
+    }
+   ],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-17",
-   "carried_from_release": "1.4.3"
+   "platform": "linux"
   },
   "smoke": {
    "ok": true,
@@ -1301,7 +1317,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1366,6 +1382,13 @@
     "method": "Değişen üretim kodu ve metinleri okundu; marka/hesap/ürün ve makineye özel yol eklenmedi.",
     "kusur": 0,
     "not": 0
+   },
+   {
+    "scope": "1.4.5: değişen dosyalar (alıcı ekseni ve migration 003, S03 test portföyü denetimi ve kapısı, kısmi güncelleme, yedek hook'tan test kreatifi engeli, tanışma/konsept/sözlük/strateji/çekim/varyasyon skill'leri, §7 kaynak satırları, testler; diğer bileşen hash'leri 1.4.4 ile aynı)",
+    "files_reviewed": 25,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; yalnızca Meta'nın herkese açık yardım bağlantıları eklendi; alıcı ve an örnekleri kategoriden bağımsız (örnek kod: alici-a)"
    }
   ],
   "remaining_defects": [],
@@ -1376,13 +1399,13 @@
    }
   ],
   "component_hashes": {
-   "skills": "3b8b2a389e2e667e2d04db58906f1a59c9239ea4f49597683fe35c03a32c7505",
-   "agents": "21a8f545470621bba6097df4942e0320789a85d52545c53a0195e759fa9e026e",
+   "skills": "45bf8a66628887689555ca4df1006ec593844fc7c378ed22c01e193ec74db2b6",
+   "agents": "b8e9a602353eaa1517cc8ee3e3c12433dee8b929fe7b992bbe40992cde0459d1",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
    "hooks": "8c5995b9023d667569c2d37af37e57af972d7659a51b820c4eec6141a6ba8153",
-   "ad_memory": "1ba5026299c15aa6d672ab533f5ff4b582c12076198d1da24f5982c0816c8fed",
-   "scripts": "a02efe064ec5600d42ae9cf38df9c6194467a14556f6da2bf1a2103971bd3e6b",
+   "ad_memory": "db5cde7e6a0ae030f880661043a7cfa2d945e110963fe7089b5a4722d0107157",
+   "scripts": "49c90dc93413f7ff4686a831601205528cc9dde538abdbeea116b9075bcb4e88",
    "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f"
   },
   "checked_at": "2026-10-17"
@@ -1542,15 +1565,15 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "da8cab5ca5e8043900b4024ffa9da9bb2d729770fc7577987fb223b25fabfb87",
+  "plugin_json": "34f80bfd0cfe98acaa6a7f4c392b558d347aed57d92d368464a706f5d613d8b0",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "3b8b2a389e2e667e2d04db58906f1a59c9239ea4f49597683fe35c03a32c7505",
-  "agents": "21a8f545470621bba6097df4942e0320789a85d52545c53a0195e759fa9e026e",
+  "skills": "45bf8a66628887689555ca4df1006ec593844fc7c378ed22c01e193ec74db2b6",
+  "agents": "b8e9a602353eaa1517cc8ee3e3c12433dee8b929fe7b992bbe40992cde0459d1",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
   "hooks": "8c5995b9023d667569c2d37af37e57af972d7659a51b820c4eec6141a6ba8153",
-  "ad_memory": "1ba5026299c15aa6d672ab533f5ff4b582c12076198d1da24f5982c0816c8fed",
-  "scripts": "a02efe064ec5600d42ae9cf38df9c6194467a14556f6da2bf1a2103971bd3e6b",
+  "ad_memory": "db5cde7e6a0ae030f880661043a7cfa2d945e110963fe7089b5a4722d0107157",
+  "scripts": "49c90dc93413f7ff4686a831601205528cc9dde538abdbeea116b9075bcb4e88",
   "templates": "c21b2cfe454043c6066db8640d82bbc1b27ef7e6ec9c666bb3cfab26382c173f",
   "vendor_skills": "c4e8472a2cb0e6f2dd15a6fb0cd1bdb178a462bf7a40b5fce65344f49dbcc743"
  },

@@ -32,7 +32,9 @@ Ayrıca `c<tur>-hooks.csv`, `strategy_get`, `products.provable_claims_json` (ön
 4. **7 altın kural** ve ayrıntılar (`ref-shooting-basics`). Kurtarılamayan üç şey (odaksız kare, patlamış beyazlar, hareket bulanıklığı)
    özellikle önlenir.
 5. **Çekim menüsü (numaralı):** her satır: no (`S01`…), hizmet ettiği konsept(ler), ne çekileceği, süre, kamera hareketi, tek dikkat
-   noktası, AI ile tamamlanabilir mi, **öncelikli** işareti. Görsel olarak farklı her hook (açılış karesi + ilk hareket) **ayrı satır**.
+   noktası, AI ile tamamlanabilir mi, **öncelikli** işareti. Görsel olarak farklı her hook (açılış karesi + ilk hareket) **ayrı satır**;
+   test hook'ları öncelikli, yedek hook'lar (`hooks.csv` rolü "yedek") aynı çekim gününde eklenebiliyorsa çekilir (sonraki turun açılış
+   karşılaştırması için).
    Ortak çekimler birden çok konsepte hizmet eder. AI klibi planlanan her sahne için **gerçek çekimli eşin** hangi çekimden kurulacağı
    yazılır (`real_twin_for`). Ürünün gerçekliğini kanıtlayan sahne, karşılaştırma ve önce/sonra sahneleri AI'a bırakılmaz.
    Makine okunur kopya: `DD/profiles/<slug>/campaigns/<k>/analysis/shoot_menu.json` =

@@ -66,7 +66,8 @@ def make_active_profile(s: Store, name: str = "Marka A", account: str = "act_A",
     prod = s.product_upsert(p["id"], product, price=100, currency="TRY",
                             economics_json={"contribution": 40, "confirmed": True, "net_basket": 120},
                             provable_claims_json=[{"code": "c1", "text": "Örnek iddia", "proof_type": "process", "documented": True}],
-                            occasions_json=[{"code": "an-a", "label": "Örnek an"}])
+                            occasions_json=[{"code": "an-a", "label": "Örnek an"}],
+                            buyers_json=[{"code": "alici-a", "label": "Örnek alıcı"}])
     pf = s.profile_dir(p["id"]) / "products" / "s00c.md"
     pf.write_text("ürün tanışması", encoding="utf-8")
     r = s.stage_complete(p["id"], "S00c", [{"path": str(pf)}], "ürün tanışması", scope_key=f"product:{prod['id']}")

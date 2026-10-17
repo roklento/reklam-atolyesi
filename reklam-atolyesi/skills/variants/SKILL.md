@@ -26,8 +26,10 @@ S11 taslak kapısı geçilmiş (onaylı `ready` plan ve miks).
 
 ## Adımlar
 1. `stage_start(profile_id, "S12", campaign_id, cycle_id)`.
-2. **Varyasyon listesi:** varsayılan ilk tur = konsept × 1–2 hook × 15 sn. VO'lu/VO'suz ve 6 sn sürümleri yalnızca bütçe izin veriyorsa ya
-   da kazanan konseptlerde. 20 sn uzun kesim marka filmidir; test matrisine girmez. Her çıktıya `delivery_role`: `test` (ayrı reklam,
+2. **Varyasyon listesi:** varsayılan ilk tur = konsept × S03'te seçilen test hook'u × 15 sn. Keşifte konsept başına tek test açılışı
+   olur; S03'te yedek seçilen hook'ların çıktıları `reserve` kalır (sunucu yedek hook'la `test` kaydını reddeder). Birincil doğrulama
+   çiftinde iki kol iki test hook'u olabilir. VO'lu/VO'suz ve 6 sn sürümleri yalnızca bütçe izin veriyorsa ya da kazanan konseptlerde.
+   20 sn uzun kesim marka filmidir; test matrisine girmez. Her çıktıya `delivery_role`: `test` (ayrı reklam,
    ayrı ölçülür) ya da `reserve` (yükleme listesi dışında). Test sayısı **tavanı aşamaz**; aşarsa fazlası `reserve` (sessizce yayına eklenmez).
    Statik, carousel, hook/VO/süre farkı ve AI'sız eş ayrı reklam olarak yayınlanacaksa tavandan yer alır.
 3. **Yamalar:** `edit_plan_patch(profile_id, plan_id, ops)` — hook değişimi, süre kesimi (15 → 6), format yeniden kadrajlama (yazılar

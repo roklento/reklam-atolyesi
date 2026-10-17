@@ -303,7 +303,7 @@ class BaseStore:
     def product_upsert(self, profile_id: int, name: str, product_id: int | None = None, **fields: Any) -> dict:
         bid = self._brand_id(profile_id)
         self._profile(profile_id)
-        allowed = {"price", "gross_margin", "aov", "currency", "safety_factor", "economics_json", "occasions_json",
+        allowed = {"price", "gross_margin", "aov", "currency", "safety_factor", "economics_json", "occasions_json", "buyers_json",
                    "provable_claims_json", "capacity_limit", "photos_json", "observation_json", "shoot_profile_json",
                    "catalog_product_id", "onboarding_status"}
         bad = set(fields) - allowed

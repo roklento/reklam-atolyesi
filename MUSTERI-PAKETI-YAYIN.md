@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.4.4
+# Müşteri paketi — 1.4.5
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,14 +16,23 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.4.4**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.4.5**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.4.5 bir veritabanı migration'ı içerir (003: `taxonomy_values` alıcı eksenini tanıyacak biçimde yeniden kurulur,
+`products.buyers_json` eklenir). Güncelleyicinin yedeğine ek olarak Store açılışı migration öncesi kendi yedeğini alır.
 
 ## Yerel doğrulama
 
-43 kontrol geçti: `test_customer_update.py`, `test_hooks.py`, `test_dagitim.py`.
+**1.4.5** (Linux geliştirici ortamı): tam paket 145 geçti, 5 atlandı (Windows'a özgü), 3 başarısız. Üç hata değişiklikten önce de
+vardı ve ortama bağlıdır: `test_doctor_resolves_mcp_command_with_spaces` (üretilmiş `.mcp.json` Windows yolu taşır) ve
+`test_media.py` içindeki iki ingest/ölçüm testi (bu ffmpeg derlemesinde gereken filtre yok). Yeni testler `test_s03_portfolio.py`
+dosyasındadır. Migration 003, 1.4.4 şemalı bir veritabanında sınandı: satırlar ve kimlikleri korunuyor, öncesinde yedek alınıyor.
+Windows'ta tam paket, gerçek GitHub güncellemesi ve müşteri bilgisayarında uçtan uca kurulum yapılmadı. Render hattı değişmedi;
+smoke/render/galeri kanıtları manifestte 1.4.3'ten taşınır.
+
+**1.4.4:** 43 kontrol geçti: `test_customer_update.py`, `test_hooks.py`, `test_dagitim.py`.
 Windows PowerShell 5.1 güncelleme kontrol akışı sahte dış komutlarla; SQLite WAL yedeği, migration açılışı,
 doğrulama kayıtlarının korunması ve hata bildirimi geçici veri klasörlerinde sınandı.
 Gerçek GitHub güncellemesi ve müşteri bilgisayarında uçtan uca kurulum yapılmadı.

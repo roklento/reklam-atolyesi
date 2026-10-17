@@ -63,7 +63,9 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    farklılaşmamızla yorumu) · `gap` (keşif) · `counter` · `free` (hesap verisi, ürün gözlemi ya da kullanıcı fikri). Varsayılan:
    tavan ≥ 3 → en az 1 `proven` + en az 1 `gap`, kalanı görüşmede; tavan 2 → 1 `proven` + 1 `gap`; kanıtlanmış açı yoksa `proven` payı
    `gap`/`free`'ye geçer. Birincil doğrulama hipotezi (6.6) varsa onun karşılaştırma çifti önce yer alır. Hesapta aynı amaçtan `evidence`
-   varsa önce o gelir; rakip sinyali hesabın verisini geçersiz kılmaz. Roller arası karşılaştırma keşiftir.
+   varsa önce o gelir; rakip sinyali hesabın verisini geçersiz kılmaz. Roller arası karşılaştırma keşiftir. Keşifte her test reklamı
+   ayrı bir konsepttir ve ayrı bir alıcıya konuşur (S03 çeşitlilik kuralı, `ref-creative-taxonomy`); aynı konseptin açılış
+   karşılaştırması yalnızca birincil doğrulama çiftiyle yapılır. Çıkabilecek farklı konsept sayısı tavandan azsa reklam sayısı düşer.
 9. **Teklif tutumu:** eşleş · değerle ayrış (indirimsiz) · yalnızca belirli dönemde. Fiyat/indirim kararı kullanıcınındır; indirim
    seçilirse satış sayfasıyla birebirlik ve referans fiyat kuralı (`ref-legal-tr-meta`).
 10. **Zamanlama:** rakiplerin sezon/özel gün başlama örüntüsü + üretim süresi → `launch_at` önerisi. Yoğun dönem CPM beklentisi

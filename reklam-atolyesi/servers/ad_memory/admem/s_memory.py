@@ -406,7 +406,7 @@ class MemoryMixin:
             add("Marka", {k: brand[k] for k in ("name", "tone", "avoid_list", "cta_url", "timezone", "elevenlabs_voice_id")}, f"brand:{brand['id']}")
         elif name in ("product", "products"):
             if name == "product" and prod:
-                add("Ürün", {k: prod[k] for k in ("name", "price", "currency", "occasions_json", "provable_claims_json", "observation_json")}, f"product:{prod['id']}")
+                add("Ürün", {k: prod[k] for k in ("name", "price", "currency", "occasions_json", "buyers_json", "provable_claims_json", "observation_json")}, f"product:{prod['id']}")
             elif brand:
                 for r in self.qa("SELECT id, name, onboarding_status FROM products WHERE brand_id=?", (brand["id"],)):
                     add(f"Ürün {r['name']}", f"tanışma: {r['onboarding_status']}", f"product:{r['id']}")

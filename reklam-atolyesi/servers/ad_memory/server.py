@@ -156,10 +156,12 @@ def product_upsert(profile_id: int, name: str, product_id: int | None = None, pr
                    aov: float | None = None, currency: str | None = None, safety_factor: float | None = None, economics_json: dict | None = None,
                    occasions_json: list | None = None, provable_claims_json: list | None = None, capacity_limit: str | None = None,
                    photos_json: list | None = None, observation_json: dict | None = None, shoot_profile_json: dict | None = None,
-                   catalog_product_id: str | None = None) -> dict:
-    """Ürün kaydı; başa baş CPA/ROAS ve hedef CPA hesaplanır (6.2). shoot_profile_json: {'cards': [...]} (5.3)."""
+                   catalog_product_id: str | None = None, buyers_json: list | None = None) -> dict:
+    """Ürün kaydı; başa baş CPA/ROAS ve hedef CPA hesaplanır (6.2). shoot_profile_json: {'cards': [...]} (5.3).
+    occasions_json: satın alma anları (ne zaman), buyers_json: alıcılar (kim); ikisi de [{code, label}] ve sözlükte moment / buyer."""
     f = {k: v for k, v in dict(price=price, gross_margin=gross_margin, aov=aov, currency=currency, safety_factor=safety_factor,
-                                economics_json=economics_json, occasions_json=occasions_json, provable_claims_json=provable_claims_json,
+                                economics_json=economics_json, occasions_json=occasions_json, buyers_json=buyers_json,
+                                provable_claims_json=provable_claims_json,
                                 capacity_limit=capacity_limit, photos_json=photos_json, observation_json=observation_json,
                                 shoot_profile_json=shoot_profile_json, catalog_product_id=catalog_product_id).items() if v is not None}
     return call(lambda s: s.product_upsert(profile_id, name, product_id, **f))
@@ -405,7 +407,8 @@ def concept_upsert(profile_id: int, campaign_id: int, cycle_id: int, code: str, 
                    decision: str | None = None, user_said: str | None = None, rationale: str | None = None,
                    competitive_role: str | None = None, source_competitor_ad_ids: list[int] | None = None, features: dict | None = None,
                    sound_intent: str | None = None, hypothesis_id: int | None = None, checkpoint: dict | None = None) -> dict:
-    """S03 konsept önerisi/kararı. Karar (accepted|merged|rejected|deferred) kullanıcının ifadesiyle (user_said) yazılır."""
+    """S03 konsept önerisi/kararı. Karar (accepted|merged|rejected|deferred) kullanıcının ifadesiyle (user_said) yazılır.
+    features'ta `buyer` (kime konuşuyor) tek değerdir. Güncellemede verilmeyen alanlar korunur; features eksen bazında birleşir."""
     return call(lambda s: s.concept_upsert(profile_id, campaign_id, cycle_id, code, name, source, angle, decision, user_said, rationale,
                                            competitive_role, source_competitor_ad_ids, features, sound_intent, hypothesis_id, checkpoint))
 
@@ -413,8 +416,9 @@ def concept_upsert(profile_id: int, campaign_id: int, cycle_id: int, code: str, 
 @mcp.tool()
 def hook_upsert(profile_id: int, concept_id: int, code: str, first_frame_type: str, first_frame_desc: str, first_motion: str,
                 first_sound: str, text: str, vo: str | None = None, duration_s: float = 1.5, decision: str | None = None,
-                user_said: str | None = None, reserve: bool = False, checkpoint: dict | None = None) -> dict:
-    """Hook = açılış karesi + ilk hareket + ilk ses + metin. Yalnızca metni farklı hook aynı varlıktır (yedek)."""
+                user_said: str | None = None, reserve: bool | None = None, checkpoint: dict | None = None) -> dict:
+    """Hook = açılış karesi + ilk hareket + ilk ses + metin. Yalnızca metni farklı hook aynı varlıktır (yedek). Keşifte konsept başına
+    tek test hook'u; ötekiler reserve=True. Güncellemede verilmeyen karar ve reserve korunur."""
     return call(lambda s: s.hook_upsert(profile_id, concept_id, code, first_frame_type, first_frame_desc, first_motion, first_sound, text,
                                         vo, duration_s, decision, user_said, reserve, checkpoint))
 
@@ -512,6 +516,13 @@ def concept_distance_check(profile_id: int, concept_id: int, own_texts: list[str
 
 
 @mcp.tool()
+def concept_diversity_check(profile_id: int, campaign_id: int, cycle_id: int) -> dict:
+    """S03 test portföyü denetimi (kapı da aynısını yapar, hiçbir şey yazmaz): her keşif konseptinin tek test hook'u ve tek alıcısı
+    (buyer) var; keşif konseptleri farklı alıcıya konuşur ve emotion/moment/proof/first_frame'den en az ikisinde farklı. Doğrulama çifti muaf."""
+    return call(lambda s: s.concept_diversity_check(profile_id, campaign_id, cycle_id))
+
+
+@mcp.tool()
 def strategy_save(profile_id: int, campaign_id: int, cycle_id: int, strategy: dict, competitor_snapshot_id: int | None = None,
                   document_path: str | None = None) -> dict:
     """Onaylanacak stratejik yön (konumlandırma, mesaj sırası, portföy, teklif, zamanlama); portföy tavanı aşamaz."""
@@ -532,7 +543,7 @@ def taxonomy_get(profile_id: int | None = None) -> dict:
 
 @mcp.tool()
 def taxonomy_value_add(profile_id: int, axis: str, code: str, label: str, status: str = "proposed", user_said: str | None = None) -> dict:
-    """Profil ekseni değeri (angle|moment|emotion|tone); kullanıcıyla doğar, aktifleştirme kullanıcı ifadesiyle."""
+    """Profil ekseni değeri (angle|moment|buyer|emotion|tone); kullanıcıyla doğar, aktifleştirme kullanıcı ifadesiyle."""
     return call(lambda s: s.taxonomy_value_add(profile_id, axis, code, label, status, user_said))
 
 

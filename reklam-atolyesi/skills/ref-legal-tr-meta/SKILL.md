@@ -145,6 +145,10 @@ Uygulama:
 | AI açıklama/etiket politikası (launch-pack) | Teyit edilmedi (bölüm 4) |
 | Meta reklam standartları: kişisel özellikler, sansasyonel içerik, sağlık ve görünüm, önce/sonra (§8) | **Resmi** (yardım merkezi, bağlantılar §8'de) |
 | Sektör kıyası (`ads_insights_industry_benchmark`) | **Resmi araç**; harcaması olmayan hesapta "veri yok" döner. Kıyas önsel değildir (bkz. track) |
+| Advantage+ kitlede reklamı kimin göreceğini Meta'nın yapay zekası seçer (geçmiş dönüşümler, piksel verisi, önceki reklam etkileşimleri) (concepts, ref-creative-taxonomy) | **Resmi** ([About Advantage+ audience](https://www.facebook.com/business/help/273363992030035)) |
+| Kreatif yorgunluğunda Meta aynı görselin ya da videonun yakın tarihli bütün gösterimlerini sayar; yeni reklam için belirgin biçimde farklı görsel ya da video önerir (aynı videoya yalnızca yeni metin bu öneriyi karşılamaz) (concepts) | **Resmi** ([About creative fatigue recommendations in Meta Ads Manager](https://www.facebook.com/business/help/1346816142327858)) |
+| Çok sayıda reklam ve reklam seti açıldığında sistem her biri hakkında daha az öğrenir (az bütçede az ama birbirinden farklı reklam) (strategy, concepts) | **Resmi** ([About the learning phase](https://www.facebook.com/business/help/112167992830700)) |
+| Birbirine çok benzeyen reklamlar tek varlık gibi gruplanıp aynı kişilere gider (Andromeda) | Teyit edilmedi: üçüncü taraf kaynaklarda geçer, yardım merkezinde bulunamadı. S03'teki "keşifte her konsept farklı alıcıya, tek test açılışıyla" kuralı (1.4.5) bu yüzden **yerel koruma kuralıdır** |
 
 ## 8. Meta reklam standartları — metin, görüntü ve hook (resmi; kontrol: 2026-10-17)
 Kaynak: [About Meta advertising standards](https://www.facebook.com/business/help/488043719226449). Tam liste Meta Şeffaflık Merkezi'ndedir.
