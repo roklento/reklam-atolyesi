@@ -52,8 +52,10 @@ Yok.
    - **Öğrenme bütçesi:** ölçekleme setinin günlük bütçesi ≥ 7 × `T` (öğrenme aşaması için 7 günde ~50 optimizasyon olayı; durumu
      `ref-legal-tr-meta` §7). Karşılanmıyorsa katman önerilmez, kazanan ana sette kalır. Kullanıcı yine de isterse "öğrenme sınırlı
      kalabilir" uyarısı kararla birlikte kaydedilir.
-   - **Toplam sınır:** katmanın günlük bütçesi × kampanyanın kalan günleri, kampanya toplam harcama sınırının kalanına sığıyor
-     (`budget.py`, ölçekleme satırı dahil). Sığmıyorsa öneri yok; eksik tutar gösterilir.
+   - **Toplam sınır:** katmanın ve ana setin günlük bütçesi × turun kalan günleri, kampanya toplam harcama sınırının kalanına sığıyor.
+     Sığmıyorsa öneri yok; eksik tutar gösterilir.
+   İlk üç koşulu `coach.py` hesaplar (`budget.py` `scale_check`): analizdeki `scale_candidates` her "büyüt" konsepti için `checks`
+   {structure, cost, min_daily, fits_total}, `min_daily`, kaynak reklamlar ve gerekçeleri verir; skill yeniden hesaplamaz.
    - **Gönderi kimliği:** reklamın gönderisi salt okumayla `ads_get_creatives` üzerinden okunur (Facebook: `effective_object_story_id`,
      Instagram: `effective_instagram_media_id`; alan adları `ads_get_field_context` ile doğrulanmadan kesin sayılmaz). Okunamazsa
      kullanıcıdan Ads Manager önizlemesindeki gönderi kimliği/bağlantısı istenir. Kimlik yoksa taşıma maddesi yazılmaz; yeni reklam
@@ -64,15 +66,17 @@ Yok.
    **Koruma sınırları (yerel; Meta kuralı diye sunulmaz, §7):** günlük bütçe artışı ≤ %20; aynı reklam setinde aynı gün birden fazla büyük değişiklik yok; eşik altı kreatife
    istatistiksel "kapat" yok. → `action_items_set(profile_id, campaign_id, items=[{action, reason_kind:"performance", target_meta_id,
    before, after, evidence:{input_snapshot}}], cycle_id)` (onay S16 kapısında).
-   Ölçekleme maddeleri (6a koşulları sağlandıysa) sırasıyla: (1) katman yoksa `reason_kind:"structure"` — "Ölçekleme kampanyası aç: tek
-   reklam seti, geniş kitle, günlük <B>, En yüksek hacim, kreatif test yok"; (2) `reason_kind:"performance"` — "<reklam adı>'nı ölçekleme
-   setine yeni reklam olarak ekle → Mevcut gönderiyi kullan → gönderi kimliği <post_id>"; (3) `reason_kind:"structure"` — "Aynı gönderiyi
-   test setinde duraklat" (iki sette aynı gönderinin kendi kendisiyle yarışmaması için; yerel koruma kuralı, §7). Ölçekleme seti
-   bütçesindeki sonraki artışlar da ≤ %20/gün kuralına tabidir.
-   İnsan uyguladıktan ve `track` doğruladıktan sonra yeni ölçekleme reklamı aynı kreatife bağlanır:
-   `ad_link(profile_id, campaign_id, cycle_id, creative_key, meta_ad_id=<yeni reklam>, adset_id=<ölçekleme seti>)`; katman kaydı
-   `cycle_set(profile_id, cycle_id, {budget_plan_json: {…, scale_layer: {campaign_meta_id, adset_id, daily_budget, opened_at,
-   members: [{creative_key, meta_ad_id, post_id, moved_at}]}}})`.
+   Ölçekleme maddeleri (`scale_candidates[].eligible` ve okunmuş gönderi kimliği varsa) sırasıyla, `kind` alanıyla:
+   (1) katman yoksa `kind:"scale_open"`, `reason_kind:"structure"`, `after:{daily_budget}` — "Ölçekleme kampanyası aç: tek reklam seti,
+   geniş kitle, günlük <B>, En yüksek hacim, kreatif test yok"; (2) `kind:"scale_move"`, `reason_kind:"performance"`,
+   `after:{post_id}`, `evidence:{input_snapshot, scale_checks:<checks>}` — "<reklam adı>'nı ölçekleme setine yeni reklam olarak ekle →
+   Mevcut gönderiyi kullan → gönderi kimliği <post_id>"; (3) `kind:"scale_pause_source"`, `reason_kind:"structure"`, `after:{post_id}`
+   — "Aynı gönderiyi test setinde duraklat" (aynı gönderi iki sette kendi kendisiyle yarışmasın diye; yerel koruma kuralı, §7). Sunucu
+   gönderi kimliği ya da dört koşuldan biri eksik taşıma maddesini reddeder. Ölçekleme seti bütçesindeki sonraki artışlar da ≤ %20/gün.
+   İnsan uyguladıktan ve `track` doğruladıktan sonra katman kaydedilir: `scale_layer_set(profile_id, campaign_id, cycle_id,
+   layer={campaign_meta_id, adset_id, daily_budget, members:[{creative_key, meta_ad_id, post_id, source_meta_ad_id}]},
+   learning_warning_ack?)`. Araç üyeleri ölçekleme setinin `adset_id`'siyle kreatife bağlar (`ad_link`), kaydı S02'nin bütçe planından
+   korur ve yeni tura taşır; günlük bütçe < 7 × hedef ise yalnızca kullanıcının açık ifadesiyle (`learning_warning_ack`) kaydeder.
 8. **Tahminler:** her P(kazanır)/beklenen aralık `prediction_log(profile_id, campaign_id, cycle_id, subject, metric, input_snapshot=<yol/hash>,
    p_win, interval)`; aynı test/özne/metrik için rapor sürümleri yeni tahmin sayılmaz.
 9. **Rekabet bağlamı (6.16):** test penceresinde rakip tarafında ne değişti (fark görüntüsü); anomalilerin yanında **bağlam** olarak;

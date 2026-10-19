@@ -2,7 +2,7 @@
 
 Kullanım: report.py --analysis analysis.json --snapshot input.json --charts charts.json --out reports/c1-coach-report-v1.md
           [--calibration calib.json] [--actions actions.json] [--next next.md]
-Bölümler: Özet (3 cümle) · Kararlar · Grafikler · Sahne düzeyinde izleyici kaybı · Uygulama listesi ve durumu · Rekabet bağlamı ·
+Bölümler: Özet (3 cümle) · Kararlar · Grafikler · Sahne düzeyinde izleyici kaybı · Ölçekleme katmanı · Uygulama listesi ve durumu · Rekabet bağlamı ·
 Öğrenilenler · Sonraki tur · Veri yeterliliği · Koçluğun isabeti
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ from admem.util import tr_fold  # noqa: E402
 
 CAUSAL = [r"\bnedeniyle\b", r"\byuzunden\b", r"\bsebep (oldu|olmus)", r"\betkisiyle\b", r"\bdolayisiyla\b", r"\bbecause\b", r"\bcaused\b",
           r"\byol acti\b", r"\bsonucunda\b"]
-SECTIONS = ["Özet", "Kararlar", "Grafikler", "Sahne düzeyinde izleyici kaybı", "Uygulama listesi ve durumu", "Rekabet bağlamı",
+SECTIONS = ["Özet", "Kararlar", "Grafikler", "Sahne düzeyinde izleyici kaybı", "Ölçekleme katmanı", "Uygulama listesi ve durumu", "Rekabet bağlamı",
             "Öğrenilenler", "Sonraki tur", "Veri yeterliliği", "Koçluğun isabeti"]
 
 
@@ -58,6 +58,23 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
         lines += [f"![{k}]({Path(p).parent.name}/{Path(p).name})", f"_{captions.get(k, '')}_", ""]
     lines += ["## Sahne düzeyinde izleyici kaybı", ""]
     lines += [f"- {r['statement']}" for r in an["retention"]] or ["- Beklenen eğriden belirgin sapma yok ya da karşılaştırma için yeterli kreatif yok."]
+    lines += ["", "## Ölçekleme katmanı", ""]
+    sl = an.get("scale_layer")
+    if sl:
+        lines.append(f"- Katman ({sl['label']}): günlük {sl.get('daily_budget')}, durum {sl.get('status')}, toplam harcama {sl['spend']}."
+                     + (f" ⚠ {sl['learning_warning']}" if sl.get("learning_warning") else ""))
+        for m in sl["members"]:
+            cpr = f", sonuç başı {m['cost_per_result']}" if m.get("cost_per_result") is not None else ""
+            lines.append(f"  - {m['creative_key']} (gönderi {m.get('post_id')}): harcama {m['spend']}, sonuç {m['results']}{cpr}, son 7 gün sıklık {m.get('frequency_last7')}")
+        lines += [f"  - Yorgunluk: {f['msg']} ({f['creative']})" for f in sl["fatigue"]]
+    for c in an.get("scale_candidates") or []:
+        if c["eligible"]:
+            lines.append(f"- **{c['concept']}** → {c['action']} (günlük ≥ {c['min_daily']}; {c['fits_note']}). Gönderi kimliği Ads Manager'dan okunur; yoksa taşınmaz.")
+        else:
+            lines.append(f"- **{c['concept']}** → {c['action']}. Ölçekleme önerilmedi: {'; '.join(c['reasons'])}.")
+    if not sl and not an.get("scale_candidates"):
+        lines.append("- Ölçekleme katmanı yok ve bu turda 'büyüt' hükmü alan konsept yok.")
+    lines += ["_Ölçekleme katmanının verisi test hükmüne, önsele ya da playbook kanıtına girmez._"]
     lines += ["", "## Uygulama listesi ve durumu", ""]
     lines += [f"- [{a.get('status', 'proposed')}] {a['action']}" for a in (actions or [])] or ["- Bu raporla yeni madde önerilmedi."]
     lines += ["", "## Rekabet bağlamı", ""]

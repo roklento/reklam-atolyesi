@@ -13,7 +13,7 @@ Python yolu. Üretim gerekçesi, sohbet özeti ya da "bu iyi oldu" yorumu **iste
 
 **İnceleme**
 1. Teknik: `scripts/qc/checks.py tech --video <mp4> --plan <plan> --expect-duration <sn> --format <f>`, `checks.py black` (bütün video),
-   `checks.py safe --plan <plan>`.
+   `checks.py safe --plan <plan>`, slayt gösterisi riski `scripts/qc/slideshow.py --plan <plan> --video <mp4>` (`critical` → düzeltme notu, `high` → uyarı).
 2. Görsel: `scripts/analyze/contact_sheet.py --video <mp4> --out … --per-second` ve sahne başı/ortası kareleri; görüntüleri **aç ve bak**:
    yazım ve Türkçe karakterler, okunurluk (≥ 1,5 sn), güvenli alan, marka tutarlılığı, AI sahnelerde ürün bozulması (gerçek ürün fotoğrafıyla yan
    yana), efekt bütçesi, kilitli anların vuruşa oturması (plan + beats).

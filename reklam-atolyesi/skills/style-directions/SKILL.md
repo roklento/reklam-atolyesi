@@ -48,7 +48,9 @@ S07 tamam (malzeme haritası). Profil `style.json` iskeleti (S00a, logodan renkl
    analysis/style/<yön>_still_<n>.png --still <kare>` ve aynı komut `--out analysis/style/<yön>_test.mp4 --quality preview` (5 sn plan).
 6. **Öz denetim (5.15)** her render'dan sonra, kullanıcıya göstermeden önce:
    `PY PR/scripts/render/self_review.py --video <test.mp4> --plan <plan> --out-dir analysis/review_<yön> --style <yön.json> --round 1`
-   → kontak sayfası ve kareler **görülür**; Türkçe karakter, güvenli alan, efekt bütçesi, siyah kare/donma. Sorun varsa plan düzeltilir,
+   → kontak sayfası ve kareler **görülür**; Türkçe karakter, güvenli alan, efekt bütçesi, siyah kare/donma, slayt gösterisi riski.
+   S03'te referans video ölçüldüyse (`references/<ad>/reference.json`) çekim süresi ve hareket profili `motion` yönünü besler; renk,
+   yazı ve kurgu referanstan birebir alınmaz. Sorun varsa plan düzeltilir,
    yeniden render (en fazla 3 tur); kalan sorun kullanıcıya açıkça söylenir. Tekrarlayan hata → `memory_add(layer="procedural")`.
 7. **Sunum:** yönler referans tahtasıyla yan yana gösterilir. "İlk saniye kaydırmayı durdurur mu, marka gibi duruyor mu" yargısını
    kullanıcı verir; Claude yalnızca gözlemini söyler. Kullanıcı seçer, karıştırır ya da yeniden ister.

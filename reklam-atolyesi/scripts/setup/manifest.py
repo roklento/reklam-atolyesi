@@ -6,7 +6,8 @@ tanımları ve bileşen hash'leri. Hesap, makine yolu, OAuth, canlı sonuç ya d
 settings.runtime_verification_json'dadır). Çıktı deterministiktir: aynı dosyalar ve sonuç girdileri → aynı manifest.
 
 Kullanım: manifest.py --plugin-root <kök> [--results-dir <dizin>] [--out <kök>/system_manifest.json]
-results-dir (isteğe bağlı) içinde: pytest.json, smoke.json, gallery.json, turkish.json, workflow_trial.json, neutrality.json, install_checks.json.
+results-dir (isteğe bağlı) içinde: pytest.json, smoke.json, gallery.json, turkish.json, workflow_trial.json, neutrality.json, install_checks.json,
+customer_update.json.
 Kuruluma/makineye özgü sapmalar (ör. disk alanı) bu manifeste YAZILMAZ: doctor --deviations-json ile data_dir veritabanına
 (settings.install_deviations_json) işler; system_manifest_get onları 'install_deviations' olarak gösterir.
 """
@@ -190,6 +191,8 @@ SCRIPT_MAP = {
     "render: grade_lut": "scripts/render/grade_lut.py",
     "render: self_review": "scripts/render/self_review.py",
     "qc: tech_qc, safe_zone, black_frames": "scripts/qc/checks.py",
+    "qc: slayt gösterisi riski (durağan pay, zayıf hareket, açılış hareketi, tekrar, ritim, yazıya yaslanma)": "scripts/qc/slideshow.py",
+    "analyze: referans video (sahne kesimleri, ritim, hareket, yazı/konuşma, ses, kontak sayfası)": "scripts/analyze/reference.py",
     "meta: csv_import kontrolü, priors_from_history doğrulaması, naming_match": "scripts/meta/meta_tools.py",
     "competitive: snapshot_diff, variant_group, competitive_map, distance_check, offer_parse": "scripts/competitive/comp_tools.py",
     "analytics: budget (S02 ekonomi, matris, takvim, toplam plan)": "scripts/analytics/budget.py",
@@ -287,12 +290,12 @@ def build(root: Path, results_dir: Path | None) -> dict:
     }
     results = {}
     if results_dir and results_dir.exists():
-        for name in ("pytest", "smoke", "gallery", "turkish", "workflow_trial", "neutrality", "install_checks"):
+        for name in ("pytest", "smoke", "gallery", "turkish", "workflow_trial", "neutrality", "install_checks", "customer_update"):
             f = results_dir / f"{name}.json"
             if f.exists():
                 results[name] = redact_paths(json.loads(f.read_text(encoding="utf-8")))
     neutrality = results.get("neutrality") or {"status": "pending", "note": "kurulum nötrlük denetimi henüz kaydedilmedi"}
-    tests = {k: results[k] for k in ("pytest", "smoke", "gallery", "turkish", "workflow_trial", "install_checks") if k in results}
+    tests = {k: results[k] for k in ("pytest", "smoke", "gallery", "turkish", "workflow_trial", "install_checks", "customer_update") if k in results}
     deviations = [
         {"id": "remotion_skills_not_vendored", "spec": "12.4, 12.5",
          "deviation": "remotion-dev/skills pinli commit'te lisans dosyası yok; kopyalanmadı. İşlevler ref-remotion-components + ref-vendor-map'te "

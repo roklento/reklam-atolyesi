@@ -2,7 +2,7 @@
 
 1. Sahne başlarından ve ortalarından kareler + saniyede 1 karelik kontak sayfası (Claude görüntülere bakar).
 2. Sayısal kontroller: yazı süresi ve güvenli alan, beat_lock ↔ beats.json (≤ 3 kare), efekt bütçesi, ses seviyesi, bütün videoda
-   siyah kare/donma. Geçişler ve AI sahneler için daha sık kareler. Örnek karelerden bütün video için geçer kararı verilmez.
+   siyah kare/donma, slayt gösterisi riski (qc/slideshow.py; critical → düzeltilecek bulgu, high → uyarı). Geçişler ve AI sahneler için daha sık kareler. Örnek karelerden bütün video için geçer kararı verilmez.
 3. Sorun varsa plan düzeltilip yeniden render (en fazla 3 tur; tur sayısı --round ile izlenir). Kalan sorun kullanıcıya söylenir.
 Sınır: akıcılık, kısa süreli ürün bozulması ve ses için tam oynatma/dinleme gerekir; araç yapamıyorsa kullanıcı kontrolü beklenir.
 
@@ -22,6 +22,7 @@ from common import emit, ffmpeg, ffprobe_json, read_json, write_json  # noqa: E4
 from admem import editplan  # noqa: E402
 import checks as QC  # noqa: E402
 import contact_sheet as CS  # noqa: E402
+import slideshow as SS  # noqa: E402
 
 MAX_ROUNDS = 3
 
@@ -58,9 +59,17 @@ def review(video: str, plan: dict, out_dir: Path, style: dict | None, beats: lis
         findings.append({"kind": "black_freeze", "msg": f"siyah {len(bf['black_segments'])} / donma {len(bf['freeze_segments'])} bölüm", "detail": bf})
     if audio and (abs(audio["lufs"] + 14) > 1 or audio["true_peak_dbtp"] > -0.95):
         findings.append({"kind": "loudness", "msg": f"{audio['lufs']} LUFS / {audio['true_peak_dbtp']} dBTP (hedef -14 / ≤ -1)"})
+    slide = SS.slideshow_risk(plan, video)
+    warnings = list(val["warnings"])
+    if slide["level"] == "critical":
+        findings.append({"kind": "slideshow_risk", "msg": f"slayt gösterisi riski kritik ({slide['score']}; başlıca: {', '.join(slide['main_drivers'])})",
+                         "detail": slide})
+    elif slide["level"] == "high":
+        warnings.append(f"slayt gösterisi riski yüksek ({slide['score']}; başlıca: {', '.join(slide['main_drivers'])}) — hareketli çekim, "
+                        "sahne çeşitliliği ya da açılışta hareket düşünülmeli")
     res = {"round": rnd, "max_rounds": MAX_ROUNDS, "video": video, "duration": dur,
            "frames_to_inspect": [key["sheet"], per_s["sheet"]] + ([dense_sheet["sheet"]] if dense_sheet else []),
-           "numeric_findings": findings, "warnings": val["warnings"], "loudness": audio,
+           "numeric_findings": findings, "warnings": warnings, "loudness": audio, "slideshow_risk": slide,
            "needs_human": ["akıcılık ve tam oynatma", "kısa süreli ürün bozulması (AI sahneler)", "ses dinleme/telefon testi",
                            "ilk saniye kaydırmayı durdurur mu, marka gibi duruyor mu (insan kapısı)"],
            "next": ("Düzelt ve yeniden render et" if findings and rnd < MAX_ROUNDS else

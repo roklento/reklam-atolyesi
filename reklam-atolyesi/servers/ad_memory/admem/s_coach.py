@@ -13,6 +13,10 @@ DEFAULT_PARAMS = {"n_cap": 30, "seed": 1729, "draws": 10000, "interval": 0.90,
                   "thresholds": {"hook_impressions": 1000, "ctr_impressions": 3000, "cost_results": 10},
                   "max_budget_increase": 0.20, "upper_funnel": ["hook_rate", "hold_rate", "thruplay_rate"]}
 UPPER_FUNNEL = set(DEFAULT_PARAMS["upper_funnel"])
+# Ölçekleme katmanı (1.4.6): günlük bütçe ≥ 7 × hedef maliyet. Öğrenme aşaması için 7 günde ~50 optimizasyon olayından türetilmiş
+# YEREL eşik; sayının resmi metni bu kurulumda okunmadı (ref-legal-tr-meta §7).
+SCALE_MIN_DAILY_MULT = 7
+SCALE_ITEM_KINDS = ("scale_open", "scale_move", "scale_pause_source")
 LOWER_FUNNEL = {"ctr_link", "link_clicks", "profile_visit", "messaging", "add_to_cart", "cost_per_result", "purchase", "results", "cvr"}
 
 
@@ -120,6 +124,8 @@ class CoachMixin:
                     raise AdMemoryError(f"günlük bütçe artışı en fazla %20 (öneri: %{inc*100:.0f}) (6.10)")
             if it.get("kind") == "pause" and rk == "performance" and not ev.get("threshold_met"):
                 raise AdMemoryError("eşik altındaki kreatif için istatistiksel kaybeden hükmüne dayanan 'kapat' önerilmez (6.10)")
+            if it.get("kind") in SCALE_ITEM_KINDS:
+                self._scale_item_ok(it, rk, after, ev)
             adset = it.get("adset_id") or it.get("target_meta_id")
             if it.get("major", True) and adset:
                 k = (adset, today)
@@ -145,6 +151,101 @@ class CoachMixin:
                 created.append(aid)
         return {"created": created, "refreshed": refreshed,
                 "note": "Zamanlanmış iş onay vermez; uyarının görülmesi/onaylanması reklamın durduğu anlamına gelmez (6.10)."}
+
+    @staticmethod
+    def _scale_item_ok(it: dict, rk: str, after: dict, ev: dict) -> None:
+        """Ölçekleme maddeleri (coach 6a): taşıma yalnızca dört koşulla ve gönderi kimliğiyle; katman açma yapısal maddedir."""
+        kind = it["kind"]
+        if kind == "scale_move":
+            if rk != "performance":
+                raise AdMemoryError("ölçeklemeye taşıma performans gerekçeli maddedir (reason_kind='performance')")
+            if not str(after.get("post_id") or "").strip():
+                raise AdMemoryError("ölçeklemeye taşıma gönderi kimliği (after.post_id) ister; yeni reklam olarak kopyalamak beğeni ve yorumları taşımaz")
+            checks = ev.get("scale_checks") or {}
+            missing = [k for k in ("structure", "cost", "min_daily", "fits_total") if checks.get(k) is not True]
+            if missing:
+                raise AdMemoryError(f"ölçekleme koşulları sağlanmadı ({', '.join(missing)}); kazanan ana sette bütçe artışıyla büyür (coach 6a)")
+        elif kind == "scale_open":
+            if rk != "structure":
+                raise AdMemoryError("ölçekleme kampanyası açma yapısal maddedir (reason_kind='structure')")
+            if not after.get("daily_budget") or float(after["daily_budget"]) <= 0:
+                raise AdMemoryError("ölçekleme kampanyası açma maddesi pozitif günlük bütçe (after.daily_budget) taşır")
+        elif kind == "scale_pause_source":
+            if rk != "structure":
+                raise AdMemoryError("aynı gönderinin test setinde duraklatılması yapısal maddedir (reason_kind='structure')")
+            if not str(after.get("post_id") or "").strip():
+                raise AdMemoryError("test setinde duraklatılacak gönderi kimliği (after.post_id) gerekli")
+
+    # --- ölçekleme katmanı (1.4.6; coach 6a) ------------------------------------------
+    def scale_layer_get(self, profile_id: int, campaign_id: int, cycle_id: int | None = None) -> dict:
+        c = self._campaign(profile_id, campaign_id)
+        cy = self._cycle(profile_id, cycle_id, campaign_id) if cycle_id is not None else \
+            self.q1("SELECT * FROM cycles WHERE campaign_id=? AND cycle=?", (c["id"], c["cycle"]))
+        layer = (jload(cy["budget_plan_json"], {}) or {}).get("scale_layer") if cy else None
+        return {"campaign_id": c["id"], "cycle_id": cy["id"] if cy else None, "scale_layer": layer,
+                "min_daily_rule": f"günlük bütçe ≥ {SCALE_MIN_DAILY_MULT} × doğrulanmış hedef maliyet (yerel eşik, §7)"}
+
+    def scale_layer_set(self, profile_id: int, campaign_id: int, cycle_id: int, layer: dict,
+                        learning_warning_ack: str | None = None) -> dict:
+        """Ölçekleme katmanı kaydı: ayrı Meta kampanyası, tek reklam seti; üyeler mevcut gönderiyle taşınmış reklamlar.
+        Üyeler aynı creative_key'e ölçekleme setinin adset_id'siyle bağlanır (ad_link), böylece test hesabından ayrılır."""
+        c = self._campaign(profile_id, campaign_id)
+        cy = self._cycle(profile_id, cycle_id, campaign_id)
+        if not isinstance(layer, dict):
+            raise AdMemoryError("layer bir nesne olmalı")
+        for k in ("campaign_meta_id", "adset_id"):
+            if not str(layer.get(k) or "").strip():
+                raise AdMemoryError(f"ölçekleme katmanı {k} ister (Ads Manager'dan okunan kimlik)")
+        status = layer.get("status", "active")
+        if status not in ("active", "paused", "closed"):
+            raise AdMemoryError("status: active | paused | closed")
+        try:
+            daily = float(layer.get("daily_budget"))
+        except (TypeError, ValueError):
+            raise AdMemoryError("ölçekleme katmanı pozitif günlük bütçe (daily_budget) ister")
+        if daily <= 0:
+            raise AdMemoryError("ölçekleme katmanı pozitif günlük bütçe (daily_budget) ister")
+        prod = self.q1("SELECT * FROM products WHERE id=?", (c["product_id"],)) if c["product_id"] else None
+        eco = self.economics(prod) if prod else {"status": "unknown"}
+        if eco.get("status") != "exact":
+            raise AdMemoryError("ölçekleme katmanı doğrulanmış hedef maliyet ister (ekonomi 'exact' değil; coach 6a)")
+        min_daily = round(SCALE_MIN_DAILY_MULT * float(eco["target_cpa"]), 2)
+        warning = None
+        if daily + 1e-9 < min_daily and status == "active":
+            if not (learning_warning_ack and learning_warning_ack.strip()):
+                raise AdMemoryError(f"günlük bütçe {daily:.2f} < {min_daily:.2f} (= {SCALE_MIN_DAILY_MULT} × hedef maliyet): öğrenme sınırlı kalabilir. "
+                                    "Kullanıcı yine de isterse açık ifadesi learning_warning_ack ile kaydedilir")
+            warning = f"öğrenme sınırlı kalabilir (günlük {daily:.2f} < {min_daily:.2f}); kullanıcı: «{learning_warning_ack.strip()}»"
+        members = layer.get("members") or []
+        if not isinstance(members, list):
+            raise AdMemoryError("members bir liste olmalı")
+        seen = set()
+        clean = []
+        for m in members:
+            ck, ad, post = m.get("creative_key"), str(m.get("meta_ad_id") or "").strip(), str(m.get("post_id") or "").strip()
+            if not ck or not ad:
+                raise AdMemoryError("her üye creative_key ve meta_ad_id taşır")
+            if not post:
+                raise AdMemoryError(f"üye {ck}: gönderi kimliği (post_id) yok; ölçeklemeye yalnızca mevcut gönderiyle taşınır")
+            if not self.q1("SELECT 1 FROM creatives WHERE campaign_id=? AND creative_key=? AND delivery_role='test'", (c["id"], ck)):
+                raise AdMemoryError(f"üye {ck}: bu kampanyada test edilmiş kreatif değil; ölçekleme setine yeni konsept doğrudan eklenmez")
+            if ad in seen:
+                raise AdMemoryError(f"aynı reklam iki kez üye: {ad}")
+            seen.add(ad)
+            clean.append({"creative_key": ck, "meta_ad_id": ad, "post_id": post, "source_meta_ad_id": m.get("source_meta_ad_id"),
+                          "moved_at": m.get("moved_at") or now_iso()})
+        rec = {"campaign_meta_id": str(layer["campaign_meta_id"]), "adset_id": str(layer["adset_id"]), "daily_budget": daily,
+               "status": status, "opened_at": layer.get("opened_at") or now_iso(), "members": clean,
+               "min_daily": min_daily, "learning_warning": warning, "updated_at": now_iso()}
+        bp = jload(cy["budget_plan_json"], {}) or {}
+        bp["scale_layer"] = rec
+        with self.tx():
+            self.ex("UPDATE cycles SET budget_plan_json=? WHERE id=?", (jdump(bp), cy["id"]))
+            if warning:
+                self._decision_insert(profile_id, c["id"], cy["id"], None, None, None, None, "scale_learning_warning", warning, "user")
+        for m in clean:
+            self.ad_link(profile_id, c["id"], cy["id"], m["creative_key"], m["meta_ad_id"], adset_id=rec["adset_id"])
+        return {"scale_layer": rec, "linked": [m["meta_ad_id"] for m in clean]}
 
     def action_item_set_status(self, profile_id: int, item_id: int, status: str, approval_text: str | None = None,
                                decision_id: int | None = None) -> dict:

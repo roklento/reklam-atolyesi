@@ -737,7 +737,9 @@ def decision_input_snapshot(profile_id: int, campaign_id: int, cycle_id: int, ki
 
 @mcp.tool()
 def action_items_set(profile_id: int, campaign_id: int, items: list[dict], cycle_id: int | None = None, decision_id: int | None = None) -> dict:
-    """Somut Ads Manager adımları (koruma sınırları: bütçe +%20, aynı gün tek büyük değişiklik, eşik altı 'kapat' yok)."""
+    """Somut Ads Manager adımları (koruma sınırları: bütçe +%20, aynı gün tek büyük değişiklik, eşik altı 'kapat' yok).
+    Ölçekleme maddeleri kind ile: scale_open (structure, after.daily_budget), scale_move (performance, after.post_id,
+    evidence.scale_checks {structure, cost, min_daily, fits_total} hepsi true), scale_pause_source (structure, after.post_id)."""
     return call(lambda s: s.action_items_set(profile_id, campaign_id, items, cycle_id, decision_id))
 
 
@@ -745,6 +747,21 @@ def action_items_set(profile_id: int, campaign_id: int, items: list[dict], cycle
 def action_item_set_status(profile_id: int, item_id: int, status: str, approval_text: str | None = None, decision_id: int | None = None) -> dict:
     """Maddeyi kullanıcı onayıyla 'approved' yapar (uygulanma yalnızca action_items_verify ile)."""
     return call(lambda s: s.action_item_set_status(profile_id, item_id, status, approval_text, decision_id))
+
+
+@mcp.tool()
+def scale_layer_get(profile_id: int, campaign_id: int, cycle_id: int | None = None) -> dict:
+    """Ölçekleme katmanı kaydı (ayrı kampanya, tek set; üyeler mevcut gönderiyle taşınmış reklamlar) ve günlük bütçe kuralı."""
+    return call(lambda s: s.scale_layer_get(profile_id, campaign_id, cycle_id))
+
+
+@mcp.tool()
+def scale_layer_set(profile_id: int, campaign_id: int, cycle_id: int, layer: dict, learning_warning_ack: str | None = None) -> dict:
+    """Ölçekleme katmanını kaydeder (coach 6a; insan Ads Manager'da uyguladıktan ve track doğruladıktan sonra).
+    layer: {campaign_meta_id, adset_id, daily_budget, status?, opened_at?, members: [{creative_key, meta_ad_id, post_id, source_meta_ad_id?, moved_at?}]}.
+    Doğrulanmış hedef maliyet ister; günlük bütçe < 7 × hedef ise kullanıcının açık ifadesi learning_warning_ack ile. Üyeler ölçekleme
+    setinin adset_id'siyle creative_key'e bağlanır; S02'nin bütçe planı bu kaydı silmez, kayıt yeni tura taşınır."""
+    return call(lambda s: s.scale_layer_set(profile_id, campaign_id, cycle_id, layer, learning_warning_ack))
 
 
 @mcp.tool()

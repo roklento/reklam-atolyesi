@@ -5,7 +5,9 @@ Girdi alanları (para birimi profilin reklam hesabı birimindedir; üretim/servi
   cycle_no, adset_daily, exploration_share, cpm (+ cpm_source: benchmarks|history|assumption), decision_metric: hook|ctr,
   budget_total (null = sınır yok), spend_to_date (doğrulanmış; null = eşleme eksik), data_cutoff (ISO tarih),
   launch_at (ISO tarih), other_daily_budgets: [..] (aynı kampanyanın diğer aktif reklam setleri), planned_changes: [{from, daily}],
-  risk_per_ad (onaylı; null), target_cpa (doğrulanmış; null), result_type, test_start_hour (0 = gece yarısı), creative_test_tool_max
+  risk_per_ad (onaylı; null), target_cpa (doğrulanmış; null), result_type, test_start_hour (0 = gece yarısı), creative_test_tool_max,
+  scale_layer_daily (açık ölçekleme katmanının günlük bütçesi; budget_plan_json.scale_layer.daily_budget, status active; yoksa 0)
+Ölçekleme uygunluğu (coach 6a): scale_check() — coach.py kullanır.
 Çıktı: kreatif başına gereken harcama, 7/14 gün testte izin verilen test reklamı sayısı, seçilen test günü, tur süresi, takvim,
        toplam harcama tahmini ve sığma durumu, risk sınırı etkisi, uyarılar. Bu bir tahmindir; Meta'nın günlük harcamasının sabit
        ya da kesin sınırlı olduğu iddia edilmez; gösterim eşiği hesabı güç analizi veya kazanan bulma garantisi değildir.
@@ -22,6 +24,47 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from common import emit, read_json, write_json  # noqa: E402
 
 THRESHOLD_IMPRESSIONS = {"hook": 1000, "ctr": 3000}
+# Ölçekleme seti günlük bütçesi ≥ 7 × hedef maliyet: 7 günde ~50 optimizasyon olayından türetilmiş YEREL eşik (ref-legal-tr-meta §7).
+SCALE_MIN_DAILY_MULT = 7
+
+
+def scale_check(*, structure: str | None, cost_ok: bool, target_cpa: float | None, economics_exact: bool,
+                proposed_daily: float | None, budget_total: float | None, spend_to_date: float | None,
+                other_daily: float, days_left: int) -> dict:
+    """Ölçekleme katmanına taşıma için dört koşul (coach 6a). Sonuç tahmindir; insan Ads Manager'da uygular.
+    other_daily: ölçekleme dışındaki aktif günlük bütçeler (ana reklam seti ve varsa açık katman dışı setler)."""
+    min_daily = round(SCALE_MIN_DAILY_MULT * float(target_cpa), 2) if (target_cpa and economics_exact) else None
+    daily = float(proposed_daily) if proposed_daily else min_daily
+    checks = {"structure": structure == "creative_test", "cost": bool(cost_ok and economics_exact),
+              "min_daily": bool(min_daily is not None and daily is not None and daily + 1e-9 >= min_daily)}
+    reasons = []
+    if not checks["structure"]:
+        reasons.append("yapı doğrulanmış kreatif test değil (bootstrap/doğrulanmamış): hüküm 'Meta'nın dağıtımı altında'")
+    if not checks["cost"]:
+        reasons.append("hedef maliyet altı yeterli kanıt yok ya da ekonomi doğrulanmamış")
+    if min_daily is None:
+        reasons.append("doğrulanmış hedef maliyet yok: öğrenme bütçesi hesaplanamaz")
+    elif not checks["min_daily"]:
+        reasons.append(f"günlük bütçe {daily:.2f} < {min_daily:.2f} (= {SCALE_MIN_DAILY_MULT} × hedef)")
+    need = None
+    if daily is not None:
+        need = round((daily + float(other_daily)) * max(0, int(days_left)), 2)
+    if budget_total is None:
+        checks["fits_total"] = True
+        fits_note = "toplam harcama sınırı tanımlanmamış (kullanıcı kararı); sığma kontrolü yapılamadı"
+    elif spend_to_date is None or need is None:
+        checks["fits_total"] = False
+        fits_note = "gerçekleşen harcama doğrulanamadı: sığma onay bekler"
+        reasons.append(fits_note)
+    else:
+        remaining = float(budget_total) - float(spend_to_date)
+        checks["fits_total"] = need <= remaining + 1e-9
+        fits_note = f"tahmini ek harcama {need:.2f}, kalan {remaining:.2f}"
+        if not checks["fits_total"]:
+            reasons.append(f"toplam sınıra sığmıyor: {fits_note} (eksik {need - remaining:.2f})")
+    return {"eligible": all(checks.values()), "checks": checks, "min_daily": min_daily, "proposed_daily": daily,
+            "days_left": int(days_left), "projected_need": need, "fits_note": fits_note, "reasons": reasons,
+            "note": "Taşıma ayrıca okunmuş gönderi kimliği ister (post_id); yoksa madde yazılmaz. Bu bir tahmindir."}
 
 
 def per_creative_spend(cpm: float, metric: str) -> float:
@@ -114,6 +157,10 @@ def plan(inp: dict) -> dict:
     horizon_end = (launch + dt.timedelta(days=cycle_days)) if launch else cutoff + dt.timedelta(days=cycle_days)
     days = max(0, (horizon_end - cutoff).days)
     others = sum(float(x) for x in inp.get("other_daily_budgets", []) or [])
+    scale_daily = float(inp.get("scale_layer_daily") or 0)
+    if scale_daily < 0:
+        raise SystemExit("scale_layer_daily ≥ 0")
+    others += scale_daily
     changes = sorted(inp.get("planned_changes", []) or [], key=lambda c: c["from"])
     proj = 0.0
     for i in range(days):
@@ -126,7 +173,9 @@ def plan(inp: dict) -> dict:
             daily = 0.0  # ilk tur: yayından önce harcama yok
         proj += daily + others
     out["spend_projection"] = {"from": cutoff.isoformat(), "to": horizon_end.isoformat(), "days": days, "projected_additional": round(proj, 2),
-                               "note": "tek reklam setinin bütçesi eski ve yeni reklamlar için bir kez sayılır; test payı tekrar eklenmez"}
+                               "scale_layer_daily": round(scale_daily, 2),
+                               "note": "tek reklam setinin bütçesi eski ve yeni reklamlar için bir kez sayılır; test payı tekrar eklenmez; "
+                                       "açık ölçekleme katmanı ayrı kampanya olduğu için günlük bütçesi ayrıca eklenir"}
     if bt is None:
         out["fits_total_budget"] = None
         out["budget_total"] = None

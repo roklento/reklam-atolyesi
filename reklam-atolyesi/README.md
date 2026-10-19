@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.5
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.6
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,26 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.4.6**
+- Ölçekleme katmanı (test ayrı, ölçek tek): S16'da "büyüt" hükmü alan reklam ya ana sette bütçe artışıyla büyür ya da ayrı ölçekleme
+  kampanyasına **mevcut gönderiyle** (beğeni ve yorumlar taşınır) taşınır. Taşıma dört koşul ister: doğrulanmış kreatif test yapısında
+  hedef altı maliyet (P ≥ 0,90), günlük bütçe ≥ 7 × hedef maliyet (öğrenme için ~50 olay/hafta; yerel eşik), kampanya toplam sınırına
+  sığma ve okunmuş gönderi kimliği. Hesap `coach.py` (`scale_candidates`, `budget.py scale_check`); sunucu eksik koşullu ya da gönderi
+  kimliksiz taşıma maddesini reddeder.
+- Yeni araçlar `scale_layer_set` / `scale_layer_get`: katman kaydı doğrulanır, üyeler ölçekleme setinin kimliğiyle kreatife bağlanır.
+  S02'nin yeni bütçe planı kaydı silmez, kayıt yeni tura taşınır. Ölçekleme satırları test hesabından ayrılır; raporda ayrı bölüm
+  ("Ölçekleme katmanı"), test hükmüne, önsele ve playbook kanıtına girmez. Ölçekleme harcaması toplam plana girer (`scale_layer_daily`);
+  girmezse S02/S14 kapısı açılmaz. Takip, kayıtlı ölçekleme kampanyasını sapma saymaz.
+- Slayt gösterisi riski (`scripts/qc/slideshow.py`): durağan kaynak payı, zayıf hareket, açılışta hareket, ardışık tekrar, tekdüze
+  ritim, yazıya yaslanma. Öz denetimde `critical` düzeltilecek bulgu, `high` uyarı; QC'de de çalışır. Eşikler yereldir.
+- Referans video (`scripts/analyze/reference.py`): kullanıcının "şuna benzer" dediği videonun kesimleri, çekim süreleri, hareket
+  profili, sesi ve ekran yazısı bantları ölçülür; S03'te sözlükle kodlanıp **farklılaşan** yönler önerilir. Referans klasörü
+  (`/references/`) kurgu planında kaynak olamaz.
+- Son iki madde açık kaynak OpenMontage'daki fikirlerden uyarlandı; kod ve eşikler bu plugin'indir (AGPLv3 kodu alınmadı).
+- §7: "%20–30 test bütçesi" ajans önerisi olarak işaretlendi (Meta'nın değil); öğrenme olayı sayısı ve "mevcut gönderi beğenileri
+  taşır" teyit edilmedi; aynı gönderinin iki sette birlikte yayında kalmaması yerel koruma kuralı.
+- Test düzeltmesi: güncelleyici testi Windows'ta geçici klasör yolundaki "pytest" sözcüğünü komut sanıyordu.
+
 **1.4.5**
 - Kreatif çeşitliliği: test hakkı önce farklı alıcılara konuşan farklı fikirlere gider. Yeni `buyer` (kime konuşuyor) sözlük ekseni
   (sözlük 1.5.0); ürün tanışmasının 5. sorusu alıcıları ve anları ayrı kaydeder (`buyers_json`, migration 003).

@@ -113,6 +113,18 @@ class StageMixin:
             raise AdMemoryError("structure_detected: bootstrap | creative_test | deviated | unverified")
         if fields.get("structure_detected") in ("creative_test", "bootstrap") and not (fields.get("structure_evidence_json") or cy["structure_evidence_json"]):
             raise AdMemoryError("yapı kaynak kanıtı olmadan doğrulanmış sayılmaz; kanıt yoksa 'unverified' (6.3)")
+        if "budget_plan_json" in fields:
+            # Ölçekleme katmanı kaydı yalnızca scale_layer_set ile değişir; S02'nin yeni bütçe planı onu silmez (1.4.6).
+            new_bp = jload(fields["budget_plan_json"], None) if isinstance(fields["budget_plan_json"], str) else fields["budget_plan_json"]
+            old_layer = (jload(cy["budget_plan_json"], {}) or {}).get("scale_layer")
+            if isinstance(new_bp, dict):
+                if "scale_layer" in new_bp and new_bp["scale_layer"] != old_layer:
+                    raise AdMemoryError("ölçekleme katmanı (scale_layer) cycle_set ile değiştirilmez; scale_layer_set kullanın")
+                if old_layer is not None:
+                    new_bp = {**new_bp, "scale_layer": old_layer}
+                fields["budget_plan_json"] = new_bp
+            elif new_bp is None and old_layer is not None:
+                fields["budget_plan_json"] = {"scale_layer": old_layer}
         for k in list(fields):
             if k.endswith("_json") and fields[k] is not None and not isinstance(fields[k], str):
                 fields[k] = jdump(fields[k])
@@ -335,8 +347,8 @@ class StageMixin:
         return out
 
     def _s02_preconditions(self, profile_id: int, c: dict, cy: dict) -> None:
-        bp = jload(cy["budget_plan_json"], None)
-        if not bp:
+        bp = jload(cy["budget_plan_json"], None) or {}
+        if not any(k != "scale_layer" for k in bp):
             raise AdMemoryError("S02 için bütçe planı (budget_plan_json) yazılmalı (6.3)")
 
     def _s02_blockers(self, c: dict, cy: dict) -> list[str]:
@@ -348,6 +360,11 @@ class StageMixin:
             out.append("test bütçesi iki reklama bile yetmiyor; üretim bekler (6.3)")
         if c["budget_total"] is not None and bp.get("fits_total_budget") is not True:
             out.append("toplam harcama planı kalan bütçeyi aşıyor ya da doğrulanmadı (6.3)")
+        layer = bp.get("scale_layer")
+        if layer and layer.get("status", "active") == "active":
+            planned = (bp.get("spend_projection") or {}).get("scale_layer_daily")
+            if planned is None or float(planned) + 1e-9 < float(layer.get("daily_budget") or 0):
+                out.append("ölçekleme katmanının günlük bütçesi toplam harcama planına girmedi (budget.py scale_layer_daily) (6.3)")
         if not cy["strategy_json"]:
             out.append("stratejik yön (strategy_save) kaydedilmedi (4.6)")
         cal = jload(cy["calendar_json"], {}) or {}
@@ -468,7 +485,10 @@ class StageMixin:
         if stage == "S17":
             self.ex("UPDATE cycles SET status='closed', decision_at=COALESCE(decision_at, ?) WHERE id=?", (now_iso(), cy["id"]))
             new_no = c["cycle"] + 1
-            self.ex("INSERT INTO cycles(campaign_id,cycle,status,created_at) VALUES(?,?, 'production', ?)", (c["id"], new_no, now_iso()))
+            # Ölçekleme katmanı turlar boyunca yaşar: kaydı yeni tura aynen taşınır (bütçe planının geri kalanı S02'de yeniden kurulur).
+            layer = (jload(cy["budget_plan_json"], {}) or {}).get("scale_layer")
+            self.ex("INSERT INTO cycles(campaign_id,cycle,status,created_at,budget_plan_json) VALUES(?,?, 'production', ?, ?)",
+                    (c["id"], new_no, now_iso(), jdump({"scale_layer": layer}) if layer else None))
             self.ex("UPDATE campaigns SET cycle=?, stage='S01', mode='full' WHERE id=?", (new_no, c["id"]))
             return "S01"
         if nxt:

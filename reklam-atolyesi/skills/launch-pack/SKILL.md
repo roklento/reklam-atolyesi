@@ -23,8 +23,9 @@ Yok.
 1. `stage_start(profile_id, "S14", campaign_id, cycle_id)`.
 2. **Ayrı reklam sayısı ve bütçe yeniden doğrulanır:** test `creative_key` sayısı ≤ `allowed_test_ads` (fazlası yedekte kalır; sessizce
    eklenmez). Meta kurulumu formatları tek reklamda kabul etmezse ayrı reklam anahtarları formatı da içerir ve her biri ayrıca sayılır/
-   kapsanır. Toplam harcama planı güncel veri kesimiyle yeniden hesaplanır (`budget.py`); ölçekleme katmanı açıksa
-   (`budget_plan_json.scale_layer`) onun günlük bütçesi × kalan gün de plana girer; kalan bütçeyi aşıyorsa paket onaya açılmaz.
+   kapsanır. Toplam harcama planı güncel veri kesimiyle yeniden hesaplanır (`budget.py`); ölçekleme katmanı açıksa (`scale_layer_get`)
+   girdiye `scale_layer_daily` = katmanın günlük bütçesi yazılır ve plan bunu ayrıca sayar (S14 kapısı katman bütçesi plana girmediyse
+   açılmaz); kalan bütçeyi aşıyorsa paket onaya açılmaz.
 3. **Risk sınırı eşlemesi:** onaylı reklam başı sınır her yayınlanacak `creative_key` ile eşlenir →
    `cycle_set(profile_id, cycle_id, {risk_limits_json: {per_ad:{…aynı onay…}, mapping:{<creative_key>: {amount, currency}}}})`.
    Sınır değişikliği yeni açık kullanıcı onayı ister; eski onay kanıtı korunur. Eşleme eksikse paket onaya açılmaz (sunucu da reddeder).

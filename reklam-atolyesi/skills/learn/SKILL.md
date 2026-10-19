@@ -46,7 +46,7 @@ Yok.
    ölçekleme katmanına mevcut gönderiyle taşındı/taşınacak (S16 maddesi, gönderi kimliği) ya da ana sette bütçe artışıyla (katman
    koşulları sağlanmadıysa nedeni). Katman açıksa taslağa ayrıca: üyelerin yorgunluk durumu (`track` 6.7), yenileme ihtiyacı (yorulan
    üyenin yerine bir sonraki testin kazananı aday) ve katmanın bütçe payı. Ölçekleme setine yeni konsept doğrudan eklenmez; önce test edilir.
-   Katman kaydı (`budget_plan_json.scale_layer`) yeni turun `cycle_set`'ine aynen taşınır.
+   Katman kaydını sunucu yeni tura kendisi taşır (`scale_layer_get` ile görülür); S02'nin bütçe planı onu silmez.
 9. `export_markdown(profile_id)` (playbook.md, hypotheses.md).
 10. `stage_complete(profile_id, "S17", outputs=[{path: brief taslağı}, {path: öğrenme özeti md}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
     Onaydan sonra yeni tur S01'den açılır (aynı kampanya, yeni `cycle_id`); kapanan turun reklamları yayında kalır, ölçümleri kampanya

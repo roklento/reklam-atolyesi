@@ -32,7 +32,8 @@ SIGNATURE = set(COMPONENTS["signature"])
 ATMOSPHERE = {"SoftGlow", "Bokeh", "Particles", "LensFlareSoft"}
 PREVIEW_ONLY = set(COMPONENTS["helper"])
 TRANSITION_TYPES = ["cut", "crossfade"] + [c[0].lower() + c[1:] for c in COMPONENTS["transition"] if c != "Crossfade"]
-FORBIDDEN_PATH_PARTS = ("/competitors/", "/competitive/")
+# Rakip analizi ve referans video klasörleri üretime girmez (4.5, 5.2; referans videolar 1.4.6): yalnızca fikir/ritim girdisidir.
+FORBIDDEN_PATH_PARTS = ("/competitors/", "/competitive/", "/references/")
 
 _source = {
     "type": "object",
@@ -179,11 +180,11 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
             for key in ("path", "asset"):
                 val = src.get(key) or ""
                 if any(part in _norm_path(val) for part in FORBIDDEN_PATH_PARTS):
-                    errors.append(f"sahne {s['id']} katman {li}: kaynak rakip analizi klasörünü gösteriyor ({val}); rakip varlığı üretime girmez (4.5, 5.2)")
+                    errors.append(f"sahne {s['id']} katman {li}: kaynak rakip analizi ya da referans video klasörünü gösteriyor ({val}); rakip/referans varlığı üretime girmez (4.5, 5.2)")
             props = layer.get("props") or {}
             for pv in props.values():
                 if isinstance(pv, str) and any(part in _norm_path(pv) for part in FORBIDDEN_PATH_PARTS):
-                    errors.append(f"sahne {s['id']} katman {li}: bileşen prop'u rakip klasörünü gösteriyor ({pv})")
+                    errors.append(f"sahne {s['id']} katman {li}: bileşen prop'u rakip ya da referans klasörünü gösteriyor ({pv})")
             if layer["type"] in ("video", "image") and not src:
                 errors.append(f"sahne {s['id']} katman {li}: görüntü katmanının kaynağı yok")
             if src.get("kind") == "footage":

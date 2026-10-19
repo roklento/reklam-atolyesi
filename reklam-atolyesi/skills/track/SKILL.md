@@ -38,11 +38,13 @@ Yok.
    ekranı/dışa aktarımıyla doğrulanır. → `cycle_set(profile_id, cycle_id, {structure_detected: bootstrap|creative_test|deviated|unverified,
    structure_evidence_json: {source, at, evidence}, meta_test_id?, test_start?, test_end?})`. Eşit harcama kontrollü test kanıtı değildir.
    Sapma (konsept başına ayrı reklam seti, kreatif test açılmamış, maliyet hedefi/teklif sınırı/ROAS hedefi) → navigator üst satırı +
-   nasıl düzeltileceği + turun hükümleri "doğrulanmamış yapı". `budget_plan_json.scale_layer`'da kayıtlı ölçekleme kampanyası/seti
+   nasıl düzeltileceği + turun hükümleri "doğrulanmamış yapı". `scale_layer_get` ile kayıtlı ölçekleme kampanyası/seti
    sapma sayılmaz ve test yapısı tespitine girmez; üyelerinin satırları test hesabından ayrı tutulur (yalnızca harcama, frekans,
    yorgunluk ve limit uyarısı). Kayıtsız ikinci kampanya ya da ölçekleme setine eklenmiş yeni (test edilmemiş) reklam sapmadır.
    Onaylı ölçekleme maddeleri (katman açma, gönderiyle taşıma, test setinde duraklatma) 6.11 ile salt okuma doğrulanır; taşınan
-   reklamın gönderi kimliği `ads_get_creatives` ile okunup maddedeki kimlikle karşılaştırılır.
+   reklamın gönderi kimliği `ads_get_creatives` ile okunup maddedeki kimlikle karşılaştırılır. Doğrulanan taşıma sonrasında katman
+   `scale_layer_set` ile kaydedilir (coach 7); kayıt yapılana kadar ölçekleme reklamının satırları test setininkilerden ayrılamaz,
+   bu yüzden kayıt doğrulamayla aynı oturumda yapılır.
 4. **Değişmez girdi kopyası:** uyarı/takip hesabından **önce** `decision_input_snapshot(profile_id, campaign_id, cycle_id, kind="daily_track")`
    → dönen yol/hash; hesap yalnızca bu kopyadan: `PY PR/scripts/analytics/coach.py --snapshot <kopya> --out reports/c<tur>-track-<tarih>.json`
    (veri kalitesi, yorgunluk, limit uyarıları bölümleri kullanılır; S16 hükmü burada verilmez).

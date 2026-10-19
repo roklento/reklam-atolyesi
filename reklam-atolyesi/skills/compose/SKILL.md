@@ -53,7 +53,9 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
    (sahne önbelleği değişmeyen sahneyi yeniden render etmez; uzun render arka planda, süre tahminiyle).
 6. **Öz denetim (5.15):** `PY PR/scripts/render/self_review.py --video <preview.mp4> --plan <plan> --out-dir analysis/review_<ad>
    --style <style> --beats <beats.json> --round <n>` → kontak sayfası ve sahne kareleri **görülür**; sayısal kontroller (yazı süresi ve
-   güvenli alan, `beat_lock` ↔ vuruş, efekt bütçesi, ses seviyesi, siyah kare/donma). Sorun varsa plan düzeltilir
+   güvenli alan, `beat_lock` ↔ vuruş, efekt bütçesi, ses seviyesi, siyah kare/donma, **slayt gösterisi riski** — `qc/slideshow.py`:
+   durağan kaynak payı, zayıf hareket, açılışta hareket, ardışık tekrar, tekdüze ritim, yazıya yaslanma; `critical` düzeltilecek bulgu,
+   `high` uyarı; eşikler yereldir, ham/UGC türünde az efekt kusur sayılmaz). Sorun varsa plan düzeltilir
    (`edit_plan_patch`), yeniden render; **en fazla 3 tur**. Kalan sorun kullanıcıya açıkça söylenir. Akıcılık, kısa ürün bozulması ve
    ses için tam oynatma gerekir; araç yapamıyorsa S11 kapısında kullanıcı kontrolü beklenir.
 7. **Yeni bileşen kuralı:** gereken efekt kütüphanede yoksa yazılır (deterministik, `useCurrentFrame()`'den türetilmiş, zod parametreli,

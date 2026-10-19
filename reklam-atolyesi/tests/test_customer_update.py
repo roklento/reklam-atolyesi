@@ -124,7 +124,10 @@ function Invoke-Adim([string]$exe, [string[]]$argv) {
     output = result.stdout.decode('utf-8', errors='replace') + result.stderr.decode('utf-8', errors='replace')
     assert result.returncode == (0 if mode in ('same', 'changed') else 1), output
     entries = [json.loads(s) for s in calls.read_text(encoding='utf-8-sig').splitlines()] if calls.exists() else []
-    assert not any(any(word in json.dumps(e) for word in ('doctor.py', 'kurulum.ps1', 'kurulum_dogrula.py', 'pytest', 'smoke.py')) for e in entries)
+    # Geçici klasör yolu (Windows'ta ".../pytest-of-<kullanıcı>/...") komut sanılmasın: yalnızca çağrılan komutlar aranır.
+    tmp_json = json.dumps(str(tmp_path))[1:-1]
+    called = [json.dumps(e).replace(tmp_json, '<tmp>') for e in entries]
+    assert not any(any(word in s for word in ('doctor.py', 'kurulum.ps1', 'kurulum_dogrula.py', 'pytest', 'smoke.py')) for s in called)
     if mode == 'missing':
         assert not entries
         return

@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import emit, read_json, sha256_file, write_json  # noqa: E402
 import bayes as B  # noqa: E402
+import budget as BU  # noqa: E402
 
 UPPER = ("hook_rate", "hold_rate")
 METRICS = ("hook_rate", "hold_rate", "ctr_link", "cvr")
@@ -26,13 +27,39 @@ def _sum(rows, k):
     return sum(float(r.get(k) or 0) for r in rows)
 
 
-def split_rows(snap: dict) -> dict:
+def _jobj(v) -> dict:
+    if isinstance(v, str):
+        import json
+        try:
+            return json.loads(v) or {}
+        except ValueError:
+            return {}
+    return v or {}
+
+
+def scale_layer_of(snap: dict) -> dict | None:
+    return _jobj(snap["cycle"].get("budget_plan_json")).get("scale_layer")
+
+
+def scale_split(snap: dict) -> tuple[list[dict], list[dict]]:
+    """Ölçekleme setinin satırları test hesabından ayrılır (coach 6a): (test yapısındaki satırlar, ölçekleme satırları)."""
+    layer = scale_layer_of(snap)
+    sid = str(layer.get("adset_id")) if layer and layer.get("adset_id") else None
+    if not sid:
+        return list(snap["rows"]), []
+    main, scale = [], []
+    for r in snap["rows"]:
+        (scale if str(r.get("adset_id") or "") == sid else main).append(r)
+    return main, scale
+
+
+def split_rows(snap: dict, rows: list[dict] | None = None) -> dict:
     w = snap.get("test_window") or {}
     full = set(w.get("full_days") or [])
     excl = set(w.get("excluded_boundary_days") or [])
     test, post, pre, boundary = [], [], [], []
     test_end_day = max(full) if full else None
-    for r in snap["rows"]:
+    for r in (snap["rows"] if rows is None else rows):
         d = r["date"]
         if d in full:
             test.append(r)
@@ -192,6 +219,65 @@ def limit_alerts(snap: dict, all_rows: list[dict]) -> list[dict]:
     return alerts
 
 
+def scale_section(snap: dict, scale_rows: list[dict]) -> dict | None:
+    """Ölçekleme katmanı raporu: test verisi değildir; yalnızca harcama, sıklık, sonuç ve yorgunluk (hüküm 'Meta'nın dağıtımı altında')."""
+    layer = scale_layer_of(snap)
+    if not layer:
+        return None
+    by_ck = aggregate(scale_rows, lambda r: r.get("creative_key") or r["meta_ad_id"])
+    members = []
+    for m in layer.get("members") or []:
+        rows = sorted(by_ck.get(m["creative_key"], []), key=lambda r: r["date"])
+        last7 = rows[-7:]
+        sp, res = _sum(rows, "spend"), _sum(rows, "results")
+        members.append({"creative_key": m["creative_key"], "meta_ad_id": m["meta_ad_id"], "post_id": m.get("post_id"),
+                        "days": len(rows), "spend": round(sp, 2), "impressions": int(_sum(rows, "impressions")), "results": res,
+                        "cost_per_result": round(sp / res, 2) if res else None,
+                        "frequency_last7": round(statistics.mean([float(r.get("frequency") or 0) for r in last7]), 2) if last7 else None})
+    fat = fatigue({f"{k} @ölçekleme": v for k, v in by_ck.items()})
+    return {"campaign_meta_id": layer.get("campaign_meta_id"), "adset_id": layer.get("adset_id"), "status": layer.get("status", "active"),
+            "daily_budget": layer.get("daily_budget"), "min_daily": layer.get("min_daily"), "learning_warning": layer.get("learning_warning"),
+            "spend": round(_sum(scale_rows, "spend"), 2), "members": members, "fatigue": fat,
+            "label": "Meta'nın dağıtımı altında · ölçekleme katmanı (test verisi değil)",
+            "rule": "Ölçekleme verisi test hükmüne, önsele ya da playbook kanıtına girmez (coach 6a)."}
+
+
+def _days_left(snap: dict) -> int:
+    cyc = snap["cycle"]
+    start = (cyc.get("launched_at") or cyc.get("launch_at") or "")[:10]
+    cut = (snap.get("data_cutoff") or "")[:10]
+    try:
+        end = dt.date.fromisoformat(start) + dt.timedelta(days=int(cyc.get("cycle_days") or 0))
+        ref = dt.date.fromisoformat(cut) if cut else dt.date.fromisoformat(start)
+        return max(0, (end - ref).days)
+    except ValueError:
+        return int(cyc.get("cycle_days") or 7)
+
+
+def scale_candidates(dec: list[dict], snap: dict, structure: str | None, test_rows: list[dict], all_rows: list[dict]) -> list[dict]:
+    """"Büyüt" hükmü alan her konsept için ölçekleme katmanına taşıma uygunluğu (coach 6a). Gönderi kimliği burada yoktur:
+    skill salt okumayla okur; kimlik yoksa madde yazılmaz."""
+    eco = snap.get("economics") or {}
+    exact = eco.get("status") == "exact"
+    target = eco.get("target_cpa") if snap["campaign"].get("result_type") == "purchase" else None
+    layer = scale_layer_of(snap)
+    active = bool(layer and layer.get("status", "active") == "active")
+    cmap = concept_of(snap)
+    out = []
+    for d in dec:
+        if d["decision"] != "büyüt":
+            continue
+        ads = sorted({(r.get("creative_key"), r["meta_ad_id"]) for r in test_rows if cmap.get(r.get("creative_key")) == d["concept"]})
+        chk = BU.scale_check(structure=structure, cost_ok=True, target_cpa=target, economics_exact=exact,
+                             proposed_daily=float(layer["daily_budget"]) if active else None,
+                             budget_total=snap["campaign"].get("budget_total"), spend_to_date=_sum(all_rows, "spend"),
+                             other_daily=float(snap["cycle"].get("adset_budget_daily") or 0), days_left=_days_left(snap))
+        out.append({"concept": d["concept"], "layer_exists": active, "source_ads": [{"creative_key": k, "meta_ad_id": a} for k, a in ads],
+                    **chk, "action": ("mevcut ölçekleme setine mevcut gönderiyle ekle" if active else "ölçekleme kampanyası aç ve mevcut gönderiyle ekle")
+                    if chk["eligible"] else "ana reklam setinde kalır; günlük bütçe en fazla %20 artırılır"})
+    return out
+
+
 def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cost: dict) -> list[dict]:
     """tut / büyüt / kapat / yenile — gerekçeli; eşik altı → yön; aç kalan konsept kaybeden sayılmaz; 'kapat' performans gerekçesiyle
     yalnızca eşik geçilmiş ve Meta harcama veriyorsa; büyütme için yeterli sonuç ve doğrulanmış ekonomi gerekir."""
@@ -221,7 +307,8 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
 
 def analyze(snap_path: str) -> dict:
     snap = read_json(snap_path)
-    parts = split_rows(snap)
+    main_rows, scale_rows = scale_split(snap)
+    parts = split_rows(snap, main_rows)
     cmap = concept_of(snap)
     rmap = role_of(snap)
     priors = priors_for(snap)
@@ -246,11 +333,15 @@ def analyze(snap_path: str) -> dict:
     cost = {k: B.cost_posterior(v["totals"]["spend"], v["totals"]["results"], target, verified) for k, v in kpost.items()}
     dist = spend_distribution(by_concept)
     all_rows = snap["rows"]
-    rows_all_by_creative = aggregate(all_rows, lambda r: r.get("creative_key") or r["meta_ad_id"])
-    fat = fatigue(rows_all_by_creative)
+    rows_main_by_creative = aggregate(main_rows, lambda r: r.get("creative_key") or r["meta_ad_id"])
+    fat = fatigue(rows_main_by_creative)
     ret = retention(snap, aggregate(test_rows, lambda r: r.get("creative_key") or r["meta_ad_id"]))
     lim = limit_alerts(snap, all_rows)
     dec = decisions(kpost, dist, snap, structure, cost)
+    scale = scale_section(snap, scale_rows)
+    if scale:
+        fat += scale["fatigue"]
+    scand = scale_candidates(dec, snap, structure, test_rows, all_rows)
     quality = []
     days = sorted({r["date"] for r in all_rows})
     if days:
@@ -281,6 +372,7 @@ def analyze(snap_path: str) -> dict:
                        "post_rows": len(parts["post"]), "note": "sınır günleri saat oranıyla bölünmez; toplam harcamada tam sayılır"},
             "creatives": cpost, "concepts": kpost, "roles": rpost, "superiority_hook": sup, "cost": cost, "spend_distribution": dist,
             "fatigue": fat, "retention": ret, "limit_alerts": lim, "decisions": dec, "data_quality": quality,
+            "scale_layer": scale, "scale_candidates": scand,
             "competitive_context": competitive_context, "predictions": predictions,
             "portfolio_note": "Rol başına sonuç keşif karşılaştırmasıdır; önceden sabitlenmedikçe playbook adayı olmaz (6.16)."}
 
@@ -292,7 +384,8 @@ def main() -> None:
     a = ap.parse_args()
     res = analyze(a.snapshot)
     sha = write_json(a.out, res, overwrite=False)
-    emit({"out": a.out, "sha256": sha, "decisions": res["decisions"], "limit_alerts": res["limit_alerts"], "data_quality": res["data_quality"]})
+    emit({"out": a.out, "sha256": sha, "decisions": res["decisions"], "limit_alerts": res["limit_alerts"], "data_quality": res["data_quality"],
+          "scale_candidates": res["scale_candidates"]})
 
 
 if __name__ == "__main__":

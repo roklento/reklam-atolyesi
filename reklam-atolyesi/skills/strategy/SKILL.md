@@ -27,6 +27,8 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
 ### (A) Ekonomi, bütçe ve takvim (otomatik; 6.2–6.3, 4.4)
 1. `stage_start(profile_id, "S02", campaign_id, cycle_id)`.
 2. Girdi JSON'u hazırla ve hesapla: `PY PR/scripts/analytics/budget.py --input s02_input.json --out budget_plan.json`
+   (açık ölçekleme katmanı varsa `scale_layer_get` → `scale_layer_daily`; katman ayrı kampanya olduğundan toplam plana ayrıca girer.
+   `cycle_set` ile yazılan yeni plan katman kaydını silmez.)
    Alanlar: `cycle_no, adset_daily, exploration_share` (userConfig, varsayılan 0,2; yalnızca kreatif test payı anlamında), `cpm` +
    `cpm_source` (`benchmarks | history | assumption` — ikisi de yoksa "VARSAYIM"), `decision_metric` (`hook` → 1.000 gösterim eşiği,
    `ctr` → 3.000), `budget_total`, `spend_to_date` (aynı veri kesimine kadar kampanyanın bütün eski/yeni reklamları, her reklam/gün
