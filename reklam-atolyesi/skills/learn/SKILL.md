@@ -27,7 +27,8 @@ Yok.
    aynı yönde bulgu ve (c) sonraki turun **tek başına** verisinde aynı yönde üstünlük olasılığı ≥ 0,95 (oranda iki kola Beta(1,1),
    maliyette sabit Gamma önseli; keşif verisi doğrulama önseline girmez). Üst huni bulgusu ayrıca önceden seçilmiş en az bir alt huni
    metriğiyle aynı yönde ve yeterli veriyle desteklenmeli; yoksa "dikkat bulgusu" olarak hipotez defterinde kalır. Bootstrap ve
-   doğrulanmamış yapı turları tek özellik için kontrollü doğrulama sayılmaz. Rol karşılaştırması önceden sabitlenmemişse aday olmaz.
+   doğrulanmamış yapı turları tek özellik için kontrollü doğrulama sayılmaz. Ölçekleme katmanındaki performans da kontrollü doğrulama
+   sayılmaz; bir reklamın ölçeklemeye taşınmış olması tek başına playbook kanıtı değildir. Rol karşılaştırması önceden sabitlenmemişse aday olmaz.
    Koşulu sağlayan → `playbook_propose(profile_id, rule, evidence, scope, season, confidence)` (`proposed`); kullanıcı onaylarsa
    `playbook_activate(profile_id, rule_id, approval_text)`. Her bulguya sezon etiketi.
 4. **Yeniden doğrulama ve emeklilik (8.6):** `playbook_round_tick(profile_id)`; `due_revalidation` kurallar bu turun verisiyle
@@ -41,7 +42,11 @@ Yok.
    Claude okur, en fazla 10 grup, gerekirse kullanıcıya sorar); kalibrasyondan eşik/`n_cap` önerisi yalnızca ≥ 30 çözülmüş tahminde ve
    kullanıcı onayıyla.
 8. **Sonraki tur brief taslağı:** kazananı büyüt, bir bilinmeyeni test et, ertelenen fikirler, uygulama listesi durumu, "rakip görüntüsü
-   tazelenmeli mi" notu → `DD/profiles/<slug>/campaigns/<k>/c<tur+1>-brief-taslak.md`.
+   tazelenmeli mi" notu → `DD/profiles/<slug>/campaigns/<k>/c<tur+1>-brief-taslak.md`. "Kazananı büyüt" iki yoldan biriyle yazılır:
+   ölçekleme katmanına mevcut gönderiyle taşındı/taşınacak (S16 maddesi, gönderi kimliği) ya da ana sette bütçe artışıyla (katman
+   koşulları sağlanmadıysa nedeni). Katman açıksa taslağa ayrıca: üyelerin yorgunluk durumu (`track` 6.7), yenileme ihtiyacı (yorulan
+   üyenin yerine bir sonraki testin kazananı aday) ve katmanın bütçe payı. Ölçekleme setine yeni konsept doğrudan eklenmez; önce test edilir.
+   Katman kaydı (`budget_plan_json.scale_layer`) yeni turun `cycle_set`'ine aynen taşınır.
 9. `export_markdown(profile_id)` (playbook.md, hypotheses.md).
 10. `stage_complete(profile_id, "S17", outputs=[{path: brief taslağı}, {path: öğrenme özeti md}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
     Onaydan sonra yeni tur S01'den açılır (aynı kampanya, yeni `cycle_id`); kapanan turun reklamları yayında kalır, ölçümleri kampanya

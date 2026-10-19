@@ -44,10 +44,35 @@ Yok.
    gerekçeli kapat **yok**). Küçük bütçede hüküm üst huniden geliyorsa açıkça yazılır ("satışa değil, dikkat ve tıklamaya dayanıyor").
    Hook × CTR × CVR çarpımı yapılmaz; erişim toplamından frekans türetilmez. Konsept önceliği yalnızca sonraki test adaylarını sıralar.
    Reklam düzeyinde "kapat" performans gerekçesiyle önerilmez (Meta zaten harcama vermiyorsa gereksiz); onaylı sınır aşımı ayrı kuraldır.
+6a. **Ölçekleme katmanı (test ayrı, ölçek tek):** "büyüt" hükmü alan reklam için iki yol vardır: ana reklam setinde kalıp bütçe
+   artışıyla büyümek (varsayılan) ya da ayrı **ölçekleme kampanyasına** (tek reklam seti, geniş kitle, "En yüksek hacim", kreatif test
+   yok) **mevcut gönderiyle** taşınmak. Taşıma önerisi ancak hepsi sağlanırsa yapılır:
+   - **Hüküm:** yapı `creative_test` (doğrulanmış), reklam eşikleri geçmiş (maliyet ≥ 10 sonuç) ve sonuç maliyeti doğrulanmış hedefin
+     altında, P(maliyet < `T`) ≥ 0,90. Bootstrap, doğrulanmamış yapı, eşik altı ya da yalnızca üst huni bulgusu → taşıma yok.
+   - **Öğrenme bütçesi:** ölçekleme setinin günlük bütçesi ≥ 7 × `T` (öğrenme aşaması için 7 günde ~50 optimizasyon olayı; durumu
+     `ref-legal-tr-meta` §7). Karşılanmıyorsa katman önerilmez, kazanan ana sette kalır. Kullanıcı yine de isterse "öğrenme sınırlı
+     kalabilir" uyarısı kararla birlikte kaydedilir.
+   - **Toplam sınır:** katmanın günlük bütçesi × kampanyanın kalan günleri, kampanya toplam harcama sınırının kalanına sığıyor
+     (`budget.py`, ölçekleme satırı dahil). Sığmıyorsa öneri yok; eksik tutar gösterilir.
+   - **Gönderi kimliği:** reklamın gönderisi salt okumayla `ads_get_creatives` üzerinden okunur (Facebook: `effective_object_story_id`,
+     Instagram: `effective_instagram_media_id`; alan adları `ads_get_field_context` ile doğrulanmadan kesin sayılmaz). Okunamazsa
+     kullanıcıdan Ads Manager önizlemesindeki gönderi kimliği/bağlantısı istenir. Kimlik yoksa taşıma maddesi yazılmaz; yeni reklam
+     olarak kopyalamak beğeni ve yorum birikimini sıfırlar.
+   Katman zaten açıksa yalnızca yeni üye taşıma ve yorgunluk kararları üretilir. Katmandaki reklamların verisi test verisi değildir:
+   hüküm dili "Meta'nın dağıtımı altında"; raporda ayrı bölümdür ve test hükümlerine, önsele ya da playbook kanıtına girmez.
 7. **Uygulama listesi:** her karar somut bir Ads Manager adımı (örnek biçim: "Y reklam setinin günlük bütçesini <mevcut> → <yeni> yap"; tutarlar ve para birimi profilden).
    **Koruma sınırları (yerel; Meta kuralı diye sunulmaz, §7):** günlük bütçe artışı ≤ %20; aynı reklam setinde aynı gün birden fazla büyük değişiklik yok; eşik altı kreatife
    istatistiksel "kapat" yok. → `action_items_set(profile_id, campaign_id, items=[{action, reason_kind:"performance", target_meta_id,
    before, after, evidence:{input_snapshot}}], cycle_id)` (onay S16 kapısında).
+   Ölçekleme maddeleri (6a koşulları sağlandıysa) sırasıyla: (1) katman yoksa `reason_kind:"structure"` — "Ölçekleme kampanyası aç: tek
+   reklam seti, geniş kitle, günlük <B>, En yüksek hacim, kreatif test yok"; (2) `reason_kind:"performance"` — "<reklam adı>'nı ölçekleme
+   setine yeni reklam olarak ekle → Mevcut gönderiyi kullan → gönderi kimliği <post_id>"; (3) `reason_kind:"structure"` — "Aynı gönderiyi
+   test setinde duraklat" (iki sette aynı gönderinin kendi kendisiyle yarışmaması için; yerel koruma kuralı, §7). Ölçekleme seti
+   bütçesindeki sonraki artışlar da ≤ %20/gün kuralına tabidir.
+   İnsan uyguladıktan ve `track` doğruladıktan sonra yeni ölçekleme reklamı aynı kreatife bağlanır:
+   `ad_link(profile_id, campaign_id, cycle_id, creative_key, meta_ad_id=<yeni reklam>, adset_id=<ölçekleme seti>)`; katman kaydı
+   `cycle_set(profile_id, cycle_id, {budget_plan_json: {…, scale_layer: {campaign_meta_id, adset_id, daily_budget, opened_at,
+   members: [{creative_key, meta_ad_id, post_id, moved_at}]}}})`.
 8. **Tahminler:** her P(kazanır)/beklenen aralık `prediction_log(profile_id, campaign_id, cycle_id, subject, metric, input_snapshot=<yol/hash>,
    p_win, interval)`; aynı test/özne/metrik için rapor sürümleri yeni tahmin sayılmaz.
 9. **Rekabet bağlamı (6.16):** test penceresinde rakip tarafında ne değişti (fark görüntüsü); anomalilerin yanında **bağlam** olarak;
@@ -55,7 +80,8 @@ Yok.
    hipotez değilse playbook adayı olmaz.
 10. **Rapor:** `PY PR/scripts/analytics/report.py --analysis <analysis.json> --snapshot <kopya.json> --charts <charts.json> --calibration
     <calib.json> --actions <actions.json> --next <sonraki.md> --out reports/c<tur>-koçluk-raporu-v<n>.md`. Bölümler: Özet (3 cümle) ·
-    Kararlar · Grafikler · Sahne düzeyinde izleyici kaybı · Uygulama listesi ve durumu · Rekabet bağlamı · Öğrenilenler · Sonraki tur ·
+    Kararlar · Grafikler · Sahne düzeyinde izleyici kaybı · Ölçekleme katmanı (varsa: üyeler, harcama, frekans, yorgunluk; taşıma
+    önerisi ya da neden önerilmediği) · Uygulama listesi ve durumu · Rekabet bağlamı · Öğrenilenler · Sonraki tur ·
     Veri yeterliliği · Koçluğun isabeti. Dil sade; her hükmün yanında veri yeterliliği.
 11. `stage_complete(profile_id, "S16", outputs=[{path: rapor}, {path: kopya}, {path: analysis}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
 12. Onaydan sonra kararlar `decision_log` ile; maddeler `action_item_set_status(item_id, "approved", approval_text, decision_id)`.
@@ -73,7 +99,10 @@ Girdi kopyası (hash'li), analiz JSON'u, grafikler, sürümlü koçluk raporu, `
 - Rapor ve hesap aynı kopyayı referans veriyor (yol/hash/sürüm); hesap sırasında tablodan yeniden veri alınmadı.
 - Eşik altı hüküm yok; sonuç türleri, medya türleri, test dönemi/sonrası ve atıf ayarları karışmadı.
 - Koruma sınırları aşılmadı; Meta'ya yazılmadı; rekabet bağlamında nedensellik dili yok.
+- Ölçekleme taşıması yalnızca 6a'nın dört koşuluyla önerildi; taşıma maddesinde gönderi kimliği var; ölçekleme katmanı verisi test
+  hükmüne, önsele ya da playbook kanıtına karışmadı.
 
 ## Kapı mesajı
-"Koçluk özeti (3 cümle) … Kararlar: 1) … (veri yeterliliği: …) 2) … Uygulama listesi: N adım (Ads Manager'da senin uygulaman gerekiyor).
+"Koçluk özeti (3 cümle) … Kararlar: 1) … (veri yeterliliği: …) 2) … Ölçekleme: <taşınacak reklam + gönderi kimliği | önerilmedi: neden>.
+Uygulama listesi: N adım (Ads Manager'da senin uygulaman gerekiyor).
 Hangi kararları onaylıyorsun, neyi değiştirelim?" → açık onayda `gate_approve(...)`.

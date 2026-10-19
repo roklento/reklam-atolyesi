@@ -23,7 +23,8 @@ Yok.
 1. `stage_start(profile_id, "S14", campaign_id, cycle_id)`.
 2. **Ayrı reklam sayısı ve bütçe yeniden doğrulanır:** test `creative_key` sayısı ≤ `allowed_test_ads` (fazlası yedekte kalır; sessizce
    eklenmez). Meta kurulumu formatları tek reklamda kabul etmezse ayrı reklam anahtarları formatı da içerir ve her biri ayrıca sayılır/
-   kapsanır. Toplam harcama planı güncel veri kesimiyle yeniden hesaplanır (`budget.py`); kalan bütçeyi aşıyorsa paket onaya açılmaz.
+   kapsanır. Toplam harcama planı güncel veri kesimiyle yeniden hesaplanır (`budget.py`); ölçekleme katmanı açıksa
+   (`budget_plan_json.scale_layer`) onun günlük bütçesi × kalan gün de plana girer; kalan bütçeyi aşıyorsa paket onaya açılmaz.
 3. **Risk sınırı eşlemesi:** onaylı reklam başı sınır her yayınlanacak `creative_key` ile eşlenir →
    `cycle_set(profile_id, cycle_id, {risk_limits_json: {per_ad:{…aynı onay…}, mapping:{<creative_key>: {amount, currency}}}})`.
    Sınır değişikliği yeni açık kullanıcı onayı ister; eski onay kanıtı korunur. Eşleme eksikse paket onaya açılmaz (sunucu da reddeder).
@@ -36,6 +37,10 @@ Yok.
    - **Sonraki turlar (`creative_test`):** aynı reklam setinde, yayındaki bir reklamdan başlatılan Meta kreatif testi; yeni konseptler
      test reklamı (araç sınırı içinde); test bütçesi ≤ `exploration_share` (plugin'in yerel üst sınırı 0,2; Meta'nın ~%20 önerisi teyit edilmedi, §7); reklam sayısı Ads Manager ekranından; süre 7 gün (ya da S02'nin seçtiği); "En yüksek hacim".
      Maliyet hedefi/teklif sınırı/ROAS hedefi kreatif testi engeller. ABO ve Meta A/B testi desteklenmez.
+   - **Ölçekleme katmanı (`scale`, varsa):** S16'da onaylanan ayrı kampanya; tek reklam seti, geniş kitle, "En yüksek hacim". Yeni turun
+     test reklamları **buraya eklenmez**; yeni fikirler yalnızca test katmanında sınanır. Pakette katmanın durumu tek satırla yer alır
+     (üyeler, günlük bütçe, kalan bütçeye etkisi). Üye ekleme her zaman S16 uygulama listesinden ve **mevcut gönderiyle** yapılır
+     ("Mevcut gönderiyi kullan" → gönderi kimliği); yeni reklam olarak kopyalamak beğeni ve yorum birikimini taşımaz (§7).
    - Test başlangıcı mümkünse hesap saat diliminde **gece yarısı** (günlük veride sınır günleri dışlanır, 6.4).
 6. **Harcama ve bitiş sınırları:** kampanya toplam sınırı, gerçekleşen ve kalan; insanın uygulayacağı, hesabın desteklediği kapsamlı
    **harcama limiti ve/veya bitiş tarihi** talimatı (tarih/günlük bütçe tahmini tek başına kesin parasal tavan değildir); reklam başı risk
@@ -68,6 +73,7 @@ Yayın paketi, `cycles.risk_limits_json.mapping`, güncel bütçe planı; yayın
   (bağlantı + tarih), yerel koruma kuralı ya da teyit edilmedi; teyit edilmeyen kural kesin diye sunulmadı.
 - Yükleme listesinde yalnızca QC'den geçmiş test kreatifleri; her birinin risk sınırı eşlemesi var; tavan aşılmadı.
 - Kurulum talimatı yapıya uygun; insan uygulayacak; plugin hiçbir Meta yazma aracını çağırmadı.
+- Ölçekleme katmanı açıksa harcaması toplam plana girdi ve yeni test reklamı ölçekleme setine yazılmadı.
 - `launch_confirm` olmadan S15'e geçilmedi.
 
 ## Kapı mesajı
