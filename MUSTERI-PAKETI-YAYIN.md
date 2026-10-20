@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.4.8
+# Müşteri paketi — 1.4.9
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.4.8**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.4.9**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.4.9 migration içermez, yeni bağımlılık yok. Varsayılan ses EMA; ses kütüphanesi (VoxCPM2) yalnızca uygun ekran kartı ve yeterli
+diskte kullanıcıya öneri olarak sunulur (`tts_local.py capability`); uygun olmayan bilgisayarda kurulum reddedilir. 1.4.8'de kütüphane
+sesi seçilmiş bir stil kitabı varsa ve bilgisayar uygun değilse üretim EMA ile sürer (gerekçe çıktıda).
 1.4.8 migration 005 içerir: mesajla satış (`dm_threads`, `dm_events`, `dm_daily`), sipariş içe aktarma (`sales_imports`,
 `sales_orders`) tabloları ve `profiles.data_connection_json` sütunu eklenir; mevcut tablolar yeniden kurulmaz, satırlar korunur, Store
 açılışı öncesinde yedek alır. Kişisel veri tutulmaz (takma kod, sipariş no özeti). Çekirdek ortama yeni bağımlılık yok.
@@ -36,6 +39,11 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.4.9** (Windows geliştirici ortamı): tam paket 295 geçti, 0 başarısız (yeni testler `test_tts_local.py`: donanım koşulları, öneri,
+varsayılan sese düşme, uygun olmayan donanımda kurulum reddi). Gerçek motorla: kütüphane motoru olmayan veri klasöründe kütüphane sesi
+istendi → EMA ile üretildi, gerekçe yazıldı. RTX 5070'te öneri ve kullanım yolu doğrulandı. Ekran kartı olmayan/eski kartlı bilgisayar
+sahte donanım bilgisiyle sınandı; gerçek böyle bir bilgisayarda denenmedi.
 
 **1.4.8** (Windows geliştirici ortamı): tam paket 286 geçti, 0 başarısız. Yeni testler `test_dm_orders.py`, `test_tts_local.py`,
 `test_asr_local.py`. Migration 005, 004 şemalı bir veritabanında sınandı. Duman testi (9 adım, render dahil; örnek planda `punch_in`

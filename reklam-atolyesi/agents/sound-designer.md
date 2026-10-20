@@ -21,8 +21,10 @@ sesini klonlama; `voice_id` yalnızca `creative_list_voices` ya da kullanıcıda
 
 **`vo_local` (seslendirme, varsayılan; 1.4.8):** `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice <stil kitabı sound.voice>
 --script vo.txt --out audio/vo/<ad>.wav --takes 3` (1–4) → alımlar, `.words.json` (kelime zamanları), `.tts.json` (kaynak). Ücretsizdir, onay
-protokolü gerekmez. Ses yoksa `tts_local.py voices` listesinden ürüne uygun 2–3 aday önerirsin; seçim kullanıcınındır. Motor kurulu değilse
-kurmazsın: dönüşte kurulum komutunu ve indirme boyutunu yazarsın. ElevenLabs TTS yalnızca kullanıcı açıkça isterse `prepare_paid` ile.
+protokolü gerekmez. Varsayılan ses EMA'dır. Önce `tts_local.py capability --data-dir DD`: kütüphane kullanılabiliyorsa (`library.use`)
+`tts_local.py voices --data-dir DD` listesinden ürüne uygun 2–3 aday önerirsin; uygun ama kurulu değilse (`library.offer`) dönüşte
+`library.say` önerisini yazarsın (kurmazsın, karar kullanıcınındır); uygun değilse EMA ile üretirsin. Sonuçta `fallback` varsa (istenen
+kütüphane sesi çalışamadı) gerekçesini dönüşte yazarsın. Motor kurulu değilse kurmazsın: dönüşte kurulum komutunu ve indirme boyutunu yazarsın. ElevenLabs TTS yalnızca kullanıcı açıkça isterse `prepare_paid` ile.
 Whisper kuruluysa her alımın okunuşu metinle karşılaştırılır (`pronunciation_ok`, `diffs`); dönüşte farklı okunan alımları farkıyla yazarsın
 (ton ve doğallık için dinleme kullanıcınındır). Kullanıcı kaydının kelime zamanları: `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD
 --in <kayıt> --script vo.txt --out-dir audio/user_vo` (ücretsiz; Scribe yalnızca Whisper kurulamıyorsa, ücretli protokolle).

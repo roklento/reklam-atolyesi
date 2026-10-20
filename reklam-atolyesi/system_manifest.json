@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.4.8",
+ "plugin_version": "1.4.9",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -209,7 +209,7 @@
    "name": "materials",
    "kind": "stage",
    "description": "reklam-atolyesi S09 malzeme — sahne başına ses kararı (kullanıcıyla), seslendirme, müzik, efekt, AI görsel/klip; her ücretli üretim tahmin → kayıt → açık onay → rezervasyon yolundan. Kapılı.",
-   "sha256": "43d56981c2ba106c278827b6a6f8ebb3b4e3bb49b437d281c5cd02457f1891e7"
+   "sha256": "6dd12418a1c119f9b26587b2297c74b2976507a0acfb52b18e7859142f288a58"
   },
   {
    "name": "memory",
@@ -263,7 +263,7 @@
    "name": "ref-production-recipes",
    "kind": "reference",
    "description": "reklam-atolyesi üretim tarifleri — script haritası, ffmpeg komutları, ses hedefleri, AI model yönlendirme, çekim kurtarma, render altyapısı, export/adlandırma, maliyet kuralları.",
-   "sha256": "0ec8efdee9e62cbf01dae7a477af706b807b4216004b41b699933ef78eb47f8d"
+   "sha256": "7c492dd392df75255201b3169b05bba04fde904276264115b447a45d9f7eada1"
   },
   {
    "name": "ref-remotion-components",
@@ -386,7 +386,7 @@
   {
    "name": "sound-designer",
    "description": "reklam-atolyesi ses tasarımcısı. Sahne ses kararlarını önerir, seslendirme/müzik/efekt hatlarını (ücretli üretim yalnızca tahmin → onay → rezervasyonla) hazırlar, miksi -14 LUFS / ≤ -1 dBTP'ye getirir, ses imzasını korur. S09 ve S11.",
-   "sha256": "919e3aa54478488870d8a7c9f29c3b0e4ed879e24d56a1dc1c895bfb865c5c55"
+   "sha256": "66de17b33b702e3034218450e0759c0f5062bd1c1af1739a575fa7ab011ece8b"
   }
  ],
  "commands": [
@@ -867,15 +867,15 @@
   "templates/reports/strategy.md": "054003fb5b4bb672ca1eab99050d0d183264694ae48d1144da4b617ad98f3c93",
   "templates/reports/yayin-paketi.md": "3328b863fe02c8fe726a4e21a28b9ced9b41aa8efcaa36b058655def807f5bb5",
   "templates/style.json": "3916baa82f3f8d5e57d5ee0c2ec1dd0d370bcc3c76f4c2bcda801d512087bb8a",
-  "templates/voices/voices.json": "ddf9e87a90280c6c885534953d7bcd029474eda19b3f55159ea2471ca48972bf"
+  "templates/voices/voices.json": "33f8a3c58480511df1b7d7f0ad15bcecc84d673125e245d112d2bc85a543ab11"
  },
  "tests": {
   "pytest": {
-   "passed": 286,
+   "passed": 295,
    "failed": 0,
    "skipped": 0,
    "returncode": 0,
-   "summary": "286 passed (1.4.8, Windows geliştirici ortamı: mesajla satış modülü, sipariş içe aktarma, veri bağlantısı, tek satış defteri, Meta–mağaza karşılaştırması, reklam metni uzunluğu, migration 005, yerel seslendirme (EMA/VoxCPM2), yerel yazıya dökme (Whisper), okunuş denetimi ve konuşmalı kurgu dahil; yeni testler tests/test_dm_orders.py, test_tts_local.py, test_asr_local.py). Linux'ta bu sürümde tam paket çalıştırılmadı.",
+   "summary": "295 passed (1.4.9, Windows geliştirici ortamı: 1.4.8 kapsamı + ses kütüphanesi donanım koşulları, öneri, varsayılan EMA sesine düşme ve uygun olmayan donanımda kurulum reddi; tests/test_tts_local.py). Linux'ta bu sürümde tam paket çalıştırılmadı.",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-21",
@@ -884,13 +884,13 @@
   "smoke": {
    "ok": true,
    "partial": false,
-   "seconds": 140.6,
+   "seconds": 139.3,
    "steps": [
     {
      "step": 1,
      "title": "profiller ve yalıtım",
      "ok": true,
-     "seconds": 1.4,
+     "seconds": 1.3,
      "detail": {
       "profiles_0_to_1": [
        0,
@@ -914,7 +914,7 @@
      "step": 2,
      "title": "aşama makinesi ve takvim",
      "ok": true,
-     "seconds": 1.8,
+     "seconds": 1.7,
      "detail": {
       "calendar_7_14": {
        "G0_launch": "2026-03-07",
@@ -972,7 +972,7 @@
      "step": 3,
      "title": "ingest ve analiz (4K dikey)",
      "ok": true,
-     "seconds": 46.1,
+     "seconds": 44.4,
      "detail": {
       "footage": 4,
       "photos": 2,
@@ -999,16 +999,16 @@
      "step": 4,
      "title": "render, ses, öz denetim, varyasyon, QC",
      "ok": true,
-     "seconds": 71.0,
+     "seconds": 72.1,
      "detail": {
       "tempo": 117.45,
       "render_916": {
-       "ms": 19673,
+       "ms": 20010,
        "segments": 5,
        "scale": 0.5
       },
       "render_45": {
-       "ms": 15666,
+       "ms": 15888,
        "segments": 5
       },
       "render_11_still": "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/kare_11.png",
@@ -1043,7 +1043,7 @@
       },
       "variant_6s": {
        "version": 2,
-       "ms": 9890
+       "ms": 10043
       },
       "final_scene": {
        "resolution_ok": true,
@@ -1059,7 +1059,7 @@
      "step": 5,
      "title": "metrik CSV ve koçluk",
      "ok": true,
-     "seconds": 3.7,
+     "seconds": 3.6,
      "detail": {
       "csv_check": {
        "rows": 30,
@@ -1109,7 +1109,7 @@
      "step": 7,
      "title": "hata senaryoları",
      "ok": true,
-     "seconds": 12.0,
+     "seconds": 11.5,
      "detail": {
       "unit": {
        "targets": [
@@ -1437,6 +1437,13 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu, e-posta ve anahtar için otomatik tarama (yalnızca doctor'daki genel APPDATA değişkeni ve sentetik test e-postaları; kişi adı içeren test değeri nötrleştirildi); ses kataloğundaki tarifler genel (yaş/ton/tempo), gerçek kişiye gönderme yok; fark satır satır okundu",
     "auditor": "değişikliği yapan oturum (Claude) + iki bağımsız inceleme ajanı (kod doğruluğu)"
+   },
+   {
+    "scope": "1.4.9: tts_setup.py (donanım koşulları, voxcpm kurulum reddi), tts_local.py (capability, varsayılan sese düşme, voices --data-dir), voices.json gereksinim metni, doctor ses maddesi, materials/ref-production-recipes skill'leri, sound-designer ajanı, README/MUSTERI notları, sürüm dizgileri, testler",
+    "files_reviewed": 13,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama; fark satır satır okundu; ekran kartı adı yalnızca ölçüm notunda (RTX 5070) ve sentetik test değeri olarak"
    }
   ],
   "remaining_defects": [],
@@ -1447,16 +1454,16 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "2af9782e76ea018522791ca5962c2d3c1cf069e962d0f6e83b1b202138a50cec",
+   "plugin_json": "0aa9e74c6cdd7e7fbb1caeb0dac5d73c17622dd4e707dae74a74c6cfa7235b2f",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "9f29759eb5b8d2dacded4f751806d194598ee50238173cbb1b95b89e0b0c6f53",
-   "agents": "74b76c8fad6f456bea3aaff15035588d5df2828dd6787c2758bb06e94c661039",
+   "skills": "9b560cf8479d307f381069f8edd5fffc66a36911662fe4c9cd44998e1b3e845f",
+   "agents": "bf3b15db1dbc39675d5ce286cbeba69deaf52ff30fdd5e3f77f75e534f4bd03b",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
    "hooks": "8c5995b9023d667569c2d37af37e57af972d7659a51b820c4eec6141a6ba8153",
-   "ad_memory": "d6223b231006dc3a1af84ff37dd678a0a12b939da97a7f4fb4609efe0f2f9aef",
-   "scripts": "b3a9bd9def9cde40266eecef07a379a2b3af48ff53300800460cacb3b1e9f61c",
-   "templates": "d9f21650b53db1d47c59e1d1f329d3b8521d9e12ed23f8db6b8e85ebb2af1cdf",
+   "ad_memory": "600650e1a8af437d1877156f2e2af8255d7abbceb5aeb8311bc4d86581bfd977",
+   "scripts": "b584b70aff95b029b0348a420f2ff19edca127cb0427222497a162708a0aa34c",
+   "templates": "b6988445ad55e267de13cee9368e5a7946be2f159d592d1c1ce935460e5a9b2e",
    "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
   },
   "checked_at": "2026-10-21"
@@ -1616,16 +1623,16 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "2af9782e76ea018522791ca5962c2d3c1cf069e962d0f6e83b1b202138a50cec",
+  "plugin_json": "0aa9e74c6cdd7e7fbb1caeb0dac5d73c17622dd4e707dae74a74c6cfa7235b2f",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "9f29759eb5b8d2dacded4f751806d194598ee50238173cbb1b95b89e0b0c6f53",
-  "agents": "74b76c8fad6f456bea3aaff15035588d5df2828dd6787c2758bb06e94c661039",
+  "skills": "9b560cf8479d307f381069f8edd5fffc66a36911662fe4c9cd44998e1b3e845f",
+  "agents": "bf3b15db1dbc39675d5ce286cbeba69deaf52ff30fdd5e3f77f75e534f4bd03b",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "5d9c3474d21715a88233888f86ff669fc625934aff3ff81c119de8cd867f7333",
   "hooks": "8c5995b9023d667569c2d37af37e57af972d7659a51b820c4eec6141a6ba8153",
-  "ad_memory": "d6223b231006dc3a1af84ff37dd678a0a12b939da97a7f4fb4609efe0f2f9aef",
-  "scripts": "b3a9bd9def9cde40266eecef07a379a2b3af48ff53300800460cacb3b1e9f61c",
-  "templates": "d9f21650b53db1d47c59e1d1f329d3b8521d9e12ed23f8db6b8e85ebb2af1cdf",
+  "ad_memory": "600650e1a8af437d1877156f2e2af8255d7abbceb5aeb8311bc4d86581bfd977",
+  "scripts": "b584b70aff95b029b0348a420f2ff19edca127cb0427222497a162708a0aa34c",
+  "templates": "b6988445ad55e267de13cee9368e5a7946be2f159d592d1c1ce935460e5a9b2e",
   "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."

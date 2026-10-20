@@ -1,6 +1,6 @@
 {
  "version": "1.0",
- "note": "Yerel seslendirme kütüphanesi (1.4.8). Hiçbir ses gerçek bir kişiye ait değildir: EMA'nın tek sesi modelin kendisidir; diğerleri VoxCPM2'nin metinle ses tasarımı (voice design) özelliğiyle üretilmiş, referans dosyasıyla sabitlenmiş yapay seslerdir. Kullanıcının ya da başka birinin sesi klonlanmaz.",
+ "note": "Yerel seslendirme kütüphanesi (1.4.8; 1.4.9: varsayılan ses EMA, kütüphane yalnızca uygun ekran kartında öneri). Hiçbir ses gerçek bir kişiye ait değildir: EMA'nın tek sesi modelin kendisidir; diğerleri VoxCPM2'nin metinle ses tasarımı (voice design) özelliğiyle üretilmiş, referans dosyasıyla sabitlenmiş yapay seslerdir. Kullanıcının ya da başka birinin sesi klonlanmaz.",
  "voices": [
   {
    "id": "ema-varsayilan",
@@ -45,7 +45,7 @@
     "date": "2026-10-20"
    },
    "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
-   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)"
+   "requires": "voxcpm motoru; yalnızca uygun ekran kartında: NVIDIA, RTX 30xx ve sonrası (compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş disk (≈ 12 GB indirme). Varsayılan değildir; uygunsa öneri olarak sunulur (tts_local.py capability)"
   },
   {
    "id": "kadin-guven",
@@ -74,7 +74,7 @@
     "date": "2026-10-20"
    },
    "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
-   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "requires": "voxcpm motoru; yalnızca uygun ekran kartında: NVIDIA, RTX 30xx ve sonrası (compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş disk (≈ 12 GB indirme). Varsayılan değildir; uygunsa öneri olarak sunulur (tts_local.py capability)",
    "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
   },
   {
@@ -104,7 +104,7 @@
     "date": "2026-10-20"
    },
    "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
-   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "requires": "voxcpm motoru; yalnızca uygun ekran kartında: NVIDIA, RTX 30xx ve sonrası (compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş disk (≈ 12 GB indirme). Varsayılan değildir; uygunsa öneri olarak sunulur (tts_local.py capability)",
    "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
   },
   {
@@ -134,7 +134,7 @@
     "date": "2026-10-20"
    },
    "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
-   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "requires": "voxcpm motoru; yalnızca uygun ekran kartında: NVIDIA, RTX 30xx ve sonrası (compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş disk (≈ 12 GB indirme). Varsayılan değildir; uygunsa öneri olarak sunulur (tts_local.py capability)",
    "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
   },
   {
@@ -164,7 +164,7 @@
     "date": "2026-10-20"
    },
    "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
-   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "requires": "voxcpm motoru; yalnızca uygun ekran kartında: NVIDIA, RTX 30xx ve sonrası (compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş disk (≈ 12 GB indirme). Varsayılan değildir; uygunsa öneri olarak sunulur (tts_local.py capability)",
    "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
   },
   {
@@ -194,7 +194,7 @@
     "date": "2026-10-20"
    },
    "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
-   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "requires": "voxcpm motoru; yalnızca uygun ekran kartında: NVIDIA, RTX 30xx ve sonrası (compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş disk (≈ 12 GB indirme). Varsayılan değildir; uygunsa öneri olarak sunulur (tts_local.py capability)",
    "note": "coşkulu okumada perde yer yer ~180 Hz'e çıkabilir; reklam cümlelerinde ölçülen 138–157 Hz (erkek). Dinleyerek seçin.",
    "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
   }

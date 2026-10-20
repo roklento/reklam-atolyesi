@@ -12,8 +12,11 @@ Kullanım:
      (--takes N: model bir kez yüklenir; 1. alım <ad>.wav, sonrakiler <ad>_alim2.wav …; tohumlar seed, seed+1, …)
      Okunuş denetimi: Whisper motoru kuruluysa her alım dökülür ve VO metniyle karşılaştırılır (`pronunciation_ok`, `diffs`);
      metinle birebir alımlar listede öne gelir. Denetim dinlemenin yerine geçmez (ton, vurgu kullanıcının kulağıyla).
-  tts_local.py voices                       ses kütüphanesi
+  tts_local.py voices [--data-dir DD]       ses kütüphanesi (DD verilirse her sesin bu bilgisayarda kullanılabilirliği)
+  tts_local.py capability --data-dir DD     varsayılan ses ve ses kütüphanesi önerisi (ekran kartı, bellek, sürücü, disk)
   tts_local.py status --data-dir DD         kurulu motorlar
+Varsayılan ses her zaman EMA'dır. Kütüphane sesi (VoxCPM2) yalnızca uygun ekran kartında kullanılır; seçilmiş kütüphane sesi bu
+bilgisayarda (ya da şu an) çalışamıyorsa üretim EMA sesiyle yapılır ve sonuçta `fallback` gerekçesiyle yazılır.
 Çıktılar: <ad>.wav, <ad>.words.json (words_align biçimi: words, captions, matches_script), <ad>.tts.json (kaynak bilgisi).
 """
 from __future__ import annotations
@@ -29,8 +32,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "setup"))
 from common import emit, write_json  # noqa: E402
 import words_align as WA  # noqa: E402
+import tts_setup as TS  # noqa: E402
 
 PR = Path(__file__).resolve().parents[2]
 VOICES = PR / "templates" / "voices" / "voices.json"
@@ -186,6 +191,13 @@ def synth(data_dir: Path, voice_id: str, script: str, out: Path, speed: float = 
     v = next((x for x in voices if x["id"] == voice_id), None)
     if not v:
         raise TTSError(f"ses yok: {voice_id}; seçenekler: {', '.join(x['id'] for x in voices)}")
+    requested, fallback = voice_id, None
+    if v["engine"] != "ema":  # kütüphane sesi: motor kurulu ve ekran kartı şu an uygun değilse varsayılan sese düşülür
+        why = library_unavailable(data_dir)
+        if why:
+            fallback = why
+            voice_id = DEFAULT_VOICE
+            v = next(x for x in voices if x["id"] == DEFAULT_VOICE)
     out.parent.mkdir(parents=True, exist_ok=True)
     plan = [{"out_wav": str(p), "seed": seed + k} for k, p in enumerate(take_paths(out, takes))]
     spoken = run_worker(data_dir, "ema", {"op": "normalize", "engine": "ema", "text": text}, offline=True)
@@ -218,15 +230,55 @@ def synth(data_dir: Path, voice_id: str, script: str, out: Path, speed: float = 
                 "speed": speed, "seed": tk.get("seed"), "script_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
                 "wav_sha256": sha256(wav), "duration_s": tk["duration_s"], "sample_rate": res["sample_rate"], "gen_s": tk.get("gen_s"),
                 "load_s": res.get("load_s"), "peak_scaled": tk.get("peak_scaled"), "timing": timing, "ai_generated": True,
-                "license": v["license"], "pronunciation": chk,
+                "license": v["license"], "pronunciation": chk, "voice_requested": requested, "fallback": fallback,
                 "note": "Yapay zekâ ile üretilmiş ses: Meta AI açıklaması gerekir (ref-legal-tr-meta). Gerçek bir kişinin sesi değildir."}
         write_json(wav.with_suffix(".tts.json"), prov)
         results.append({"wav": str(wav), "words": str(wj), "matches_script": complete, "seed": prov["seed"], "duration_s": prov["duration_s"],
                         "pronunciation_ok": chk.get("matches") if chk.get("checked") else None, "diffs": chk.get("diffs")})
     # okunuşu metinle birebir olan alımlar öne (dinleme sırası); denetim yoksa sıra değişmez
     results.sort(key=lambda r: 0 if r["pronunciation_ok"] else (1 if r["pronunciation_ok"] is None else 2))
-    return {"engine": v["engine"], "voice": voice_id, "timing": timings[0][1], "load_s": res.get("load_s"), "takes": results,
-            "pronunciation_check": checks[0].get("checked", False)}
+    return {"engine": v["engine"], "voice": voice_id, "voice_requested": requested, "fallback": fallback, "timing": timings[0][1],
+            "load_s": res.get("load_s"), "takes": results, "pronunciation_check": checks[0].get("checked", False),
+            **({"note": f"İstenen ses ({requested}) kullanılamadı: {fallback}. Varsayılan EMA sesiyle üretildi."} if fallback else {})}
+
+
+DEFAULT_VOICE = "ema-varsayilan"
+LIBRARY_ENGINE = "voxcpm"
+
+
+def library_unavailable(data_dir: Path) -> str | None:
+    """Kütüphane sesi şu an kullanılamıyorsa gerekçe; kullanılabiliyorsa None."""
+    try:
+        engine_python(data_dir, LIBRARY_ENGINE)
+    except TTSError:
+        return "ses kütüphanesi motoru kurulu değil"
+    chk = TS.library_check(data_dir, now=True, need_disk=False)
+    return "; ".join(chk["reasons"]) or None
+
+
+def capability(data_dir: Path) -> dict:
+    """Varsayılan ses ve kütüphane önerisi: uygun ekran kartı + yer varsa ve kurulu değilse 'offer' (kullanıcıya öneri)."""
+    try:
+        engine_python(data_dir, LIBRARY_ENGINE)
+        installed = True
+    except TTSError:
+        installed = False
+    chk = TS.library_check(data_dir, need_disk=not installed)
+    lib = [x for x in load_voices()["voices"] if x["engine"] == LIBRARY_ENGINE]
+    pin = TS.PINS[LIBRARY_ENGINE]
+    out = {"default_voice": DEFAULT_VOICE, "library": {
+        "eligible": chk["eligible"], "reasons": chk["reasons"], "installed": installed, "gpu": chk["gpu"], "disk_free_gb": chk["disk_free_gb"],
+        "requirements": chk["requirements"], "voices": [{"id": x["id"], "label": x["label"], "gender": x["gender"]} for x in lib],
+        "offer": chk["eligible"] and not installed, "use": chk["eligible"] and installed}}
+    if out["library"]["offer"]:
+        out["library"]["how"] = f"PY PR/scripts/setup/tts_setup.py --data-dir <DD> --engine {LIBRARY_ENGINE} --yes"
+        out["library"]["download_gb"] = round(pin["env_gb"] + pin["model_gb"] + 2.5, 1)
+        out["library"]["say"] = (f"Bu bilgisayarın ekran kartı ({chk['gpu']['name']}, {chk['gpu']['vram_total_gb']} GB) ses kütüphanesini "
+                                 f"çalıştırabilir: {len(lib)} ek ses (kadın/erkek, farklı tonlar). Kurulum ≈ {out['library']['download_gb']} GB "
+                                 f"indirir (diskte {chk['disk_free_gb']} GB boş). İsterseniz kurarım; istemezseniz varsayılan ses kullanılır.")
+    elif not chk["eligible"]:
+        out["library"]["say"] = "Bu bilgisayarda varsayılan ses (EMA) kullanılır; ses kütüphanesi için: " + "; ".join(chk["reasons"]) + "."
+    return out
 
 
 def status(data_dir: Path) -> dict:
@@ -251,7 +303,10 @@ def main() -> None:
     p.add_argument("--seed", type=int, default=1729)
     p.add_argument("--takes", type=int, default=1)
     p.add_argument("--no-verify", action="store_true", help="Whisper okunuş denetimini atla")
-    sp.add_parser("voices")
+    p = sp.add_parser("voices")
+    p.add_argument("--data-dir")
+    p = sp.add_parser("capability")
+    p.add_argument("--data-dir", required=True)
     p = sp.add_parser("status")
     p.add_argument("--data-dir", required=True)
     a = ap.parse_args()
@@ -259,7 +314,16 @@ def main() -> None:
         emit(synth(Path(a.data_dir), a.voice, Path(a.script).read_text(encoding="utf-8"), Path(a.out), a.speed, a.seed, a.takes,
                    verify=not a.no_verify))
     elif a.cmd == "voices":
-        emit(load_voices())
+        cat = load_voices()
+        if a.data_dir:
+            why = library_unavailable(Path(a.data_dir))
+            for x in cat["voices"]:
+                x["available_here"] = x["engine"] == "ema" or why is None
+                if x["engine"] != "ema" and why:
+                    x["unavailable_reason"] = why
+        emit(cat)
+    elif a.cmd == "capability":
+        emit(capability(Path(a.data_dir)))
     else:
         emit(status(Path(a.data_dir)))
 

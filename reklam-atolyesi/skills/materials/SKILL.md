@@ -79,10 +79,18 @@ planda `audio.decision_id`. Tercih gözlemi `memory_add(layer="preference", kind
   ve `.tts.json` (kaynak, `ai_generated: true`).
   Ücretsiz ve bilgisayardan çıkmaz: ücretli üretim protokolü gerekmez. Motor kurulu değilse kullanıcıya boyutu söylenip onayla
   `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine ema --yes` (≈ 0,6 GB, CPU yeterli).
-  **Ses seçimi:** `tts_local.py voices` listesi (cinsiyet, yaş, ton, tempo, uygun ürün türleri) kullanıcıya gösterilir, deneme cümlesiyle
-  dinletilir; seçim stil kitabına `sound.voice`. EMA tek sestir; kütüphanedeki diğer sesler `voxcpm` motorunu ister (≈ 12 GB indirme, NVIDIA GPU
-  önerilir; kurulu değilse EMA sesi önerilir, zorlanmaz). Kütüphanedeki sesler gerçek kişiye ait değildir (metinle tasarlanmış yapay
-  sesler); kullanıcının ya da başkasının sesi klonlanmaz.
+  **Ses seçimi (1.4.9):** varsayılan ses **EMA**'dır (`ema-varsayilan`, her bilgisayarda). Önce
+  `PY PR/scripts/audio/tts_local.py capability --data-dir DD`:
+  - `library.use` (kütüphane kurulu ve ekran kartı uygun): `tts_local.py voices --data-dir DD` listesi (cinsiyet, yaş, ton, tempo, uygun
+    ürün türleri) kullanıcıya gösterilir, deneme cümlesiyle dinletilir; seçim stil kitabına `sound.voice`.
+  - `library.offer` (ekran kartı ve disk uygun, kurulu değil): `library.say` metni kullanıcıya **öneri** olarak bir kez sunulur (ek ses
+    sayısı, indirme boyutu, boş alan). Kabul ederse `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine voxcpm --yes` → liste ve
+    seçim; istemezse EMA ve karar `memory_add(layer="preference", kind="sound")` (sonraki kampanyalarda yeniden sorulmaz).
+  - Uygun değilse (`library.reasons`: ekran kartı yok/eski, bellek, sürücü, disk): EMA kullanılır; gerekçe tek satırla söylenir,
+    kurulum önerilmez. Koşullar yereldir ve ölçüme dayanır (`tts_setup.py` `LIB_REQ`).
+  Stil kitabındaki kütüphane sesi bu bilgisayarda ya da o an çalışamıyorsa (motor yok, ekran belleği dolu) üretim EMA ile yapılır;
+  sonuçta `fallback` gerekçesi vardır ve kullanıcıya söylenir. Kütüphanedeki sesler gerçek kişiye ait değildir (metinle tasarlanmış
+  yapay sesler); kullanıcının ya da başkasının sesi klonlanmaz.
   **Alımlar:** `--takes 3` (1–4) tek çağrıda farklı tohumlarla (model bir kez yüklenir; ücretsiz). ElevenLabs seslendirmesi yalnızca kullanıcı açıkça isterse yedek yoldur (ücretli
   protokol, `brands.elevenlabs_voice_id`); ElevenLabs'in bu sistemdeki ana görevi çekimde olmayan sahnelerin görsel/klip üretimidir.
 - **Ön seçim:** süresi kurguya uyanlar (ffprobe) → **okunuş denetimi** → dinleyerek seçilen 1–2 alım. Whisper motoru kuruluysa

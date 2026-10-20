@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.8
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.9
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,17 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.4.9**
+- **Varsayılan ses EMA**; ses kütüphanesi (VoxCPM2, 6 tasarlanmış ses) artık varsayılan değil. `tts_local.py capability` bilgisayarı
+  ölçer: NVIDIA ekran kartı, RTX 30xx ve sonrası (bfloat16 için compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş
+  disk. Uygunsa ve kurulu değilse kütüphane kullanıcıya **öneri** olarak sunulur (ek ses sayısı, indirme boyutu, boş alan); kabul ederse
+  kurulur. Uygun değilse önerilmez, EMA kullanılır. Eşikler bu sürümde ölçüldü (RTX 5070: üretimde ≈ 6,1 GB ek ekran belleği, kurulu
+  ≈ 9,8 GB).
+- Seçilmiş kütüphane sesi bu bilgisayarda ya da o an çalışamıyorsa (motor yok, ekran belleği dolu) üretim EMA ile yapılır; sonuçta ve
+  `.tts.json`'da `fallback` gerekçesi ve istenen ses yazılır.
+- `tts_setup.py --engine voxcpm` uygun olmayan donanımda kurulumu reddeder (CPU yolu kaldırıldı). `voices --data-dir` her sesin bu
+  bilgisayarda kullanılabilirliğini gösterir; doktor kütüphane uygunluğunu bilgi olarak yazar.
+
 **1.4.8**
 - **Mesajla satış modülü** (`dm-sales`): Instagram DM, WhatsApp, Messenger, telefon, web sohbeti, e-posta. Konuşma takma kodla
   (M-0001) tek tek ya da günlük toplam olarak kaydedilir; kişisel veri (telefon, e-posta, IBAN, kimlik no, @kullanıcı adı) sunucuda

@@ -136,9 +136,17 @@ def check_voice_engines(r: Report, data_dir: Path) -> None:
         snaps = data_dir / ".tts" / "hf" / "hub" / f"models--{str(model).replace('/', '--')}" / "snapshots"
         model_ok = not model or (snaps.exists() and ((snaps / rev).is_dir() if rev else any(snaps.iterdir())))
         (installed if py.exists() and model_ok else broken).append(eng)
+    try:  # ses kütüphanesi (VoxCPM2) yalnızca uygun ekran kartında önerilir; varsayılan ses EMA
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import tts_setup as TS
+        lib = TS.library_check(data_dir, need_disk="voxcpm" not in installed)
+        library = {"eligible": lib["eligible"], "reasons": lib["reasons"], "gpu": (lib["gpu"] or {}).get("name")}
+    except Exception as e:  # bilgi maddesi: denetim çalışmasa da kurulum engellenmez
+        library = {"eligible": None, "error": str(e)[:200]}
     r.add("voice_engines", "Yerel ses motorları (isteğe bağlı: seslendirme, yazıya dökme)", True,
           {"installed": installed, "broken": broken, "not_installed": [e for e in ("ema", "voxcpm", "whisper") if e not in rec],
-           "fix": [f"scripts/setup/tts_setup.py --data-dir <DD> --engine {e} --yes" for e in broken] or None})
+           "fix": [f"scripts/setup/tts_setup.py --data-dir <DD> --engine {e} --yes" for e in broken] or None,
+           "default_voice": "ema-varsayilan", "voice_library": library})
 
 
 def check_disk(r: Report, data_dir: Path, deviations: dict) -> None:

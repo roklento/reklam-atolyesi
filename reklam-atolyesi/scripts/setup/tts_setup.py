@@ -2,7 +2,8 @@
 Model dosyaları DD/.tts/hf altına iner. İndirme boyutu önce gösterilir; --yes olmadan hiçbir şey indirilmez.
 
   ema      ema-lightning (Apache-2.0) + CPU torch            ≈ 0,6 GB ortam + 34 MB model; her bilgisayarda çalışır
-  voxcpm   voxcpm (Apache-2.0) + torch (NVIDIA varsa CUDA)  ≈ 4–5 GB ortam + ~5 GB model; NVIDIA GPU önerilir (CPU çok yavaş)
+  voxcpm   voxcpm (Apache-2.0) + CUDA torch  ≈ 12 GB indirme (kurulu ≈ 10 GB); YALNIZCA uygun ekran kartında (library_check):
+           ses kütüphanesi varsayılan değildir, donanım uygunsa kullanıcıya öneri olarak sunulur
   whisper  faster-whisper (MIT) + Whisper large-v3-turbo (MIT, CTranslate2 biçimi)  ≈ 0,3 GB ortam + 1,6 GB model; torch yok,
            CPU'da int8 (yazıya dökme: kullanıcı kaydı, kamerada konuşma, yerel seslendirmenin okunuş denetimi)
 
@@ -32,6 +33,73 @@ PINS = {
                 "revision": "0a363e9161cbc7ed1431c9597a8ceaf0c4f78fcf", "env_gb": 0.3, "model_gb": 1.6, "torch": False},
 }
 TORCH_INDEX = {"cpu": "https://download.pytorch.org/whl/cpu", "cuda": "https://download.pytorch.org/whl/cu128"}
+
+
+# Ses kütüphanesi (VoxCPM2) için donanım koşulları (1.4.9; yerel kural, ölçüme dayalı — 21.10.2026, RTX 5070):
+# - model bfloat16 (model config.json "dtype"); bfloat16'yı ekran kartında yerel olarak Ampere ve sonrası (compute capability ≥ 8.0) çalıştırır
+# - üretimde ölçülen ek ekran belleği ≈ 6,1 GB → toplam ≥ 8 GB, üretim anında boş ≥ 6,5 GB
+# - torch cu128 tekerlekleri kurulur → sürücünün desteklediği CUDA ≥ 12.8
+# - kurulu boyut ölçüldü ≈ 9,8 GB (ortam 5,1 + model 4,7); indirme ve geçici dosya payıyla ≥ 15 GB boş disk
+LIB_REQ = {"compute_cap": 8.0, "vram_total_gb": 8.0, "vram_free_gb": 6.5, "cuda": (12, 8), "disk_free_gb": 15.0}
+
+
+def gpu_info() -> dict | None:
+    """En çok belleği olan NVIDIA ekran kartı (nvidia-smi); yoksa None."""
+    exe = shutil.which("nvidia-smi")
+    if not exe:
+        return None
+    try:
+        r = subprocess.run([exe, "--query-gpu=name,memory.total,memory.free,compute_cap,driver_version", "--format=csv,noheader,nounits"],
+                           capture_output=True, text=True, timeout=15)
+        head = subprocess.run([exe], capture_output=True, text=True, timeout=15).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    gpus = []
+    for line in (r.stdout or "").strip().splitlines() if r.returncode == 0 else []:
+        p = [x.strip() for x in line.split(",")]
+        if len(p) < 5:
+            continue
+        try:
+            gpus.append({"name": p[0], "vram_total_gb": round(float(p[1]) / 1024, 1), "vram_free_gb": round(float(p[2]) / 1024, 1),
+                         "compute_cap": float(p[3]), "driver": p[4]})
+        except ValueError:
+            continue
+    if not gpus:
+        return None
+    g = max(gpus, key=lambda x: x["vram_total_gb"])
+    import re as _re
+    m = _re.search(r"CUDA (?:UMD )?Version:\s*(\d+)\.(\d+)", head or "")
+    g["cuda"] = f"{m.group(1)}.{m.group(2)}" if m else None
+    return g
+
+
+def _disk_free_gb(path: Path) -> float:
+    p = path
+    while not p.exists() and p.parent != p:
+        p = p.parent
+    return round(shutil.disk_usage(p).free / 1024 ** 3, 1)
+
+
+def library_check(data_dir: Path, gpu: dict | None = None, now: bool = False, need_disk: bool = True) -> dict:
+    """Ses kütüphanesi (VoxCPM2) bu bilgisayarda çalışır mı. now=True: üretim anı (boş ekran belleği de); need_disk=False: zaten kurulu."""
+    g = gpu if gpu is not None else gpu_info()
+    reasons = []
+    if not g:
+        reasons.append("NVIDIA ekran kartı bulunamadı")
+    else:
+        if g["compute_cap"] < LIB_REQ["compute_cap"]:
+            reasons.append(f"ekran kartı kuşağı eski ({g['name']}, compute {g['compute_cap']}; bfloat16 için ≥ {LIB_REQ['compute_cap']}: RTX 30xx ve sonrası)")
+        if g["vram_total_gb"] < LIB_REQ["vram_total_gb"]:
+            reasons.append(f"ekran belleği yetersiz ({g['vram_total_gb']} GB; gereken ≥ {LIB_REQ['vram_total_gb']:.0f} GB)")
+        cv = tuple(int(x) for x in g["cuda"].split(".")) if g.get("cuda") else None
+        if cv is None or cv < LIB_REQ["cuda"]:
+            reasons.append(f"ekran kartı sürücüsü eski (CUDA {g.get('cuda') or '?'}; gereken ≥ {LIB_REQ['cuda'][0]}.{LIB_REQ['cuda'][1]}): sürücüyü güncelleyin")
+        if now and not reasons and g["vram_free_gb"] < LIB_REQ["vram_free_gb"]:
+            reasons.append(f"ekran belleği şu an dolu ({g['vram_free_gb']} GB boş; gereken ≥ {LIB_REQ['vram_free_gb']} GB): başka uygulamalar kapatılabilir")
+    disk = _disk_free_gb(Path(data_dir))
+    if need_disk and disk < LIB_REQ["disk_free_gb"]:
+        reasons.append(f"diskte yer yetersiz ({disk} GB boş; gereken ≥ {LIB_REQ['disk_free_gb']:.0f} GB)")
+    return {"eligible": not reasons, "reasons": reasons, "gpu": g, "disk_free_gb": disk, "requirements": {**LIB_REQ, "cuda": "12.8"}}
 
 
 def has_nvidia() -> bool:
@@ -102,8 +170,15 @@ def main() -> None:
     plan = {"engine": a.engine, "device": device, "target": str(base), "packages": pin["packages"], "model": pin["model"],
             "revision": pin.get("revision"),
             "download_estimate_gb": round(pin["env_gb"] + pin["model_gb"] + (2.5 if device == "cuda" and with_torch else 0), 1)}
-    if a.engine == "voxcpm" and device == "cpu":
-        plan["warning"] = "NVIDIA GPU bulunamadı: VoxCPM2 CPU'da çok yavaş çalışır; ses kütüphanesi yerine EMA varsayılan sesi önerilir"
+    if a.engine == "voxcpm":  # ses kütüphanesi yalnızca uygun ekran kartında kurulur (CPU'da pratik değil; varsayılan ses EMA)
+        chk = library_check(dd)
+        plan["device"] = device = "cuda"
+        plan["download_estimate_gb"] = round(pin["env_gb"] + pin["model_gb"] + 2.5, 1)
+        plan["hardware"] = chk
+        if not chk["eligible"]:
+            print(json.dumps({"error": "bu bilgisayar ses kütüphanesine (VoxCPM2) uygun değil; varsayılan EMA sesi kullanılır",
+                              "reasons": chk["reasons"], "plan": plan}, ensure_ascii=False))
+            sys.exit(4)
     if path_budget(base / ".venv", (dd / ".tts" / "hf").resolve(), pin["model"]) < 0:
         print(json.dumps({"error": "veri klasörünün yolu çok uzun: Windows 260 karakter sınırı (uzun yol desteği kapalı) motor dosyalarının "
                                    "eksik kurulmasına yol açar", "target": str(base),

@@ -177,3 +177,73 @@ def test_engine_without_model_is_incomplete(tmp_path):
 def test_all_engine_models_pinned():
     import tts_setup as S
     assert all(len(p.get("revision") or "") == 40 for p in S.PINS.values())
+
+
+GOOD_GPU = {"name": "RTX test", "vram_total_gb": 12.0, "vram_free_gb": 9.0, "compute_cap": 8.6, "driver": "x", "cuda": "12.8"}
+
+
+@pytest.mark.parametrize("gpu, why", [(None, "bulunamadı"), ({**GOOD_GPU, "compute_cap": 7.5}, "kuşağı eski"),
+                                      ({**GOOD_GPU, "vram_total_gb": 6.0}, "belleği yetersiz"), ({**GOOD_GPU, "cuda": "12.4"}, "sürücü"),
+                                      ({**GOOD_GPU, "cuda": None}, "sürücü")])
+def test_library_check_rejects_unsuitable_hardware(tmp_path, gpu, why):
+    import tts_setup as S
+    chk = S.library_check(tmp_path, gpu=gpu) if gpu is not None else None
+    if gpu is None:
+        import unittest.mock as um
+        with um.patch.object(S, "gpu_info", return_value=None):
+            chk = S.library_check(tmp_path)
+    assert not chk["eligible"] and any(why in r for r in chk["reasons"])
+
+
+def test_library_check_disk_and_busy_vram(tmp_path, monkeypatch):
+    import tts_setup as S
+    assert S.library_check(tmp_path, gpu=GOOD_GPU)["eligible"] or S._disk_free_gb(tmp_path) < S.LIB_REQ["disk_free_gb"]
+    monkeypatch.setattr(S, "_disk_free_gb", lambda p: 3.0)
+    assert any("disk" in r for r in S.library_check(tmp_path, gpu=GOOD_GPU)["reasons"])
+    assert S.library_check(tmp_path, gpu=GOOD_GPU, need_disk=False)["eligible"]  # kurulu motor için disk aranmaz
+    busy = {**GOOD_GPU, "vram_free_gb": 2.0}
+    assert S.library_check(tmp_path, gpu=busy, need_disk=False)["eligible"]  # öneri anında boş bellek aranmaz
+    assert any("şu an dolu" in r for r in S.library_check(tmp_path, gpu=busy, now=True, need_disk=False)["reasons"])
+
+
+def test_capability_default_is_ema_and_offer_only_when_suitable(tmp_path, monkeypatch):
+    import tts_setup as S
+    monkeypatch.setattr(S, "_disk_free_gb", lambda p: 100.0)
+    monkeypatch.setattr(S, "gpu_info", lambda: dict(GOOD_GPU))
+    c = T.capability(tmp_path)
+    assert c["default_voice"] == "ema-varsayilan" and c["library"]["offer"] and not c["library"]["use"]
+    assert "--engine voxcpm" in c["library"]["how"] and "İsterseniz" in c["library"]["say"] and len(c["library"]["voices"]) >= 2
+    monkeypatch.setattr(S, "gpu_info", lambda: None)
+    c = T.capability(tmp_path)
+    assert not c["library"]["offer"] and not c["library"]["use"] and "varsayılan ses (EMA)" in c["library"]["say"]
+
+
+def test_synth_falls_back_to_default_voice(tmp_path, monkeypatch):
+    monkeypatch.setattr(T, "library_unavailable", lambda d: "ses kütüphanesi motoru kurulu değil")
+    calls = []
+
+    def fake_worker(data_dir, engine, req, **kw):
+        calls.append((engine, req["op"]))
+        if req["op"] == "normalize":
+            return {"spoken_text": "merhaba", "source_tokens": ["Merhaba."], "spoken_words": [{"text": "merhaba", "src": [0, 0]}]}
+        for tk in req["takes"]:
+            sf.write(tk["out_wav"], np.zeros(1600, dtype="float32"), 16000)
+        return {"sample_rate": 16000, "engine_version": "t", "load_s": 0.1,
+                "takes": [{"wav": tk["out_wav"], "seed": tk["seed"], "duration_s": 0.1, "words": [{"text": "merhaba", "start": 0.0, "end": 0.1}]}
+                          for tk in req["takes"]]}
+    monkeypatch.setattr(T, "run_worker", fake_worker)
+    r = T.synth(tmp_path, "kadin-sicak", "Merhaba.", tmp_path / "vo.wav", verify=False)
+    assert r["voice"] == "ema-varsayilan" and r["voice_requested"] == "kadin-sicak" and "kurulu değil" in r["fallback"]
+    assert all(e == "ema" for e, _ in calls)  # kütüphane motoru hiç çağrılmadı
+    prov = json.loads((tmp_path / "vo.tts.json").read_text(encoding="utf-8"))
+    assert prov["fallback"] and prov["voice"] == "ema-varsayilan" and prov["engine"] == "ema"
+
+
+def test_setup_refuses_library_on_unsuitable_hardware(tmp_path, monkeypatch, capsys):
+    import tts_setup as S
+    monkeypatch.setattr(S, "gpu_info", lambda: None)
+    monkeypatch.setattr(sys, "argv", ["tts_setup.py", "--data-dir", str(tmp_path), "--engine", "voxcpm", "--yes"])
+    with pytest.raises(SystemExit) as e:
+        S.main()
+    out = json.loads(capsys.readouterr().out)
+    assert e.value.code == 4 and "EMA" in out["error"] and not (tmp_path / ".tts").exists()
