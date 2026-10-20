@@ -54,6 +54,10 @@ S11 taslak kapısı geçilmiş (onaylı `ready` plan ve miks).
    (H.264 High, yuv420p, 30 fps CFR, CRF 16–18, AAC 48 kHz 256 kbps, `+faststart`). Adlandırma:
    `<MARKA>_<KAMPANYA>_<KONSEPT>_<MEDYA>_<SÜRE>_<HOOK>_<VO>_<KAYNAK>_<TUR>_<REV>_<FORMAT>[_k<KART>]`; `creative_key` = format ve kart
    numarası çıkarılmış hali (Meta reklam adı).
+   **Aç kalan konseptin yeniden testi (S16 `carry_over`):** yeni render yok; önceki turun final dosyası yeni tur anahtarıyla yeniden dışa
+   aktarılır: `export.py video --video <eski final.mp4> --audio <eski final.mp4> --out-dir out/ --key <c<tur> anahtarı> --format <f>`
+   (görüntü kopyalanır, ses aynı dosyadan alınıp -1 dBTP kontrolünden geçer; `--audio` verilmezse ses düşer). Kayıt `creative_register`
+   ile bu turda; QC (S13) yeniden yapılır.
 8. **Statik ve carousel (5.17):** her konsept için önce aynı oturumun **fotoğraflarından** en güçlü kare(ler); yoksa/yetersizse plan
    video karelerine düşülür ve raporda belirtilir. Öz denetim → format başına yazı → gerekirse AI görsel desteği (`materials` protokolü
    ve AI etiketi) → statik 1080×1350 (istenirse 1080×1080) ve 3–5 kartlık carousel (hook → ürün → kanıt → CTA):

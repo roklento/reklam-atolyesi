@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -279,3 +280,32 @@ def test_reference_analyze_synthetic(tmp_path):
     assert res["aspect"] == "9x16" and res["audio"]["present"] is False
     assert res["cuts"]["shots"] == 3 and res["cuts"]["first_cut_s"] == pytest.approx(1.5, abs=0.1)
     assert (tmp_path / "references" / "ref" / "reference.json").exists() and res["sheets"]["contact_1fps"]
+
+
+# --- 1.4.7: ilk turda aç kalan konsept sonraki teste taşınır ----------------------------------
+def test_no_carry_over_when_spend_is_balanced(store):
+    an = CO.analyze(_scale_snapshot(store, structure="bootstrap")["path"])
+    assert not any(d.get("carry_over") for d in an["decisions"])  # A ve B eşit harcıyor
+
+
+def test_bootstrap_starved_concept_is_carry_over(store):
+    from test_analytics import build_campaign
+    pid, cid, cyid = build_campaign(store)  # C konsepti ilk turda aç bırakılmış
+    an = CO.analyze(store.decision_input_snapshot(pid, cid, cyid)["path"])
+    c = {d["concept"]: d for d in an["decisions"]}["C"]
+    assert c["carry_over"] and c["decision"] == "tut" and "yeniden çekim" in c["why"]
+
+
+@pytest.mark.skipif(not (shutil.which("ffmpeg") and shutil.which("ffprobe")), reason="ffmpeg yok")
+def test_carry_over_reexport_keeps_audio(tmp_path):
+    import export as EX
+    from admem import naming
+    src = tmp_path / "eski.mp4"
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "testsrc2=s=360x640:d=2:r=30",
+                    "-f", "lavfi", "-i", "sine=frequency=440:duration=2", "-c:v", "libx264", "-profile:v", "high", "-pix_fmt", "yuv420p",
+                    "-c:a", "aac", "-shortest", str(src)], check=True)
+    key = naming.build_key("MRKA", "K1", "A", "video", 15, "h1", True, "real", 2, 1)
+    out = EX.export_video(str(src), str(src), tmp_path / "out", key, "9x16")
+    streams = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", out["out"]],
+                             capture_output=True, text=True).stdout.split()
+    assert "audio" in streams and "video" in streams and "_c2_" in Path(out["out"]).name

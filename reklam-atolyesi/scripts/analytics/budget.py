@@ -100,7 +100,7 @@ def plan(inp: dict) -> dict:
     structure = "bootstrap" if cycle_no <= 1 else "creative_test"
     out: dict = {"structure": structure, "decision_metric": metric, "threshold_impressions": THRESHOLD_IMPRESSIONS[metric],
                  "cpm": cpm, "cpm_source": cpm_src, "per_creative_spend": round(pc, 2), "daily_test_budget": round(daily_test, 2),
-                 "exploration_share": share if cycle_no > 1 else None, "creative_test_tool_max": tool_max if structure == "creative_test" else None}
+                 "exploration_share": share if cycle_no > 1 else None, "creative_test_tool_max": tool_max}
     if daily_test <= 0:
         out.update({"allowed_test_ads": 0, "production_blocked": True, "reason": "günlük test bütçesi ≤ 0: hesap yapılmaz, üretim bekler"})
         return out
@@ -111,13 +111,17 @@ def plan(inp: dict) -> dict:
     for d in (7, 14):
         tb = daily_test * d
         n = math.floor(tb / pc) if pc > 0 else 0
-        if structure == "creative_test":
-            n = min(n, tool_max)
+        # İlk turda da kreatif test aracı sınırı uygulanır: Meta tek sette bütçeyi eşit dağıtmaz; aç kalan konseptlerin hepsi sonraki
+        # turun TEK kreatif testine sığmalı (1.4.7). Az ama farklı reklam ilkesi resmi (ref-legal-tr-meta §7, öğrenme aşaması).
+        n = min(n, tool_max)
         if risk is not None and float(risk) < pc:
             n = 0
         by_days[d] = {"test_budget": round(tb, 2), "allowed_test_ads": n}
     chosen = 7 if by_days[7]["allowed_test_ads"] >= 2 else (14 if by_days[14]["allowed_test_ads"] >= 2 else None)
     out["by_test_days"] = by_days
+    if structure == "bootstrap":
+        warnings.append("ilk tur tek reklam setidir: Meta bütçeyi eşit dağıtmaz, izin verilen sayı üst sınırdır; harcama payı %10'un altında "
+                        "kalan konsept kaybeden sayılmaz, hazır kreatifiyle sonraki turun kreatif testine öncelikli aday olur")
     if chosen is None:
         need_daily = 2 * pc / 14
         if structure == "creative_test":

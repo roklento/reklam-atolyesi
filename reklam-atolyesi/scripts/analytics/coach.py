@@ -291,7 +291,9 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
         co = cost.get(k, {})
         label = B.verdict_language(bool(hook and hook["threshold_met"]), structure)
         if d.get("starved") and structure in ("bootstrap", None, "unverified"):
-            out.append({"concept": k, "decision": "tut", "label": "yetersiz veri", "why": "Meta bu konsepte harcama payının %10'undan azını verdi; kaybeden sayılmaz, sonraki kreatif teste aday"})
+            out.append({"concept": k, "decision": "tut", "label": "yetersiz veri", "carry_over": True,
+                        "why": "Meta bu konsepte harcama payının %10'undan azını verdi; kaybeden sayılmaz. Sonraki turun kreatif testine "
+                               "öncelikli aday: hazır kreatifi yeni tur adıyla yeniden dışa aktarılır, yeniden çekim/render gerekmez"})
             continue
         if co.get("threshold_met") and co.get("p_below_target", 0) >= 0.9 and eco_ok:
             out.append({"concept": k, "decision": "büyüt", "label": label, "why": f"yeterli sonuç; hedef maliyet altı olasılığı {co['p_below_target']:.2f}",

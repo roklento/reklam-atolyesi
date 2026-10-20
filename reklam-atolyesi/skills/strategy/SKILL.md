@@ -68,6 +68,9 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    varsa önce o gelir; rakip sinyali hesabın verisini geçersiz kılmaz. Roller arası karşılaştırma keşiftir. Keşifte her test reklamı
    ayrı bir konsepttir ve ayrı bir alıcıya konuşur (S03 çeşitlilik kuralı, `ref-creative-taxonomy`); aynı konseptin açılış
    karşılaştırması yalnızca birincil doğrulama çiftiyle yapılır. Çıkabilecek farklı konsept sayısı tavandan azsa reklam sayısı düşer.
+   Önceki turda aç kalan konseptler (S16 `carry_over`) varsa test hakkı önce onlara verilir (hazır kreatif; üretim maliyeti yok);
+   kalan hak yeni konseptlere. İlk turun tavanı da kreatif test aracı sınırıdır (`creative_test_tool_max`; `budget.py`): aç kalanların
+   hepsi sonraki turun tek testine sığmalıdır.
 9. **Teklif tutumu:** eşleş · değerle ayrış (indirimsiz) · yalnızca belirli dönemde. Fiyat/indirim kararı kullanıcınındır; indirim
    seçilirse satış sayfasıyla birebirlik ve referans fiyat kuralı (`ref-legal-tr-meta`).
 10. **Zamanlama:** rakiplerin sezon/özel gün başlama örüntüsü + üretim süresi → `launch_at` önerisi. Yoğun dönem CPM beklentisi

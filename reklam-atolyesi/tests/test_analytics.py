@@ -21,8 +21,9 @@ CTX = {"account_id": "act_A", "timezone": "Europe/Istanbul", "currency": "TRY", 
 # --- S02 bütçe ---------------------------------------------------------------
 def test_budget_7_to_14_and_stop():
     base = {"cycle_no": 1, "adset_daily": 100, "cpm": 50, "decision_metric": "hook", "budget_total": None, "launch_at": "2026-03-10"}
-    r7 = BU.plan(base)  # kreatif başına 50; 7 gün 700 → 14 reklam
-    assert r7["test_days"] == 7 and r7["allowed_test_ads"] == 14 and r7["cycle_days"] == 14
+    r7 = BU.plan(base)  # kreatif başına 50; 7 gün 700 → 14 reklam sığar ama ilk turda da araç sınırı (5) uygulanır (1.4.7)
+    assert r7["test_days"] == 7 and r7["allowed_test_ads"] == 5 and r7["cycle_days"] == 14
+    assert any("eşit dağıtmaz" in w for w in r7["warnings"])
     r14 = BU.plan({**base, "adset_daily": 12, "cpm": 50})  # 7 gün 84 → 1 reklam; 14 gün 168 → 3 reklam
     assert r14["test_days"] == 14 and r14["allowed_test_ads"] == 3 and r14["cycle_days"] == 21
     stop = BU.plan({**base, "adset_daily": 5, "cpm": 50})  # 14 gün 70 → 1 reklam

@@ -94,6 +94,15 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.4.7 (geliştirmede, yayınlanmadı)**
+- İlk tur yapısı değişmedi (tek set, "Meta'nın dağıtımı altında"); konsept başına eşit bütçeli ayrı set ve tahmine dayalı "ana reklam +
+  kreatif test" seçenekleri değerlendirildi, eklenmedi (gerekçe: bütçe parçalanması ve ayrı öğrenme, eşit harcamanın kontrol sağlamaması,
+  şema değişikliği riski, ana reklamın kanıtsız %80 bütçe alması).
+- İlk turun reklam tavanı da kreatif test aracı sınırıdır: aç kalan konseptlerin hepsi sonraki turun tek testine sığar; S02 uyarısı
+  Meta'nın tek sette bütçeyi eşit dağıtmadığını söyler.
+- Aç kalan konsept (`carry_over`) sonraki turun kreatif testinde ilk sıradadır; hazır kreatifi yeni tur adıyla yeniden dışa aktarılır
+  (render/çekim yok, ses korunur).
+
 **1.4.6**
 - Ölçekleme katmanı (test ayrı, ölçek tek): S16'da "büyüt" hükmü alan reklam ya ana sette bütçe artışıyla büyür ya da ayrı ölçekleme
   kampanyasına **mevcut gönderiyle** (beğeni ve yorumlar taşınır) taşınır. Taşıma dört koşul ister: doğrulanmış kreatif test yapısında

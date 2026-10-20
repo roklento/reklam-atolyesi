@@ -37,7 +37,9 @@ Yok.
      Hükümler "Meta'nın dağıtımı altında".
    - **Sonraki turlar (`creative_test`):** aynı reklam setinde, yayındaki bir reklamdan başlatılan Meta kreatif testi; yeni konseptler
      test reklamı (araç sınırı içinde); test bütçesi ≤ `exploration_share` (plugin'in yerel üst sınırı 0,2; Meta'nın ~%20 önerisi teyit edilmedi, §7); reklam sayısı Ads Manager ekranından; süre 7 gün (ya da S02'nin seçtiği); "En yüksek hacim".
-     Maliyet hedefi/teklif sınırı/ROAS hedefi kreatif testi engeller. ABO ve Meta A/B testi desteklenmez.
+     Maliyet hedefi/teklif sınırı/ROAS hedefi kreatif testi engeller. ABO ve Meta A/B testi desteklenmez: konsept başına ayrı set
+     bütçeyi parçalar ve her set ayrı öğrenir (çok set → daha az öğrenme, resmi; §7); eşit harcama da kontrollü karşılaştırma değildir.
+     İlk turun aç kalan konseptleri kaybeden sayılmaz; sonraki turun kreatif testinde ilk sıradadır (coach, learn).
    - **Ölçekleme katmanı (`scale`, varsa):** S16'da onaylanan ayrı kampanya; tek reklam seti, geniş kitle, "En yüksek hacim". Yeni turun
      test reklamları **buraya eklenmez**; yeni fikirler yalnızca test katmanında sınanır. Pakette katmanın durumu tek satırla yer alır
      (üyeler, günlük bütçe, kalan bütçeye etkisi). Üye ekleme her zaman S16 uygulama listesinden ve **mevcut gönderiyle** yapılır

@@ -43,6 +43,8 @@ Yok.
    doğrulanmamış yapıda "Meta'nın dağıtımı altında"; eşik altı → "yön/yetersiz veri" (istatistiksel kazanan, büyüt ya da kaybeden
    gerekçeli kapat **yok**). Küçük bütçede hüküm üst huniden geliyorsa açıkça yazılır ("satışa değil, dikkat ve tıklamaya dayanıyor").
    Hook × CTR × CVR çarpımı yapılmaz; erişim toplamından frekans türetilmez. Konsept önceliği yalnızca sonraki test adaylarını sıralar.
+   İlk turda (tek set) Meta'nın aç bıraktığı konsept (`carry_over`) kaybeden değildir; sonraki turun kreatif testine **öncelikli aday**
+   olarak rapora ve S17 brief taslağına yazılır (hazır kreatifiyle; yeniden çekim/render yok).
    Reklam düzeyinde "kapat" performans gerekçesiyle önerilmez (Meta zaten harcama vermiyorsa gereksiz); onaylı sınır aşımı ayrı kuraldır.
 6a. **Ölçekleme katmanı (test ayrı, ölçek tek):** "büyüt" hükmü alan reklam için iki yol vardır: ana reklam setinde kalıp bütçe
    artışıyla büyümek (varsayılan) ya da ayrı **ölçekleme kampanyasına** (tek reklam seti, geniş kitle, "En yüksek hacim", kreatif test

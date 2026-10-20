@@ -41,7 +41,8 @@ Yok.
 7. **Hafıza:** `memory_lifecycle_tick(profile_id)`; `journal_fold(profile_id)`; konsolidasyon (`memory` skill'i D adımı: aday grupları
    Claude okur, en fazla 10 grup, gerekirse kullanıcıya sorar); kalibrasyondan eşik/`n_cap` önerisi yalnızca ≥ 30 çözülmüş tahminde ve
    kullanıcı onayıyla.
-8. **Sonraki tur brief taslağı:** kazananı büyüt, bir bilinmeyeni test et, ertelenen fikirler, uygulama listesi durumu, "rakip görüntüsü
+8. **Sonraki tur brief taslağı:** önce aç kalan konseptler (S16 `carry_over`: ilk turda Meta harcama vermediği için ölçülemeyenler;
+   kreatif testte ilk sırada, hazır kreatifle), sonra kazananı büyüt, bir bilinmeyeni test et, ertelenen fikirler, uygulama listesi durumu, "rakip görüntüsü
    tazelenmeli mi" notu → `DD/profiles/<slug>/campaigns/<k>/c<tur+1>-brief-taslak.md`. "Kazananı büyüt" iki yoldan biriyle yazılır:
    ölçekleme katmanına mevcut gönderiyle taşındı/taşınacak (S16 maddesi, gönderi kimliği) ya da ana sette bütçe artışıyla (katman
    koşulları sağlanmadıysa nedeni). Katman açıksa taslağa ayrıca: üyelerin yorgunluk durumu (`track` 6.7), yenileme ihtiyacı (yorulan
