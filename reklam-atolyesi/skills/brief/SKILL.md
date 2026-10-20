@@ -43,6 +43,8 @@ Yok.
      Meta'ya gider, bu yüzden KVKK dayanağı (`processing_permission_check`) olmadan önerilmez ve yüklemeyi insan yapar; (3) **bilinçli
      başka sonuç** (`optimize_other`): mesaj, bağlantı tıklaması ya da profil ziyareti; satış yine `sales_add` ile kanala göre izlenir
      ve hüküm "satışa değil, dikkat ve tıklamaya dayanıyor" diye yazılır.
+     Yolun kendisi (hangi platformda nasıl, kim yapacak, kaynakları) `reklam-atolyesi:data-connection` ile kullanıcının düzenine göre
+     kurulur; brief bu yüzden beklemez, seçim kaydedilir.
    - Elle satış: `sales_add(..., channel, kind)` — kanal (Shopier, site, Instagram DM, WhatsApp, kurumsal, mağaza) ve tür (satış | talep);
      atıf varsayımı söylenir (6.2). Kurumsal/toptan fırsat hedefleniyorsa sonuç türü çoğu zaman mesajdır; Shopier satışına bakılarak
      başarısız sayılmaz.

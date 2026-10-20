@@ -70,6 +70,12 @@ pozitif başa baş yok. Satış dışı sonuçta hedef kullanıcı hedefidir. Pi
   "reklam sonrası şüpheli" (sayfa, fiyat, kargo, güven, teklif); bu turda kreatife satış gerekçeli olumsuz hüküm yazılmaz. DM/WhatsApp/
   kurumsal satış ve talepler kanala göre ayrı yazılır, Meta'da görünmez.
 
+- **Tek satış defteri (1.4.8):** mağaza kanallarında içe aktarılan siparişler, mesaj kanallarında DM modülü satışları elle girişten
+  önce gelir; çakışan elle giriş sayılmaz. Mağaza kaydı varsa tıklama→satış oranı onunla hesaplanır, piksel sayısı eklenmez (aynı satış).
+  Meta ↔ mağaza: Meta'nın atfettiği satın alma mağazanın ödenmiş siparişinden belirgin fazlaysa (×1,1 ve ≥ 3) piksel şüphesi.
+- **Mesajla satış (1.4.8):** gün/kanal başına günlük toplam (yoksa tek tek kayıtlar); satış/konuşma oranı Beta(1,1) ile %90 aralık
+  (≥ 3 konuşma); kampanyaya yalnızca kanıtlı konuşma bağlanır; günlük toplam kampanyaya bölünmez.
+
 ## 6. Bağımsız doğrulama ve playbook (6.6, 6.14)
 Tur başına en fazla bir birincil hipotez (kol, metrik, yön, karşılaştırma) **test öncesi** sabitlenir. Playbook önerisi: ilk yeterli turda
 aynı yön + sonraki turun **tek başına** verisinde aynı yönde üstünlük ≥ 0,95 (oranda iki kola Beta(1,1), maliyette sabit Gamma; keşif

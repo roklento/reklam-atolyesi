@@ -28,7 +28,8 @@ sys.path.insert(0, str(ROOT / "servers" / "ad_memory"))
 EXPECTED_SKILLS = ["navigator", "brand-onboarding", "meta-history", "product-onboarding", "brief", "competitor-analysis", "strategy", "concepts",
                    "shoot-guide", "shoot-feedback", "ingest", "analyze", "style-directions", "materials", "compose", "sound", "variants", "qc",
                    "launch-pack", "track", "coach", "learn", "memory", "ref-system-map", "ref-metrics-math", "ref-legal-tr-meta",
-                   "ref-remotion-components", "ref-shooting-basics", "ref-production-recipes", "ref-vendor-map", "ref-creative-taxonomy"]
+                   "ref-remotion-components", "ref-shooting-basics", "ref-production-recipes", "ref-vendor-map", "ref-creative-taxonomy",
+                   "dm-sales", "data-connection"]
 STAGE_SKILLS = EXPECTED_SKILLS[1:22]
 STAGE_HEADINGS = ["## Amaç", "## Ön koşul", "## Girdiler ve bağlam paketi", "## Kullanılan hazır skill'ler ve OVERRIDES", "## Adımlar",
                   "## Çıktılar", "## Kontroller", "## Kapı mesajı"]
@@ -47,7 +48,7 @@ competitor_snapshot_save competitor_ads_upsert competitor_offer_upsert competito
 competitive_insights_get concept_distance_check concept_diversity_check strategy_save strategy_get taxonomy_get taxonomy_value_add edit_plan_save edit_plan_validate
 edit_plan_patch scene_cache_get asset_register asset_query generation_hash generation_log generation_find generation_approve generation_update
 cost_summary review_add review_withdraw review_query consent_add consent_withdraw consent_query creative_register ad_link sales_add
-action_items_set action_item_set_status action_items_verify scale_layer_get scale_layer_set meta_signal_set meta_signal_get prediction_log prediction_resolve calibration_get playbook_get playbook_propose
+action_items_set action_item_set_status action_items_verify scale_layer_get scale_layer_set meta_signal_set meta_signal_get dm_thread_open dm_thread_event dm_daily_set dm_summary dm_follow_ups data_connection_set data_connection_get sales_import_csv sales_orders_summary prediction_log prediction_resolve calibration_get playbook_get playbook_propose
 playbook_activate playbook_revalidate playbook_retire playbook_round_tick memory_card memory_context memory_search memory_add memory_observe
 memory_update memory_forget memory_consolidate consolidation_due journal_log journal_summary checkpoint_save checkpoint_get checkpoint_close
 export_markdown backup system_manifest_get""".split()
@@ -249,7 +250,7 @@ def check_components(r: Report) -> None:
     for f in ("README.md", ".mcp.json", "system_manifest.json"):
         if not (ROOT / f).exists():
             probs.append(f"{f} yok")
-    r.add("components", "Bölüm 16 bileşenleri: 31 skill (başlıklar), 11 ajan, 19 komut, 4 workflow, hook'lar, README", not probs, probs)
+    r.add("components", f"Bölüm 16 bileşenleri: {len(EXPECTED_SKILLS)} skill (başlıklar), 11 ajan, 19 komut, 4 workflow, hook'lar, README", not probs, probs)
 
 
 def check_scripts_map(r: Report, manifest: dict) -> None:
@@ -439,7 +440,7 @@ def check_manifest(r: Report, manifest: dict) -> None:
     need = ["stages", "skills", "agents", "commands", "workflows", "hooks", "mcp_servers", "mcp_tools", "pipelines", "scripts", "tests",
             "deviations", "neutrality_audit", "live_checks", "component_hashes"]
     missing = [k for k in need if k not in manifest]
-    r.add("manifest", "system_manifest.json tam ve gerçek bileşenlerle tutarlı (hash)", not diff and not missing and len(manifest.get("skills", [])) == 31,
+    r.add("manifest", "system_manifest.json tam ve gerçek bileşenlerle tutarlı (hash)", not diff and not missing and len(manifest.get("skills", [])) == len(EXPECTED_SKILLS),
           {"stale_components": diff, "missing_sections": missing})
     na = manifest.get("neutrality_audit") or {}
     covered = na.get("component_hashes") or {}

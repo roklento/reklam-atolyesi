@@ -68,7 +68,7 @@ def _date(v: Any) -> str:
     raise AdMemoryError(f"tarih okunamadı: {v!r}")
 
 
-SALES_CHANNELS = ("shopier", "site", "instagram_dm", "whatsapp", "kurumsal", "magaza", "diger")
+SALES_CHANNELS = ("shopier", "site", "pazaryeri", "instagram_dm", "messenger", "whatsapp", "telefon", "kurumsal", "magaza", "diger")
 META_SIGNAL_STATUSES = ("purchase_seen", "no_purchase", "unknown")
 META_SIGNAL_CHOICES = ("pixel_install", "csv_upload", "optimize_other")
 META_SIGNAL_RULE = ("Satış (purchase) sonuçlu kampanya yalnızca Meta son 7 günde Purchase olayı alıyorsa açılır; almıyorsa üç yol: piksel kur, "

@@ -7,7 +7,9 @@ from pathlib import Path
 from .s_base import BaseStore
 from .s_coach import CoachMixin
 from .s_comp import CompMixin
+from .s_conn import ConnMixin
 from .s_creative import CreativeMixin
+from .s_dm import DMMixin
 from .s_legal import LegalMixin
 from .s_memory import MemoryMixin
 from .s_meta import MetaMixin
@@ -15,7 +17,7 @@ from .s_stage import StageMixin
 from .util import AdMemoryError
 
 
-class Store(StageMixin, MetaMixin, CreativeMixin, CompMixin, CoachMixin, MemoryMixin, LegalMixin, BaseStore):
+class Store(StageMixin, MetaMixin, CreativeMixin, CompMixin, CoachMixin, MemoryMixin, LegalMixin, DMMixin, ConnMixin, BaseStore):
     pass
 
 

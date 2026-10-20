@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.7
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.8
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,28 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.4.8**
+- **Mesajla satış modülü** (`dm-sales`): Instagram DM, WhatsApp, Messenger, telefon, web sohbeti, e-posta. Konuşma takma kodla
+  (M-0001) tek tek ya da günlük toplam olarak kaydedilir; kişisel veri (telefon, e-posta, IBAN, kimlik no, @kullanıcı adı) sunucuda
+  reddedilir. Durum makinesi: açık → nitelikli → teklif → satış/kayıp (kayıp nedeni zorunlu), sessiz/yeniden açma; satışta ödeme yolu
+  zorunlu (mağaza bağlantısıyla ödenen satış çift sayılmaz). Günlük toplam o günün bütün konuşmalarıdır, tek tek kayıtlar onu aşamaz;
+  gün markanın saat dilimindedir. Reklam bağı yalnızca kanıtla. Takip listesi, cevap/teklif/takip taslakları (gönderim yok).
+- **Veri bağlantısı** (`data-connection`): satış düzenine (site platformu, Shopier, pazaryeri, DM, mağaza, kurumsal), ayarlara erişime ve
+  müşteri verisi tercihine göre yol seçimi — platform entegrasyonu, piksel kodu, Events Manager'a yükleme (yalnızca açık onayla), sipariş
+  içe aktarma, DM, elle. Platforma özgü adım yalnızca okunan resmi kaynakla "doğrulandı"; "tamam" yalnızca Purchase olayı görülerek ya da
+  içe aktarmayla.
+- **Mağaza sipariş içe aktarma** (`sales_import_csv`): her platformun CSV dışa aktarımı; yalnızca eşlenen sütunlar okunur, sipariş no
+  hash'lenir, çok satırlı sipariş birleştirilir, aynı dosya iki kez sayılmaz, durum değişen sipariş güncellenir.
+- **Tek satış defteri** (koçluk): mağaza kanallarında içe aktarma, mesaj kanallarında DM modülü elle girişten önce gelir; çakışan elle
+  giriş sayılmaz ve rapora yazılır. Mağaza kaydı varken piksel satışı ayrıca eklenmez. **Meta ↔ mağaza** satırı piksel sağlığını gösterir.
+  Rapora mesajla satış hunisi (%90 aralık, kayıp nedenleri, ilk cevap süresi).
+- **Reklam metni uzunluğu** (`checks.py copy`): Meta önerisi birincil 125 / başlık 40 / açıklama 30 görünür karakter (resmi kaynakla) +
+  videonun yapısına göre kurallar (ana vaat görünür kısımda, dikeyde ilk cümle, videoda yazı/konuşma yoksa mesajı metin taşır, fiyat
+  videodaysa tekrar etme); profil daha sıkı hedef verebilir.
+- Satış kanalları genişledi (pazaryeri, Messenger, telefon). Migration 005 (yeni tablolar ve sütun; mevcut tablolar yeniden kurulmaz).
+- §7: metin uzunluğu resmi; mesaj hedefli kampanyada başlatılan konuşma için ayrı alan bu bağlantıda yok (`results`); A/B test listesi
+  okunabiliyor, ayrıntı bir çalışma olmadan sınanamadı.
+
 **1.4.7**
 - **Meta satışı görüyor mu:** S00b veri kümesinde son 7 günün Purchase olayını salt okumayla kontrol eder (`meta_signal_set/get`).
   Satış sonuçlu kampanya yalnızca Meta satışı görüyorsa açılır (sunucu kuralı). Görmüyorsa üç yol: piksel kur, satışları KVKK

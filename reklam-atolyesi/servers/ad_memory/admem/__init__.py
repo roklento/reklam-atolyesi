@@ -1,2 +1,2 @@
 """reklam-atolyesi ad-memory çekirdeği (Store, şema, hafıza, rekabet)."""
-__version__ = "1.4.7"
+__version__ = "1.4.8"

@@ -70,6 +70,16 @@ class CoachMixin:
             "competitor_snapshot": comp, "extra": {k: v for k, v in (extra or {}).items() if k != "params"},
             "data_cutoff": max((r["fetched_at"] for r in rows), default=None),
         }
+        # 1.4.8: mesajla satış ve içe aktarılan mağaza siparişleri (kişisel veri ve not yok; siparişler gün/kanal/durum toplamı)
+        lo = min([c["created_at"][:10]] + [r["date"] for r in rows])
+        hi = "9999-12-31"  # kopya içeriği bugünün tarihine değil yalnızca kayıtlı veriye bağlı kalsın (aynı veri → aynı kopya)
+        payload["dm"] = {"threads": self.dm_threads_rows(c["brand_id"], lo, hi),
+                         "daily": self.qa("SELECT date, channel, conversations, from_ads, qualified, quoted, won FROM dm_daily "
+                                          "WHERE brand_id=? AND date BETWEEN ? AND ? ORDER BY date, channel", (c["brand_id"], lo, hi))}
+        payload["sales_orders"] = self.qa("""SELECT date, channel, status, currency, COUNT(*) AS orders, SUM(COALESCE(units,0)) AS units,
+                                                SUM(CASE WHEN units IS NULL THEN 1 ELSE 0 END) AS units_unknown, SUM(COALESCE(amount,0)) AS amount
+                                         FROM sales_orders WHERE brand_id=? AND date BETWEEN ? AND ? GROUP BY date, channel, status, currency
+                                         ORDER BY date, channel, status""", (c["brand_id"], lo, hi))
         text = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=1, default=str)
         sha = sha256_text(text)
         ex = self.q1("SELECT * FROM input_snapshots WHERE cycle_id=? AND kind=? AND sha256=?", (cy["id"], kind, sha))

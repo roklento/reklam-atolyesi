@@ -68,6 +68,7 @@ Her iş için yalnızca tetiklendiğine değil **başarılı çıktı/veri sür�
 - Ücretli üretim uzlaştırması: `generations_reconcile_due(profile_id)` → `running/unknown` kayıtlar `creative_get_flow_run_status`
   ile salt okuma kontrol edilir; doğrulanamayan `unknown` kalır (9.1).
 - Ayrı kontroller: eksik günlük veri, vadesi gelen karar hazırlığı (plan günü), bekleyen yerel üretim (gece üretimi yarım kaldıysa).
+- Mesajla satış: `dm_follow_ups(profile_id)` boş değilse üst satırda tek cümle ("N konuşma takip bekliyor").
 - **W bekleme durumunda** `footage/raw/` ya da `photos/raw/` altında yeni dosya görülürse yalnızca sor: "Yeni çekimler gelmiş,
   tamamlandı mı?" Son 2 dakikada boyutu değişen dosya varsa kopyalama sürüyordur; bekle.
 - OAuth hatasında yalnızca ilgili dış okuma durur; yerel üretim kaybolmaz. Eski veriyle yeni karar onaylanmaz.
@@ -125,6 +126,8 @@ Her maddenin işi `menu.json`'daki `action` alanıdır; hook seçimde bunu bağl
 | — | Satış gir (serbest metin) | `sales_add` (tarih aralığı, adet, ciro, kaynak notu, kanal, satış/talep); atıf varsayımı söylenir |
 | — | Referans video (serbest metin: "şu videoya benzer") | aktif kampanyada S03'ün referans video adımı (`concepts` 5); kampanya yoksa yeni kampanya önerilir, video o zaman ölçülür |
 | — | Ölçekleme katmanı (serbest metin) | `scale_layer_get`; taşıma kararı yalnızca S16'da (`coach` 6a) |
+| — | DM / mesaj satışı (serbest metin: "DM gir", "günlük DM", "DM özeti", "cevap taslağı", "takip listesi") | `reklam-atolyesi:dm-sales` |
+| — | Veri bağlantısı (serbest metin: "piksel", "satışları bağla", "sipariş yükle") | `reklam-atolyesi:data-connection` |
 | — | Uygulama listesi (serbest metin) | `action_items_list` + `action_items_verify` (salt okuma) |
 
 ### 5. Profil yönetimi (17.3)

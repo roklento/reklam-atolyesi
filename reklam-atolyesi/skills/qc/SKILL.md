@@ -31,7 +31,8 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
    fps, codec/profil, yuv420p, AAC 48 kHz, faststart, -14 LUFS ±1, ≤ -1 dBTP, siyah kare/donma **bütün videoda**, güvenli alan),
    `checks.py black --video <mp4>`, `checks.py safe --plan <plan.json>` (yazılar güvenli alanda ve ≥ 1,5 sn ekranda), kontak sayfası
    (`contact_sheet.py --per-second`), slayt gösterisi riski (`PY PR/scripts/qc/slideshow.py --plan <plan.json> --video <mp4>`:
-   `critical` → düzeltme notu; ham/UGC türünde kullanıcı bilerek kabul ederse gerekçesiyle geçer; `high` → uyarı; eşikler yereldir).
+   `critical` → düzeltme notu; ham/UGC türünde kullanıcı bilerek kabul ederse gerekçesiyle geçer; `high` → uyarı; eşikler yereldir),
+   reklam metni varsa uzunluk (`checks.py copy`; uyarıdır).
 3. **Bağımsız görsel/yasal inceleme (paralel):** workflow `qc-review` — `PR/workflows/qc-review.js`, args: `{profile_id, campaign_id,
    cycle_id, campaign_dir, plugin_root, data_dir, py, creatives:[{creative_id, file, plan_path, format, expect_duration, tech_report}],
    now_iso}`; her kreatif için `qc-reviewer`

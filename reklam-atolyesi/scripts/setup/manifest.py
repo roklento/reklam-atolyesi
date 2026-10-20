@@ -134,7 +134,7 @@ def ad_memory_tools(root: Path) -> list[str]:
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-SKILL_KIND = {"navigator": "entry", "memory": "system", "ref-system-map": "system"}
+SKILL_KIND = {"navigator": "entry", "memory": "system", "ref-system-map": "system", "dm-sales": "module", "data-connection": "module"}
 
 LIVE_CHECKS = [
     {"id": "oauth_elevenlabs", "title": "ElevenLabs uzak MCP OAuth bağlı", "required": True, "applies_to": "both", "components": ["mcp_json"]},
@@ -190,7 +190,7 @@ SCRIPT_MAP = {
     "render: export ve adlandırma": "scripts/render/export.py",
     "render: grade_lut": "scripts/render/grade_lut.py",
     "render: self_review": "scripts/render/self_review.py",
-    "qc: tech_qc, safe_zone, black_frames": "scripts/qc/checks.py",
+    "qc: tech_qc, safe_zone, black_frames, meta-text, copy (reklam metni uzunluğu)": "scripts/qc/checks.py",
     "qc: slayt gösterisi riski (durağan pay, zayıf hareket, açılış hareketi, tekrar, ritim, yazıya yaslanma)": "scripts/qc/slideshow.py",
     "analyze: referans video (sahne kesimleri, ritim, hareket, yazı/konuşma, ses, kontak sayfası)": "scripts/analyze/reference.py",
     "meta: csv_import kontrolü, priors_from_history doğrulaması, naming_match": "scripts/meta/meta_tools.py",

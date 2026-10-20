@@ -46,7 +46,8 @@ Yok.
    gün) ve gerekirse `ads_get_dataset_quality`. Purchase olayı son 7 günde geldiyse `meta_signal_set(profile_id, "purchase_seen",
    "meta_mcp", evidence="<veri kümesi kimliği> · Purchase <n> olay · <tarih aralığı>")`; gelmediyse `"no_purchase"`; araç okuyamazsa
    ya da CSV yolundaysa `"unknown"` (kullanıcı Events Manager ekranını gösterirse `source="user_evidence"`). Sonuç sağlık raporuna ve
-   kullanıcıya tek cümleyle: "Meta satışlarınızı görüyor / görmüyor: görmezse reklam tıklayanı bulur, alanı değil." Yol seçimi S01'de.
+   kullanıcıya tek cümleyle: "Meta satışlarınızı görüyor / görmüyor: görmezse reklam tıklayanı bulur, alanı değil." Yol seçimi S01'de
+   ya da `reklam-atolyesi:data-connection` ile (satış düzenine göre piksel, entegrasyon, yükleme, sipariş içe aktarma, DM).
 7. **Hipotez adayları:** anomali ve geçmiş bulgulardan **önerilen** durumda — `memory_add(layer="semantic", kind="hypothesis_candidate",
    source="data", tags=["meta"], …)` (kaynak değerleri: `user | claude | data | system`; Meta verisinden çıkan bulgu `data`dır); kampanya hipotezi değildir (hipotez S03'te konseptten doğar).
 8. `profile_update(profile_id, history_status="ready"|"no_history", last_meta_sync_at=<şimdi>)`.

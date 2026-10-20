@@ -272,9 +272,83 @@ def ad_link(profile_id: int, campaign_id: int, cycle_id: int, creative_key: str,
 @mcp.tool()
 def sales_add(profile_id: int, campaign_id: int, period_start: str, period_end: str, units: int | None = None, revenue: float | None = None,
               source_note: str | None = None, channel: str | None = None, kind: str = "sale") -> dict:
-    """Elle satış ya da talep (6.2). channel: shopier | site | instagram_dm | whatsapp | kurumsal | magaza | diger; kind: sale | lead
+    """Elle satış ya da talep (6.2). channel: shopier | site | pazaryeri | instagram_dm | messenger | whatsapp | telefon | kurumsal | magaza | diger; kind: sale | lead
     (ör. kurumsal toplu sipariş isteği). Atıf varsayımı raporda yazılır; kreatiflere dağıtılmaz; DM/kurumsal Meta'da görünmez."""
     return call(lambda s: s.sales_add(profile_id, campaign_id, period_start, period_end, units, revenue, source_note, channel, kind))
+
+
+@mcp.tool()
+def dm_thread_open(profile_id: int, channel: str, opened_at: str | None = None, campaign_id: int | None = None, source: str = "unknown",
+                   source_evidence: str | None = None, meta_ad_id: str | None = None, creative_key: str | None = None,
+                   segment: str = "unknown", intent: str = "other", quantity: int | None = None, note: str | None = None) -> dict:
+    """Mesajla gelen bir konuşmayı takma kodla (M-0001) açar. channel: instagram_dm | messenger | whatsapp | phone | web_chat | email |
+    other; source: ad (kanıt ve campaign_id zorunlu) | organic | referral | repeat | unknown; segment: individual | corporate | reseller |
+    unknown; intent: price | shipping | personalization | bulk | stock | payment | return | product_info | other. Kişisel veri (telefon,
+    e-posta, IBAN, kimlik no, @kullanıcı adı) reddedilir. Günlük toplam girilmişse tek tek kayıtlar onu aşamaz."""
+    return call(lambda s: s.dm_thread_open(profile_id, channel, opened_at, campaign_id, source, source_evidence, meta_ad_id, creative_key,
+                                          segment, intent, quantity, note))
+
+
+@mcp.tool()
+def dm_thread_event(profile_id: int, ref: str, event: str, at: str | None = None, amount: float | None = None, quantity: int | None = None,
+                    currency: str | None = None, lost_reason: str | None = None, paid_via: str | None = None,
+                    next_follow_up_at: str | None = None, segment: str | None = None, intent: str | None = None,
+                    note: str | None = None) -> dict:
+    """Konuşmaya olay ekler. Durum değiştiren: qualified | quoted (amount=teklif) | won (paid_via zorunlu: store_link | bank_transfer |
+    cash_on_delivery | card_link | in_person | other; amount=satış) | lost (lost_reason zorunlu) | stale | reopened. Durumu değiştirmeyen:
+    responded (ilk cevap süresi) | follow_up | note. Kapanmış konuşma yalnızca reopened ile açılır."""
+    return call(lambda s: s.dm_thread_event(profile_id, ref, event, at, amount, quantity, currency, lost_reason, paid_via, next_follow_up_at,
+                                           segment, intent, note))
+
+
+@mcp.tool()
+def dm_daily_set(profile_id: int, date: str, channel: str, conversations: int, from_ads: int | None = None, qualified: int | None = None,
+                 quoted: int | None = None, won: int | None = None, note: str | None = None) -> dict:
+    """Bir günün ve kanalın TOPLAM mesaj sayıları (tek tek kaydedilenler dahil; markanın saat dilimindeki gün). Yeniden yazılabilir."""
+    return call(lambda s: s.dm_daily_set(profile_id, date, channel, conversations, from_ads, qualified, quoted, won, note))
+
+
+@mcp.tool()
+def dm_summary(profile_id: int, date_from: str | None = None, date_to: str | None = None, campaign_id: int | None = None) -> dict:
+    """Mesajla satış hunisi: konuşma → nitelikli → teklif → satış, kanal, kayıp nedenleri, ilk cevap süresi, açık teklif toplamı."""
+    return call(lambda s: s.dm_summary(profile_id, date_from, date_to, campaign_id))
+
+
+@mcp.tool()
+def dm_follow_ups(profile_id: int, now: str | None = None) -> dict:
+    """Takip bekleyen açık konuşmalar (takip zamanı gelmiş ya da 3+ gündür sessiz; yerel kural)."""
+    return call(lambda s: s.dm_follow_ups(profile_id, now))
+
+
+@mcp.tool()
+def data_connection_set(profile_id: int, plan: dict) -> dict:
+    """Veri bağlantısı planı: sales_places [{kind, platform?, url?}], access, preference.customer_data_to_meta (allowed | not_allowed |
+    undecided), chosen_paths (platform_integration | pixel_code | events_upload | order_import | manual_entry | messaging_only), sources
+    [{path, url, checked_at, status: verified | not_found | unverified}], status (planned | in_progress | done | blocked). Platforma özgü
+    adım yalnızca okunan resmi kaynakla 'verified' olur."""
+    return call(lambda s: s.data_connection_set(profile_id, plan))
+
+
+@mcp.tool()
+def data_connection_get(profile_id: int) -> dict:
+    """Veri bağlantısı planı, Meta satış sinyali ve son sipariş içe aktarma."""
+    return call(lambda s: s.data_connection_get(profile_id))
+
+
+@mcp.tool()
+def sales_import_csv(profile_id: int, path: str, platform: str, mapping: dict, channel: str = "site", status_map: dict | None = None,
+                     status_default: str | None = None, currency: str | None = None, decimal: str | None = None,
+                     date_format: str | None = None) -> dict:
+    """Mağaza sipariş CSV'sini okur (yalnızca eşlenen sütunlar: date, order_id, amount?, units?, status?, currency?). Sipariş no hash'lenir;
+    kişisel sütunlar okunmaz. status_map: {"Tamamlandı": "paid", "İptal": "cancelled", ...}; durum sütunu yoksa status_default."""
+    return call(lambda s: s.sales_import_csv(profile_id, path, platform, mapping, channel, status_map, status_default, currency, decimal,
+                                            date_format))
+
+
+@mcp.tool()
+def sales_orders_summary(profile_id: int, date_from: str | None = None, date_to: str | None = None) -> dict:
+    """İçe aktarılan siparişlerin gün/kanal/durum toplamları."""
+    return call(lambda s: s.sales_orders_summary(profile_id, date_from, date_to))
 
 
 @mcp.tool()

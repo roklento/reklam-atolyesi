@@ -69,7 +69,28 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
         if ch.get("sales") or ch.get("leads"):
             parts = [f"{k}: {v['units']} adet" + (f" / {v['revenue']}" if v.get("revenue") else "") for k, v in ch["sales"].items()]
             parts += [f"{k}: {n} talep" for k, n in ch["leads"].items()]
-            lines.append("- Kanallar (elle girilen): " + " · ".join(parts) + ". DM/WhatsApp/kurumsal Meta'da görünmez.")
+            lines.append("- Kanallar: " + " · ".join(parts) + ". DM/WhatsApp/kurumsal Meta'da görünmez.")
+        for ex in ch.get("excluded_manual") or []:
+            lines.append(f"- ⚠ Elle girilen {ex['channel']} satışı ({ex['period'][0]}–{ex['period'][1]}) sayılmadı: {ex['why']}.")
+        svm = an.get("store_vs_meta")
+        if svm:
+            lines.append(f"- Meta ↔ mağaza: {svm['msg']}")
+        dm = an.get("dm")
+        if dm:
+            t = dm["totals"]
+            line = (f"- Mesajla satış: {t['conversations']} konuşma → {t['qualified']} nitelikli → {t['quoted']} teklif → {t['won']} satış"
+                    + (f" (satış oranı %90 aralık {dm['won_rate_interval']['lo']:.0%}–{dm['won_rate_interval']['hi']:.0%})"
+                       if dm.get("won_rate_interval") else ""))
+            if dm.get("median_first_response_min") is not None:
+                line += f"; ilk cevap ortanca {dm['median_first_response_min']:.0f} dk"
+            lines.append(line + ".")
+            if dm.get("lost_reasons"):
+                lines.append("  - Kayıp nedenleri: " + ", ".join(f"{k} {v}" for k, v in dm["lost_reasons"].items()))
+            if dm.get("open_quote_pipeline"):
+                lines.append("  - Açık teklifler: " + ", ".join(f"{v} {k}" for k, v in dm["open_quote_pipeline"].items()))
+            if dm.get("campaign_attributed"):
+                ca = dm["campaign_attributed"]
+                lines.append(f"  - Bu kampanyaya kanıtla bağlı konuşma {ca['threads']}, satış {ca['won']} (günlük toplamlar kampanyaya bölünmez).")
         lines.append(f"_{fd['rule']}_")
     else:
         lines.append("- Teşhis yok.")

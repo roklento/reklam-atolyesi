@@ -31,7 +31,9 @@ Yok.
    Sınır değişikliği yeni açık kullanıcı onayı ister; eski onay kanıtı korunur. Eşleme eksikse paket onaya açılmaz (sunucu da reddeder).
 4. **Metinler:** birincil metin, başlık, açıklama, CTA (Meta CTA türü) — yalnızca kanıtlanabilir iddialar; fiyat/indirim satış
    sayfasıyla birebir ve indirimde referans fiyat kanıtı; marka tonu; kaçınılacaklar. Metinler `checks.py meta-text --text` ile taranır
-   ve Meta reklam standartları (`ref-legal-tr-meta` §8): kişisel özellik ima eden ifade yok, şok/korku taktiği yok, sağlık ve görünümde olumsuz öz algı ya da süreli/kesin sonuç vaadi yok; önce/sonra ürün kategorisine göre (8d); 18+ hedefleme gerekiyorsa kurulum talimatına yazılır.
+   ve uzunluğu `checks.py copy --texts metin.json --plan <plan> --promise "<ana vaat/teklif sözcükleri>"` ile denetlenir (birincil
+   metin 125, başlık 40, açıklama 30 görünür karakter — Meta önerisi; ana vaat görünür kısımda; dikey videoda ilk cümle; videoda yazı/
+   konuşma yoksa mesajı metin taşır; profil/stil kitabında daha sıkı hedef varsa `--targets`) ve Meta reklam standartları (`ref-legal-tr-meta` §8): kişisel özellik ima eden ifade yok, şok/korku taktiği yok, sağlık ve görünümde olumsuz öz algı ya da süreli/kesin sonuç vaadi yok; önce/sonra ürün kategorisine göre (8d); 18+ hedefleme gerekiyorsa kurulum talimatına yazılır.
 5. **Ads Manager kurulum talimatı** (adım adım, hesabın güncel ekranında doğrulanacağı notuyla):
    - **İlk tur (`bootstrap`):** tek kampanya, tek reklam seti, teklif stratejisi "En yüksek hacim"; turun konseptleri birlikte.
      Hükümler "Meta'nın dağıtımı altında".

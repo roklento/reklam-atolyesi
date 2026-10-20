@@ -290,23 +290,113 @@ def _overlaps(row: dict, days: list[str]) -> bool:
     return not (row.get("period_end", "") < days[0] or row.get("period_start", "") > days[-1])
 
 
-def channel_summary(snap: dict, days: list[str]) -> dict:
-    """Elle girilen satış ve talepler kanala göre (1.4.7). DM/WhatsApp/kurumsal Meta'da görünmez; kreatiflere dağıtılmaz."""
-    sales, leads = defaultdict(lambda: {"units": 0, "revenue": 0.0}), defaultdict(int)
+STORE_CHANNELS = ("site", "shopier", "pazaryeri", "magaza")
+DM_TO_SALES = {"instagram_dm": "instagram_dm", "messenger": "messenger", "whatsapp": "whatsapp", "phone": "telefon",
+               "web_chat": "diger", "email": "diger", "other": "diger"}
+
+
+def _in_days(day, days: list) -> bool:
+    return bool(day) and (not days or days[0] <= day <= days[-1])
+
+
+def channel_summary(snap: dict, days: list) -> dict:
+    """Satış ve talepler kanala göre, tek defter (1.4.7, 1.4.8). Öncelik (çift sayım yok): mağaza kanallarında içe aktarılan siparişler
+    elle girişten önce gelir; mesaj kanallarında DM modülündeki satışlar (mağaza bağlantısıyla ödenmeyenler) elle girişten önce gelir.
+    Öncelikli kaynağı olan kanalda çakışan elle girişler sayılmaz ve not edilir."""
+    sales = defaultdict(lambda: {"units": 0, "revenue": 0.0, "source": set()})
+    leads = defaultdict(int)
+    excluded = []
+    imported = defaultdict(lambda: {"orders": 0, "units": 0, "units_unknown": 0, "revenue": 0.0})
+    covered = set()
+    for o in snap.get("sales_orders") or []:
+        if not _in_days(o.get("date"), days):
+            continue
+        covered.add(o["channel"])
+        if o["status"] == "paid":
+            b = imported[o["channel"]]
+            b["orders"] += int(o["orders"] or 0)
+            b["units"] += int(o["units"] or 0)
+            b["units_unknown"] += int(o.get("units_unknown") or 0)
+            b["revenue"] += float(o["amount"] or 0)
+    for ch, b in imported.items():
+        s = sales[ch]
+        s["units"] += b["units"] + b["units_unknown"]  # adedi bilinmeyen sipariş en az 1 adet sayılır
+        s["revenue"] += b["revenue"]
+        s["source"].add("içe aktarma")
+    dm = (snap.get("dm") or {}).get("threads") or []
+    dm_won = defaultdict(lambda: {"units": 0, "revenue": 0.0})
+    for t in dm:
+        if t["status"] == "won" and t.get("paid_via") != "store_link" and _in_days((t.get("closed_at") or "")[:10], days):
+            ch = DM_TO_SALES.get(t["channel"], "diger")
+            dm_won[ch]["units"] += int(t.get("quantity") or 1)
+            dm_won[ch]["revenue"] += float(t.get("won_amount") or 0)
+    for ch, b in dm_won.items():
+        sales[ch]["units"] += b["units"]
+        sales[ch]["revenue"] += b["revenue"]
+        sales[ch]["source"].add("DM modülü")
     for r in snap.get("sales_manual") or []:
         if not _overlaps(r, days):
             continue
         ch = r.get("channel") or "belirtilmedi"
         if (r.get("kind") or "sale") == "lead":
             leads[ch] += int(r.get("units") or 1)
-        else:
-            sales[ch]["units"] += int(r.get("units") or 0)
-            sales[ch]["revenue"] += float(r.get("revenue") or 0)
-    return {"sales": {k: {"units": v["units"], "revenue": round(v["revenue"], 2)} for k, v in sorted(sales.items())},
+            continue
+        if ch in covered or ch in dm_won:
+            excluded.append({"channel": ch, "period": [r.get("period_start"), r.get("period_end")], "units": r.get("units"),
+                             "why": "aynı kanal ve dönem içe aktarılan siparişlerde ya da DM modülünde var; çift sayılmadı"})
+            continue
+        sales[ch]["units"] += int(r.get("units") or 0)
+        sales[ch]["revenue"] += float(r.get("revenue") or 0)
+        sales[ch]["source"].add("elle")
+    return {"sales": {k: {"units": v["units"], "revenue": round(v["revenue"], 2), "source": sorted(v["source"])}
+                      for k, v in sorted(sales.items())},
             "leads": dict(sorted(leads.items())),
-            "note": "Elle girilen dönem toplamıdır; reklamın yarattığı satış sayılmaz ve kreatiflere dağıtılmaz. DM/WhatsApp/kurumsal kanallar "
-                    "Meta'da görünmez; kurumsal fırsat yalnızca Shopier satışına bakılarak başarısız sayılmaz."}
+            "imported": {k: {**v, "revenue": round(v["revenue"], 2)} for k, v in imported.items()},
+            "excluded_manual": excluded,
+            "note": "Tek satış defteri: reklamın yarattığı satış sayılmaz, kreatiflere dağıtılmaz. DM/WhatsApp/kurumsal Meta'da görünmez; "
+                    "mağaza bağlantısıyla ödenen DM satışı mağaza siparişindedir. Kurumsal fırsat yalnızca site satışına bakılarak "
+                    "başarısız sayılmaz."}
 
+
+def dm_section(snap: dict, days: list) -> dict | None:
+    """Mesajla satış hunisi test penceresinde (1.4.8). Toplamlar markanın; kampanya bağı yalnızca kanıtlı konuşmalarda."""
+    dm = snap.get("dm") or {}
+    threads = [t for t in dm.get("threads") or [] if _in_days(t.get("opened_date") or t["opened_at"][:10], days)]
+    daily = [d for d in dm.get("daily") or [] if _in_days(d["date"], days)]
+    if not threads and not daily:
+        return None
+    from admem.s_dm import dm_funnel
+    out = dm_funnel(threads, daily, snap["campaign"]["id"])
+    tot = out["totals"]
+    if tot["conversations"] >= 3:
+        p = B.rate_posterior("ctr_link", tot["won"], tot["conversations"], (1.0, 1.0), None)
+        if p:
+            out["won_rate_interval"] = {"mean": round(p.mean, 4), "lo": p.lo, "hi": p.hi,
+                                        "note": "Beta(1,1) önseliyle %90 aralık; konuşmalar bağımsız varsayılır"}
+    return out
+
+
+def store_vs_meta(snap: dict, test_rows: list, chan: dict) -> dict | None:
+    """Meta'nın reklama atfettiği satın alma ile mağazanın ödenmiş siparişleri (1.4.8). Mağaza toplamı organik ve diğer kaynakları da
+    içerir; Meta sayısının mağazadan belirgin fazla olması piksel/olay sorununa işarettir, az olması tek başına sorun değildir."""
+    imported = chan.get("imported") or {}
+    store_orders = sum(v["orders"] for v in imported.values())
+    if not store_orders:
+        return None
+    meta = _sum(test_rows, "purchases")
+    if meta > store_orders * 1.1 and meta - store_orders >= 3:
+        verdict = "meta_fazla"
+        msg = (f"Meta {int(meta)} satın alma sayıyor, mağazada {store_orders} ödenmiş sipariş var: çift olay, test siparişi ya da iade "
+               "edilen siparişler olabilir; piksel kurulumu kontrol edilmeli.")
+    elif meta == 0:
+        verdict = "meta_gormuyor"
+        msg = (f"Mağazada {store_orders} ödenmiş sipariş var, Meta reklama hiç satın alma atfetmiyor: piksel/olay kurulumu eksik olabilir ya "
+               "da satışlar reklamdan gelmiyor (Meta satış sinyali: S00b 6b).")
+    else:
+        verdict = "uyumlu"
+        msg = (f"Meta {int(meta)} / mağaza {store_orders}: Meta'nın atfettiği, mağaza toplamının içinde (mağaza toplamı reklam dışı "
+               "satışları da içerir).")
+    return {"verdict": verdict, "meta_purchases": int(meta), "store_paid_orders": store_orders, "msg": msg}
 
 def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
     """"Reklam mı zayıftı, teklif mi, sayfa mı?" (1.4.7). Konseptler arası göreli karşılaştırma + kampanya düzeyinde tıklama→satış.
@@ -332,8 +422,9 @@ def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
         per.append({"concept": k, "notes": notes or ["açılış ve tıklama diğer konseptlerle benzer ya da daha iyi"]})
     clicks = _sum(test_rows, "link_clicks")
     pixel_purchases = _sum(test_rows, "purchases")
-    web_units = sum(v["units"] for ch, v in chan["sales"].items() if ch in ("shopier", "site", "belirtilmedi"))
-    sales_seen = pixel_purchases + web_units
+    web_units = sum(v["units"] for ch, v in chan["sales"].items() if ch in STORE_CHANNELS + ("belirtilmedi",))
+    # Mağaza kaydı varsa o esastır (piksel aynı satışları sayar; toplanırsa çift sayılır); yoksa pikselin saydığı.
+    sales_seen = web_units if web_units else pixel_purchases
     if clicks >= PAGE_MIN_CLICKS and sales_seen == 0:
         after = {"verdict": "reklam_sonrasi_supheli",
                  "msg": f"{int(clicks)} bağlantı tıklaması var, görünür web satışı yok: sorun reklamdan sonra olabilir (satış sayfası, fiyat, "
@@ -428,6 +519,8 @@ def analyze(snap_path: str) -> dict:
     scand = scale_candidates(dec, snap, structure, test_rows, all_rows)
     chan = channel_summary(snap, parts["full_days"])
     diag = funnel_diagnosis(kpost, test_rows, chan)
+    dms = dm_section(snap, parts["full_days"])
+    svm = store_vs_meta(snap, test_rows, chan)
     basis = metric_basis(snap, cost, test_rows)
     quality = []
     days = sorted({r["date"] for r in all_rows})
@@ -459,7 +552,7 @@ def analyze(snap_path: str) -> dict:
                        "post_rows": len(parts["post"]), "note": "sınır günleri saat oranıyla bölünmez; toplam harcamada tam sayılır"},
             "creatives": cpost, "concepts": kpost, "roles": rpost, "superiority_hook": sup, "cost": cost, "spend_distribution": dist,
             "fatigue": fat, "retention": ret, "limit_alerts": lim, "decisions": dec, "data_quality": quality,
-            "scale_layer": scale, "scale_candidates": scand, "channels": chan, "funnel_diagnosis": diag, "metric_basis": basis,
+            "scale_layer": scale, "scale_candidates": scand, "channels": chan, "funnel_diagnosis": diag, "metric_basis": basis, "dm": dms, "store_vs_meta": svm,
             "competitive_context": competitive_context, "predictions": predictions,
             "portfolio_note": "Rol başına sonuç keşif karşılaştırmasıdır; önceden sabitlenmedikçe playbook adayı olmaz (6.16)."}
 
