@@ -35,6 +35,10 @@ Yok.
    aralık; geçmişe ve diğer konsepte üstünlük olasılığı; sonuç maliyeti Gamma (`T` doğrulanmış hedef ise); eşikler (hook ≥ 1.000, CTR ≥ 3.000
    gösterim, maliyet ≥ 10 sonuç); harcama dağılımı (aç kalan < %10 → "yetersiz veri", kaybeden değil); yorgunluk; sahne düzeyinde kayıp
    (beklenen eğriye göre; olasılık cümlesi); veri yeterliliği; limit uyarıları; rol başına portföy sonucu (keşif).
+   1.4.7: **karar metriği** (`metric_basis`: üstünlük olasılığı hook oranı üzerindendir — "tüm konseptlerin en iyisi olma", satış değil;
+   karar sonuç maliyetinden mi üst huniden mi; Meta bu turda satış gördü mü), **"Reklam mı, teklif mi, sayfa mı?"** teşhisi
+   (`funnel_diagnosis`: konseptler arası göreli açılış ve tıklama; kampanyada ≥ 100 tıklama ve görünür web satışı yoksa "reklam sonrası
+   şüpheli" — sayfa, fiyat, kargo, güven, teklif) ve **kanal özeti** (`channels`: elle girilen satış/talep kanala göre).
 4. **Grafikler:** `PY PR/scripts/analytics/charts.py --analysis <analysis.json> --snapshot <kopya.json> --out-dir reports/c<tur>-charts-v<n>`.
    Her grafiğin altına tek cümlelik yorum; görselleri **açıp bak**.
 5. **Kalibrasyon (6.13):** `calibration_get(profile_id)`; 30'dan az çözülmüş tahminde yalnızca sayı ("12 tahminden 9'u tuttu"), eşik önerisi yok.
@@ -46,6 +50,8 @@ Yok.
    İlk turda (tek set) Meta'nın aç bıraktığı konsept (`carry_over`) kaybeden değildir; sonraki turun kreatif testine **öncelikli aday**
    olarak rapora ve S17 brief taslağına yazılır (hazır kreatifiyle; yeniden çekim/render yok).
    Reklam düzeyinde "kapat" performans gerekçesiyle önerilmez (Meta zaten harcama vermiyorsa gereksiz); onaylı sınır aşımı ayrı kuraldır.
+   Teşhis "reklam sonrası şüpheli" ise kreatife satış/maliyet gerekçeli olumsuz karar yazılmaz; uygulama listesine önce satış sayfası ve
+   teklif kontrolü girer (S02'nin kendi sayfa kontrol listesiyle).
 6a. **Ölçekleme katmanı (test ayrı, ölçek tek):** "büyüt" hükmü alan reklam için iki yol vardır: ana reklam setinde kalıp bütçe
    artışıyla büyümek (varsayılan) ya da ayrı **ölçekleme kampanyasına** (tek reklam seti, geniş kitle, "En yüksek hacim", kreatif test
    yok) **mevcut gönderiyle** taşınmak. Taşıma önerisi ancak hepsi sağlanırsa yapılır:
@@ -85,8 +91,8 @@ Yok.
    nedensellik iddiası yok, hüküm diline ve eşiklere girmez. Açı portföyü sonucu rol başına keşif etiketli; önceden sabitlenmiş birincil
    hipotez değilse playbook adayı olmaz.
 10. **Rapor:** `PY PR/scripts/analytics/report.py --analysis <analysis.json> --snapshot <kopya.json> --charts <charts.json> --calibration
-    <calib.json> --actions <actions.json> --next <sonraki.md> --out reports/c<tur>-koçluk-raporu-v<n>.md`. Bölümler: Özet (3 cümle) ·
-    Kararlar · Grafikler · Sahne düzeyinde izleyici kaybı · Ölçekleme katmanı (varsa: üyeler, harcama, frekans, yorgunluk; taşıma
+    <calib.json> --actions <actions.json> --next <sonraki.md> --out reports/c<tur>-koçluk-raporu-v<n>.md`. Bölümler: Özet (3 cümle;
+    karar metriği satırıyla) · Kararlar (olasılıklar metrik adı ve payda/paydayla) · Reklam mı, teklif mi, sayfa mı · Grafikler · Sahne düzeyinde izleyici kaybı · Ölçekleme katmanı (varsa: üyeler, harcama, frekans, yorgunluk; taşıma
     önerisi ya da neden önerilmediği) · Uygulama listesi ve durumu · Rekabet bağlamı · Öğrenilenler · Sonraki tur ·
     Veri yeterliliği · Koçluğun isabeti. Dil sade; her hükmün yanında veri yeterliliği.
 11. `stage_complete(profile_id, "S16", outputs=[{path: rapor}, {path: kopya}, {path: analysis}], summary, campaign_id, cycle_id)` → `awaiting_gate`.

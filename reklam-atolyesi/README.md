@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.6
+# Reklam Atölyesi (reklam-atolyesi) · 1.4.7
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,7 +94,18 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
-**1.4.7 (geliştirmede, yayınlanmadı)**
+**1.4.7**
+- **Meta satışı görüyor mu:** S00b veri kümesinde son 7 günün Purchase olayını salt okumayla kontrol eder (`meta_signal_set/get`).
+  Satış sonuçlu kampanya yalnızca Meta satışı görüyorsa açılır (sunucu kuralı). Görmüyorsa üç yol: piksel kur, satışları KVKK
+  dayanağıyla Events Manager'a yükle, ya da bilinçli olarak mesaj/tıklama sonucuna optimize et. Durum ekranı uyarır.
+- **Karar metriği raporda:** üstünlük olasılığı hook oranı üzerindendir ("tüm konseptlerin en iyisi olma", satış değil); her olasılık
+  payda ile yazılır; Özet'te kararın sonuç maliyetinden mi üst huniden mi verildiği ve Meta'nın satış görüp görmediği.
+- **"Reklam mı, teklif mi, sayfa mı?" teşhisi** (rapor bölümü): konseptler arası göreli açılış ve tıklama; tıklama var ama görünür satış
+  yoksa "reklam sonrası şüpheli" — o turda kreatife satış gerekçeli olumsuz hüküm ve playbook kanıtı yazılmaz.
+- **Satış kanalı ve talep:** `sales_add` kanal (Shopier, site, Instagram DM, WhatsApp, kurumsal, mağaza) ve tür (satış | talep) alır;
+  rapor kanala göre yazar. Migration 004 (yalnızca sütun ekler).
+- **Strateji:** problem tanımı ("ürün değil, alıcının problemi"), fiyat dışı teklif tasarımı (kişiselleştirme, paket, teslim güvencesi,
+  kurumsal yol) ve kendi satış sayfası kontrol listesi.
 - İlk tur yapısı değişmedi (tek set, "Meta'nın dağıtımı altında"); konsept başına eşit bütçeli ayrı set ve tahmine dayalı "ana reklam +
   kreatif test" seçenekleri değerlendirildi, eklenmedi (gerekçe: bütçe parçalanması ve ayrı öğrenme, eşit harcamanın kontrol sağlamaması,
   şema değişikliği riski, ana reklamın kanıtsız %80 bütçe alması).

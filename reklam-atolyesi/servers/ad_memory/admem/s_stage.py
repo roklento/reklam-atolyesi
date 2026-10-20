@@ -31,6 +31,8 @@ class StageMixin:
             raise AdMemoryError("mode: full | quick")
         if budget_total is not None and float(budget_total) <= 0:
             raise AdMemoryError("budget_total pozitif olmalı ya da açıkça NULL (sınır yok) bırakılmalı (6.3)")
+        if result_type == "purchase":
+            self._purchase_signal_required(profile_id)
         slug = slugify(name)
         base, n = slug, 2
         while self.q1("SELECT 1 FROM campaigns WHERE brand_id=? AND slug=?", (p["brand_id"], slug)):
@@ -75,6 +77,14 @@ class StageMixin:
         sql = "SELECT * FROM campaigns WHERE brand_id=?" + ("" if include_closed else " AND status='active'")
         return {"campaigns": self.qa(sql + " ORDER BY id", (bid,))}
 
+    def _purchase_signal_required(self, profile_id: int) -> None:
+        """Satış sonuçlu kampanya için Meta'nın satışı görmesi gerekir (1.4.7): görmezse Meta tıklayanı bulur, alanı değil."""
+        sig = self.meta_signal_get(profile_id)["meta_signal"]
+        if sig.get("status") != "purchase_seen":
+            raise AdMemoryError("satış (purchase) sonucu için Meta'nın son 7 günde Purchase olayı aldığı doğrulanmadı (meta_signal: "
+                                f"{sig.get('status', 'unknown')}). Yollar: piksel kur, satışları KVKK dayanağıyla Events Manager'a yükle, ya da "
+                                "bilinçli olarak messaging/link_click/profile_visit sonucuna optimize et; satışlar yine sales_add ile izlenir.")
+
     def campaign_update(self, profile_id: int, campaign_id: int, **fields: Any) -> dict:
         c = self._campaign(profile_id, campaign_id)
         allowed = {"goal", "result_type", "season", "budget_total", "budget_total_confirmed", "test_structure", "mode", "status", "name"}
@@ -85,6 +95,8 @@ class StageMixin:
             raise AdMemoryError("budget_total pozitif ya da NULL olmalı")
         if "mode" in fields and fields["mode"] == "quick" and ST.index(c["stage"]) > ST.index("S03"):
             raise AdMemoryError("hızlı tur yolu S03 kapısından önce seçilir (4.2)")
+        if fields.get("result_type") == "purchase" and c["result_type"] != "purchase":
+            self._purchase_signal_required(profile_id)
         sets = {k: v for k, v in fields.items()}
         if "budget_total" in sets and "budget_total_confirmed" not in sets:
             sets["budget_total_confirmed"] = 1
@@ -677,6 +689,8 @@ class StageMixin:
             for m in measuring:
                 if m["structure_detected"] in ("deviated", "unverified"):
                     warnings.append(f"Tur {m['cycle']}: test yapısı {m['structure_detected']} — hükümler 'doğrulanmamış yapı' kaydıyla")
+            if c["result_type"] == "purchase" and self.meta_signal_get(profile_id)["meta_signal"].get("status") != "purchase_seen":
+                warnings.append("Satış sonuçlu kampanya ama Meta'nın satışı gördüğü doğrulanmadı: Meta tıklayanı bulur, alanı değil (piksel/yükleme)")
             out.append({"campaign": {k: c[k] for k in ("id", "name", "stage", "cycle", "mode", "result_type", "budget_total")},
                         "stage_name": ST.STAGE_NAMES.get(c["stage"]), "skill": ST.SKILLS.get(c["stage"]),
                         "current_cycle_id": cy["id"] if cy else None,

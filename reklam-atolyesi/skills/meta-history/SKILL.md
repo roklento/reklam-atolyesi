@@ -42,6 +42,11 @@ Yok.
    `creative_key`'e eşlenir; uymayanlar "eski" kalır.
 6. **Hesap sağlık raporu:** `PR/templates/reports/hesap-sagligi.md` şablonuyla `DD/profiles/<slug>/reports/<YYYY-MM-DD>-hesap-sagligi.md`
    (piksel/CAPI, hesap hataları, kıyaslar, fırsat puanı; atomik yazma).
+6b. **Meta satışı görüyor mu? (1.4.7):** `ads_get_datasets` → hesaba bağlı veri kümeleri; her biri için `ads_get_dataset_stats` (son 7
+   gün) ve gerekirse `ads_get_dataset_quality`. Purchase olayı son 7 günde geldiyse `meta_signal_set(profile_id, "purchase_seen",
+   "meta_mcp", evidence="<veri kümesi kimliği> · Purchase <n> olay · <tarih aralığı>")`; gelmediyse `"no_purchase"`; araç okuyamazsa
+   ya da CSV yolundaysa `"unknown"` (kullanıcı Events Manager ekranını gösterirse `source="user_evidence"`). Sonuç sağlık raporuna ve
+   kullanıcıya tek cümleyle: "Meta satışlarınızı görüyor / görmüyor: görmezse reklam tıklayanı bulur, alanı değil." Yol seçimi S01'de.
 7. **Hipotez adayları:** anomali ve geçmiş bulgulardan **önerilen** durumda — `memory_add(layer="semantic", kind="hypothesis_candidate",
    source="data", tags=["meta"], …)` (kaynak değerleri: `user | claude | data | system`; Meta verisinden çıkan bulgu `data`dır); kampanya hipotezi değildir (hipotez S03'te konseptten doğar).
 8. `profile_update(profile_id, history_status="ready"|"no_history", last_meta_sync_at=<şimdi>)`.

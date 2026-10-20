@@ -278,6 +278,88 @@ def scale_candidates(dec: list[dict], snap: dict, structure: str | None, test_ro
     return out
 
 
+# Huni teşhisi eşikleri (1.4.7; YEREL sezgisel değerler, Meta kuralı değil): konseptler arası ortancanın %80'i altı "zayıf" sayılır;
+# reklam sonrası (sayfa/teklif) şüphesi için kampanyada en az 100 bağlantı tıklaması ve sıfır görünür satış.
+WEAK_VS_MEDIAN = 0.8
+PAGE_MIN_CLICKS = 100
+
+
+def _overlaps(row: dict, days: list[str]) -> bool:
+    if not days:
+        return True
+    return not (row.get("period_end", "") < days[0] or row.get("period_start", "") > days[-1])
+
+
+def channel_summary(snap: dict, days: list[str]) -> dict:
+    """Elle girilen satış ve talepler kanala göre (1.4.7). DM/WhatsApp/kurumsal Meta'da görünmez; kreatiflere dağıtılmaz."""
+    sales, leads = defaultdict(lambda: {"units": 0, "revenue": 0.0}), defaultdict(int)
+    for r in snap.get("sales_manual") or []:
+        if not _overlaps(r, days):
+            continue
+        ch = r.get("channel") or "belirtilmedi"
+        if (r.get("kind") or "sale") == "lead":
+            leads[ch] += int(r.get("units") or 1)
+        else:
+            sales[ch]["units"] += int(r.get("units") or 0)
+            sales[ch]["revenue"] += float(r.get("revenue") or 0)
+    return {"sales": {k: {"units": v["units"], "revenue": round(v["revenue"], 2)} for k, v in sorted(sales.items())},
+            "leads": dict(sorted(leads.items())),
+            "note": "Elle girilen dönem toplamıdır; reklamın yarattığı satış sayılmaz ve kreatiflere dağıtılmaz. DM/WhatsApp/kurumsal kanallar "
+                    "Meta'da görünmez; kurumsal fırsat yalnızca Shopier satışına bakılarak başarısız sayılmaz."}
+
+
+def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
+    """"Reklam mı zayıftı, teklif mi, sayfa mı?" (1.4.7). Konseptler arası göreli karşılaştırma + kampanya düzeyinde tıklama→satış.
+    Çıktı hipotezdir, kesin neden değildir; eşik altı veri değerlendirilmez."""
+    def mean(k, m):
+        r = kpost[k]["rates"].get(m)
+        return r["mean"] if r and r.get("threshold_met") else None
+    hooks = {k: mean(k, "hook_rate") for k in kpost}
+    ctrs = {k: mean(k, "ctr_link") for k in kpost}
+    hm = statistics.median([v for v in hooks.values() if v is not None]) if any(v is not None for v in hooks.values()) else None
+    cm = statistics.median([v for v in ctrs.values() if v is not None]) if any(v is not None for v in ctrs.values()) else None
+    per = []
+    for k in sorted(kpost):
+        notes = []
+        if hooks[k] is None:
+            notes.append("açılış için veri yetersiz (< 1.000 gösterim)")
+        elif hm and len([v for v in hooks.values() if v is not None]) >= 2 and hooks[k] < hm * WEAK_VS_MEDIAN:
+            notes.append("açılış (ilk 2 sn) diğer konseptlerden zayıf → reklam: hook")
+        if ctrs[k] is None:
+            notes.append("tıklama için veri yetersiz (< 3.000 gösterim)")
+        elif cm and len([v for v in ctrs.values() if v is not None]) >= 2 and ctrs[k] < cm * WEAK_VS_MEDIAN:
+            notes.append("tıklama oranı diğer konseptlerden düşük → teklif, fiyat gösterimi, son kart/CTA")
+        per.append({"concept": k, "notes": notes or ["açılış ve tıklama diğer konseptlerle benzer ya da daha iyi"]})
+    clicks = _sum(test_rows, "link_clicks")
+    pixel_purchases = _sum(test_rows, "purchases")
+    web_units = sum(v["units"] for ch, v in chan["sales"].items() if ch in ("shopier", "site", "belirtilmedi"))
+    sales_seen = pixel_purchases + web_units
+    if clicks >= PAGE_MIN_CLICKS and sales_seen == 0:
+        after = {"verdict": "reklam_sonrasi_supheli",
+                 "msg": f"{int(clicks)} bağlantı tıklaması var, görünür web satışı yok: sorun reklamdan sonra olabilir (satış sayfası, fiyat, "
+                        "kargo, güven, teklif). Bu tur 'video kötüydü' diye öğrenilmez; önce sayfa ve teklif kontrol edilir."}
+    elif clicks >= PAGE_MIN_CLICKS:
+        after = {"verdict": "olculdu", "cvr": round(sales_seen / clicks, 4),
+                 "msg": f"Tıklamadan satışa oran ≈ {sales_seen / clicks:.2%} ({int(sales_seen)} satış / {int(clicks)} tıklama; elle girilen dönem "
+                        "satışı dahil, atıf varsayımlı)."}
+    else:
+        after = {"verdict": "veri_yetersiz", "msg": f"Sayfa/teklif yargısı için tıklama az ({int(clicks)} < {PAGE_MIN_CLICKS})."}
+    return {"per_concept": per, "after_click": after, "leads": chan["leads"],
+            "rule": "Göreli eşikler yereldir (ortancanın %80'i; ≥ 100 tıklama). Teşhis hipotezdir; kesin neden değildir."}
+
+
+def metric_basis(snap: dict, cost: dict, test_rows: list[dict]) -> dict:
+    """Hangi metrikle karar verildiği (1.4.7): olasılıklar ve kararlar raporda metrik adıyla yazılır."""
+    purchases = _sum(test_rows, "purchases")
+    cost_ok = [k for k, v in cost.items() if v.get("threshold_met")]
+    return {"superiority": "hook oranı (3 sn izlenme / gösterim): konseptin TÜM konseptlerin en iyisi olma olasılığı; satış değil, dikkat ölçüsü",
+            "decision": ("sonuç maliyeti (≥ 10 sonuç olan konseptlerde: " + ", ".join(sorted(cost_ok)) + ")") if cost_ok
+                        else "üst huni (hook ve bağlantı CTR'si): sonuç maliyeti için yeterli sonuç yok",
+            "meta_sees_sales": purchases > 0,
+            "note": ("Meta bu turda satış olayı gördü." if purchases > 0 else
+                     "Meta bu turda satış olayı görmedi (piksel/yükleme yok ya da satış yok): satışa dayalı hüküm verilmez.")}
+
+
 def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cost: dict) -> list[dict]:
     """tut / büyüt / kapat / yenile — gerekçeli; eşik altı → yön; aç kalan konsept kaybeden sayılmaz; 'kapat' performans gerekçesiyle
     yalnızca eşik geçilmiş ve Meta harcama veriyorsa; büyütme için yeterli sonuç ve doğrulanmış ekonomi gerekir."""
@@ -344,6 +426,9 @@ def analyze(snap_path: str) -> dict:
     if scale:
         fat += scale["fatigue"]
     scand = scale_candidates(dec, snap, structure, test_rows, all_rows)
+    chan = channel_summary(snap, parts["full_days"])
+    diag = funnel_diagnosis(kpost, test_rows, chan)
+    basis = metric_basis(snap, cost, test_rows)
     quality = []
     days = sorted({r["date"] for r in all_rows})
     if days:
@@ -374,7 +459,7 @@ def analyze(snap_path: str) -> dict:
                        "post_rows": len(parts["post"]), "note": "sınır günleri saat oranıyla bölünmez; toplam harcamada tam sayılır"},
             "creatives": cpost, "concepts": kpost, "roles": rpost, "superiority_hook": sup, "cost": cost, "spend_distribution": dist,
             "fatigue": fat, "retention": ret, "limit_alerts": lim, "decisions": dec, "data_quality": quality,
-            "scale_layer": scale, "scale_candidates": scand,
+            "scale_layer": scale, "scale_candidates": scand, "channels": chan, "funnel_diagnosis": diag, "metric_basis": basis,
             "competitive_context": competitive_context, "predictions": predictions,
             "portfolio_note": "Rol başına sonuç keşif karşılaştırmasıdır; önceden sabitlenmedikçe playbook adayı olmaz (6.16)."}
 

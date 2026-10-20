@@ -68,6 +68,13 @@ def _date(v: Any) -> str:
     raise AdMemoryError(f"tarih okunamadı: {v!r}")
 
 
+SALES_CHANNELS = ("shopier", "site", "instagram_dm", "whatsapp", "kurumsal", "magaza", "diger")
+META_SIGNAL_STATUSES = ("purchase_seen", "no_purchase", "unknown")
+META_SIGNAL_CHOICES = ("pixel_install", "csv_upload", "optimize_other")
+META_SIGNAL_RULE = ("Satış (purchase) sonuçlu kampanya yalnızca Meta son 7 günde Purchase olayı alıyorsa açılır; almıyorsa üç yol: piksel kur, "
+                    "satışları KVKK dayanağıyla Events Manager'a yükle, ya da bilinçli olarak mesaj/bağlantı/sayfa görüntüleme sonucuna optimize et.")
+
+
 class MetaMixin:
     # --- Meta varlıkları ----------------------------------------------------------
     def meta_entities_upsert(self, profile_id: int, ad_account_id: str, entities: list[dict]) -> dict:
@@ -483,16 +490,48 @@ class MetaMixin:
 
     # --- elle satış (6.2) --------------------------------------------------------
     def sales_add(self, profile_id: int, campaign_id: int, period_start: str, period_end: str, units: int | None,
-                  revenue: float | None, source_note: str | None = None) -> dict:
+                  revenue: float | None, source_note: str | None = None, channel: str | None = None, kind: str = "sale") -> dict:
         self._campaign(profile_id, campaign_id)
         ps, pe = _date(period_start), _date(period_end)
         if pe < ps:
             raise AdMemoryError("dönem sonu başlangıçtan önce olamaz")
+        if channel is not None and channel not in SALES_CHANNELS:
+            raise AdMemoryError(f"kanal: {' | '.join(SALES_CHANNELS)}")
+        if kind not in ("sale", "lead"):
+            raise AdMemoryError("kind: sale (satış) | lead (talep/teklif isteği, ör. kurumsal DM)")
         with self.tx():
-            sid = self.ex("INSERT INTO sales_manual(campaign_id,period_start,period_end,units,revenue,source_note,created_at) VALUES(?,?,?,?,?,?,?)",
-                          (campaign_id, ps, pe, units, revenue, source_note, now_iso())).lastrowid
+            sid = self.ex("""INSERT INTO sales_manual(campaign_id,period_start,period_end,units,revenue,source_note,channel,kind,created_at)
+                             VALUES(?,?,?,?,?,?,?,?,?)""",
+                          (campaign_id, ps, pe, units, revenue, source_note, channel, kind, now_iso())).lastrowid
         return {**self.q1("SELECT * FROM sales_manual WHERE id=?", (sid,)),
-                "note": "Atıf varsayımı raporda açıkça yazılır; dönem satışının tamamı reklamın yarattığı satış sayılmaz; kreatiflere dağıtılmaz (6.2)."}
+                "note": "Atıf varsayımı raporda açıkça yazılır; dönem satışının tamamı reklamın yarattığı satış sayılmaz; kreatiflere dağıtılmaz (6.2). "
+                        "Kanal ayrı tutulur: DM/WhatsApp/kurumsal satış ve talepler Meta'da görünmez, kampanya sonucuna ayrıca eklenir (1.4.7)."}
+
+    # --- Meta satış sinyali (1.4.7): Meta satışı görüyor mu? ---------------------------
+    def meta_signal_set(self, profile_id: int, status: str, source: str, evidence: str, choice: str | None = None,
+                        checked_at: str | None = None) -> dict:
+        """S00b/S01: veri kümesinde son 7 günde Purchase olayı var mı. status purchase_seen yalnızca okunan kanıtla (ads_get_dataset_stats)
+        ya da kullanıcının Events Manager'dan gösterdiği kanıtla yazılır; tahmin edilmez. no_purchase'ta seçilen yol choice ile kaydedilir."""
+        p = self._profile(profile_id)
+        if status not in META_SIGNAL_STATUSES:
+            raise AdMemoryError(f"status: {' | '.join(META_SIGNAL_STATUSES)}")
+        if source not in ("meta_mcp", "user_evidence", "csv"):
+            raise AdMemoryError("source: meta_mcp (salt okuma araç sonucu) | user_evidence (Events Manager kanıtı) | csv")
+        if not (evidence and evidence.strip()):
+            raise AdMemoryError("kanıt (evidence) zorunlu: hangi veri kümesi, hangi olay, hangi tarih aralığı")
+        if choice is not None and choice not in META_SIGNAL_CHOICES:
+            raise AdMemoryError(f"choice: {' | '.join(META_SIGNAL_CHOICES)}")
+        if status == "purchase_seen" and choice is not None:
+            choice = None
+        rec = {"status": status, "source": source, "evidence": evidence.strip(), "choice": choice, "checked_at": checked_at or now_iso()}
+        with self.tx():
+            self.ex("UPDATE profiles SET meta_signal_json=? WHERE id=?", (jdump(rec), p["id"]))
+        return {"profile_id": p["id"], "meta_signal": rec, "rule": META_SIGNAL_RULE}
+
+    def meta_signal_get(self, profile_id: int) -> dict:
+        p = self._profile(profile_id)
+        rec = jload(p.get("meta_signal_json"), None) if isinstance(p.get("meta_signal_json"), (str, type(None))) else p.get("meta_signal_json")
+        return {"profile_id": p["id"], "meta_signal": rec or {"status": "unknown"}, "rule": META_SIGNAL_RULE}
 
     def sales_list(self, profile_id: int, campaign_id: int) -> dict:
         self._campaign(profile_id, campaign_id)

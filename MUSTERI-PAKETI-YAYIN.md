@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.4.6
+# Müşteri paketi — 1.4.7
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,15 +16,22 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.4.6**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.4.7**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.4.7 migration 004 içerir: `profiles.meta_signal_json`, `sales_manual.channel` ve `sales_manual.kind` (varsayılan `sale`) sütunları
+eklenir; tablo yeniden kurulmaz, satırlar korunur, Store açılışı öncesinde yedek alır. Satış sonuçlu **yeni** kampanya artık Meta'nın
+satışı gördüğü doğrulanmadan açılamaz; mevcut kampanyalar engellenmez, durum ekranında uyarı görünür.
 1.4.6 veritabanı migration'ı içermez: ölçekleme katmanı kaydı mevcut `cycles.budget_plan_json` alanında tutulur. Yeni ad-memory
 araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/slideshow.py` ve `scripts/analyze/reference.py`
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.4.7** (Windows geliştirici ortamı): tam paket 186 geçti, 0 başarısız. Yeni testler `test_signal_diagnosis.py` (7) ve
+`test_scale_reference.py` eklemeleri; migration 004, 003 şemalı bir veritabanında sınandı (satırlar korunuyor, öncesinde yedek). Duman
+testi sonucu manifestte. Shopier piksel alanı ve CAPI desteği canlı doğrulanmadı.
 
 **1.4.6** (Windows geliştirici ortamı): tam paket 176 geçti, 0 başarısız, 0 atlandı. Yeni testler `test_scale_reference.py`
 dosyasındadır (23). Önceki 4 güncelleyici testi hatası ortamdan değil testten geliyordu (Windows geçici klasör yolundaki "pytest"

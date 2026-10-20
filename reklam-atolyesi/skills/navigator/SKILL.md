@@ -122,7 +122,7 @@ Her maddenin işi `menu.json`'daki `action` alanıdır; hook seçimde bunu bağl
 | 7 | Neler yaptık | `memory` skill'inin görünürlük adımı (8.8): `journal_summary`, aktif kurallar, tercihler; düzelt/unut |
 | 8 | Profiller | 17.3 (aşağıda): değiştir ya da yeni profil (`brand-onboarding`) |
 | 9 | Sistem ve hesap durumu | `ref-system-map` + kurulum özeti (statik ve canlı): OAuth, disk (iki sürücü), son yedek, `cost_summary`, render süreleri, `calibration_get` |
-| — | Satış gir (serbest metin) | `sales_add` (tarih aralığı, adet, ciro, kaynak notu); atıf varsayımı söylenir |
+| — | Satış gir (serbest metin) | `sales_add` (tarih aralığı, adet, ciro, kaynak notu, kanal, satış/talep); atıf varsayımı söylenir |
 | — | Referans video (serbest metin: "şu videoya benzer") | aktif kampanyada S03'ün referans video adımı (`concepts` 5); kampanya yoksa yeni kampanya önerilir, video o zaman ölçülür |
 | — | Ölçekleme katmanı (serbest metin) | `scale_layer_get`; taşıma kararı yalnızca S16'da (`coach` 6a) |
 | — | Uygulama listesi (serbest metin) | `action_items_list` + `action_items_verify` (salt okuma) |

@@ -16,7 +16,7 @@ CPA < 10 satın alma uyarısı, VARSAYIM etiketleri). Zarar-risk sınırını **
 
 **S02 yön adayları (`s02_directions`):** rekabet haritasından 2–3 konumlandırma (farklılaş / normu daha iyi yap / karşı konum / anı sahiplen);
 her biri tek cümle vaat + kanıtlanabilir iddia + ayrıştığı rakipler + risk + kaynak etiketi; mesaj sırası; tavana göre açı portföyü
-(varsayılan dağılım kuralı; birincil doğrulama çifti önce; rakip bağlamı yoksa rol yok, `general`); teklif tutumu seçenekleri; zamanlama önerisi;
+(varsayılan dağılım kuralı; birincil doğrulama çifti önce; rakip bağlamı yoksa rol yok, `general`); problem tanımı önerisi ("ürün değil, alıcının problemi"; 1.4.7); teklif tutumu seçenekleri ve fiyat dışı teklif tasarımı seçenekleri (kişiselleştirme, paket, teslim güvencesi, kurumsal/toplu yol; yapılabilirlik ve katkıya etkisi notuyla); kendi satış sayfası kontrol listesi bulguları (sayfa ana oturumda okunduysa); zamanlama önerisi;
 hipotez **adayları** (hipotez yazma).
 
 **S03 seçenekleri (`s03_options`):** 2–3 yön, her biri ürünün S00c alıcılarından **farklı birine** konuşur (fikir, kime konuştuğu, neden —

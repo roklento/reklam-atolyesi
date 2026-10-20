@@ -69,8 +69,10 @@ Yok.
    target_meta_id, before, after, evidence:{input_snapshot:<yol/hash>}}], cycle_id)` (`proposed`) + bildirim + navigator üst satırı.
    Bu "istatistiksel kaybeden" değildir; ölçüm sorunu varsa "zarar kesin" denmez. Aynı hedef/sınır/onay sürümü için açık madde kopyalanmaz.
    Zamanlanmış iş onay vermez; kullanıcı onaylarsa `decision_log` + `action_item_set_status(item_id, "approved", approval_text)`.
-9. **Elle satış (6.2):** piksel yoksa navigator "Satış gir" → `sales_add(profile_id, campaign_id, period_start, period_end, units,
-   revenue, source_note)`; atıf varsayımı ve tarih aralığı raporda; kullanıcı kaynağı belirtmedikçe kreatiflere dağıtılmaz.
+9. **Elle satış ve talep (6.2):** navigator "Satış gir" → `sales_add(profile_id, campaign_id, period_start, period_end, units,
+   revenue, source_note, channel, kind)` — kanal (`shopier | site | instagram_dm | whatsapp | kurumsal | magaza | diger`) ve tür
+   (`sale` | `lead`: ör. "40 adet buket" DM isteği). Atıf varsayımı ve tarih aralığı raporda; kreatiflere dağıtılmaz; DM/WhatsApp/kurumsal
+   Meta'da görünmez, raporda kanala göre ayrı yazılır.
 10. **Uygulandı mı (6.11):** onaylı maddeler Meta'dan okunur (reklam durumu, bütçe, harcama limiti, bitiş) →
     `action_items_verify(profile_id, campaign_id, readings=[{item_id, source:"meta_mcp"|"user_evidence", observed:{…}}])`. Okunamıyorsa
     kullanıcı kanıtı; yoksa beklemede kalır. "3 adımdan 2'si uygulandı" üst satıra; uygulanmayan karar raporda işaretlenir.

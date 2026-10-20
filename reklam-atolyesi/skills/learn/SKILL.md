@@ -29,6 +29,8 @@ Yok.
    metriğiyle aynı yönde ve yeterli veriyle desteklenmeli; yoksa "dikkat bulgusu" olarak hipotez defterinde kalır. Bootstrap ve
    doğrulanmamış yapı turları tek özellik için kontrollü doğrulama sayılmaz. Ölçekleme katmanındaki performans da kontrollü doğrulama
    sayılmaz; bir reklamın ölçeklemeye taşınmış olması tek başına playbook kanıtı değildir. Rol karşılaştırması önceden sabitlenmemişse aday olmaz.
+   S16 teşhisi "reklam sonrası şüpheli" (tıklama var, görünür satış yok) olan turda satış ve maliyet bulguları kreatife yazılmaz:
+   ilgili hipotezler `inconclusive`, gerekçe "sayfa/teklif ayrıştırılamadı" (1.4.7).
    Koşulu sağlayan → `playbook_propose(profile_id, rule, evidence, scope, season, confidence)` (`proposed`); kullanıcı onaylarsa
    `playbook_activate(profile_id, rule_id, approval_text)`. Her bulguya sezon etiketi.
 4. **Yeniden doğrulama ve emeklilik (8.6):** `playbook_round_tick(profile_id)`; `due_revalidation` kurallar bu turun verisiyle

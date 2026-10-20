@@ -2,7 +2,7 @@
 
 Kullanım: report.py --analysis analysis.json --snapshot input.json --charts charts.json --out reports/c1-coach-report-v1.md
           [--calibration calib.json] [--actions actions.json] [--next next.md]
-Bölümler: Özet (3 cümle) · Kararlar · Grafikler · Sahne düzeyinde izleyici kaybı · Ölçekleme katmanı · Uygulama listesi ve durumu · Rekabet bağlamı ·
+Bölümler: Özet (3 cümle) · Kararlar · Reklam mı, teklif mi, sayfa mı · Grafikler · Sahne düzeyinde izleyici kaybı · Ölçekleme katmanı · Uygulama listesi ve durumu · Rekabet bağlamı ·
 Öğrenilenler · Sonraki tur · Veri yeterliliği · Koçluğun isabeti
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ from admem.util import tr_fold  # noqa: E402
 
 CAUSAL = [r"\bnedeniyle\b", r"\byuzunden\b", r"\bsebep (oldu|olmus)", r"\betkisiyle\b", r"\bdolayisiyla\b", r"\bbecause\b", r"\bcaused\b",
           r"\byol acti\b", r"\bsonucunda\b"]
-SECTIONS = ["Özet", "Kararlar", "Grafikler", "Sahne düzeyinde izleyici kaybı", "Ölçekleme katmanı", "Uygulama listesi ve durumu", "Rekabet bağlamı",
+SECTIONS = ["Özet", "Kararlar", "Reklam mı, teklif mi, sayfa mı", "Grafikler", "Sahne düzeyinde izleyici kaybı", "Ölçekleme katmanı", "Uygulama listesi ve durumu", "Rekabet bağlamı",
             "Öğrenilenler", "Sonraki tur", "Veri yeterliliği", "Koçluğun isabeti"]
 
 
@@ -42,11 +42,37 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
                else "Sonuç sayısı az olduğu için bu hüküm satışa değil, dikkat ve tıklamaya dayanıyor; ")
               + "eşik altındaki bulgular 'yön' etiketlidir.",
               ("Onaylı harcama sınırı uyarısı var: ayrıntı Kararlar bölümünde." if an["limit_alerts"] else "Harcama sınırı uyarısı yok."), ""]
+    mb = an.get("metric_basis")
+    if mb:
+        lines[-1:-1] = [f"**Karar metriği:** {mb['decision']}. {mb['note']}"]
     lines += ["## Kararlar", ""]
     for d in dec:
         lines.append(f"- **{d['concept']}** → {d['decision']} ({d['label']}): {d['why']}" + (f" — Ads Manager: {d['ads_manager']}" if d.get("ads_manager") else ""))
     for a in an["limit_alerts"]:
         lines.append(f"- ⚠ Sınır: {a['msg']} ({a.get('creative_key') or ''} {a.get('spend', '')} / {a.get('limit', a.get('budget_total', ''))})")
+    sup = an.get("superiority_hook") or {}
+    if sup:
+        lines += ["", f"_Olasılıklar — {(mb or {}).get('superiority', 'hook oranı')}:_"]
+        for k in sorted(sup):
+            hr = (an["concepts"].get(k, {}).get("rates") or {}).get("hook_rate") or {}
+            pb = sup[k].get("p_best")
+            if pb is not None:
+                lines.append(f"- {k}: en iyi olma olasılığı {pb:.0%} (hook oranı; {int(hr.get('successes', 0))} izlenme / "
+                             f"{int(hr.get('trials', 0))} gösterim; {hr.get('label', '—')})")
+    lines += ["", "## Reklam mı, teklif mi, sayfa mı", ""]
+    fd = an.get("funnel_diagnosis")
+    if fd:
+        for p in fd["per_concept"]:
+            lines.append(f"- **{p['concept']}**: " + "; ".join(p["notes"]))
+        lines.append(f"- Tıklamadan sonrası: {fd['after_click']['msg']}")
+        ch = an.get("channels") or {}
+        if ch.get("sales") or ch.get("leads"):
+            parts = [f"{k}: {v['units']} adet" + (f" / {v['revenue']}" if v.get("revenue") else "") for k, v in ch["sales"].items()]
+            parts += [f"{k}: {n} talep" for k, n in ch["leads"].items()]
+            lines.append("- Kanallar (elle girilen): " + " · ".join(parts) + ". DM/WhatsApp/kurumsal Meta'da görünmez.")
+        lines.append(f"_{fd['rule']}_")
+    else:
+        lines.append("- Teşhis yok.")
     lines += ["", "## Grafikler", ""]
     captions = {"funnel": "Konsept başına izlenme, tıklama ve sonuç oranları kendi paydalarıyla; oranlar birbirleriyle çarpılmaz.",
                 "intervals_hook": "Hook oranı aralıkları; açık renkli noktalar eşik altıdır ve yalnızca yön gösterir.",

@@ -57,6 +57,8 @@ def make_active_profile(s: Store, name: str = "Marka A", account: str = "act_A",
     p = s.profile_create(name)
     s.brand_upsert(p["id"], name=name, meta_ad_account_id=account, timezone="Europe/Istanbul", tone="nötr")
     s.profile_update(p["id"], meta_data_mode=mode, history_status="no_history")
+    # Satış sonuçlu sentetik kampanyalar için Meta satış sinyali (1.4.7); sinyalsiz durum ayrıca test edilir.
+    s.meta_signal_set(p["id"], "purchase_seen", "meta_mcp", "sentetik veri kümesi: Purchase son 7 gün")
     run = s.stage_start(p["id"], "S00a")
     f = s.profile_dir(p["id"]) / "brand" / "s00a.md"
     f.write_text("marka özeti", encoding="utf-8")

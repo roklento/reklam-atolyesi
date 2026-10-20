@@ -62,6 +62,14 @@ pozitif başa baş yok. Satış dışı sonuçta hedef kullanıcı hedefidir. Pi
 - Bootstrap ve doğrulanmamış yapı: "Meta'nın dağıtımı altında"; aç kalan (< %10 harcama payı) kaybeden sayılmaz.
 - Bunlar model koşullarındaki belirsizlik ölçüleridir; Meta dağıtımının seçim yanlılığını kaldırmaz.
 
+- **Karar metriği raporda yazılır (1.4.7):** üstünlük olasılığı hook oranı üzerindendir ve "tüm konseptlerin en iyisi olma" olasılığıdır
+  (ikili A>B değil); her olasılığın yanında payda (izlenme / gösterim) ve etiket. Karar sonuç maliyetinden mi üst huniden mi verildi,
+  Meta bu turda satış olayı gördü mü — Özet'te tek satır.
+- **Reklam mı, teklif mi, sayfa mı? (1.4.7, yerel eşikler):** eşiği geçmiş konseptler arasında ortancanın %80'i altında hook → açılış;
+  CTR → teklif/fiyat gösterimi/son kart; kampanyada ≥ 100 bağlantı tıklaması ve görünür web satışı (piksel + elle Shopier/site) sıfır →
+  "reklam sonrası şüpheli" (sayfa, fiyat, kargo, güven, teklif); bu turda kreatife satış gerekçeli olumsuz hüküm yazılmaz. DM/WhatsApp/
+  kurumsal satış ve talepler kanala göre ayrı yazılır, Meta'da görünmez.
+
 ## 6. Bağımsız doğrulama ve playbook (6.6, 6.14)
 Tur başına en fazla bir birincil hipotez (kol, metrik, yön, karşılaştırma) **test öncesi** sabitlenir. Playbook önerisi: ilk yeterli turda
 aynı yön + sonraki turun **tek başına** verisinde aynı yönde üstünlük ≥ 0,95 (oranda iki kola Beta(1,1), maliyette sabit Gamma; keşif

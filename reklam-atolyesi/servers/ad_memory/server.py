@@ -271,9 +271,24 @@ def ad_link(profile_id: int, campaign_id: int, cycle_id: int, creative_key: str,
 
 @mcp.tool()
 def sales_add(profile_id: int, campaign_id: int, period_start: str, period_end: str, units: int | None = None, revenue: float | None = None,
-              source_note: str | None = None) -> dict:
-    """Piksel yoksa elle satış (6.2). Atıf varsayımı raporda yazılır; kreatiflere dağıtılmaz."""
-    return call(lambda s: s.sales_add(profile_id, campaign_id, period_start, period_end, units, revenue, source_note))
+              source_note: str | None = None, channel: str | None = None, kind: str = "sale") -> dict:
+    """Elle satış ya da talep (6.2). channel: shopier | site | instagram_dm | whatsapp | kurumsal | magaza | diger; kind: sale | lead
+    (ör. kurumsal toplu sipariş isteği). Atıf varsayımı raporda yazılır; kreatiflere dağıtılmaz; DM/kurumsal Meta'da görünmez."""
+    return call(lambda s: s.sales_add(profile_id, campaign_id, period_start, period_end, units, revenue, source_note, channel, kind))
+
+
+@mcp.tool()
+def meta_signal_set(profile_id: int, status: str, source: str, evidence: str, choice: str | None = None, checked_at: str | None = None) -> dict:
+    """Meta satışı görüyor mu (S00b/S01): status purchase_seen | no_purchase | unknown; source meta_mcp | user_evidence | csv; evidence
+    (veri kümesi, olay, tarih aralığı) zorunlu. no_purchase'ta choice: pixel_install | csv_upload | optimize_other. Satış sonuçlu kampanya
+    yalnızca purchase_seen ile açılır."""
+    return call(lambda s: s.meta_signal_set(profile_id, status, source, evidence, choice, checked_at))
+
+
+@mcp.tool()
+def meta_signal_get(profile_id: int) -> dict:
+    """Profilin Meta satış sinyali kaydı ve kural."""
+    return call(lambda s: s.meta_signal_get(profile_id))
 
 
 @mcp.tool()

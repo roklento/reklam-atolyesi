@@ -35,7 +35,17 @@ Yok.
    - **Toplam Meta harcama sınırı:** "Bu kampanyanın ilk yayınından itibaren bütün turlarındaki Meta reklam harcaması için bir üst
      sınır var mı?" Tutar profilin reklam hesabı para biriminde; üretim/servis ücretleri dahil değil; eski turların harcaması yeni
      turda sıfırlanmaz. Sınır yoksa bu da açık karardır (`NULL`). → `campaign_update(budget_total, budget_total_confirmed=True)`.
-   - Piksel/CAPI yoksa ve sonuç satışsa: satışların elle girileceği (`sales_add`) ve atıf varsayımı söylenir (6.2).
+   - **Meta satışı görüyor mu (1.4.7):** `meta_signal_get(profile_id)`. Sonuç türü satış olacaksa ve durum `purchase_seen` değilse sunucu
+     satış sonucunu reddeder; kullanıcıya üç yol sunulur ve seçimi `meta_signal_set(..., choice=…)` ile kaydedilir:
+     (1) **piksel kur** (`pixel_install`): satış sayfasına Meta pikseli; Shopier panelinde piksel alanı olduğu ikincil kaynaklarda geçer,
+     Shopier belgesinden teyit edilmedi (`ref-legal-tr-meta` §7) — kurulumdan sonra Events Manager'da Purchase görülünce S00b'nin 6b
+     kontrolü yeniden yapılır; (2) **satışları yükle** (`csv_upload`): Events Manager'da veri kümesine CSV ile; müşteri e-posta/telefonu
+     Meta'ya gider, bu yüzden KVKK dayanağı (`processing_permission_check`) olmadan önerilmez ve yüklemeyi insan yapar; (3) **bilinçli
+     başka sonuç** (`optimize_other`): mesaj, bağlantı tıklaması ya da profil ziyareti; satış yine `sales_add` ile kanala göre izlenir
+     ve hüküm "satışa değil, dikkat ve tıklamaya dayanıyor" diye yazılır.
+   - Elle satış: `sales_add(..., channel, kind)` — kanal (Shopier, site, Instagram DM, WhatsApp, kurumsal, mağaza) ve tür (satış | talep);
+     atıf varsayımı söylenir (6.2). Kurumsal/toptan fırsat hedefleniyorsa sonuç türü çoğu zaman mesajdır; Shopier satışına bakılarak
+     başarısız sayılmaz.
 3. **Ekonomi özeti** (6.2): ürünün başa baş CPA / hedef CPA ve durumu (`exact | assumed | range | unknown`); katkı bilinmiyorsa
    "VARSAYIM". CPA kararı hedefleniyorsa konsept başına beklenen satın alma < 10 ise CPA hükmünün geniş aralıklı yön tahmini
    olacağı baştan yazılır (kesin sayı S02'de).
