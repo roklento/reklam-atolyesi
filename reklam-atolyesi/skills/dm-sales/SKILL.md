@@ -14,7 +14,9 @@ satış ve talep ayrı kanal olarak sayılır.
 - Plugin mesaj **okumaz ve göndermez**. Kayıt kullanıcıdan gelir; taslakları kullanıcı kendi uygulamasından gönderir. Otomatik cevap,
   toplu mesaj ya da hesaba bağlanan otomasyon kurulmaz.
 - **Kişisel veri tutulmaz.** Konuşma takma kodla izlenir (`M-0001`). Ad, telefon, e-posta, adres, IBAN, kimlik no, @kullanıcı adı
-  kaydedilmez; not ve kanıt alanında görülürse sunucu reddeder. Müşteri bilgisi kullanıcının mesaj uygulamasında kalır.
+  kaydedilmez; not ve kanıt alanında görülürse sunucu reddeder (cep/sabit hat her yazımıyla, IBAN tireli/boşluklu, 10–11 haneli
+  numara). "@" olmadan yazılmış kullanıcı adı makineyle ayırt edilemez: notlara müşteri adı ya da hesap adı yazılmaz. Para birimi
+  yalnızca 3 harfli koddur (TRY, USD; "TL" → TRY). Müşteri bilgisi kullanıcının mesaj uygulamasında kalır.
 - Konuşmanın reklamla geldiği **yalnızca kanıtla** yazılır (`source="ad"` + `source_evidence` + `campaign_id`); kanıt yoksa `unknown`.
 
 ## Ön koşul
@@ -41,25 +43,28 @@ Yok.
      söylemesi; hangisi olduğu yazılır) · `organic` · `referral` (tavsiye) · `repeat` (tekrar müşteri) · `unknown`.
    - `segment`: `individual | corporate | reseller | unknown` — kurumsal ve bayi talepleri ayrı izlenir.
    - `intent`: `price | shipping | personalization | bulk | stock | payment | return | product_info | other`.
-   - Yalnızca tarih verilirse saat, markanın saat diliminde günün başı sayılır.
+   - Yalnızca tarih verilirse saat, markanın saat diliminde günün başı sayılır; saat dilimi yazılmamış zaman (`2026-10-20T23:30`)
+     markanın yerel saatidir. Açılış günüyle aynı gün yalnızca tarihle girilen olay açılıştan sonra sayılır. Gelecek zaman reddedilir.
 3. **Olaylar (durum makinesi):** `dm_thread_event(profile_id, ref, event, at?, …)`.
 
    | Olay | Kimden | Kime | Zorunlu |
    |---|---|---|---|
-   | `responded` | açık durumlar | (değişmez) | — · ilk cevap süresi buradan |
+   | `responded` | her durum | (değişmez) | — · ilk cevap süresi buradan (yalnızca ilk cevap yazılır) |
    | `qualified` | open | qualified | — · gerçek ilgi (ürün/adet/tarih sordu) |
    | `quoted` | open, qualified, quoted, stale | quoted | tutar verilirse `currency` |
    | `won` | open, qualified, quoted, stale | won | `paid_via`: `store_link` (mağaza bağlantısıyla ödedi) · `bank_transfer` · `cash_on_delivery` · `card_link` · `in_person` · `other`; tutar verilirse `currency` |
    | `lost` | open, qualified, quoted, stale | lost | `lost_reason`: `price` · `shipping_time` · `shipping_cost` · `no_reply` · `stock` · `personalization` · `payment` · `trust` · `competitor` · `other` |
    | `stale` | open, qualified, quoted | stale | — · uzun süre ses yok |
-   | `reopened` | lost, stale | open | — |
+   | `reopened` | lost, stale, won | open | won'dan: yanlış girilmiş satışın düzeltilmesi, `note` (neden) zorunlu; satış alanları silinir |
    | `follow_up`, `note` | — | (değişmez) | `next_follow_up_at` verilebilir |
 
    Kapanmış (won/lost) konuşma yalnızca `reopened` ile açılır; olay zamanı açılıştan önce, takip zamanı olaydan önce olamaz.
 4. **Çift sayım yok (tek satış defteri):** `paid_via="store_link"` satış mağaza siparişlerinde zaten vardır (içe aktarma ya da piksel);
-   DM dönüşümünde sayılır, satış toplamına ayrıca eklenmez. Mesaj kanalında DM modülünde satış varsa aynı kanal ve dönem için `sales_add`
-   ile elle girilen satış raporda sayılmaz ve bildirilir. Mağaza kanallarında içe aktarılan siparişler elle girişten önce gelir.
-5. **Takip listesi:** `dm_follow_ups(profile_id)` — zamanı gelmiş takipler ve 3+ gündür sessiz açık konuşmalar (yerel eşik). Navigator
+   DM dönüşümünde sayılır, satış toplamına ayrıca eklenmez. Mesaj kanalında aynı kanal ve dönem için hem DM modülü satışı hem `sales_add`
+   ile elle giriş varsa ikisinden büyüğü sayılır (DM kaydı eksik tutulmuş olabilir; aynı satış iki kez sayılmaz) ve rapora yazılır.
+   Satışın günü markanın saat dilimindeki kapanış günüdür.
+5. **Takip listesi:** `dm_follow_ups(profile_id)` — zamanı gelmiş takipler (`stale` konuşmada da) ve 3+ gündür sessiz açık konuşmalar
+   (yerel eşik). Navigator
    açılışında varsa üst satırda tek cümle: "N konuşma takip bekliyor (M'si teklif aşamasında)". Konuşmayı `stale`/`lost` yapmak kullanıcının
    kararıdır; sistem kendiliğinden kapatmaz.
 6. **Cevap ve teklif taslakları** (kullanıcı ister ya da takip listesinden):

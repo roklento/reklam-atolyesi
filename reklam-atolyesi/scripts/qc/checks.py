@@ -154,10 +154,25 @@ _EMOJI = re.compile("[\U0001F300-\U0001FAFF\u2600-\u27BF\U0001F000-\U0001F2FF]")
 _INVISIBLE = re.compile("[\u200d\ufe0e\ufe0f\u0300-\u036f\U0001F3FB-\U0001F3FF]")
 
 
-def visible_len(s: str) -> int:
-    """Görünen karakter sayısı: birleşen işaretler, emoji birleştiriciler ve varyasyon seçicileri sayılmaz (Türkçe harfler 1 karakter)."""
+def graphemes(s: str) -> list[str]:
+    """Görünen karakterler: birleşen işaret, varyasyon seçici, ten rengi, ZWJ ile bağlı emoji (👨‍👩‍👧) ve bayrak çifti (🇹🇷) tek karakter."""
     import unicodedata
-    return len(_INVISIBLE.sub("", unicodedata.normalize("NFC", s or "")))
+    out: list[str] = []
+    for ch in unicodedata.normalize("NFC", s or ""):
+        cp = ord(ch)
+        if out and (_INVISIBLE.match(ch) or unicodedata.combining(ch) or unicodedata.category(ch) in ("Mn", "Me")
+                    or 0xE0020 <= cp <= 0xE007F or out[-1].endswith("\u200d")):
+            out[-1] += ch
+        elif out and 0x1F1E6 <= cp <= 0x1F1FF and len(out[-1]) == 1 and 0x1F1E6 <= ord(out[-1]) <= 0x1F1FF:
+            out[-1] += ch  # bölgesel gösterge çifti = bayrak
+        else:
+            out.append(ch)
+    return out
+
+
+def visible_len(s: str) -> int:
+    """Görünen karakter sayısı (grafem): Türkçe harf, bileşik emoji ve bayrak 1 karakter."""
+    return len(graphemes(s))
 
 
 def _first_sentence(s: str) -> str:
@@ -213,7 +228,7 @@ def copy_length(texts: dict, plan: dict | None = None, promise_terms: list[str] 
             if not found:
                 warnings.append({"field": "primary", "rule": "görünür mesaj",
                                  "why": "ana vaat/teklif sözcükleri ilk " + str(lim["primary"]) + " karakterde yok: kesilen kısımda kalıyor"})
-        n_emoji = len(_EMOJI.findall(visible))
+        n_emoji = sum(1 for g in graphemes(visible) if _EMOJI.search(g) or 0x1F1E6 <= ord(g[0]) <= 0x1F1FF)
         n_tag = len(re.findall(r"(?<!\w)#\w+", visible))
         if n_emoji > 3 or n_tag > 2:
             warnings.append({"field": "primary", "rule": "görünür alan",

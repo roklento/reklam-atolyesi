@@ -70,8 +70,9 @@ pozitif başa baş yok. Satış dışı sonuçta hedef kullanıcı hedefidir. Pi
   "reklam sonrası şüpheli" (sayfa, fiyat, kargo, güven, teklif); bu turda kreatife satış gerekçeli olumsuz hüküm yazılmaz. DM/WhatsApp/
   kurumsal satış ve talepler kanala göre ayrı yazılır, Meta'da görünmez.
 
-- **Tek satış defteri (1.4.8):** mağaza kanallarında içe aktarılan siparişler, mesaj kanallarında DM modülü satışları elle girişten
-  önce gelir; çakışan elle giriş sayılmaz. Mağaza kaydı varsa tıklama→satış oranı onunla hesaplanır, piksel sayısı eklenmez (aynı satış).
+- **Tek satış defteri (1.4.8):** kanal ve dönem başına: kullanıcının verdiği dışa aktarım aralığı elle girişin dönemini tamamen kapsıyorsa dosya; kapsamıyorsa
+  ve mesaj kanallarında max(elle, kaynak) — kaynakta olan satış iki kez sayılmaz, kaynağa girmemiş satış kaybolmaz. Meta ↔ mağaza
+  yalnızca piksel kanallarında (site, Shopier). Mağaza kaydı varsa tıklama→satış oranı onunla hesaplanır, piksel sayısı eklenmez (aynı satış).
   Meta ↔ mağaza: Meta'nın atfettiği satın alma mağazanın ödenmiş siparişinden belirgin fazlaysa (×1,1 ve ≥ 3) piksel şüphesi.
 - **Mesajla satış (1.4.8):** gün/kanal başına günlük toplam (yoksa tek tek kayıtlar); satış/konuşma oranı Beta(1,1) ile %90 aralık
   (≥ 3 konuşma); kampanyaya yalnızca kanıtlı konuşma bağlanır; günlük toplam kampanyaya bölünmez.

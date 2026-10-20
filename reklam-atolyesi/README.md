@@ -105,13 +105,32 @@ Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı 
   içe aktarma, DM, elle. Platforma özgü adım yalnızca okunan resmi kaynakla "doğrulandı"; "tamam" yalnızca Purchase olayı görülerek ya da
   içe aktarmayla.
 - **Mağaza sipariş içe aktarma** (`sales_import_csv`): her platformun CSV dışa aktarımı; yalnızca eşlenen sütunlar okunur, sipariş no
-  hash'lenir, çok satırlı sipariş birleştirilir, aynı dosya iki kez sayılmaz, durum değişen sipariş güncellenir.
-- **Tek satış defteri** (koçluk): mağaza kanallarında içe aktarma, mesaj kanallarında DM modülü elle girişten önce gelir; çakışan elle
-  giriş sayılmaz ve rapora yazılır. Mağaza kaydı varken piksel satışı ayrıca eklenmez. **Meta ↔ mağaza** satırı piksel sağlığını gösterir.
+  hash'lenir, çok satırlı sipariş birleştirilir, aynı dosya iki kez sayılmaz, durum değişen sipariş güncellenir. Platform adı yazımından
+  bağımsız; gün/ay sırası ve ondalık ayırıcı dosya için bir kez belirlenir; para birimi 3 harfli kod; UTF-16 okunur; aynı no farklı
+  tarihle gelirse eski kayıt korunur.
+- **Tek satış defteri** (koçluk): verilen dışa aktarım aralığı elle girişin dönemini kapsıyorsa dosya esastır; kapsamıyorsa ve mesaj
+  kanallarında (DM modülü) aynı kanal ve dönemde ikisinden büyüğü sayılır; her çakışma rapora yazılır. Mağaza kaydı varken piksel satışı
+  ayrıca eklenmez. **Meta ↔ mağaza** satırı (yalnızca pikselin gördüğü site/Shopier siparişleri) piksel sağlığını gösterir.
   Rapora mesajla satış hunisi (%90 aralık, kayıp nedenleri, ilk cevap süresi).
 - **Reklam metni uzunluğu** (`checks.py copy`): Meta önerisi birincil 125 / başlık 40 / açıklama 30 görünür karakter (resmi kaynakla) +
   videonun yapısına göre kurallar (ana vaat görünür kısımda, dikeyde ilk cümle, videoda yazı/konuşma yoksa mesajı metin taşır, fiyat
   videodaysa tekrar etme); profil daha sıkı hedef verebilir.
+- **Yerel seslendirme** (`tts_local.py`): VO artık bilgisayarda ve ücretsiz üretilir; ElevenLabs TTS yalnızca kullanıcı isterse yedek
+  (ElevenLabs'in ana görevi çekimde olmayan sahnelerin görsel/klip üretimi). EMA Lightning (Apache-2.0, CPU) varsayılan ses; ses
+  kütüphanesinde VoxCPM2 (Apache-2.0) ile metin tarifinden tasarlanmış 3 kadın + 3 erkek ses (gerçek kişiye ait değil; ekran kartı
+  önerilir). Tek model yüklemesiyle 2–4 alım, kelime zamanları, okunuş eşlemesi (altyazı "850 TL" yazar), tepe koruması.
+- **Yerel yazıya dökme** (`asr_local.py`, Whisper large-v3-turbo, MIT; CPU int8, torch yok, ≈ 1,9 GB): kullanıcı kaydı ve kamerada
+  konuşmanın kelime zamanları ücretsiz (Scribe artık yedek). Sayı/para/yüzde okunuşu eşlenir ("850 TL" = "sekiz yüz elli lira").
+  **Okunuş denetimi:** yerel seslendirmenin her alımı dökülüp metinle karşılaştırılır; farklı okunan alım farkıyla gösterilir.
+- **Konuşmalı kurgu** (`asr_local.py cuts`): kameraya konuşan çekimde dolgu ("eee", dökümde olmayan sesli bölge), uzun sessizlik ve
+  yeniden başlanan cümle (son alım tutulur) kesim **önerisi**; kullanıcı geri alabilir. Whisper'ın sözcük sınırları ses enerjisine
+  oturtulur (duraklamadan sonraki sözcüğün başını sessizliğe çekiyordu). Tutulan parçalar kurgu planı sahnesi olur; kesikler dönüşümlü
+  `punch_in` yakınlaştırmayla gizlenir; altyazı kurgu zamanına taşınır, VO altyazısıyla birleştirilebilir. Çekim rehberine "beğenmezsen
+  cümlenin başından yeniden söyle" talimatı.
+- Ses motorları isteğe bağlı ve ayrı ortamlarda (`tts_setup.py --engine ema|voxcpm|whisper`; boyut önce gösterilir, onaysız indirme yok;
+  güncelleyici kurmaz). Windows 260 karakter yol sınırı hem motor ortamı hem model önbelleği için baştan denetlenir. Bütün modeller
+  sınanan sürüme sabit ve çalışırken ağ kapalı; Whisper bağımlılıkları sabit (PyAV 19 faster-whisper 1.2.1 ile ses açamıyor). Doktor
+  motor durumunu bilgi olarak gösterir.
 - Satış kanalları genişledi (pazaryeri, Messenger, telefon). Migration 005 (yeni tablolar ve sütun; mevcut tablolar yeniden kurulmaz).
 - §7: metin uzunluğu resmi; mesaj hedefli kampanyada başlatılan konuşma için ayrı alan bu bağlantıda yok (`results`); A/B test listesi
   okunabiliyor, ayrıntı bir çalışma olmadan sınanamadı.

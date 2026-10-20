@@ -52,7 +52,7 @@ action_items_set action_item_set_status action_items_verify scale_layer_get scal
 playbook_activate playbook_revalidate playbook_retire playbook_round_tick memory_card memory_context memory_search memory_add memory_observe
 memory_update memory_forget memory_consolidate consolidation_due journal_log journal_summary checkpoint_save checkpoint_get checkpoint_close
 export_markdown backup system_manifest_get""".split()
-DATA_ALLOWED = {".venv", ".node", "db", ".kurulum-statik-tamam", ".sessions", "logs", "backups", "memory", ".selftest"}
+DATA_ALLOWED = {".venv", ".node", "db", ".kurulum-statik-tamam", ".sessions", "logs", "backups", "memory", ".selftest", ".tts"}
 FFMPEG_FILTERS = ["vidstabdetect", "vidstabtransform", "zscale", "loudnorm", "lut3d", "sidechaincompress", "tonemap"]
 VERSION_RE = re.compile(r"(\d+)\.(\d+)(?:\.(\d+))?")
 
@@ -119,6 +119,26 @@ def check_tools(r: Report, data_dir: Path) -> None:
     filt = _run([ff, "-hide_banner", "-filters"]).stdout.decode("utf-8", "replace") if ff else ""
     missing = [f for f in FFMPEG_FILTERS if not re.search(rf"\s{f}\s", filt)]
     r.add("ffmpeg_filters", "FFmpeg: vidstab, zscale, loudnorm, lut3d, sidechaincompress", bool(ff) and not missing, {"path": ff, "missing": missing})
+
+
+def check_voice_engines(r: Report, data_dir: Path) -> None:
+    """İsteğe bağlı yerel ses motorları (EMA, VoxCPM2, Whisper; 1.4.8): bilgi maddesi, kurulumu engellemez. Kayıtlı olup ortamı
+    kaybolmuş motor onarım komutuyla gösterilir."""
+    rec_path = data_dir / ".tts" / "engines.json"
+    try:
+        rec = json.loads(rec_path.read_text(encoding="utf-8")) if rec_path.exists() else {}
+    except (OSError, ValueError):
+        rec = {}
+    installed, broken = [], []
+    for eng in sorted(rec):
+        py = data_dir / ".tts" / eng / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        model, rev = (rec[eng] or {}).get("model"), (rec[eng] or {}).get("revision")
+        snaps = data_dir / ".tts" / "hf" / "hub" / f"models--{str(model).replace('/', '--')}" / "snapshots"
+        model_ok = not model or (snaps.exists() and ((snaps / rev).is_dir() if rev else any(snaps.iterdir())))
+        (installed if py.exists() and model_ok else broken).append(eng)
+    r.add("voice_engines", "Yerel ses motorları (isteğe bağlı: seslendirme, yazıya dökme)", True,
+          {"installed": installed, "broken": broken, "not_installed": [e for e in ("ema", "voxcpm", "whisper") if e not in rec],
+           "fix": [f"scripts/setup/tts_setup.py --data-dir <DD> --engine {e} --yes" for e in broken] or None})
 
 
 def check_disk(r: Report, data_dir: Path, deviations: dict) -> None:
@@ -593,6 +613,7 @@ def main() -> None:
     check_manifest(r, manifest)
     check_claude(r, find_claude(a.claude))
     check_disk(r, data_dir, deviations)
+    check_voice_engines(r, data_dir)
     check_data_dir_contents(r, data_dir, final=a.write_ok, update=a.update)
     blocking = r.blocking()
     out = {"ok": not blocking, "blocking": [b["key"] for b in blocking],

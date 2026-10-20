@@ -291,6 +291,7 @@ def _overlaps(row: dict, days: list[str]) -> bool:
 
 
 STORE_CHANNELS = ("site", "shopier", "pazaryeri", "magaza")
+PIXEL_CHANNELS = ("site", "shopier")  # Meta pikselinin görebildiği satış yerleri (pazaryeri ve fiziksel mağaza görünmez)
 DM_TO_SALES = {"instagram_dm": "instagram_dm", "messenger": "messenger", "whatsapp": "whatsapp", "phone": "telefon",
                "web_chat": "diger", "email": "diger", "other": "diger"}
 
@@ -307,11 +308,14 @@ def channel_summary(snap: dict, days: list) -> dict:
     leads = defaultdict(int)
     excluded = []
     imported = defaultdict(lambda: {"orders": 0, "units": 0, "units_unknown": 0, "revenue": 0.0})
-    covered = set()
+    by_day = defaultdict(lambda: {"units": 0, "revenue": 0.0})  # (kanal, gün) → öncelikli kaynaklardaki satış (elle girişle kıyas)
     for o in snap.get("sales_orders") or []:
+        if o["status"] == "paid":
+            d = by_day[(o["channel"], o.get("date"))]
+            d["units"] += int(o["units"] or 0) + int(o.get("units_unknown") or 0)
+            d["revenue"] += float(o["amount"] or 0)
         if not _in_days(o.get("date"), days):
             continue
-        covered.add(o["channel"])
         if o["status"] == "paid":
             b = imported[o["channel"]]
             b["orders"] += int(o["orders"] or 0)
@@ -326,8 +330,14 @@ def channel_summary(snap: dict, days: list) -> dict:
     dm = (snap.get("dm") or {}).get("threads") or []
     dm_won = defaultdict(lambda: {"units": 0, "revenue": 0.0})
     for t in dm:
-        if t["status"] == "won" and t.get("paid_via") != "store_link" and _in_days((t.get("closed_at") or "")[:10], days):
-            ch = DM_TO_SALES.get(t["channel"], "diger")
+        if t["status"] != "won" or t.get("paid_via") == "store_link":
+            continue
+        day = t.get("closed_date") or (t.get("closed_at") or "")[:10]  # markanın günü (koçluk kopyası verir)
+        ch = DM_TO_SALES.get(t["channel"], "diger")
+        d = by_day[(ch, day)]
+        d["units"] += int(t.get("quantity") or 1)
+        d["revenue"] += float(t.get("won_amount") or 0)
+        if _in_days(day, days):
             dm_won[ch]["units"] += int(t.get("quantity") or 1)
             dm_won[ch]["revenue"] += float(t.get("won_amount") or 0)
     for ch, b in dm_won.items():
@@ -341,13 +351,24 @@ def channel_summary(snap: dict, days: list) -> dict:
         if (r.get("kind") or "sale") == "lead":
             leads[ch] += int(r.get("units") or 1)
             continue
-        if ch in covered or ch in dm_won:
-            excluded.append({"channel": ch, "period": [r.get("period_start"), r.get("period_end")], "units": r.get("units"),
-                             "why": "aynı kanal ve dönem içe aktarılan siparişlerde ya da DM modülünde var; çift sayılmadı"})
-            continue
-        sales[ch]["units"] += int(r.get("units") or 0)
-        sales[ch]["revenue"] += float(r.get("revenue") or 0)
-        sales[ch]["source"].add("elle")
+        # Mağaza kanalında dışa aktarım elle girişin dönemini tamamen kapsıyorsa dosya esastır (elle giriş sayılmaz). Kapsamıyorsa ve
+        # mesaj kanallarında (DM kaydı eksik tutulabilir) ikisinden büyüğü sayılır: kaynakta olan satış iki kez sayılmaz, kaynağa girmemiş
+        # satış kaybolmaz; çakışma rapora yazılır.
+        ps, pe = r.get("period_start"), r.get("period_end") or r.get("period_start")
+        src_u = sum(v["units"] for (c, d), v in by_day.items() if c == ch and d and ps <= d <= pe)
+        src_r = sum(v["revenue"] for (c, d), v in by_day.items() if c == ch and d and ps <= d <= pe)
+        mu, mr = int(r.get("units") or 0), float(r.get("revenue") or 0)
+        full = any(im.get("channel") == ch and im["from"] <= ps and pe <= im["to"] for im in snap.get("sales_imports") or [])
+        add_u, add_r = (0, 0.0) if full else (max(0, mu - src_u), max(0.0, mr - src_r))
+        if full or src_u or src_r:
+            why = ("mağaza dışa aktarımı bu dönemi kapsıyor; dosya esas alındı, elle giriş sayılmadı" if full else
+                   "aynı kanal ve dönem içe aktarılan siparişlerde ya da DM modülünde var; çift sayılmadı" if not (add_u or add_r) else
+                   "kaynakta olandan fazlası eklendi (ikisinden büyüğü); kaynak dönemi tam kapsamıyor, kullanıcıyla kontrol edin")
+            excluded.append({"channel": ch, "period": [ps, pe], "units": mu, "source_units": src_u, "added_units": add_u, "why": why})
+        if add_u or add_r:
+            sales[ch]["units"] += add_u
+            sales[ch]["revenue"] += add_r
+            sales[ch]["source"].add("elle")
     return {"sales": {k: {"units": v["units"], "revenue": round(v["revenue"], 2), "source": sorted(v["source"])}
                       for k, v in sorted(sales.items())},
             "leads": dict(sorted(leads.items())),
@@ -380,7 +401,7 @@ def store_vs_meta(snap: dict, test_rows: list, chan: dict) -> dict | None:
     """Meta'nın reklama atfettiği satın alma ile mağazanın ödenmiş siparişleri (1.4.8). Mağaza toplamı organik ve diğer kaynakları da
     içerir; Meta sayısının mağazadan belirgin fazla olması piksel/olay sorununa işarettir, az olması tek başına sorun değildir."""
     imported = chan.get("imported") or {}
-    store_orders = sum(v["orders"] for v in imported.values())
+    store_orders = sum(v["orders"] for ch, v in imported.items() if ch in PIXEL_CHANNELS)  # pazaryeri/mağaza pikselde görünmez
     if not store_orders:
         return None
     meta = _sum(test_rows, "purchases")
@@ -422,7 +443,7 @@ def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
         per.append({"concept": k, "notes": notes or ["açılış ve tıklama diğer konseptlerle benzer ya da daha iyi"]})
     clicks = _sum(test_rows, "link_clicks")
     pixel_purchases = _sum(test_rows, "purchases")
-    web_units = sum(v["units"] for ch, v in chan["sales"].items() if ch in STORE_CHANNELS + ("belirtilmedi",))
+    web_units = sum(v["units"] for ch, v in chan["sales"].items() if ch in PIXEL_CHANNELS + ("belirtilmedi",))
     # Mağaza kaydı varsa o esastır (piksel aynı satışları sayar; toplanırsa çift sayılır); yoksa pikselin saydığı.
     sales_seen = web_units if web_units else pixel_purchases
     if clicks >= PAGE_MIN_CLICKS and sales_seen == 0:

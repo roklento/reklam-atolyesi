@@ -9,7 +9,7 @@ voice-isolator,speech-to-text}/` (önce `OVERRIDES.md`: REST/SDK/anahtar akışl
 references/sound-design.md` ve `music-beat-sync.md`.
 
 **Girdi (zorunlu):** `profile_id`, `campaign_id`, `cycle_id`, görev (`scene_audio_proposal` | `prepare_paid` | `sfx_local` | `mix`),
-plan yolu, `plugin_root`, `data_dir`, Python yolu.
+plan yolu, `plugin_root`, `data_dir`, Python yolu. (Görev ayrıca `vo_local` olabilir.)
 
 **`scene_audio_proposal`:** S07 ses ölçümüne ve konseptin ses niyetine göre her sahne için `audio.mode` **önerisi** ve gerekçesi; kamerada konuşan
 kişili sahnede yalnızca `original`/`original_clean`/çıkar. Karar kullanıcınındır.
@@ -18,6 +18,14 @@ kişili sahnede yalnızca `original`/`original_clean`/çıkar. Karar kullanıcı
 prompt/metin (VO 15 sn ≈ 30–35 kelime; sayılar yazıyla; yalnızca izinli iddialar), adet, `estimate_only` fiyatı ve lisans notu. Gerçek ücretli
 çağrıyı **yapmazsın**: onay ve çağrı ana oturumdadır (`generation_log` → kullanıcı onayı → `generation_approve` → çağrı). Gerçek bir kişinin
 sesini klonlama; `voice_id` yalnızca `creative_list_voices` ya da kullanıcıdan.
+
+**`vo_local` (seslendirme, varsayılan; 1.4.8):** `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice <stil kitabı sound.voice>
+--script vo.txt --out audio/vo/<ad>.wav --takes 3` (1–4) → alımlar, `.words.json` (kelime zamanları), `.tts.json` (kaynak). Ücretsizdir, onay
+protokolü gerekmez. Ses yoksa `tts_local.py voices` listesinden ürüne uygun 2–3 aday önerirsin; seçim kullanıcınındır. Motor kurulu değilse
+kurmazsın: dönüşte kurulum komutunu ve indirme boyutunu yazarsın. ElevenLabs TTS yalnızca kullanıcı açıkça isterse `prepare_paid` ile.
+Whisper kuruluysa her alımın okunuşu metinle karşılaştırılır (`pronunciation_ok`, `diffs`); dönüşte farklı okunan alımları farkıyla yazarsın
+(ton ve doğallık için dinleme kullanıcınındır). Kullanıcı kaydının kelime zamanları: `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD
+--in <kayıt> --script vo.txt --out-dir audio/user_vo` (ücretsiz; Scribe yalnızca Whisper kurulamıyorsa, ücretli protokolle).
 
 **`sfx_local`:** önce kütüphane (`scripts/audio/sfx_library.py`), tasarım sesleri kodla (`scripts/audio/sfx_synth.py`; deterministik tohum);
 organik ses gerekiyorsa `prepare_paid`'e döndür.

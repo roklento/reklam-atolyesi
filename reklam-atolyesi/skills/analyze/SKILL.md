@@ -39,6 +39,13 @@ gerçek çekimli eşin kullanılabilirliği.
    speaking, consent_id?}], tags, notes)` (aynı SHA-256 → güncelleme). Sabitlenmiş kopya mı ham mı: `meta.use_stabilized`.
 4. **Kişi ve izin:** kişi tespit edilen her klip `consent_query` ile eşlenir; izinsiz/geri çekilmiş kişili klip **kullanılamaz** diye
    işaretlenir (`tags` + `notes`). Kamerada konuşan kişi varsa not edilir (S09'da yalnızca `original`/`original_clean`).
+   **Konuşma dökümü (1.4.8):** kamerada konuşan kişi ya da kullanılacak konuşma sesi olan klipler **tek çağrıda** (model bir kez yüklenir):
+   `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD --in <klip1> --in <klip2> … --out-dir analysis/speech` (yerel Whisper,
+   ücretsiz, bilgisayardan çıkmaz; CPU'da sesin süresinden biraz kısa sürer). Sözcük sınırları ses enerjisine oturtulur; dökümde
+   olmayan sesli bölgeler (çoğunlukla "eee"/nefes) `nonspeech` olarak kalır. Motor kurulu değilse kullanıcıya boyutu söylenir, onayla
+   `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine whisper --yes` (≈ 1,9 GB); kurmak istemezse konuşmalı kurgu önerisi yapılmaz,
+   sahne elle kurgulanır. Döküm makine çıktısıdır: metin kullanıcıya gösterilir; düzeltirse düzeltilmiş metin S10'da `--script` ile
+   uygulanır. Döküm yolu klip kaydının `notes` alanına.
 5. **Malzeme haritası:** `clips.json` (`[{asset, shot_no, score, best_ranges, used_in, path}]`) hazırla →
    `PY PR/scripts/analyze/material_map.py --menu analysis/shoot_menu.json --clips analysis/clips.json [--photos analysis/photos.json]
    --out analysis/material-map.md --json-out analysis/material-map.json`.

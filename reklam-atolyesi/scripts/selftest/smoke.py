@@ -190,9 +190,9 @@ def step3_media(ctx: Ctx) -> dict:
 def _plan(fmt: str, style_path: Path, style_sha: str) -> dict:
     T = "Örnek başlık ğüşıİçö ĞÜŞIİÇÖ"
 
-    def vid(asset, a, b, zoom=1.0):
+    def vid(asset, a, b, zoom=1.0, preset=None):
         return {"type": "video", "source": {"kind": "footage", "asset": asset, "in_s": a, "out_s": b},
-                "camera": {"preset": "kenburns_in" if zoom > 1 else "static", "zoom": zoom}}
+                "camera": {"preset": preset or ("kenburns_in" if zoom > 1 else "static"), "zoom": zoom}}
     return {"campaign": "kampanya-a", "cycle_id": 1, "concept": "A", "hook": "h1", "format": fmt, "purpose": "production", "status": "ready",
             "version": 1, "style_snapshot_sha256": style_sha, "duration_s": 15, "fps": 30, "style": str(style_path),
             "music": {"asset": "mus_sentetik", "offset_s": 0.0, "gain_db": -8}, "vo": {"asset": "vo_sentetik"}, "captions": {"on": False},
@@ -201,7 +201,7 @@ def _plan(fmt: str, style_path: Path, style_sha: str) -> dict:
                  "layers": [vid("S01", 0.5, 3.5, 1.1), {"type": "text", "preset": "text_reveal", "text": T, "anchor": "safe_top"}],
                  "transition_out": {"type": "crossfade", "dur_s": 0.3}},
                 {"id": "s2", "role": "context", "start_s": 3.0, "dur_s": 3.0, "audio": {"mode": "original_clean", "decision_id": "d2"},
-                 "layers": [vid("S02", 0.2, 3.2)], "audio_cues": [{"sfx": "sfx_01", "at_s": 0.1}]},
+                 "layers": [vid("S02", 0.2, 3.2, 1.12, "punch_in")], "audio_cues": [{"sfx": "sfx_01", "at_s": 0.1}]},
                 {"id": "s3", "role": "reveal", "start_s": 6.0, "dur_s": 3.0, "beat_lock": "downbeat", "audio": {"mode": "none", "decision_id": "d3"},
                  "layers": [vid("S03", 0.0, 3.0), {"type": "component", "component": "LightRays"},
                             {"type": "text", "preset": "kinetic", "text": "Ürün A", "anchor": "safe_top"}]},

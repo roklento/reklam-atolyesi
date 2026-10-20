@@ -71,7 +71,7 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
             parts += [f"{k}: {n} talep" for k, n in ch["leads"].items()]
             lines.append("- Kanallar: " + " · ".join(parts) + ". DM/WhatsApp/kurumsal Meta'da görünmez.")
         for ex in ch.get("excluded_manual") or []:
-            lines.append(f"- ⚠ Elle girilen {ex['channel']} satışı ({ex['period'][0]}–{ex['period'][1]}) sayılmadı: {ex['why']}.")
+            lines.append(f"- ⚠ Elle girilen {ex['channel']} satışı ({ex['period'][0]}–{ex['period'][1]}, {ex['units']} adet): {ex['why']}.")
         svm = an.get("store_vs_meta")
         if svm:
             lines.append(f"- Meta ↔ mağaza: {svm['msg']}")

@@ -49,22 +49,29 @@ def _num(v: Any, decimal: str | None = None) -> float | None:
 
 
 def detect_decimal(values: list[str]) -> str:
-    for v in values:
-        if v and re.search(r"\d,\d{1,2}$", str(v).strip()):
-            return ","
-    for v in values:
-        if v and re.search(r"\d\.\d{1,2}$", str(v).strip()):
-            return "."
+    """Dosya için ondalık ayırıcı: iki ayırıcı birlikteyse sondaki; yoksa 1-2 haneli kesir; yoksa 3 haneli grup binliktir
+    ("1,250" → İngilizce 1250, "1.250" → Türkçe 1250)."""
+    vals = [str(v).strip() for v in values if v]
+    for v in vals:
+        if "," in v and "." in v:
+            return "," if v.rfind(",") > v.rfind(".") else "."
+    for rx, d in ((r"\d,\d{1,2}$", ","), (r"\d\.\d{1,2}$", "."), (r"\d,\d{3}$", "."), (r"\d\.\d{3}$", ",")):
+        if any(re.search(rx, v) for v in vals):
+            return d
     return ","
 
 
 def _date(v: Any) -> str:
     s = str(v).strip()
-    for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d"):
-        try:
-            return dt.datetime.strptime(s[:10], fmt).date().isoformat()
-        except ValueError:
-            continue
+    head = s.split()[0] if s else s  # "1.10.2026 14:30" → "1.10.2026"
+    if re.match(r"\d{4}-\d{2}-\d{2}T", head):
+        head = head[:10]
+    for cand in dict.fromkeys((head, s[:10])):
+        for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d"):
+            try:
+                return dt.datetime.strptime(cand, fmt).date().isoformat()
+            except ValueError:
+                continue
     raise AdMemoryError(f"tarih okunamadı: {v!r}")
 
 

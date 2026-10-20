@@ -100,6 +100,18 @@ TÜRMOB RG arşivi kopyası: https://www.turmob.org.tr/arsiv/mbs/resmigazete/299
 - **ElevenLabs diğer modeller (TTS, SFX, görsel/video):** kullanılacak model/özellik ve abonelik için ticari kullanım koşulu üretimden önce
   hesabın plan sayfasından/sağlayıcı koşullarından okunur; ücretli abonelik tek başına bütün modeller için hak kanıtı değildir; beta
   çıktıları kullanılmaz.
+- **Yerel seslendirme (1.4.8; model kartları ve paket meta verisi okundu 20.10.2026):** EMA Lightning (kod ve ağırlıklar
+  Apache-2.0: https://github.com/canberk7/ema-lightning, https://huggingface.co/canberkkkkkk/ema-lightning) ve VoxCPM2 (Apache-2.0,
+  kartta "free for commercial use": https://huggingface.co/openbmb/VoxCPM2). Ses kütüphanesindeki sesler gerçek kişiye ait değildir
+  (metin tarifinden tasarlanmış); kullanıcının ya da başkasının sesi klonlanmaz (1a, m. 11). Üretilen ses yapay zekâ içeriğidir:
+  `.tts.json` `ai_generated: true` → bölüm 4 ve 1a'daki açıklama kuralları uygulanır. Ses tasarımı rastlantısal olduğundan bir sesin
+  bilinen bir kişiye benzediği fark edilirse o ses kullanılmaz ve kütüphaneden çıkarılır.
+- **Yerel yazıya dökme (1.4.8; lisans dosyaları ve model kartı okundu 21.10.2026):** Whisper (OpenAI, MIT:
+  https://github.com/openai/whisper/blob/main/LICENSE; large-v3-turbo kartı MIT: https://huggingface.co/openai/whisper-large-v3-turbo),
+  faster-whisper (SYSTRAN, MIT: https://github.com/SYSTRAN/faster-whisper/blob/master/LICENSE), CTranslate2 biçimli model kartı MIT:
+  https://huggingface.co/dropbox-dash/faster-whisper-large-v3-turbo. Ses bilgisayardan çıkmaz (çalışırken ağ kapalı). Döküm kişisel
+  veri içerebilir (konuşan kişinin sözleri): yalnızca kampanya klasöründe tutulur, hafızaya yazılmaz; konuşan kişinin kullanım izni
+  (`consent_add`) her zamanki gibi gerekir.
 - **Remotion (resmi SSS okundu: https://www.remotion.dev/docs/license/faq):** ücretsiz lisans en fazla 3 kişilik ekip/kuruluş için
   (ticari kullanım dahil); daha büyük kuruluşlar Şirket Lisansı gerektirir. Bitmiş video teslimi müşterinin çalışan sayısını lisans
   kapsamına katmaz; render yazılımının müşteriye verilmesi ayrı değerlendirilir. Kodla otomatik render (renderMedia) "Remotion for

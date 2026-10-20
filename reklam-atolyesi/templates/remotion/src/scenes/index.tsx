@@ -39,6 +39,8 @@ const withCamera = (node: React.ReactNode, cam: Layer["camera"]): React.ReactNod
   const preset = cam?.preset;
   const z = cam?.zoom ?? 1.0;
   if (!preset || preset === "none" || preset === "static") return node;
+  // konuşmalı kurguda kesik gizleme: aynı çekimin ardışık parçaları dönüşümlü sabit yakınlaştırma (asr_local.py cuts; 1.4.8)
+  if (preset === "punch_in") return <KenBurns fromScale={Math.min(1.2, Math.max(1.0, z))} toScale={Math.min(1.2, Math.max(1.0, z))} fromX={0} toX={0} fromY={0} toY={0}>{node}</KenBurns>;
   if (preset === "kenburns_in") return <KenBurns fromScale={1} toScale={Math.max(1.0, z)} fromX={0} toX={-1.5} fromY={0} toY={-1}>{node}</KenBurns>;
   if (preset === "kenburns_out") return <KenBurns fromScale={Math.max(1.0, z)} toScale={1} fromX={-1.5} toX={0} fromY={-1} toY={0}>{node}</KenBurns>;
   if (preset === "handheld") return <HandheldDrift amplitude={0.5} rotation={0.15} seed={3}>{node}</HandheldDrift>;

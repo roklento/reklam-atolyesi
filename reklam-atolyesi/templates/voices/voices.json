@@ -1,0 +1,202 @@
+{
+ "version": "1.0",
+ "note": "Yerel seslendirme kütüphanesi (1.4.8). Hiçbir ses gerçek bir kişiye ait değildir: EMA'nın tek sesi modelin kendisidir; diğerleri VoxCPM2'nin metinle ses tasarımı (voice design) özelliğiyle üretilmiş, referans dosyasıyla sabitlenmiş yapay seslerdir. Kullanıcının ya da başka birinin sesi klonlanmaz.",
+ "voices": [
+  {
+   "id": "ema-varsayilan",
+   "label": "EMA varsayılan",
+   "engine": "ema",
+   "gender": "kadın",
+   "age": "genç yetişkin",
+   "tone": "net, sakin, bilgilendirici",
+   "pace": "orta",
+   "fits": [
+    "genel ürün tanıtımı",
+    "bilgi ve teklif duyurusu",
+    "hızlı taslak"
+   ],
+   "license": "EMA Lightning: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil)",
+   "requires": "ema motoru (CPU yeterli)"
+  },
+  {
+   "id": "kadin-sicak",
+   "label": "Sıcak — kadın",
+   "engine": "voxcpm",
+   "gender": "kadın",
+   "age": "20'lerin sonu",
+   "tone": "sıcak, yumuşak, samimi",
+   "pace": "doğal",
+   "fits": [
+    "el yapımı ürün ve hediye",
+    "ev ve dekorasyon",
+    "anne-bebek ürünleri",
+    "kişisel bakım"
+   ],
+   "fits_note": "ürün türü önerisidir (ölçüm değil); seçim deneme cümlesi dinlenerek yapılır",
+   "design_instruction": "A Turkish woman in her late twenties, warm, gentle and friendly voice, natural conversational pace",
+   "reference": "kadin-sicak.wav",
+   "reference_sha256": "e9a2b8060840b74161016baed23dd709794e77561739d5c5cc13dce7f6f8e805",
+   "mode": "ref",
+   "measured": {
+    "f0_median_hz": 226,
+    "speaker_similarity_min": 0.782,
+    "rtf_gpu": 0.83,
+    "device": "RTX 5070 (12 GB)",
+    "date": "2026-10-20"
+   },
+   "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
+   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)"
+  },
+  {
+   "id": "kadin-guven",
+   "label": "Güven veren — kadın",
+   "engine": "voxcpm",
+   "gender": "kadın",
+   "age": "40'lar",
+   "tone": "sakin, kendinden emin, net",
+   "pace": "orta",
+   "fits": [
+    "kozmetik ve cilt bakımı",
+    "takı ve premium ürün",
+    "hizmet ve danışmanlık",
+    "bilgi veren tanıtım"
+   ],
+   "fits_note": "ürün türü önerisidir (ölçüm değil); seçim deneme cümlesi dinlenerek yapılır",
+   "design_instruction": "A Turkish woman in her forties, calm, confident and trustworthy voice, clear articulation, moderate pace",
+   "reference": "kadin-guven.wav",
+   "reference_sha256": "54000698df14942866c4c18bfb336b971e582763118fda79a57485f66fb77f26",
+   "mode": "ref+prompt",
+   "measured": {
+    "f0_median_hz": 191,
+    "speaker_similarity_min": 0.759,
+    "rtf_gpu": 0.86,
+    "device": "RTX 5070 (12 GB)",
+    "date": "2026-10-20"
+   },
+   "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
+   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
+  },
+  {
+   "id": "kadin-enerjik",
+   "label": "Enerjik — kadın",
+   "engine": "voxcpm",
+   "gender": "kadın",
+   "age": "genç",
+   "tone": "parlak, neşeli, gülümseyen",
+   "pace": "biraz hızlı",
+   "fits": [
+    "indirim ve kampanya duyurusu",
+    "moda ve aksesuar",
+    "yiyecek-içecek",
+    "genç kitle"
+   ],
+   "fits_note": "ürün türü önerisidir (ölçüm değil); seçim deneme cümlesi dinlenerek yapılır",
+   "design_instruction": "A young Turkish woman, bright, energetic and upbeat voice, slightly fast pace, smiling tone",
+   "reference": "kadin-enerjik.wav",
+   "reference_sha256": "a242836b2187d1580f1c6ad38b4066242c050d10887ba0542a9079a4c7aaf986",
+   "mode": "ref+prompt",
+   "measured": {
+    "f0_median_hz": 213,
+    "speaker_similarity_min": 0.746,
+    "rtf_gpu": 0.82,
+    "device": "RTX 5070 (12 GB)",
+    "date": "2026-10-20"
+   },
+   "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
+   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
+  },
+  {
+   "id": "erkek-samimi",
+   "label": "Samimi — erkek",
+   "engine": "voxcpm",
+   "gender": "erkek",
+   "age": "20'lerin sonu",
+   "tone": "arkadaşça, rahat",
+   "pace": "doğal",
+   "fits": [
+    "genel e-ticaret",
+    "teknoloji aksesuarı",
+    "hobi ve spor",
+    "yiyecek-içecek"
+   ],
+   "fits_note": "ürün türü önerisidir (ölçüm değil); seçim deneme cümlesi dinlenerek yapılır",
+   "design_instruction": "A Turkish man in his late twenties, friendly and relaxed male voice, natural conversational pace",
+   "reference": "erkek-samimi.wav",
+   "reference_sha256": "ae484b94be221b4e0d5906c430e66252a07aacc405d7b907a3350011f465be5a",
+   "mode": "ref+prompt",
+   "measured": {
+    "f0_median_hz": 146,
+    "speaker_similarity_min": 0.811,
+    "rtf_gpu": 0.82,
+    "device": "RTX 5070 (12 GB)",
+    "date": "2026-10-20"
+   },
+   "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
+   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
+  },
+  {
+   "id": "erkek-derin",
+   "label": "Derin — erkek",
+   "engine": "voxcpm",
+   "gender": "erkek",
+   "age": "40'lar",
+   "tone": "kalın, sıcak, otoriter",
+   "pace": "yavaş, net",
+   "fits": [
+    "premium ürün ve hediye",
+    "mobilya ve ev",
+    "otomotiv ve alet",
+    "kurumsal hizmet"
+   ],
+   "fits_note": "ürün türü önerisidir (ölçüm değil); seçim deneme cümlesi dinlenerek yapılır",
+   "design_instruction": "A Turkish man in his forties, deep low-pitched male voice, warm and authoritative, slow and clear",
+   "reference": "erkek-derin.wav",
+   "reference_sha256": "f437acdd7b93eb961fde9f9b7244b01179b8f1864d8ad5e582f7510692fd6072",
+   "mode": "ref+prompt",
+   "measured": {
+    "f0_median_hz": 124,
+    "speaker_similarity_min": 0.764,
+    "rtf_gpu": 0.81,
+    "device": "RTX 5070 (12 GB)",
+    "date": "2026-10-20"
+   },
+   "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
+   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
+  },
+  {
+   "id": "erkek-dinamik",
+   "label": "Dinamik — erkek",
+   "engine": "voxcpm",
+   "gender": "erkek",
+   "age": "genç",
+   "tone": "enerjik, coşkulu",
+   "pace": "biraz hızlı",
+   "fits": [
+    "indirim ve kampanya",
+    "spor ve fitness",
+    "oyun ve elektronik",
+    "etkinlik duyurusu"
+   ],
+   "fits_note": "ürün türü önerisidir (ölçüm değil); seçim deneme cümlesi dinlenerek yapılır",
+   "design_instruction": "A young Turkish man, energetic and dynamic male voice, slightly fast pace, enthusiastic",
+   "reference": "erkek-dinamik.wav",
+   "reference_sha256": "5368071cc7a5b0bfab46a1780153268c5ade7304737d8db82bbc1e6214bec318",
+   "mode": "ref+prompt",
+   "measured": {
+    "f0_median_hz": 146,
+    "speaker_similarity_min": 0.683,
+    "rtf_gpu": 0.85,
+    "device": "RTX 5070 (12 GB)",
+    "date": "2026-10-20"
+   },
+   "license": "VoxCPM2: Apache-2.0 (kod ve ağırlıklar, ticari kullanım dahil); referans ses bu plugin için metin tarifinden tasarlandı, gerçek bir kişiye ait değil",
+   "requires": "voxcpm motoru (≈ 12 GB indirme; NVIDIA GPU önerilir, CPU'da çok yavaş)",
+   "note": "coşkulu okumada perde yer yer ~180 Hz'e çıkabilir; reklam cümlelerinde ölçülen 138–157 Hz (erkek). Dinleyerek seçin.",
+   "reference_text": "Merhaba! Bugün size el emeğiyle hazırlanan, günlük hayatı güzelleştiren küçük ama özel bir ürünü anlatmak istiyorum. Çünkü iyi bir hediye, düşünüldüğünü hissettirir."
+  }
+ ]
+}

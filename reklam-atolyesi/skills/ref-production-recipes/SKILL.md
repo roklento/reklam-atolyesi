@@ -29,7 +29,11 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | sahne sesi + miks | `PY PR/scripts/audio/mix.py --plan … --scene-audio … [--music …] [--vo …] [--sfx-map …] --out-dir audio/stems` |
 | tasarım sesi sentezi | `PY PR/scripts/audio/sfx_synth.py --kind whoosh|shimmer|riser|impact|pop|tone --dur … --out … [--seed …]` |
 | ses kütüphanesi | `PY PR/scripts/audio/sfx_library.py --query … [--profile-dir …]` |
-| kelime zamanları / altyazı | `PY PR/scripts/audio/words_align.py --transcript … --script vo.txt --out …words.json` |
+| yerel seslendirme (+ okunuş denetimi) | `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice … --script vo.txt --out … --takes 3` (1–4) |
+| yazıya dökme (yerel Whisper) | `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD --in … [--script vo.txt] --out-dir …` |
+| konuşmalı kurgu kesimi / altyazı birleştirme | `PY PR/scripts/audio/asr_local.py cuts --transcript … --out … --asset … --at …` · `captions --words a@0 --words b` |
+| ses motoru kurulumu | `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine ema|voxcpm|whisper [--yes]` (boyut önce gösterilir) |
+| kelime zamanları / altyazı (Scribe yedeği) | `PY PR/scripts/audio/words_align.py --transcript … --script vo.txt --out …words.json` |
 | plan doğrulama | `PY PR/scripts/compose/validate_plan.py <plan> [--style] [--beats] [--assets]` |
 | render (init / plan / galeri / Türkçe final) | `PY PR/scripts/render/render.py init|plan|gallery|turkish …` |
 | öz denetim | `PY PR/scripts/render/self_review.py --video … --plan … --out-dir … [--style] [--beats] [--round n]` |
@@ -83,7 +87,7 @@ yetmezse ElevenLabs voice-isolator (ücretli).
 | Klibi uzatma | `bytedance-seedance-v2.5-extend` | `gemini-omni-1.1-flash-extend` | |
 | Çözünürlük artırma | `topaz-video-upscale` | — | odaksızı düzeltmez |
 | Ucuz taslak denemesi | `veo-3.1-fast-generate-001` | `ltx-v2-fast` | önce ucuz dene |
-Ses: TTS `eleven_v4` (ifade etiketi için `eleven_v3`); müzik `eleven_music_v2_5` varsayılan enstrümantal (sözlü müzik yalnızca kullanıcı kararı ve lisans kontrolüyle); efekt `eleven_text_to_sound_v2`.
+Ses: seslendirme yerel `scripts/audio/tts_local.py` (EMA varsayılan, VoxCPM2 ses kütüphanesi; 1.4.8), ElevenLabs TTS `eleven_v4` yalnızca kullanıcı isterse yedek; müzik `eleven_music_v2_5` varsayılan enstrümantal (sözlü müzik yalnızca kullanıcı kararı ve lisans kontrolüyle); efekt `eleven_text_to_sound_v2`.
 Prompt şablonu: kamera dili + özne + zamanla değişen + mekan + atmosfer + **değişmeyecekler** listesi.
 
 ## Amatör çekim kurtarma (5.20)

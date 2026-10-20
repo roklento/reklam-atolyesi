@@ -39,9 +39,10 @@ Yok.
    karar sonuç maliyetinden mi üst huniden mi; Meta bu turda satış gördü mü), **"Reklam mı, teklif mi, sayfa mı?"** teşhisi
    (`funnel_diagnosis`: konseptler arası göreli açılış ve tıklama; kampanyada ≥ 100 tıklama ve görünür web satışı yoksa "reklam sonrası
    şüpheli" — sayfa, fiyat, kargo, güven, teklif) ve **kanal özeti** (`channels`: elle girilen satış/talep kanala göre).
-   1.4.8: kanal özeti tek satış defteridir — mağaza kanallarında içe aktarılan siparişler, mesaj kanallarında DM modülündeki satışlar
-   elle girişten önce gelir, çakışan elle giriş sayılmaz ve rapora yazılır; **Meta ↔ mağaza** (`store_vs_meta`: Meta'nın atfettiği satın
-   alma mağazanın ödenmiş siparişinden belirgin fazlaysa piksel/çift olay şüphesi); **mesajla satış hunisi** (`dm`: konuşma → nitelikli →
+   1.4.8: kanal özeti tek satış defteridir — kullanıcının verdiği dışa aktarım aralığı elle girişin dönemini tamamen kapsıyorsa dosya esastır; kapsamıyorsa
+   ve mesaj kanallarında (DM modülü) aynı kanal ve dönemde ikisinden büyüğü sayılır; her çakışma rapora yazılır ("kaynak dönemi tam
+   kapsamıyor" satırı kullanıcıyla kontrol edilir); **Meta ↔ mağaza** (`store_vs_meta`, yalnızca pikselin görebildiği site/Shopier
+   siparişleri: Meta'nın atfettiği satın alma mağazanın ödenmiş siparişinden belirgin fazlaysa piksel/çift olay şüphesi); **mesajla satış hunisi** (`dm`: konuşma → nitelikli →
    teklif → satış, %90 aralık, kayıp nedenleri, ilk cevap süresi, kampanyaya kanıtla bağlı konuşmalar).
 4. **Grafikler:** `PY PR/scripts/analytics/charts.py --analysis <analysis.json> --snapshot <kopya.json> --out-dir reports/c<tur>-charts-v<n>`.
    Her grafiğin altına tek cümlelik yorum; görselleri **açıp bak**.

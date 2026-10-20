@@ -65,9 +65,17 @@ Yok.
      çift olay/test siparişi; hiç saymıyorsa eksik kurulum).
 7. **Sipariş içe aktarma (her platform):** kullanıcı platformdan sipariş listesini **CSV** olarak dışa aktarır (Excel ise "CSV UTF-8"
    olarak kaydeder). `sales_import_csv(profile_id, path, platform, mapping={date, order_id, amount?, units?, status?, currency?},
-   channel, status_map?, status_default?, currency?, decimal?, date_format?)`. Kurallar: yalnızca eşlenen sütunlar okunur; ad, adres,
-   telefon, e-posta okunmaz; sipariş no özetlenir (hash); aynı sipariş birden çok satırsa tutar ilk dolu değer, adet toplam; aynı dosya
-   ikinci kez sayılmaz; yeni dışa aktarımda durumu değişen sipariş güncellenir. Sütun adları dosyadan okunup kullanıcıya gösterilir;
+   channel, status_map?, status_default?, currency?, decimal?, date_format?, period_start?, period_end?)`. Kurallar: yalnızca eşlenen
+   sütunlar okunur; ad, adres, telefon, e-posta okunmaz; sipariş no özetlenir (hash); aynı sipariş birden çok satırsa tutar ilk dolu
+   değer, adet toplam; aynı dosya ikinci kez sayılmaz; yeni dışa aktarımda durumu değişen sipariş güncellenir. Platform adı yazımından
+   bağımsızdır ("İkas" = "ikas.com"); siparişlerin çoğu aynı no ve tarihle başka platform adıyla zaten kayıtlıysa içe aktarma durur
+   (çift sayım olmasın; mağaza taşınıp numaralar yeniden başladıysa tarih farklıdır, engellenmez).
+   Eğik çizgili tarihte gün/ay sırası dosya için bir kez belirlenir; belirsizse `date_format` istenir. Ondalık ayırıcı dosyadan
+   ("1.249,90" Türkçe, "1,250.50" İngilizce, "1,250" binlik). Para birimi 3 harfli kod olmalı (TL/₺ → TRY); değilse yanlış sütun
+   eşlenmiştir, durur. UTF-16 ("Unicode metin") dosyalar okunur. `period_start`/`period_end` platformda seçilen dışa aktarım aralığıdır:
+   verilirse bu aralığın elle girişleri yerine dosya esas alınır (koçluk defteri); verilmezse dosya elle girişin yerine geçmez, aynı
+   kanal ve dönemde büyük olan sayılır. Aralığın dışında sipariş varsa hiçbir şey kaydedilmez. Aynı platformda aynı sipariş no farklı
+   tarihle gelirse eski kayıt korunur (numaralar yeniden başladıysa farklı platform adıyla içe aktarılır). Sütun adları dosyadan okunup kullanıcıya gösterilir;
    eşleme kullanıcıyla teyit edilir (tahminle eşlenmez).
 
 ## Çıktılar

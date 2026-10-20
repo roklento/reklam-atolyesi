@@ -22,7 +22,12 @@ Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başar�
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
 1.4.8 migration 005 içerir: mesajla satış (`dm_threads`, `dm_events`, `dm_daily`), sipariş içe aktarma (`sales_imports`,
 `sales_orders`) tabloları ve `profiles.data_connection_json` sütunu eklenir; mevcut tablolar yeniden kurulmaz, satırlar korunur, Store
-açılışı öncesinde yedek alır. Kişisel veri tutulmaz (takma kod, sipariş no özeti). Yeni bağımlılık yok.
+açılışı öncesinde yedek alır. Kişisel veri tutulmaz (takma kod, sipariş no özeti). Çekirdek ortama yeni bağımlılık yok.
+1.4.8 yerel ses motorları (EMA seslendirme, VoxCPM2 ses kütüphanesi, Whisper yazıya dökme) **isteğe bağlıdır** ve güncelleyici kurmaz:
+her biri kullanıcı onayıyla, kendi ortamına (`DD/.tts/<motor>`) `scripts/setup/tts_setup.py --engine ema|voxcpm|whisper --yes` ile kurulur
+(boyut önce gösterilir: EMA ≈ 0,6 GB, Whisper ≈ 1,9 GB, VoxCPM2 ≈ 12 GB ve NVIDIA önerilir). Modeller sabit sürümdür, çalışırken ağ
+kullanılmaz. Ses kütüphanesi dosyaları (`templates/voices/`, 6 wav ≈ 6 MB) plugin'le gelir. Motor kurulu değilken eski yol (ElevenLabs,
+onaylı ücretli) çalışmaya devam eder.
 1.4.7 migration 004 içerir: `profiles.meta_signal_json`, `sales_manual.channel` ve `sales_manual.kind` (varsayılan `sale`) sütunları
 eklenir; tablo yeniden kurulmaz, satırlar korunur, Store açılışı öncesinde yedek alır. Satış sonuçlu **yeni** kampanya artık Meta'nın
 satışı gördüğü doğrulanmadan açılamaz; mevcut kampanyalar engellenmez, durum ekranında uyarı görünür.
@@ -31,6 +36,14 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.4.8** (Windows geliştirici ortamı): tam paket 286 geçti, 0 başarısız. Yeni testler `test_dm_orders.py`, `test_tts_local.py`,
+`test_asr_local.py`. Migration 005, 004 şemalı bir veritabanında sınandı. Duman testi (9 adım, render dahil; örnek planda `punch_in`
+sahnesi) geçti. Gerçek motorlarla sınandı (CPU Whisper large-v3-turbo, EMA; VoxCPM2 RTX 5070): 37 seslendirme alımının okunuş denetimi
+(fiyat "1.249,90 TL", "99,90 TL'ye", tarih dahil), Whisper sözcük başlangıcı EMA'ya göre ortanca 60 ms / %90'ı 120 ms, konuşmalı kurgu
+(yarım alım + dolgu + tekrar içeren 12,2 sn kayıt → 5,8 sn; kesilen ses yeniden dökülünce metin birebir). İki bağımsız inceleme turu
+yapıldı (ilk tur 18, ikinci tur 10 bulgu; hepsi düzeltildi ve testlendi). Linux'ta tam paket, temiz bilgisayarda motor kurulumu ve
+müşteri bilgisayarında uçtan uca güncelleme yapılmadı.
 
 **1.4.7** (Windows geliştirici ortamı): tam paket 186 geçti, 0 başarısız. Yeni testler `test_signal_diagnosis.py` (7) ve
 `test_scale_reference.py` eklemeleri; migration 004, 003 şemalı bir veritabanında sınandı (satırlar korunuyor, öncesinde yedek). Duman

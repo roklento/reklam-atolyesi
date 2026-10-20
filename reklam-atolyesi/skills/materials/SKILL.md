@@ -27,7 +27,7 @@ Her biri için **önce** `OVERRIDES.md` (REST/SDK/CLI/anahtar akışları kapal�
 - `PR/vendor-skills/music/{OVERRIDES.md, SKILL.md}` — müzik.
 - `PR/vendor-skills/sound-effects/{OVERRIDES.md, SKILL.md}` — organik efekt.
 - `PR/vendor-skills/voice-isolator/{OVERRIDES.md, SKILL.md}` — gerekiyorsa ses temizleme (ücretli).
-- `PR/vendor-skills/speech-to-text/{OVERRIDES.md, SKILL.md}` — Scribe kelime zamanları (ücretli).
+- `PR/vendor-skills/speech-to-text/{OVERRIDES.md, SKILL.md}` — Scribe kelime zamanları (ücretli; yalnızca yerel Whisper kurulamıyorsa yedek).
 - `PR/vendor-skills/ai-product-video/{OVERRIDES.md, references/sound-design.md, references/music-beat-sync.md}` — ses tasarımı
   yöntemi; efekt arşivi yalnızca `ATTRIBUTION.md`'de kaynağı kayıtlı dosyalar.
 - `PR/vendor-skills/xilo-opus-video/OVERRIDES.md` — koddan sentezlenen tasarım sesi fikri.
@@ -70,13 +70,34 @@ planda `audio.decision_id`. Tercih gözlemi `memory_add(layer="preference", kind
 ### 3. Seslendirme (5.7)
 - **Kullanıcının kaydı:** `audio/user_vo/` → temizlik (`PY PR/scripts/audio/loudness.py clean --in … --out …`; yetmezse voice-isolator,
   ücretli protokol) → kelime zamanları (aşağıda) → ses kütüphanesi. **Gerçek bir kişinin sesi klonlanmaz** (kullanıcınınki dahil).
-- **Üretilmiş:** metin konsept ve hook'tan; 15 sn ≈ 30–35 kelime; sayılar yazıyla, kısaltma yok; yalnızca izinli iddialar. Ses:
-  `brands.elevenlabs_voice_id` (yoksa `creative_list_voices` dil filtresiyle, kullanıcı seçer → `brand_upsert(elevenlabs_voice_id)`).
-  Model `eleven_v4`; duygu/ifade etiketi gerekiyorsa `eleven_v3` (etiketler model kılavuzundan). Protokolle **4 alım**.
-- **Ön seçim:** süresi kurguya uyanlar (ffprobe) → dinleyerek telaffuzu doğrulanan 1–2 alım. Oturumda dosyayı gerçekten dinleyebilen
-  doğrulanmış araç yoksa **kullanıcı dinler ve seçer**; transkript dinleme yerine geçmez. Türkçe okunuş hatası → yazım düzeltilir
-  (gerekirse IPA), tek alım yeniden (yeni tahmin + onay).
-- **Kelime zamanları:** yalnızca seçilen alımlar `creative_transcribe_audio` (Scribe; **ücretli**, protokolle) →
+  Kayıtta duraksama, "eee" ya da yeniden başlanan cümle varsa aynı konuşmalı kurgu yolu kullanılır (`asr_local.py cuts`, `compose` 2b).
+- **Üretilmiş (yerel, varsayılan; 1.4.8):** metin konsept ve hook'tan; 15 sn ≈ 30–35 kelime; yalnızca izinli iddialar; emoji, #etiket,
+  @kullanıcı adı ve bağlantı yok (yüksek sesle okunur; araç reddeder). Sayı ve para yazıldığı gibi kalabilir ("850 TL"): okunuşa
+  normalizer-tr çevirir, altyazı VO metniyle birebir kalır. Üretim:
+  `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice <stil kitabı sound.voice | ema-varsayilan> --script vo.txt
+  --out audio/vo/<ad>.wav --takes 3` → `<ad>.wav`, `<ad>_alim2.wav` …; her alım için `.words.json` (kelime zamanları; Scribe gerekmez)
+  ve `.tts.json` (kaynak, `ai_generated: true`).
+  Ücretsiz ve bilgisayardan çıkmaz: ücretli üretim protokolü gerekmez. Motor kurulu değilse kullanıcıya boyutu söylenip onayla
+  `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine ema --yes` (≈ 0,6 GB, CPU yeterli).
+  **Ses seçimi:** `tts_local.py voices` listesi (cinsiyet, yaş, ton, tempo, uygun ürün türleri) kullanıcıya gösterilir, deneme cümlesiyle
+  dinletilir; seçim stil kitabına `sound.voice`. EMA tek sestir; kütüphanedeki diğer sesler `voxcpm` motorunu ister (≈ 12 GB indirme, NVIDIA GPU
+  önerilir; kurulu değilse EMA sesi önerilir, zorlanmaz). Kütüphanedeki sesler gerçek kişiye ait değildir (metinle tasarlanmış yapay
+  sesler); kullanıcının ya da başkasının sesi klonlanmaz.
+  **Alımlar:** `--takes 3` (1–4) tek çağrıda farklı tohumlarla (model bir kez yüklenir; ücretsiz). ElevenLabs seslendirmesi yalnızca kullanıcı açıkça isterse yedek yoldur (ücretli
+  protokol, `brands.elevenlabs_voice_id`); ElevenLabs'in bu sistemdeki ana görevi çekimde olmayan sahnelerin görsel/klip üretimidir.
+- **Ön seçim:** süresi kurguya uyanlar (ffprobe) → **okunuş denetimi** → dinleyerek seçilen 1–2 alım. Whisper motoru kuruluysa
+  `tts_local.py` her alımı yerelde döker ve VO metniyle karşılaştırır (`pronunciation_ok`, `diffs`: "850 ↔ sekiz yüz altmış",
+  "metinde var, duyulmadı"; sayı/para/yüzde okunuşu fark sayılmaz); metinle birebir alımlar listede öne gelir, farklı olanlar
+  kullanıcıya farkıyla gösterilir. Denetim yalnızca sözcükleri ölçer: ton, vurgu ve doğallık için **kullanıcı dinler ve seçer**
+  (oturumda dosyayı dinleyebilen doğrulanmış araç yoksa); döküm dinlemenin yerine geçmez. Türkçe okunuş hatası → yazım düzeltilir
+  (yerel seste sayı/kısaltma yazımı ya da noktalama; ElevenLabs yedeğinde gerekirse IPA), tek alım yeniden (yerelde ücretsiz; ElevenLabs
+  yedeğinde yeni tahmin + onay).
+- **Kelime zamanları:** yerel seslendirmede `tts_local.py` aynı adımda üretir (EMA: modelin zamanları; kütüphane sesi: aynı metnin
+  EMA okunuşundan DTW ile aktarım). Kullanıcının kendi kaydı ve ElevenLabs alımı için **yerel Whisper** (ücretsiz, bilgisayardan çıkmaz):
+  `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD --in audio/user_vo/<ad>.wav --script vo.txt --out-dir audio/user_vo`
+  → `audio/user_vo/<ad>.words.json` (yazım VO metninden, zaman dökümden; okunduğu gibi değilse `diffs`). Motor kurulu değilse kullanıcıya boyut
+  söylenip onayla `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine whisper --yes` (≈ 1,9 GB, CPU yeterli). Kurulamıyorsa yedek:
+  `creative_transcribe_audio` (Scribe; **ücretli**, protokolle) →
   `PY PR/scripts/audio/words_align.py --transcript t.json --script vo.txt --out audio/vo/<ad>.words.json` (altyazı metni VO metniyle birebir).
 
 ### 4. Müzik (5.8)

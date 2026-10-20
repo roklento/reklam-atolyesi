@@ -338,11 +338,14 @@ def data_connection_get(profile_id: int) -> dict:
 @mcp.tool()
 def sales_import_csv(profile_id: int, path: str, platform: str, mapping: dict, channel: str = "site", status_map: dict | None = None,
                      status_default: str | None = None, currency: str | None = None, decimal: str | None = None,
-                     date_format: str | None = None) -> dict:
+                     date_format: str | None = None, period_start: str | None = None, period_end: str | None = None) -> dict:
     """Mağaza sipariş CSV'sini okur (yalnızca eşlenen sütunlar: date, order_id, amount?, units?, status?, currency?). Sipariş no hash'lenir;
-    kişisel sütunlar okunmaz. status_map: {"Tamamlandı": "paid", "İptal": "cancelled", ...}; durum sütunu yoksa status_default."""
+    kişisel sütunlar okunmaz. status_map: {"Tamamlandı": "paid", "İptal": "cancelled", ...}; durum sütunu yoksa status_default.
+    period_start/period_end: platformda seçilen dışa aktarım aralığı (verilirse o dönemin elle girişleri yerine dosya esas alınır;
+    verilmezse dosya elle girişin yerine geçmez, aynı kanal ve dönemde büyük olan sayılır). Aynı platformda aynı sipariş no farklı
+    tarihle gelirse eski kayıt korunur (conflicts)."""
     return call(lambda s: s.sales_import_csv(profile_id, path, platform, mapping, channel, status_map, status_default, currency, decimal,
-                                            date_format))
+                                            date_format, period_start, period_end))
 
 
 @mcp.tool()

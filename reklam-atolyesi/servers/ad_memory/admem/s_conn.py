@@ -10,10 +10,11 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
+import re
 from pathlib import Path
 from typing import Any
 
-from .util import AdMemoryError, jdump, jload, now_iso, sha256_file
+from .util import AdMemoryError, jdump, jload, now_iso, sha256_file, tr_fold
 
 CONNECTION_PATHS = ("platform_integration", "pixel_code", "events_upload", "order_import", "manual_entry", "messaging_only")
 SALES_PLACES = ("site", "shopier", "pazaryeri", "instagram_dm", "messenger", "whatsapp", "telefon", "kurumsal", "magaza", "diger")
@@ -29,7 +30,8 @@ def _read_csv(path: Path) -> tuple[list[dict], str, str]:
     if raw[:4] == b"PK\x03\x04":
         raise AdMemoryError("dosya Excel (xlsx) görünüyor: platformdan CSV olarak dışa aktarın ya da Excel'de 'CSV UTF-8' olarak kaydedin")
     text, enc = None, None
-    for e in ("utf-8-sig", "cp1254", "latin-1"):
+    encs = ("utf-16",) if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else ("utf-8-sig", "cp1254", "latin-1")  # Excel "Unicode metin" UTF-16
+    for e in encs:
         try:
             text, enc = raw.decode(e), e
             break
@@ -45,10 +47,31 @@ def _read_csv(path: Path) -> tuple[list[dict], str, str]:
     return rows, enc, delim
 
 
+def platform_key(name: str) -> str:
+    """Platform adı anahtarı: Türkçe harf duyarlı, noktalama ve alan adı uzantısız ("İkas" = "ikas" = "ikas.com")."""
+    k = re.sub(r"[^0-9a-z]", "", tr_fold(name or ""))
+    return re.sub(r"(comtr|com|nettr|net|tr)$", "", k) or k
+
+
+def slash_order(raws: list[str]) -> str | None:
+    """Eğik çizgili tarihlerde gün/ay sırası dosya için bir kez: 12'den büyük olan bölüm günü gösterir. Karar verilemezse None."""
+    dm = md = False
+    for r in raws:
+        m = re.match(r"\s*(\d{1,2})/(\d{1,2})/\d{2,4}", r or "")
+        if m:
+            a, b = int(m.group(1)), int(m.group(2))
+            dm |= a > 12
+            md |= b > 12
+    if dm and md:
+        raise AdMemoryError("tarih sütununda hem gün/ay hem ay/gün biçimi var: date_format verin")
+    return "%d/%m/%Y" if dm else ("%m/%d/%Y" if md else None)
+
+
 def _order_date(raw: str, fmt: str | None, fallback) -> str:
     import datetime as dt
     if fmt:
-        for cand in (raw, raw[:10], raw[:16], raw[:19]):
+        parts = raw.split()
+        for cand in dict.fromkeys((raw, parts[0] if parts else raw, raw.split("T")[0], raw[:10], raw[:16], raw[:19])):
             try:
                 return dt.datetime.strptime(cand, fmt).date().isoformat()
             except ValueError:
@@ -58,6 +81,17 @@ def _order_date(raw: str, fmt: str | None, fallback) -> str:
         return fallback(raw)
     except AdMemoryError:
         raise AdMemoryError(f"tarih okunamadı: {raw!r}; date_format verin (ör. '%d.%m.%Y' ya da '%m/%d/%Y')")
+
+
+def currency_code(v: str | None) -> str | None:
+    """Para birimi yalnızca 3 harfli koddur (TL/₺ → TRY); başka bir şey yanlış sütun eşlemesidir (kişisel veri sızmasın)."""
+    if not v:
+        return None
+    v = v.strip().upper().replace("₺", "TRY")
+    v = "TRY" if v in ("TL", "YTL") else v
+    if not re.fullmatch(r"[A-Z]{3}", v):
+        raise AdMemoryError("para birimi 3 harfli kod olmalı (TRY, USD, EUR): yanlış sütun eşlenmiş olabilir")
+    return v
 
 
 class ConnMixin:
@@ -115,7 +149,8 @@ class ConnMixin:
     # --- sipariş içe aktarma -----------------------------------------------------------------
     def sales_import_csv(self, profile_id: int, path: str, platform: str, mapping: dict, channel: str = "site",
                          status_map: dict | None = None, status_default: str | None = None, currency: str | None = None,
-                         decimal: str | None = None, date_format: str | None = None) -> dict:
+                         decimal: str | None = None, date_format: str | None = None, period_start: str | None = None,
+                         period_end: str | None = None) -> dict:
         """Mağaza sipariş dışa aktarımını okur. mapping: {date, order_id, amount?, units?, status?, currency?} → CSV sütun adları.
         Aynı sipariş birden çok satırdaysa (ürün satırları) tutar ilk dolu değer, adet satırların toplamıdır. Aynı dosya ikinci kez
         okunmaz; yeni dışa aktarımda durumu değişen sipariş (ör. bekliyor → ödendi) güncellenir."""
@@ -134,10 +169,17 @@ class ConnMixin:
             raise AdMemoryError("durum sütunu yoksa status_default verin (ör. dosyada yalnızca tamamlanan siparişler varsa 'paid')")
         if status_default is not None and status_default not in ORDER_STATUSES:
             raise AdMemoryError(f"status_default: {' | '.join(ORDER_STATUSES)}")
-        smap = {str(k).strip().casefold(): v for k, v in (status_map or {}).items()}
+        smap = {tr_fold(str(k).strip()): v for k, v in (status_map or {}).items()}  # "ÖDENDİ" = "Ödendi" = "odendi"
         for v in smap.values():
             if v not in ORDER_STATUSES:
                 raise AdMemoryError(f"status_map değerleri: {' | '.join(ORDER_STATUSES)}")
+        period = None
+        if period_start or period_end:
+            if not (period_start and period_end):
+                raise AdMemoryError("dışa aktarım aralığı için period_start ve period_end birlikte verilir")
+            period = [_date(period_start), _date(period_end)]
+            if period[0] > period[1]:
+                raise AdMemoryError("period_start, period_end'den sonra olamaz")
         p = Path(path)
         if not p.is_file():
             raise AdMemoryError(f"dosya yok: {path}")
@@ -152,7 +194,15 @@ class ConnMixin:
         missing = [f"{k}→{v}" for k, v in mapping.items() if v and v not in cols]
         if missing:
             raise AdMemoryError(f"CSV'de olmayan sütun: {', '.join(missing)}. Dosyadaki sütunlar: {', '.join(sorted(c for c in cols if c))}")
-        dec = decimal or (detect_decimal([r.get(mapping["amount"]) for r in rows if r.get(mapping["amount"])][:200]) if mapping.get("amount") else ".")
+        dec = decimal or (detect_decimal([r.get(mapping["amount"]) for r in rows if r.get(mapping["amount"])][:500]) if mapping.get("amount") else ".")
+        slash_fmt = None
+        if not date_format:  # eğik çizgili tarihte gün/ay sırası satır satır değil, dosya için bir kez belirlenir
+            raws = [(r.get(mapping["date"]) or "").strip() for r in rows]
+            if any(re.match(r"\d{1,2}/\d{1,2}/\d{2,4}", x) for x in raws):
+                slash_fmt = slash_order(raws)
+                if slash_fmt is None:
+                    raise AdMemoryError("tarihler gün/ay mı ay/gün mü belirsiz (hiçbir değer 12'den büyük değil): date_format verin "
+                                        "('%d/%m/%Y' ya da '%m/%d/%Y')")
         orders: dict[str, dict] = {}
         skipped: dict[str, int] = {}
         unmapped: dict[str, int] = {}
@@ -166,7 +216,8 @@ class ConnMixin:
             o = orders.setdefault(oid, {"date": None, "amount": None, "units": 0, "status": None, "currency": None, "units_seen": False})
             if o["date"] is None and (r.get(mapping["date"]) or "").strip():
                 raw_d = r[mapping["date"]].strip()
-                o["date"] = _order_date(raw_d, date_format, _date)
+                fmt = date_format or (slash_fmt if re.match(r"\d{1,2}/\d{1,2}/\d{2,4}", raw_d) else None)  # ISO satırları kendi biçimiyle
+                o["date"] = _order_date(raw_d, fmt, _date)
             if mapping.get("amount") and o["amount"] is None and (r.get(mapping["amount"]) or "").strip():
                 o["amount"] = _num(r[mapping["amount"]], dec)
             if mapping.get("units") and (r.get(mapping["units"]) or "").strip():
@@ -177,33 +228,57 @@ class ConnMixin:
             if o["status"] is None:
                 if mapping.get("status") and (r.get(mapping["status"]) or "").strip():
                     raw_s = r[mapping["status"]].strip()
-                    st = smap.get(raw_s.casefold())
+                    st = smap.get(tr_fold(raw_s))
                     if st is None:
                         unmapped[raw_s] = unmapped.get(raw_s, 0) + 1
                         st = "unknown"
                     o["status"] = st
             if o["currency"] is None:
-                o["currency"] = ((r.get(mapping["currency"]) or "").strip().upper() if mapping.get("currency") else None) or \
-                    (currency.upper() if currency else None)
+                cur_raw = ((r.get(mapping["currency"]) or "").strip().upper() if mapping.get("currency") else None) or \
+                    (currency.strip().upper() if currency else None)
+                o["currency"] = currency_code(cur_raw)
         for oid, o in orders.items():
             if o["status"] is None:
                 o["status"] = status_default or "unknown"
         valid = {k: v for k, v in orders.items() if v["date"]}
         if len(valid) < len(orders):
             skipped["tarih yok"] = skipped.get("tarih yok", 0) + len(orders) - len(valid)
+        if period:  # kayıttan ÖNCE: yanlış aralıkla kaydedilen dosya sonra düzeltilemezdi (aynı dosya yeniden okunmaz)
+            outside = [d for d in (v["date"] for v in valid.values()) if not period[0] <= d <= period[1]]
+            if outside:
+                raise AdMemoryError(f"{len(outside)} sipariş verilen dışa aktarım aralığının dışında ({min(outside)}…): aralığı kontrol edin")
+        # aynı siparişler başka platform adıyla içe aktarılmış mı: aynı sipariş no VE aynı tarih (mağaza taşınınca numaralar yeniden
+        # başlayabilir; farklı tarihli aynı no başka siparişdir). Yarıdan fazlası öyleyse sessizce çift sayılmaz, durur.
+        pkey = platform_key(plat)
+        other = sorted({platform_key(r["platform"]) for r in self.qa("SELECT DISTINCT platform FROM sales_imports WHERE brand_id=?", (bid,))}
+                       - {pkey})
+        for ok in other:
+            hits = 0
+            for oid, o in valid.items():
+                row = self.q1("SELECT date FROM sales_orders WHERE brand_id=? AND order_hash=?",
+                              (bid, hashlib.sha256(f"{bid}|{ok}|{oid}".encode("utf-8")).hexdigest()))
+                hits += 1 if row and row["date"] == o["date"] else 0
+            if hits and hits * 2 >= len(valid):
+                raise AdMemoryError(f"bu dosyadaki siparişlerin {hits}/{len(valid)} tanesi aynı numara ve tarihle daha önce başka platform "
+                                    f"adıyla ({ok}) içe aktarılmış: aynı platform adını kullanın (çift sayım olmasın)")
         now = now_iso()
         new = upd = dup = 0
+        conflicts: list[str] = []
         with self.tx():
             iid = self.ex("""INSERT INTO sales_imports(brand_id,campaign_id,platform,file_name,file_sha256,mapping_json,rows_total,rows_new,rows_dup,
                              rows_skipped,date_from,date_to,created_at) VALUES(?,?,?,?,?,?,?,0,0,?,?,?,?)""",
                           (bid, None, plat, p.name, sha, jdump({"mapping": mapping, "status_map": status_map, "status_default": status_default,
-                                                               "channel": channel, "encoding": enc, "delimiter": delim, "decimal": dec}),
+                                                               "channel": channel, "encoding": enc, "delimiter": delim, "decimal": dec,
+                                                               "period": period}),
                            len(rows), sum(skipped.values()), min((v["date"] for v in valid.values()), default=None),
                            max((v["date"] for v in valid.values()), default=None), now)).lastrowid
             for oid, o in valid.items():
-                h = hashlib.sha256(f"{bid}|{plat.casefold()}|{oid}".encode("utf-8")).hexdigest()
+                h = hashlib.sha256(f"{bid}|{pkey}|{oid}".encode("utf-8")).hexdigest()
                 cur = self.q1("SELECT * FROM sales_orders WHERE brand_id=? AND order_hash=?", (bid, h))
                 units = o["units"] if o["units_seen"] else None
+                if cur is not None and cur["date"] != o["date"]:
+                    conflicts.append(o["date"])  # aynı platform ve no, farklı tarih: yeni numaralandırma olabilir; eski kayıt ezilmez
+                    continue
                 if cur is None:
                     self.ex("""INSERT INTO sales_orders(brand_id,campaign_id,import_id,order_hash,date,amount,units,currency,status,channel,created_at)
                                VALUES(?,?,?,?,?,?,?,?,?,?,?)""", (bid, None, iid, h, o["date"], o["amount"], units, o["currency"], o["status"],
@@ -219,8 +294,9 @@ class ConnMixin:
         counts = {s: sum(1 for v in valid.values() if v["status"] == s) for s in ORDER_STATUSES}
         return {"import": self.q1("SELECT * FROM sales_imports WHERE id=?", (iid,)), "orders": len(valid), "new": new, "updated": upd,
                 "duplicates": dup, "skipped": skipped, "status_counts": counts, "unmapped_statuses": unmapped, "encoding": enc,
-                "delimiter": delim, "decimal": dec,
-                "note": ("Eşlenmeyen durumlar 'unknown' sayıldı ve satışa katılmadı; status_map ile eşleyip yeni dışa aktarımı okuyun. "
+                "delimiter": delim, "decimal": dec, "conflicts": len(conflicts),
+                "note": (f"{len(conflicts)} sipariş no daha önce farklı tarihle kayıtlı: eski kayıt korundu, bunlar sayılmadı (platform "
+                         "numaraları yeniden başlattıysa farklı platform adıyla içe aktarın). " if conflicts else "") + ("Eşlenmeyen durumlar 'unknown' sayıldı ve satışa katılmadı; status_map ile eşleyip yeni dışa aktarımı okuyun. "
                          if unmapped else "") + "Ad, adres, telefon, e-posta okunmadı; sipariş numarası yalnızca özet (hash) olarak saklandı."}
 
     def sales_orders_summary(self, profile_id: int, date_from: str | None = None, date_to: str | None = None) -> dict:

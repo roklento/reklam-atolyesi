@@ -190,6 +190,13 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
             if src.get("kind") == "footage":
                 if "in_s" in src and "out_s" in src and src["out_s"] <= src["in_s"]:
                     errors.append(f"sahne {s['id']} katman {li}: out_s ≤ in_s")
+            cam = layer.get("camera") or {}
+            try:
+                zoom = float(cam.get("zoom") if cam.get("zoom") is not None else 1.0)
+            except (TypeError, ValueError):
+                zoom = -1.0
+            if cam.get("preset") == "punch_in" and not 1.0 <= zoom <= 1.2:
+                errors.append(f"sahne {s['id']} katman {li}: punch_in yakınlaştırması 1,0–1,2 olmalı (fazlası görüntüyü bozar)")
             if layer["type"] in ("video", "image"):
                 st, du = _layer_span(s, layer)
                 video_dur += du

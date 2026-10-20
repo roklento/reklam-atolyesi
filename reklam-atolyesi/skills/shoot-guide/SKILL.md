@@ -42,6 +42,9 @@ Ayrıca `c<tur>-hooks.csv`, `strategy_get`, `products.provable_claims_json` (ön
 6. **Ses:** yalnızca ses niyeti "çekimdeki ses" ya da "kullanıcının sesi" olan çekimlerde kayıt talimatı (telefon konuşana/ses
    kaynağına yakın, sessiz ortam, müzik ve TV kapalı, gerekirse ucuz yaka mikrofonu; kullanıcı seslendirmesi için telefonun ses kaydı
    uygulamasıyla, sessiz odada, 3 alım). Diğer çekimlerde ses dikkate alınmaz; efektleri sistem üretir.
+   **Kameraya konuşma / kullanıcı kaydı (1.4.8):** "Her cümleden önce bir nefes sus. Cümleyi beğenmezsen durma, **cümlenin başından
+   aynı sözlerle** yeniden söyle; sistem son söyleneni tutmayı önerir, öncekini kesmeyi önerir. 'Eee' olursa devam et." (Konuşmalı kurgu
+   `asr_local.py cuts` yeniden başlayan cümleyi ve dolguyu öneri olarak işaretler; kesimleri kullanıcı onaylar ya da geri alır.)
 7. **Fotoğraf listesi:** konsept başına 5–8, aynı oturumda ve telefonun **fotoğraf modunda**: ürün tek başına, kullanımda, ayrıntı,
    statik ve carousel için yazı boşluklu kadrajlar.
 8. **İzin hatırlatması:** görüntüde ya da seste tanınabilir her kişi (çekimci dahil) için kullanım izni — `consent_add(profile_id,

@@ -13,3 +13,5 @@ Bu dosya upstream dosyalardan **önce** okunur (spec 5.22). Upstream içerik hi�
 ## Çatışmada geçerli olan
 - Ses klonlama yok (bölüm 10). Ticari kullanım hakkı model/özellik bazında doğrulanır; beta çıktıları kullanılmaz (9.1).
 - `creative_transcribe_audio` (Scribe) **ücretlidir**: önce `estimate_only`, onay ve `generations` kaydı (5.7 adım 5). Yalnızca seçilen alımlar transkribe edilir.
+- 1.4.8'den itibaren yazıya dökmenin varsayılan yolu **yerel Whisper**dır (`scripts/audio/asr_local.py`, ücretsiz, ses bilgisayardan çıkmaz).
+  Scribe yalnızca Whisper motoru kurulamıyorsa ve kullanıcı ücretli yolu açıkça seçerse kullanılır.

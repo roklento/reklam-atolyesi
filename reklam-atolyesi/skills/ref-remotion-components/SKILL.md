@@ -20,7 +20,7 @@ yapılır. Bütün demo/örnek prop'lar nötr yer tutucudur ("Marka A", "Örnek 
 ## Plan katmanı → render
 | Katman `type` | Ne olur |
 |---|---|
-| `video` | `source.kind=footage|ai_clip` → sahne ara dosyası `<OffthreadVideo>`; `camera.preset`: `static` · `kenburns_in` · `kenburns_out` · `handheld` · `rack_focus` (+ `zoom`) |
+| `video` | `source.kind=footage|ai_clip` → sahne ara dosyası `<OffthreadVideo>`; `camera.preset`: `static` · `kenburns_in` · `kenburns_out` · `handheld` · `rack_focus` · `punch_in` (sabit yakınlaştırma 1,0–1,2; konuşmalı kurguda kesik gizleme) (+ `zoom`) |
 | `image` | `source.kind=still|ai_image` (fotoğraf/AI görsel) |
 | `text` | `preset`: `text_reveal` (TextReveal) · `kinetic`/`kinetic_words` (KineticWords) · `soft_type` (SoftType) · `lower_third` (LowerThird); `anchor`: `safe_top` vb.; konum `style.layout[format].titleY` ve rol |
 | `component` | `component: "<Ad>"`, `props: {…}` (zod şemasıyla doğrulanır); sarmalayıcılar (`KenBurns`, `FakeRackFocus`, `HandheldDrift`, `Spotlight`, `LightRays`, `ParticleSwirl`, `HeatShimmer`, `SafeZoneGuide`) altındaki katmanı sarar |

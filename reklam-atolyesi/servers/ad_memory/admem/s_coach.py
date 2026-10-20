@@ -73,13 +73,22 @@ class CoachMixin:
         # 1.4.8: mesajla satış ve içe aktarılan mağaza siparişleri (kişisel veri ve not yok; siparişler gün/kanal/durum toplamı)
         lo = min([c["created_at"][:10]] + [r["date"] for r in rows])
         hi = "9999-12-31"  # kopya içeriği bugünün tarihine değil yalnızca kayıtlı veriye bağlı kalsın (aynı veri → aynı kopya)
-        payload["dm"] = {"threads": self.dm_threads_rows(c["brand_id"], lo, hi),
+        from .s_dm import local_date
+        tz = self._brand_tz(c["brand_id"])
+        payload["dm"] = {"threads": [{**t, "closed_date": local_date(t["closed_at"], tz) if t["closed_at"] else None}
+                                     for t in self.dm_threads_rows(c["brand_id"], lo, hi)],
                          "daily": self.qa("SELECT date, channel, conversations, from_ads, qualified, quoted, won FROM dm_daily "
                                           "WHERE brand_id=? AND date BETWEEN ? AND ? ORDER BY date, channel", (c["brand_id"], lo, hi))}
         payload["sales_orders"] = self.qa("""SELECT date, channel, status, currency, COUNT(*) AS orders, SUM(COALESCE(units,0)) AS units,
                                                 SUM(CASE WHEN units IS NULL THEN 1 ELSE 0 END) AS units_unknown, SUM(COALESCE(amount,0)) AS amount
                                          FROM sales_orders WHERE brand_id=? AND date BETWEEN ? AND ? GROUP BY date, channel, status, currency
                                          ORDER BY date, channel, status""", (c["brand_id"], lo, hi))
+        payload["sales_imports"] = []  # dışa aktarımın kapsadığı dönem: elle girişle kıyasta mağaza kaydının esas olduğu aralık
+        for im in self.qa("SELECT date_from, date_to, mapping_json FROM sales_imports WHERE brand_id=? ORDER BY id", (c["brand_id"],)):
+            mj = jload(im["mapping_json"]) or {}
+            per = mj.get("period")  # yalnızca kullanıcının verdiği dışa aktarım aralığı (sipariş tarihlerinin yayılımı eksik dosyayı gizler)
+            if per and per[1] >= lo:
+                payload["sales_imports"].append({"channel": mj.get("channel"), "from": per[0], "to": per[1]})
         text = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=1, default=str)
         sha = sha256_text(text)
         ex = self.q1("SELECT * FROM input_snapshots WHERE cycle_id=? AND kind=? AND sha256=?", (cy["id"], kind, sha))

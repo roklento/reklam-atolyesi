@@ -14,7 +14,8 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
 
 ## Girdiler ve bağlam paketi
 `memory_context(profile_id, "S10", campaign_id, cycle_id)`: güncel stil, kurgu prosedürleri, kurgu tercihleri, güncel planlar.
-`edit_plan_get`, `analysis/material-map.json`, `audio/music/*.beats.json`, `audio/vo/*.words.json`, `ref-remotion-components`.
+`edit_plan_get`, `analysis/material-map.json`, `audio/music/*.beats.json`, `audio/vo/*.words.json`, `analysis/speech/*.transcript.json`,
+`ref-remotion-components`.
 
 ## Kullanılan hazır skill'ler ve OVERRIDES
 - Remotion: yalnızca `ref-remotion-components` ve `ref-vendor-map` → "Remotion — resmi belge yolu". Makinede genel `remotion-*`
@@ -38,7 +39,19 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
      ise vuruşa yaslanır; değilse aksiyonda kalır. `beat_lock` işaretli anlar (reveal, hook'tan çıkış, son kart girişi) vuruşa kilitlenir.
    - Bileşenler `ref-remotion-components` kütüphanesinden, stil kitabına ve **efekt bütçesine** göre (imza anı yalnızca reveal ve son
      kartta). Hiçbir bileşen varsayılan değildir.
-   - Altyazı (5.14): VO ya da tutulan konuşma varsa `captions.on=true`, kelime zamanlarından; metin VO ile birebir.
+   - **Konuşmalı sahne (kamerada konuşan kişi, kullanıcının kaydı; 1.4.8):** S07 dökümünden kesim önerisi:
+     `PY PR/scripts/audio/asr_local.py cuts --transcript analysis/speech/<klip>.transcript.json --out edit/speech/<klip>.cuts.json
+     --asset <varlık kimliği> --at <bloğun plandaki başlangıcı> --role <rol> [--script duzeltilmis.txt]`. Önerilenler: dolgu ("eee",
+     dökümde olmayan sesli bölge), 0,35 sn'den uzun sessizlik, yeniden başlama (art arda tekrar edilen bölüm ya da başı aynı cümle;
+     **sonraki alım tutulur**). Tek sözcük ikilemesi (çok çok) kesilmez. `removed` listesi kullanıcıya zaman, söz ve nedenle gösterilir;
+     geri almak istedikleri `--restore r3.20,r9.74` ile tutulur (kimlik zamandan, her çalıştırmada aynı). Çıkan `scenes` plana
+     yerleştirilir (sonraki sahnelerin `start_s`'i kayar); ses `original` (gürültülüyse `original_clean`), kesik yerlerinde dönüşümlü
+     `camera: {preset: "punch_in", zoom: 1.12}` (1,0–1,2; kesiği gizler). Parçalar kare ızgarasındadır (ses-görüntü kayması olmaz).
+     Kesimden sonra konuşmanın akışı kullanıcıya önizlemede dinletilir.
+   - Altyazı (5.14): VO ya da tutulan konuşma varsa `captions.on=true`, kelime zamanlarından; metin VO ile birebir. Konuşmalı sahnenin
+     altyazısı `<klip>.cuts.words.json` (kurgu zamanında). VO da varsa tek dosyada:
+     `PY PR/scripts/audio/asr_local.py captions --words audio/vo/<ad>.words.json@<VO başlangıcı> --words edit/speech/<klip>.cuts.words.json
+     --out edit/captions.words.json` (`overlaps` doluysa VO ile konuşma üst üste: biri kaydırılır).
    - `provenance.ai_share` ve `ai_layers` katmanlardan hesaplanır.
    - Videoda açıklama metni (AI açıklaması, yasal not) varsa `disclaimer: {on: true, text, reason}`; 9:16'da yazılar alttaki %40'a girmez
      (Meta resmi kılavuzu; `ai_share > 0` iken de uygulanır, `ref-legal-tr-meta` §7).

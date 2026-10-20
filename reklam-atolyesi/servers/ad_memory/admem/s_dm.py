@@ -32,7 +32,7 @@ TRANSITIONS = {
     "won": ({"open", "qualified", "quoted", "stale"}, "won"),
     "lost": ({"open", "qualified", "quoted", "stale"}, "lost"),
     "stale": ({"open", "qualified", "quoted"}, "stale"),
-    "reopened": ({"lost", "stale"}, "open"),
+    "reopened": ({"lost", "stale", "won"}, "open"),  # won → open: yanlış girilmiş satışın düzeltilmesi (satış alanları silinir)
 }
 STATELESS_EVENTS = ("responded", "follow_up", "note")
 STALE_AFTER_DAYS = 3  # yerel: son olaydan bu yana 3 gün sessiz açık konuşma takip listesine girer (Meta kuralı değil)
@@ -40,9 +40,13 @@ STALE_AFTER_DAYS = 3  # yerel: son olaydan bu yana 3 gün sessiz açık konuşma
 _PII = [
     (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "e-posta"),
     (re.compile(r"(?<!\w)@[A-Za-z0-9_.]{2,}"), "@kullanıcı adı"),
-    (re.compile(r"\bTR\d{2}(?:\s?\d{4}){5}\s?\d{2}\b", re.I), "IBAN"),
-    (re.compile(r"(?:\+?90[\s-]?)?\(?0?5\d{2}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}"), "telefon"),
-    (re.compile(r"(?<!\d)\d{10,11}(?!\d)"), "telefon/kimlik numarası"),
+    (re.compile(r"\bTR\s?\d{2}(?:[\s.-]?\d{4}){5}[\s.-]?\d{2}\b", re.I), "IBAN"),
+    (re.compile(r"(?<!\d)(?:\d[\s.-]?){21,25}\d(?!\d)"), "IBAN/hesap numarası"),
+    # cep ve sabit hat, ayırıcı boşluk/nokta/tire/parantez (0532.123.45.67, (0216) 444 55 66, +90 212 …, 532 123 45 67). Başında 0 ya da
+    # +90 olmayan grup yalnızca 5xx (cep) sayılır: "450 500 75 80 TL" gibi fiyat/adet dizileri telefon değildir.
+    (re.compile(r"(?<!\d)(?:(?:\+|00)?90[\s.-]?\(?[2-5]\d{2}\)?|\(?0[2-5]\d{2}\)?|\(?5\d{2}\)?)[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}(?!\d)"),
+     "telefon"),
+    (re.compile(r"(?<!\d)(?:\d{11}|5\d{9})(?!\d)"), "telefon/kimlik numarası"),  # 11 hane (TC kimlik, 05xx…) ya da 5 ile başlayan 10 hane
 ]
 
 
@@ -56,23 +60,30 @@ def pii_check(text: str | None, field: str) -> None:
                                 "müşteri bilgisi kullanıcının kendi mesaj uygulamasında kalır.")
 
 
+def is_date_only(v: str | None) -> bool:
+    return bool(v) and bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(v).strip()))
+
+
 def _ts(v: str | None, field: str, *, default_now: bool = False, tz: str | None = None) -> str | None:
+    """Zamanı UTC'ye çevirir. Yalnızca tarih → markanın saat diliminde günün başı; saat dilimi yazılmamış zaman (2026-10-20T23:30)
+    markanın yerel saati sayılır (kullanıcı saati kendi saatine göre söyler)."""
     if v is None or v == "":
         return now_iso() if default_now else None
     s = str(v).strip()
     try:
-        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", s):
-            # yalnızca tarih: markanın saat diliminde günün başı (gün, günlük toplamlarla aynı gün olarak kalır)
-            try:
-                zone = ZoneInfo(tz or "Europe/Istanbul")
-            except Exception:
-                zone = dt.timezone.utc
+        zone = ZoneInfo(tz or "Europe/Istanbul")
+    except Exception:
+        zone = dt.timezone.utc
+    try:
+        if is_date_only(s):
             d = dt.datetime.fromisoformat(s).replace(tzinfo=zone)
         else:
-            d = parse_iso(s)
+            d = dt.datetime.fromisoformat(s.replace("Z", "+00:00").replace(" ", "T", 1))
+            if d.tzinfo is None:
+                d = d.replace(tzinfo=zone)
     except ValueError:
         raise AdMemoryError(f"{field} zamanı okunamadı: {v!r} (ISO biçimi: 2026-10-20 ya da 2026-10-20T14:30:00+03:00)")
-    if d > utcnow() + dt.timedelta(days=1):
+    if d > utcnow() + dt.timedelta(minutes=10):  # saat dilimi doğru çevrildiği için yalnızca küçük saat kayması payı
         raise AdMemoryError(f"{field} gelecekte olamaz: {v!r}")
     return d.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -111,6 +122,11 @@ def local_date(iso_utc: str, tzname: str | None) -> str:
         return d.date().isoformat()
 
 
+def currency_code(v: str | None) -> str | None:
+    from .s_conn import currency_code as cc
+    return cc(v)
+
+
 class DMMixin:
     # --- konuşma kaydı -------------------------------------------------------------
     def _brand_tz(self, brand_id: int) -> str | None:
@@ -145,6 +161,7 @@ class DMMixin:
         _enum(intent, DM_INTENTS, "intent")
         pii_check(note, "not")
         pii_check(source_evidence, "kaynak kanıtı")
+        pii_check(meta_ad_id, "reklam kimliği")
         tz = self._brand_tz(bid)
         opened = _ts(opened_at, "opened_at", default_now=True, tz=tz)
         if campaign_id is not None:
@@ -187,11 +204,16 @@ class DMMixin:
         _enum(intent, DM_INTENTS, "intent")
         tz = self._brand_tz(t["brand_id"])
         when = _ts(at, "at", default_now=True, tz=tz)
+        if when < t["opened_at"] and is_date_only(at) and local_date(t["opened_at"], tz) == str(at).strip():
+            when = t["opened_at"]  # açılış günüyle aynı gün, saatsiz: olay açılıştan sonra sayılır (gece yarısı değil)
         if when < t["opened_at"]:
             raise AdMemoryError("olay zamanı konuşmanın açılışından önce olamaz")
         fu = _ts(next_follow_up_at, "next_follow_up_at", tz=tz) if next_follow_up_at else None
+        if fu and fu < when and is_date_only(next_follow_up_at) and local_date(when, tz) == str(next_follow_up_at).strip():
+            fu = when  # aynı gün, saatsiz takip: hemen takip listesine girer
         if fu and fu < when:
             raise AdMemoryError("sonraki takip zamanı olaydan önce olamaz")
+        cur = currency_code(currency)
         amt = _pos_num(amount, "amount")
         qty = _pos_int(quantity, "quantity")
         sets: dict[str, Any] = {}
@@ -206,7 +228,7 @@ class DMMixin:
                     raise AdMemoryError("satış (won) ödeme yolunu ister (paid_via): mağaza bağlantısıyla ödenen satış mağaza siparişlerinde "
                                         "zaten sayılır, çift sayılmaması için gerekli")
                 sets.update(paid_via=paid_via, won_amount=amt, closed_at=when, next_follow_up_at=None)
-                if amt is not None and not (currency or t["currency"]):
+                if amt is not None and not (cur or t["currency"]):
                     raise AdMemoryError("tutar verildiyse para birimi (currency) gerekli")
             elif event == "lost":
                 _enum(lost_reason, LOST_REASONS, "lost_reason")
@@ -216,10 +238,12 @@ class DMMixin:
             elif event == "quoted":
                 if amt is not None:
                     sets["quote_amount"] = amt
-                    if not (currency or t["currency"]):
+                    if not (cur or t["currency"]):
                         raise AdMemoryError("teklif tutarı verildiyse para birimi (currency) gerekli")
             elif event == "reopened":
-                sets.update(closed_at=None, lost_reason=None)
+                if t["status"] == "won" and not (note and note.strip()):
+                    raise AdMemoryError("satışı geri açmak bir düzeltmedir: nedenini not olarak yazın (ör. 'yanlışlıkla satış girildi')")
+                sets.update(closed_at=None, lost_reason=None, paid_via=None, won_amount=None)
         elif event == "responded":
             if t["first_response_at"] is None:
                 sets["first_response_at"] = when
@@ -229,8 +253,8 @@ class DMMixin:
             sets["next_follow_up_at"] = fu
         if qty is not None:
             sets["quantity"] = qty
-        if currency:
-            sets["currency"] = currency.upper()
+        if cur:
+            sets["currency"] = cur
         if segment:
             sets["segment"] = segment
         if intent:
@@ -251,7 +275,11 @@ class DMMixin:
         pii_check(note, "not")
         from .s_meta import _date
         d = _date(date)
-        if dt.date.fromisoformat(d) > (utcnow() + dt.timedelta(days=1)).date():
+        try:
+            zone = ZoneInfo(self._brand_tz(bid) or "Europe/Istanbul")
+        except Exception:
+            zone = dt.timezone.utc
+        if dt.date.fromisoformat(d) > utcnow().astimezone(zone).date():  # markanın bugünü
             raise AdMemoryError("gelecek gün için kayıt olmaz")
         c = _pos_int(conversations, "conversations")
         vals = {k: _pos_int(v, k) for k, v in (("from_ads", from_ads), ("qualified", qualified), ("quoted", quoted), ("won", won))}
@@ -297,8 +325,8 @@ class DMMixin:
         return self.qa("""SELECT t.ref, t.campaign_id, t.channel, t.source, t.meta_ad_id, t.creative_key, t.segment, t.intent, t.status,
                                   t.lost_reason, t.quantity, t.quote_amount, t.won_amount, t.currency, t.paid_via, t.opened_at, t.opened_date,
                                   t.first_response_at, t.closed_at, t.next_follow_up_at,
-                                  EXISTS(SELECT 1 FROM dm_events e WHERE e.thread_id=t.id AND e.kind IN ('qualified','quoted','won')) AS r_qualified,
-                                  EXISTS(SELECT 1 FROM dm_events e WHERE e.thread_id=t.id AND e.kind IN ('quoted','won')) AS r_quoted
+                                  EXISTS(SELECT 1 FROM dm_events e WHERE e.thread_id=t.id AND e.kind IN ('qualified','quoted')) AS r_qualified,
+                                  EXISTS(SELECT 1 FROM dm_events e WHERE e.thread_id=t.id AND e.kind IN ('quoted')) AS r_quoted
                            FROM dm_threads t WHERE t.brand_id=? AND t.opened_date BETWEEN ? AND ? ORDER BY t.opened_at""", (brand_id, lo, hi))
 
     def dm_follow_ups(self, profile_id: int, now: str | None = None) -> dict:
@@ -306,10 +334,12 @@ class DMMixin:
         bid = self._brand_id(profile_id)
         ref_now = parse_iso(now) if now else utcnow()
         out = []
-        for t in self.qa("SELECT * FROM dm_threads WHERE brand_id=? AND status IN ('open','qualified','quoted') ORDER BY opened_at", (bid,)):
+        for t in self.qa("SELECT * FROM dm_threads WHERE brand_id=? AND status IN ('open','qualified','quoted','stale') ORDER BY opened_at",
+                         (bid,)):
             last = self.q1("SELECT MAX(at) AS at FROM dm_events WHERE thread_id=?", (t["id"],))["at"] or t["opened_at"]
-            due = t["next_follow_up_at"] and parse_iso(t["next_follow_up_at"]) <= ref_now
-            silent = (ref_now - parse_iso(last)).days >= STALE_AFTER_DAYS
+            due = bool(t["next_follow_up_at"]) and parse_iso(t["next_follow_up_at"]) <= ref_now
+            # sessizlik yalnızca açık konuşmada; 'stale' işaretlenmiş konuşma yalnızca verilen takip zamanı gelince listeye girer
+            silent = t["status"] != "stale" and (ref_now - parse_iso(last)).days >= STALE_AFTER_DAYS
             if due or silent:
                 out.append({"ref": t["ref"], "channel": t["channel"], "status": t["status"], "segment": t["segment"],
                             "intent": t["intent"], "quote_amount": t["quote_amount"], "currency": t["currency"],
