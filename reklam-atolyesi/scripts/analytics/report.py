@@ -91,6 +91,36 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
             if dm.get("campaign_attributed"):
                 ca = dm["campaign_attributed"]
                 lines.append(f"  - Bu kampanyaya kanıtla bağlı konuşma {ca['threads']}, satış {ca['won']} (günlük toplamlar kampanyaya bölünmez).")
+        ab = an.get("ab_test")
+        if ab and ab.get("cells"):
+            lines.append("- Meta A/B testi (kitle rastgele bölündü): " + "; ".join(
+                f"{k}: {v['results']} sonuç" + (f", sonuç başı {v['cost_per_result']}" if v.get("cost_per_result") else "")
+                + f", en düşük maliyet olasılığı {v['p_lowest_cost']:.0%}" + ("" if v["threshold_met"] else " (yön)")
+                for k, v in ab["cells"].items()) + ".")
+            mr = ab.get("meta_read") or {}
+            if mr:
+                lines.append(f"  - Meta'nın sonucu: kazanan {mr.get('winner_concept') or 'belirlenmedi'}"
+                             + (f", güven {mr['confidence']}" if mr.get("confidence") is not None else "") + ".")
+            if ab.get("disagreement_note"):
+                lines.append(f"  - {ab['disagreement_note']}")
+        ld = an.get("lead")
+        if ld:
+            t = ld["totals"]
+            seg = [f"{ld['meta_leads']} aday (Meta)" + (f", aday başı {ld['cost_per_lead']}" if ld.get("cost_per_lead") else "")]
+            if ld.get("periods"):
+                seg.append(f"kayıtta {t['leads']} aday → " + " → ".join(
+                    f"{t[k] if t.get(k) is not None else '?'} {lab}" for k, lab in (("reached", "ulaşılan"), ("qualified", "nitelikli"), ("won", "satış"))))
+            if ld.get("cost_per_qualified"):
+                seg.append(f"nitelikli aday başı {ld['cost_per_qualified']}")
+            if ld.get("cost_per_won"):
+                seg.append(f"satış başı {ld['cost_per_won']}")
+            if ld.get("close_rate_interval"):
+                iv = ld["close_rate_interval"]
+                seg.append(f"adaydan satışa %90 aralık {iv['lo']:.0%}–{iv['hi']:.0%}")
+            lines.append("- Müşteri adayı: " + "; ".join(seg) + ".")
+            for k in ("meta_vs_crm_note", "coverage_note", "partial_note", "close_rate_check", "note"):
+                if ld.get(k):
+                    lines.append(f"  - {ld[k]}")
         lines.append(f"_{fd['rule']}_")
     else:
         lines.append("- Teşhis yok.")

@@ -74,6 +74,13 @@ pozitif başa baş yok. Satış dışı sonuçta hedef kullanıcı hedefidir. Pi
   ve mesaj kanallarında max(elle, kaynak) — kaynakta olan satış iki kez sayılmaz, kaynağa girmemiş satış kaybolmaz. Meta ↔ mağaza
   yalnızca piksel kanallarında (site, Shopier). Mağaza kaydı varsa tıklama→satış oranı onunla hesaplanır, piksel sayısı eklenmez (aynı satış).
   Meta ↔ mağaza: Meta'nın atfettiği satın alma mağazanın ödenmiş siparişinden belirgin fazlaysa (×1,1 ve ≥ 3) piksel şüphesi.
+- **Müşteri adayı (1.5.0):** başa baş aday maliyeti = satış başına katkı × adaydan satışa dönüş oranı; hedef = × güvenlik payı. Aday başı
+  maliyet Meta'nın sonuç sayısından; nitelikli/satış başına maliyet kullanıcının dönem toplamından (`lead_outcomes`). Adaydan satışa oran
+  Beta(1,1) ile %90 aralık (≥ 3 aday); varsayılan oran aralık dışındaysa hedef yeniden hesaplanır. Hedef maliyet yalnızca teyitli
+  ekonomide olasılık üretir.
+- **Meta A/B testi (1.5.0):** hücre = konsept; sonuç oranı (sonuç/harcama) Gamma(0,5 + sonuç, 0,5 + harcama/ölçek) ile; her hücrenin en
+  düşük sonuç maliyetine sahip olma olasılığı (20.000 çekiliş, sabit tohum). Meta'nın kazananı ayrıca okunur; uyuşmazlık yazılır.
+  Hücre başına < 30 sonuç "yön". Kitle rastgele bölündüğü için hüküm dilinde "Meta'nın dağıtımı altında" yoktur.
 - **Mesajla satış (1.4.8):** gün/kanal başına günlük toplam (yoksa tek tek kayıtlar); satış/konuşma oranı Beta(1,1) ile %90 aralık
   (≥ 3 konuşma); kampanyaya yalnızca kanıtlı konuşma bağlanır; günlük toplam kampanyaya bölünmez.
 

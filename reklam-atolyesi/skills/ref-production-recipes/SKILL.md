@@ -34,6 +34,10 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | konuşmalı kurgu kesimi / altyazı birleştirme | `PY PR/scripts/audio/asr_local.py cuts --transcript … --out … --asset … --at …` · `captions --words a@0 --words b` |
 | ses motoru kurulumu | `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine ema|voxcpm|whisper [--yes]` (boyut önce gösterilir; voxcpm yalnızca uygun ekran kartında) |
 | ses kütüphanesi önerisi | `PY PR/scripts/audio/tts_local.py capability --data-dir DD` (varsayılan EMA; ekran kartı/bellek/sürücü/disk uygunsa öneri) |
+| vurgulu altyazı | `PY PR/scripts/audio/asr_local.py captions --words <words.json>[@sn] … --keywords "<a,b>" --out …` (parçada ≤ 1 vurgu; 1.5.0) |
+| A/B testi uygunluğu | `PY PR/scripts/analytics/budget.py --ab ab.json` ({cells, daily_total, expected_cpr, cpr_source, days?}) |
+| profil kontrolü | `PY PR/scripts/organic/profile_check.py --media … [--account …] [--cta-url …] [--followers N] --out …` |
+| organik adaylar | `PY PR/scripts/organic/candidates.py --assets … [--analysis …] [--speech-dir …] --per-week 3 --out …` |
 | kelime zamanları / altyazı (Scribe yedeği) | `PY PR/scripts/audio/words_align.py --transcript … --script vo.txt --out …words.json` |
 | plan doğrulama | `PY PR/scripts/compose/validate_plan.py <plan> [--style] [--beats] [--assets]` |
 | render (init / plan / galeri / Türkçe final) | `PY PR/scripts/render/render.py init|plan|gallery|turkish …` |

@@ -156,15 +156,42 @@ def product_upsert(profile_id: int, name: str, product_id: int | None = None, pr
                    aov: float | None = None, currency: str | None = None, safety_factor: float | None = None, economics_json: dict | None = None,
                    occasions_json: list | None = None, provable_claims_json: list | None = None, capacity_limit: str | None = None,
                    photos_json: list | None = None, observation_json: dict | None = None, shoot_profile_json: dict | None = None,
-                   catalog_product_id: str | None = None, buyers_json: list | None = None) -> dict:
-    """Ürün kaydı; başa baş CPA/ROAS ve hedef CPA hesaplanır (6.2). shoot_profile_json: {'cards': [...]} (5.3).
-    occasions_json: satın alma anları (ne zaman), buyers_json: alıcılar (kim); ikisi de [{code, label}] ve sözlükte moment / buyer."""
+                   catalog_product_id: str | None = None, buyers_json: list | None = None, kind: str | None = None,
+                   service_json: dict | None = None) -> dict:
+    """Ürün ya da hizmet kaydı; başa baş CPA/ROAS ve hedef CPA hesaplanır (6.2). shoot_profile_json: {'cards': [...]} (5.3).
+    occasions_json: satın alma anları (ne zaman), buyers_json: alıcılar (kim); ikisi de [{code, label}] ve sözlükte moment / buyer.
+    kind: product | service (1.5.0). service_json: {duration_min, capacity_per_week, booking, area: {city, districts, radius_km, online},
+    regulated_sector, special_ad_category, audience_regions: ['TR', ...]}. Aday sonucu için economics_json.lead_close_rate (0–1, adaydan
+    satışa dönüş) + lead_close_rate_confirmed → başa baş/hedef aday maliyeti."""
     f = {k: v for k, v in dict(price=price, gross_margin=gross_margin, aov=aov, currency=currency, safety_factor=safety_factor,
                                 economics_json=economics_json, occasions_json=occasions_json, buyers_json=buyers_json,
                                 provable_claims_json=provable_claims_json,
                                 capacity_limit=capacity_limit, photos_json=photos_json, observation_json=observation_json,
-                                shoot_profile_json=shoot_profile_json, catalog_product_id=catalog_product_id).items() if v is not None}
+                                shoot_profile_json=shoot_profile_json, catalog_product_id=catalog_product_id, kind=kind,
+                                service_json=service_json).items() if v is not None}
     return call(lambda s: s.product_upsert(profile_id, name, product_id, **f))
+
+
+@mcp.tool()
+def service_info(profile_id: int, product_id: int) -> dict:
+    """Hizmet bilgisi ve Meta özel reklam kategorisi gerekliliği (konut/istihdam/finansal; zorunlu bölgeler resmi listeden)."""
+    return call(lambda s: s.service_info(profile_id, product_id))
+
+
+@mcp.tool()
+def lead_outcome_set(profile_id: int, campaign_id: int, period_start: str, period_end: str, leads: int, reached: int | None = None,
+                     qualified: int | None = None, won: int | None = None, revenue: float | None = None, currency: str | None = None,
+                     source: str = "manual", note: str | None = None) -> dict:
+    """Müşteri adayı sonrası dönem toplamı (1.5.0): adaylar → ulaşılan → nitelikli → satış (+ gelir). source: crm_export |
+    meta_leads_center | manual. Kişisel veri (ad, telefon, e-posta) girilmez; çakışan dönem reddedilir, aynı dönem yeniden yazılır."""
+    return call(lambda s: s.lead_outcome_set(profile_id, campaign_id, period_start, period_end, leads, reached, qualified, won, revenue,
+                                             currency, source, note))
+
+
+@mcp.tool()
+def lead_outcomes_summary(profile_id: int, campaign_id: int) -> dict:
+    """Kampanyanın aday sonrası hunisi: toplamlar, ulaşma/nitelik/satış oranları."""
+    return call(lambda s: s.lead_outcomes_summary(profile_id, campaign_id))
 
 
 @mcp.tool()
@@ -355,11 +382,12 @@ def sales_orders_summary(profile_id: int, date_from: str | None = None, date_to:
 
 
 @mcp.tool()
-def meta_signal_set(profile_id: int, status: str, source: str, evidence: str, choice: str | None = None, checked_at: str | None = None) -> dict:
+def meta_signal_set(profile_id: int, status: str, source: str, evidence: str, choice: str | None = None, checked_at: str | None = None,
+                    lead_seen: bool | None = None) -> dict:
     """Meta satışı görüyor mu (S00b/S01): status purchase_seen | no_purchase | unknown; source meta_mcp | user_evidence | csv; evidence
     (veri kümesi, olay, tarih aralığı) zorunlu. no_purchase'ta choice: pixel_install | csv_upload | optimize_other. Satış sonuçlu kampanya
-    yalnızca purchase_seen ile açılır."""
-    return call(lambda s: s.meta_signal_set(profile_id, status, source, evidence, choice, checked_at))
+    yalnızca purchase_seen ile açılır. lead_seen: veri kümesinde son 7 günde Lead olayı (sitedeki formla aday sonucu için; 1.5.0)."""
+    return call(lambda s: s.meta_signal_set(profile_id, status, source, evidence, choice, checked_at, lead_seen))
 
 
 @mcp.tool()
@@ -378,9 +406,11 @@ def sales_list(profile_id: int, campaign_id: int) -> dict:
 @mcp.tool()
 def campaign_create(profile_id: int, product_id: int, name: str, goal: str | None = None, result_type: str | None = None,
                     season: str | None = None, budget_total: float | None = None, budget_total_confirmed: bool = False,
-                    mode: str = "full", trial: bool = False) -> dict:
-    """Kampanya + tur 1 açar, S01'den başlar. Ürün tanışılmamışsa yalnızca trial=true (ekonomi VARSAYIMSAL)."""
-    return call(lambda s: s.campaign_create(profile_id, product_id, name, goal, result_type, season, budget_total, budget_total_confirmed, mode, trial))
+                    mode: str = "full", trial: bool = False, lead_method: str | None = None) -> dict:
+    """Kampanya + tur 1 açar, S01'den başlar. Ürün tanışılmamışsa yalnızca trial=true (ekonomi VARSAYIMSAL). result_type: purchase |
+    lead | messaging | profile_visit | link_click | engagement; lead için lead_method: instant_form | website | call (1.5.0)."""
+    return call(lambda s: s.campaign_create(profile_id, product_id, name, goal, result_type, season, budget_total, budget_total_confirmed, mode, trial,
+                                            lead_method))
 
 
 @mcp.tool()
@@ -398,9 +428,9 @@ def campaign_list(profile_id: int, include_closed: bool = False) -> dict:
 @mcp.tool()
 def campaign_update(profile_id: int, campaign_id: int, goal: str | None = None, result_type: str | None = None, season: str | None = None,
                     budget_total: float | None = None, budget_total_confirmed: bool | None = None, test_structure: str | None = None,
-                    mode: str | None = None, status: str | None = None, name: str | None = None) -> dict:
+                    mode: str | None = None, status: str | None = None, name: str | None = None, lead_method: str | None = None) -> dict:
     """Kampanya alanları (stage/cycle yalnızca aşama makinesiyle değişir)."""
-    f = {k: v for k, v in dict(goal=goal, result_type=result_type, season=season, budget_total=budget_total,
+    f = {k: v for k, v in dict(goal=goal, result_type=result_type, lead_method=lead_method, season=season, budget_total=budget_total,
                                 budget_total_confirmed=budget_total_confirmed, test_structure=test_structure, mode=mode,
                                 status=status, name=name).items() if v is not None}
     return call(lambda s: s.campaign_update(profile_id, campaign_id, **f))

@@ -134,7 +134,8 @@ def ad_memory_tools(root: Path) -> list[str]:
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-SKILL_KIND = {"navigator": "entry", "memory": "system", "ref-system-map": "system", "dm-sales": "module", "data-connection": "module"}
+SKILL_KIND = {"navigator": "entry", "memory": "system", "ref-system-map": "system", "dm-sales": "module", "data-connection": "module",
+              "profile-check": "module", "organic": "module"}
 
 LIVE_CHECKS = [
     {"id": "oauth_elevenlabs", "title": "ElevenLabs uzak MCP OAuth bağlı", "required": True, "applies_to": "both", "components": ["mcp_json"]},
@@ -188,6 +189,8 @@ SCRIPT_MAP = {
     "audio: yerel yazıya dökme (Whisper), okunuş denetimi, konuşmalı kurgu kesimi, altyazı birleştirme": "scripts/audio/asr_local.py",
     "audio: yazıya dökme işçisi (Whisper ortamında)": "scripts/audio/asr_worker.py",
     "setup: yerel ses motoru kurulumu (DD/.tts: ema, voxcpm, whisper)": "scripts/setup/tts_setup.py",
+    "organic: Instagram profil kontrolü (salt okuma sonucu)": "scripts/organic/profile_check.py",
+    "organic: organik paylaşım adayları ve takvim": "scripts/organic/candidates.py",
     "audio: sahne sesi ve miks": "scripts/audio/mix.py",
     "audio: ses kütüphanesi": "scripts/audio/sfx_library.py",
     "render: render, still, galeri, Türkçe final": "scripts/render/render.py",

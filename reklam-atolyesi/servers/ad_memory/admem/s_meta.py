@@ -79,7 +79,8 @@ SALES_CHANNELS = ("shopier", "site", "pazaryeri", "instagram_dm", "messenger", "
 META_SIGNAL_STATUSES = ("purchase_seen", "no_purchase", "unknown")
 META_SIGNAL_CHOICES = ("pixel_install", "csv_upload", "optimize_other")
 META_SIGNAL_RULE = ("Satış (purchase) sonuçlu kampanya yalnızca Meta son 7 günde Purchase olayı alıyorsa açılır; almıyorsa üç yol: piksel kur, "
-                    "satışları KVKK dayanağıyla Events Manager'a yükle, ya da bilinçli olarak mesaj/bağlantı/sayfa görüntüleme sonucuna optimize et.")
+                    "satışları KVKK dayanağıyla Events Manager'a yükle, ya da bilinçli olarak mesaj/bağlantı/sayfa görüntüleme sonucuna optimize et. "
+                    "Sitedeki formla aday (lead, website) için Lead olayı (lead_seen) gerekir; anlık form ve arama piksel istemez.")
 
 
 class MetaMixin:
@@ -516,7 +517,7 @@ class MetaMixin:
 
     # --- Meta satış sinyali (1.4.7): Meta satışı görüyor mu? ---------------------------
     def meta_signal_set(self, profile_id: int, status: str, source: str, evidence: str, choice: str | None = None,
-                        checked_at: str | None = None) -> dict:
+                        checked_at: str | None = None, lead_seen: bool | None = None) -> dict:
         """S00b/S01: veri kümesinde son 7 günde Purchase olayı var mı. status purchase_seen yalnızca okunan kanıtla (ads_get_dataset_stats)
         ya da kullanıcının Events Manager'dan gösterdiği kanıtla yazılır; tahmin edilmez. no_purchase'ta seçilen yol choice ile kaydedilir."""
         p = self._profile(profile_id)
@@ -531,6 +532,9 @@ class MetaMixin:
         if status == "purchase_seen" and choice is not None:
             choice = None
         rec = {"status": status, "source": source, "evidence": evidence.strip(), "choice": choice, "checked_at": checked_at or now_iso()}
+        prev = self.meta_signal_get(profile_id)["meta_signal"]
+        # Lead olayı (1.5.0): sitedeki form sonucu için; verilmezse önceki kayıt korunur
+        rec["lead_seen"] = bool(lead_seen) if lead_seen is not None else prev.get("lead_seen", False)
         with self.tx():
             self.ex("UPDATE profiles SET meta_signal_json=? WHERE id=?", (jdump(rec), p["id"]))
         return {"profile_id": p["id"], "meta_signal": rec, "rule": META_SIGNAL_RULE}

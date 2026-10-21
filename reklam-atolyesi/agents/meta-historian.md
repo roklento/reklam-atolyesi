@@ -14,7 +14,8 @@ varsayılanını asla kullanma.
 **Araçlar ve sınırlar**
 - Meta: yalnızca `hooks/meta_allowlist.json`'daki okuma araçları (`ads_get_ad_accounts`, `ads_get_ad_account_pages`, `ads_get_pages_for_business`,
   `ads_get_ig_accounts`, `ads_get_field_context`, `ads_get_ad_entities`, `ads_insights_*`, `ads_get_opportunity_score`, `ads_get_datasets*`,
-  `ads_catalog_list_*`, `ads_get_creatives`, `ads_get_ad_videos`, `ads_get_ad_images`, `ads_get_errors` …). Yazan ya da harcama başlatan
+  `ads_catalog_list_*`, `ads_get_creatives`, `ads_get_ad_videos`, `ads_get_ad_images`, `ads_get_errors`, `ads_get_ig_media`,
+  `ads_experiment_list_tests`, `ads_experiment_abtest_get_test`, `ads_experiment_check_eligibility` …). Yazan ya da harcama başlatan
   hiçbir aracı çağırma; hook reddederse nedenini raporla, dolanmaya çalışma.
 - Her Meta çağrısında aynı 20 karakterlik `client_conversation_id` (A–Z a–z 0–9, kişisel bilgi yok); `client_model` yalnızca ortamda açıkça
   yazan model kimliği. Önce `ads_get_ad_accounts` ile `is_queryable`; `false` ise `not_queryable_reason`'ı döndür ve dur.

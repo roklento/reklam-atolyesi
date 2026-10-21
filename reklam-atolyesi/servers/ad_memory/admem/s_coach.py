@@ -17,7 +17,7 @@ UPPER_FUNNEL = set(DEFAULT_PARAMS["upper_funnel"])
 # YEREL eşik; sayının resmi metni bu kurulumda okunmadı (ref-legal-tr-meta §7).
 SCALE_MIN_DAILY_MULT = 7
 SCALE_ITEM_KINDS = ("scale_open", "scale_move", "scale_pause_source")
-LOWER_FUNNEL = {"ctr_link", "link_clicks", "profile_visit", "messaging", "add_to_cart", "cost_per_result", "purchase", "results", "cvr"}
+LOWER_FUNNEL = {"ctr_link", "link_clicks", "profile_visit", "messaging", "lead", "cost_per_lead", "add_to_cart", "cost_per_result", "purchase", "results", "cvr"}
 
 
 class CoachMixin:
@@ -58,7 +58,9 @@ class CoachMixin:
                                        "scenes": [{"id": s["id"], "role": s["role"], "start_s": s["start_s"], "dur_s": s["dur_s"]} for s in pj.get("scenes", [])]}
         payload = {
             "model_version": MODEL_VERSION, "params": {**DEFAULT_PARAMS, **((extra or {}).get("params") or {})},
-            "kind": kind, "profile_id": int(profile_id), "campaign": {k: c[k] for k in ("id", "name", "result_type", "budget_total", "mode", "test_structure")},
+            "kind": kind, "profile_id": int(profile_id),
+            "campaign": {k: c[k] for k in ("id", "name", "result_type", "lead_method", "budget_total", "mode", "test_structure")},
+            "product_kind": (prod or {}).get("kind") or "product",
             "cycle": {k: cy[k] for k in ("id", "cycle", "adset_budget_daily", "test_budget", "test_days", "cycle_days", "launch_at", "launched_at",
                                           "test_start", "test_end", "structure_detected", "structure_evidence_json", "measurement_json",
                                           "budget_plan_json", "risk_limits_json", "strategy_json", "meta_test_id")},
@@ -83,6 +85,8 @@ class CoachMixin:
                                                 SUM(CASE WHEN units IS NULL THEN 1 ELSE 0 END) AS units_unknown, SUM(COALESCE(amount,0)) AS amount
                                          FROM sales_orders WHERE brand_id=? AND date BETWEEN ? AND ? GROUP BY date, channel, status, currency
                                          ORDER BY date, channel, status""", (c["brand_id"], lo, hi))
+        payload["lead_outcomes"] = self.qa("""SELECT period_start, period_end, leads, reached, qualified, won, revenue, currency, source
+                                              FROM lead_outcomes WHERE campaign_id=? ORDER BY period_start""", (c["id"],))
         payload["sales_imports"] = []  # dışa aktarımın kapsadığı dönem: elle girişle kıyasta mağaza kaydının esas olduğu aralık
         for im in self.qa("SELECT date_from, date_to, mapping_json FROM sales_imports WHERE brand_id=? ORDER BY id", (c["brand_id"],)):
             mj = jload(im["mapping_json"]) or {}
@@ -226,9 +230,12 @@ class CoachMixin:
             raise AdMemoryError("ölçekleme katmanı pozitif günlük bütçe (daily_budget) ister")
         prod = self.q1("SELECT * FROM products WHERE id=?", (c["product_id"],)) if c["product_id"] else None
         eco = self.economics(prod) if prod else {"status": "unknown"}
-        if eco.get("status") != "exact":
-            raise AdMemoryError("ölçekleme katmanı doğrulanmış hedef maliyet ister (ekonomi 'exact' değil; coach 6a)")
-        min_daily = round(SCALE_MIN_DAILY_MULT * float(eco["target_cpa"]), 2)
+        from .s_lead import target_for
+        tgt, tgt_exact = target_for(c["result_type"], eco)
+        if not (tgt and tgt_exact):
+            raise AdMemoryError("ölçekleme katmanı doğrulanmış hedef maliyet ister (satışta hedef CPA, adayda hedef aday maliyeti 'exact' "
+                                "değil; coach 6a)")
+        min_daily = round(SCALE_MIN_DAILY_MULT * float(tgt), 2)
         warning = None
         if daily + 1e-9 < min_daily and status == "active":
             if not (learning_warning_ack and learning_warning_ack.strip()):

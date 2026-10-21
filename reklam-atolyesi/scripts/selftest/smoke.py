@@ -257,8 +257,11 @@ def step4_render(ctx: Ctx) -> dict:
     out["render_45"] = {"ms": r45["ms"], "segments": r45["segments_total"]}
     p11 = copy.deepcopy(p916)
     p11["format"] = "1x1"
+    p11["captions"] = {"on": True, "preset": "keyword_upper"}  # vurgulu altyazı + Türkçe büyük harf (1.5.0) gerçek render'da
+    import words_align as WA
+    cap = WA.chunks([{"text": t, "start": 6.0 + i * 0.3, "end": 6.3 + i * 0.3} for i, t in enumerate(["İğne", "iplik", "şimdi", "850", "TL."])])
     sm11 = SCN.build(p11, assets, cdir / "footage" / "scenes", "proxy", style, str(style_path), fast=True)
-    r11 = RE.render_plan(ctx.data_dir, project, p11, work / "kare_11.png", style, str(style_path), sm11, None, "preview", 1, 200, True, beats)
+    r11 = RE.render_plan(ctx.data_dir, project, p11, work / "kare_11.png", style, str(style_path), sm11, cap, "preview", 1, 200, True, beats)
     assert Path(r11["out"]).exists()
     out["render_11_still"] = r11["out"]
     # ses: sahne başına farklı audio.mode

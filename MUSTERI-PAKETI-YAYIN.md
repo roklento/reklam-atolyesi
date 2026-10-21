@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.4.9
+# Müşteri paketi — 1.5.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,15 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.4.9**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.5.0 migration 006 içerir: `campaigns` ve `cycles` tabloları aynı sütun, satır ve kimliklerle yeniden kurulur (sonuç türüne `lead`,
+yapıya `ab_test` eklenir; SQLite CHECK kısıtını yerinde değiştiremez). Bu iki tabloya bağlı tablolar olduğu için çalıştırıcı bu
+migration'ı yabancı anahtar denetimi kapalıyken tek işlemde uygular, sonda `PRAGMA foreign_key_check` boş değilse geri alır; Store
+açılışı öncesinde yedek alır. Ayrıca `products.kind`, `products.service_json` ve `lead_outcomes` tablosu eklenir. Yeni bağımlılık yok.
+Meta izin listesine salt okuma `ads_experiment_check_eligibility` eklendi.
 1.4.9 migration içermez, yeni bağımlılık yok. Varsayılan ses EMA; ses kütüphanesi (VoxCPM2) yalnızca uygun ekran kartı ve yeterli
 diskte kullanıcıya öneri olarak sunulur (`tts_local.py capability`); uygun olmayan bilgisayarda kurulum reddedilir. 1.4.8'de kütüphane
 sesi seçilmiş bir stil kitabı varsa ve bilgisayar uygun değilse üretim EMA ile sürer (gerekçe çıktıda).
@@ -39,6 +44,13 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.5.0** (Windows geliştirici ortamı): tam paket 327 geçti, 0 başarısız (yeni testler `test_v150.py`, `test_v150_media.py`,
+`test_v150_review.py`, `test_v150_verify.py`); iki bağımsız inceleme turu yapıldı (11 + 6 bulgu ve ikincil notlar düzeltildi, testlendi); migration 006, 005 şemalı ve
+alt tablolarında satır olan bir veritabanında sınandı (satırlar ve kimlikler korunuyor, yabancı anahtar bütünlüğü boş, denetim yeniden
+açık, ihlalli migration geri alınıyor). Duman testi vurgulu altyazıyla (`keyword_upper`) render dahil. Meta: aday alanları, A/B testi ve
+özel reklam kategorisi kuralları canlı araç/yardım merkezinden okundu; A/B testi ve aday kampanyası canlı bir hesapta kurulup okunmadı;
+sağlık hizmetleri yönetmeliği resmi kaynaktan açılamadı (§7, güvenli varsayılan).
 
 **1.4.9** (Windows geliştirici ortamı): tam paket 295 geçti, 0 başarısız (yeni testler `test_tts_local.py`: donanım koşulları, öneri,
 varsayılan sese düşme, uygun olmayan donanımda kurulum reddi). Gerçek motorla: kütüphane motoru olmayan veri klasöründe kütüphane sesi

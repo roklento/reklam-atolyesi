@@ -10,6 +10,7 @@ import { continueRender, delayRender } from "remotion";
 
 export type Style = {
   palette: { ink: string; accent: string; bg: string };
+  captions?: { accent?: string };  // altyazı vurgu rengi (yoksa palette.accent; 1.5.0)
   fonts: { display: string; displayStyle: "normal" | "italic"; displayWeight: number; body: string; brand: string; brandTracking: string };
   grade: { lut: string | null; grain: number; vignette: number };
   motion: { easeIn: [number, number, number, number]; charStaggerMs: number; revealMs: number };

@@ -15,7 +15,8 @@ Kullanım:
         bölüm ya da başı aynı cümle; son alım tutulur);
         tutulan parçalar kurgu planı sahnesi olarak (kaynak in/out, kamerada konuşan kişi, ses `original`, kesik yerinde
         dönüşümlü yakınlaştırma) ve kurgu zamanına taşınmış altyazı (cuts.words.json). Kararı kullanıcı verir (`--restore`).
-  asr_local.py captions --words vo.words.json@0 --words cuts.words.json --out altyazi.words.json   (VO + konuşma tek altyazı)
+  asr_local.py captions --words vo.words.json@0 --words cuts.words.json --out altyazi.words.json [--keywords "kargo,850 TL"]
+      (VO + konuşma tek altyazı; her parçada en fazla bir vurgu sözcüğü — tek dosyada da kullanılır: --words vo.words.json)
   asr_local.py status --data-dir DD
 """
 from __future__ import annotations
@@ -572,7 +573,7 @@ def _part(s: str) -> tuple[Path, float]:
     return Path(s), 0.0
 
 
-def merge_captions(parts: list[tuple[Path, float]]) -> dict:
+def merge_captions(parts: list[tuple[Path, float]], keywords: list[str] | None = None) -> dict:
     """Birden çok kelime dosyasını (VO, tutulan konuşma) kurgu zamanında tek altyazıya birleştirir; çakışan konuşma raporlanır."""
     words = []
     for path, off in parts:
@@ -580,7 +581,7 @@ def merge_captions(parts: list[tuple[Path, float]]) -> dict:
             words.append({"text": w["text"], "start": round(w["start"] + off, 3), "end": round(w["end"] + off, 3)})
     words.sort(key=lambda w: w["start"])
     overlaps = [f"{words[i]['start']:.2f} sn" for i in range(1, len(words)) if words[i]["start"] < words[i - 1]["end"] - 0.05]
-    return {"words": words, "captions": WA.chunks(words), "matches_script": None, "timing": "merged", "overlaps": overlaps,
+    return {"words": words, "captions": WA.chunks(words, keywords), "matches_script": None, "timing": "merged", "overlaps": overlaps,
             "note": None if not overlaps else "VO ile konuşma üst üste biniyor: iki ses aynı anda anlaşılmaz; kurguda biri kaydırılmalı."}
 
 
@@ -611,6 +612,7 @@ def main() -> None:
     p.add_argument("--asset", help="klibin varlık kimliği (kurgu planı source.asset); yoksa dökümün dosya yolu")
     p = sp.add_parser("captions")
     p.add_argument("--words", action="append", required=True, help="kelime dosyası[@başlangıç sn]: VO ve konuşma altyazısı tek dosyada")
+    p.add_argument("--keywords", help="vurgulanacak sözcükler, virgülle (ürün, teklif, hook sözcüğü; 1.5.0)")
     p.add_argument("--out", required=True)
     p = sp.add_parser("status")
     p.add_argument("--data-dir", required=True)
@@ -657,7 +659,7 @@ def main() -> None:
         emit({"out": a.out, "captions": str(cap), "duration_s": res["duration_s"], "kept_s": res["kept_s"], "segments": len(res["segments"]),
               "removed": [{k: r[k] for k in ("id", "start", "text", "reason", "restored")} for r in res["removed"]], "warnings": res["warnings"]})
     elif a.cmd == "captions":
-        doc = merge_captions([_part(s) for s in a.words])
+        doc = merge_captions([_part(s) for s in a.words], [k.strip() for k in (a.keywords or "").split(",") if k.strip()])
         write_json(a.out, doc)
         emit({"out": a.out, "words": len(doc["words"]), "captions": len(doc["captions"]), "overlaps": doc["overlaps"]})
     else:

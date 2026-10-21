@@ -43,15 +43,31 @@ def migrate(conn: sqlite3.Connection, backup_fn=None) -> list[str]:
             backup_fn(reason=f"migration-{f.stem}")
         sql = f.read_text(encoding="utf-8")
         version = int(f.name.split("_")[0])
-        conn.execute("BEGIN IMMEDIATE")
+        # Tablo yeniden kuran migration (CHECK değişimi): yabancı anahtar denetimi işlem DIŞINDA kapatılır (işlem içinde PRAGMA etkisiz),
+        # işlem sonunda bütünlük denetlenir; ihlal varsa geri alınır (SQLite "other kinds of table schema changes" 12 adımı).
+        fk_off = sql.lstrip().startswith("-- pragma: foreign_keys=off")
+        before: set = set()
+        if fk_off:
+            # önceden var olan (bu migration'dan bağımsız) ihlaller açılışı kilitlemesin: yalnızca yeni ihlal geri alır
+            before = {tuple(r) for r in conn.execute("PRAGMA foreign_key_check").fetchall()}
+            conn.execute("PRAGMA foreign_keys=OFF")
         try:
-            for stmt in _split_sql(sql):
-                conn.execute(stmt)
-            conn.execute("INSERT INTO schema_meta(version, applied_at) VALUES (?, ?)", (version, now_iso()))
-            conn.execute("COMMIT")
-        except Exception:
-            conn.execute("ROLLBACK")
-            raise
+            conn.execute("BEGIN IMMEDIATE")
+            try:
+                for stmt in _split_sql(sql):
+                    conn.execute(stmt)
+                if fk_off:
+                    bad = [r for r in conn.execute("PRAGMA foreign_key_check").fetchall() if tuple(r) not in before]
+                    if bad:
+                        raise sqlite3.IntegrityError(f"{f.name}: yabancı anahtar bütünlüğü bozuldu ({len(bad)} satır); geri alındı")
+                conn.execute("INSERT INTO schema_meta(version, applied_at) VALUES (?, ?)", (version, now_iso()))
+                conn.execute("COMMIT")
+            except Exception:
+                conn.execute("ROLLBACK")
+                raise
+        finally:
+            if fk_off:
+                conn.execute("PRAGMA foreign_keys=ON")
         applied.append(f.name)
     return applied
 

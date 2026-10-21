@@ -29,6 +29,9 @@ Ayrıca `c<tur>-hooks.csv`, `strategy_get`, `products.provable_claims_json` (ön
    yavaş çekim istenen çekimde 4K 60; HDR video kapalı; dikey; filtre/güzelleştirme yok) — `ref-shooting-basics`.
 3. **Ürün tarifi kartları** (önce): her kart `risk · ne çekiyoruz · telefon nereye · ne yap · ne zaman dur · başardın mı · hangi genel
    kuralı neden değiştiriyor`. Terimler ilk geçtiği yerde açıklanır.
+   **Hizmette (1.5.0):** kartlar S00c'nin hizmet tarifinden: uygulayan kişinin kameraya konuşması (konuşmalı kurgu; yeniden başlama
+   talimatı aşağıda), süreç adımları (eller, ekipman; müşteri yüzü izinsiz görünmez), mekân (temiz, aydınlık, belge/sertifika gerçekse),
+   sonuç gösterimi yalnızca §7'nin izin verdiği biçimde (sağlıkta resmi metin okunana kadar müşteri ve önce/sonra görüntüsü çekilmez).
 4. **7 altın kural** ve ayrıntılar (`ref-shooting-basics`). Kurtarılamayan üç şey (odaksız kare, patlamış beyazlar, hareket bulanıklığı)
    özellikle önlenir.
 5. **Çekim menüsü (numaralı):** her satır: no (`S01`…), hizmet ettiği konsept(ler), ne çekileceği, süre, kamera hareketi, tek dikkat

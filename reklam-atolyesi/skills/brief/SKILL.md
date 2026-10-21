@@ -27,8 +27,13 @@ Yok.
 1. `stage_start(profile_id, "S01", campaign_id, cycle_id)`.
 2. **Sorular** (yalnızca bilinmeyenler; seçenekli; önceki turdan bilinen değer önerilen cevap olarak):
    - Kampanya amacı (Meta kampanya amacı; geçmişte kullanılan amaçlar önerilir) → `campaign_update(goal)`.
-   - **Sonuç türü** (`purchase · messaging · profile_visit · link_click · engagement`; amaçtan önerilir) → `campaign_update(result_type)`.
+   - **Sonuç türü** (`purchase · lead · messaging · profile_visit · link_click · engagement`; amaçtan önerilir) → `campaign_update(result_type)`.
      Satış dışı sonucun parasal değeri doğrulanmadıysa hedef maliyet kullanıcı hedefidir; başa baş diye sunulmaz.
+     **Müşteri adayı (`lead`, 1.5.0)** hizmet, kurumsal/toptan ve yüksek tutarlı ürünlerde önerilir; yol zorunludur (`lead_method`):
+     `instant_form` (Meta anlık form; piksel gerekmez; Meta adayı Meta içinde sayar) · `website` (sitedeki form; Meta'nın Lead olayını
+     görmesi gerekir: `meta_signal.lead_seen`, S00b 6b) · `call` (arama). Hedef aday maliyeti ürün ekonomisindeki dönüş oranından
+     (`target_cpl`); oran yoksa hedef kullanıcı hedefidir. Kullanıcıya: "Ucuz aday satış demek değildir; haftalık olarak kaçına
+     ulaşıldığını, kaçının nitelikli olduğunu ve kaçının satın aldığını sayıyla gireceğiz (kişisel bilgi değil)."
    - Sezon / hedef tarih (yoksa "yok") → `campaign_update(season)`; hedef tarih brief'e yazılır.
    - Reklam seti günlük bütçesi (ilk turda tek reklam setinin günlük bütçesi; sonraki turlarda mevcut setin bütçesi — test payı S02'de
      `exploration_share` ile hesaplanır) → `cycle_set(profile_id, cycle_id, {"adset_budget_daily": …})`.

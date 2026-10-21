@@ -128,10 +128,23 @@ const PriceTag: React.FC<z.infer<typeof priceTagSchema>> = (p) => {
   );
 };
 
-// --- CaptionTrack: kelime zamanlı altyazı (metin VO metniyle birebir; 5.14)
-const captionSchema = z.object({ captions: z.array(z.object({ text: z.string(), start: z.number(), end: z.number() })),
+// --- CaptionTrack: kelime zamanlı altyazı (metin VO metniyle birebir; 5.14). Ön ayar (1.5.0): plain · keyword (parçada en fazla
+// bir vurgu sözcüğü, vurgu rengiyle) · keyword_upper (aynı + Türkçe büyük harf: i → İ) · karaoke (o an söylenen sözcük vurgulu).
+const zWord = z.object({ text: z.string(), start: z.number(), end: z.number() });
+const captionSchema = z.object({ captions: z.array(z.object({ text: z.string(), start: z.number(), end: z.number(),
+    words: z.array(zWord).optional(), emph: z.number().nullable().optional() })),
   color: z.string().default("#FFFFFF"), stroke: z.string().default("rgba(0,0,0,0.75)"), fontFamily: z.string().default("Inter"),
-  fontSize: z.number().default(58), y: z.number().default(0.7), offsetS: z.number().default(0) });
+  fontSize: z.number().default(58), y: z.number().default(0.7), offsetS: z.number().default(0),
+  preset: z.enum(["plain", "keyword", "keyword_upper", "karaoke"]).default("plain"), accent: z.string().default("#FFD84D") });
+const trUpper = (s: string) => s.toLocaleUpperCase("tr-TR");
+// Vurgu rengi koyuysa (görece parlaklık < 0,3) beyaz yazı ve koyu kontur üstünde seçilmez: okunur sarıya düşülür.
+const luminance = (hex: string) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return 1;
+  const c = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+const readableAccent = (hex: string) => (luminance(hex) < 0.3 ? "#FFD84D" : hex);
 const CaptionTrack: React.FC<z.infer<typeof captionSchema>> = (p) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -139,11 +152,28 @@ const CaptionTrack: React.FC<z.infer<typeof captionSchema>> = (p) => {
   const c = p.captions.find((x) => t >= x.start && t < x.end);
   if (!c) return null;
   const k = clamp01((t - c.start) * 8);
+  const upper = p.preset === "keyword_upper";
+  const words = c.words && c.words.length ? c.words : null;
+  const accent = readableAccent(p.accent);
+  const hot = (i: number, w: { start: number; end: number }) =>
+    p.preset === "karaoke" ? t >= w.start && t < Math.max(w.end, w.start + 0.12) : (p.preset !== "plain" && c.emph === i);
   return (
     <AbsoluteFill>
       <div style={{ position: "absolute", left: "8%", right: "8%", top: `${p.y * 100}%`, textAlign: "center", fontFamily: p.fontFamily,
         fontWeight: 700, fontSize: p.fontSize, color: p.color, WebkitTextStroke: `2px ${p.stroke}`, opacity: k, lineHeight: 1.15,
-        transform: `translateY(${(1 - k) * 8}px)` }}>{c.text}</div>
+        transform: `translateY(${(1 - k) * 8}px)` }}>
+        {words && p.preset !== "plain"
+          ? words.map((w, i) => {
+              const on = hot(i, w);
+              return (
+                <span key={i} style={{ color: on ? accent : p.color, display: "inline-block",
+                  transform: on && p.preset !== "karaoke" ? "scale(1.08)" : undefined, margin: "0 0.12em" }}>
+                  {upper ? trUpper(w.text) : w.text}
+                </span>
+              );
+            })
+          : (upper ? trUpper(c.text) : c.text)}
+      </div>
     </AbsoluteFill>
   );
 };
@@ -160,5 +190,7 @@ export const TEXT: Entry[] = [
   { name: "PriceTag", category: "text", version: "1.0.0", schema: priceTagSchema, Component: PriceTag,
     demo: priceTagSchema.parse({ price: 100, currency: "PB", label: "Örnek fiyat" }) },
   { name: "CaptionTrack", category: "text", version: "1.0.0", schema: captionSchema, Component: CaptionTrack,
-    demo: captionSchema.parse({ captions: [{ text: "Örnek altyazı bir", start: 0, end: 1 }, { text: "Örnek altyazı iki", start: 1, end: 2 }] }) },
+    demo: captionSchema.parse({ preset: "keyword", captions: [
+      { text: "Örnek altyazı bir", start: 0, end: 1, emph: 1, words: [{ text: "Örnek", start: 0, end: 0.3 }, { text: "altyazı", start: 0.3, end: 0.7 }, { text: "bir", start: 0.7, end: 1 }] },
+      { text: "İğne iplik iki", start: 1, end: 2, emph: 0, words: [{ text: "İğne", start: 1, end: 1.3 }, { text: "iplik", start: 1.3, end: 1.7 }, { text: "iki", start: 1.7, end: 2 }] }] }) },
 ];

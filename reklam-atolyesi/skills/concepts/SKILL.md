@@ -52,6 +52,11 @@ haritası ve onaylı strateji, reddedilen/ertelenen fikirler, ürün, marka belg
    hangi duyguyu/anı öne çıkaralım · neyi istemiyorsun · çekimde ne yapabiliyorsun. Üründe alıcı kaydı yoksa (1.4.5 öncesi tanışma)
    alıcılar burada kullanıcıyla seçilir: `taxonomy_value_add(axis="buyer", …)` ve `product_upsert(profile_id, name, product_id,
    buyers_json=[…])`.
+   **Hizmet ve müşteri adayı (1.5.0):** hizmette (`products.kind='service'`) yönler çoğu zaman uygulayan kişinin güveni, sürecin şeffaflığı,
+   sonucun ne olduğu (vaat değil), randevunun kolaylığı ve bölge yakınlığıdır; aday sonuçlu kampanyada hook'un sonunda **neden şimdi form
+   doldursun/arasın** sorusunun cevabı (ücretsiz ön görüşme, net fiyat aralığı, uygun gün) teklif tarafında kurulur. Düzenlenen alanda
+   (`service_json.regulated_sector`) iddia, önce/sonra ve müşteri görüntüsü `ref-legal-tr-meta` §7'ye göre (sağlıkta resmi metin
+   okunana kadar güvenli varsayılan).
 7. **Yön önerileri** (her seferde 2–3). Önce "bu video kime konuşuyor?" sorulur, hook sonra gelir: her yön ayrı bir alıcıya konuşur
    (`ref-creative-taxonomy` çeşitlilik kuralı). Her yön: fikir · **kime konuştuğu** (`buyer`, S00c alıcılarından) · **neden önerildiği**
    (kaynak: `evidence | direction | general | product | brand_doc | competitor`) · neyi test ettiği · çekim yükü · izinli iddialarla

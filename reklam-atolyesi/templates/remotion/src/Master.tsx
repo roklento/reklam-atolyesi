@@ -78,7 +78,8 @@ export const Master: React.FC<MasterProps> = (props) => {
           </Sequence>
         );
       })}
-      {plan.captions?.on && props.captions?.length ? <caption.Component {...(caption.schema.parse({ captions: props.captions, fontFamily: style.fonts.body }) as object)} /> : null}
+      {plan.captions?.on && props.captions?.length ? <caption.Component {...(caption.schema.parse({ captions: props.captions, fontFamily: style.fonts.body,
+        preset: plan.captions?.preset ?? "plain", accent: style.captions?.accent ?? style.palette.accent }) as object)} /> : null}
       {(style.grade.grain > 0 || style.grade.vignette > 0) ? <grade.Component {...(grade.schema.parse({ grain: style.grade.grain, vignette: style.grade.vignette, seed: plan.seed ?? 9 }) as object)} /> : null}
     </AbsoluteFill>
   );

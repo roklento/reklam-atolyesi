@@ -8,6 +8,8 @@ Girdi alanları (para birimi profilin reklam hesabı birimindedir; üretim/servi
   risk_per_ad (onaylı; null), target_cpa (doğrulanmış; null), result_type, test_start_hour (0 = gece yarısı), creative_test_tool_max,
   scale_layer_daily (açık ölçekleme katmanının günlük bütçesi; budget_plan_json.scale_layer.daily_budget, status active; yoksa 0)
 Ölçekleme uygunluğu (coach 6a): scale_check() — coach.py kullanır.
+Meta A/B testi uygunluğu (1.5.0): ab_check() — girdide "ab_test": {cells, daily_total, expected_cpr, cpr_source, days?} varsa planda
+  "ab_test" bölümü; tek başına: budget.py --ab ab_input.json.
 Çıktı: kreatif başına gereken harcama, 7/14 gün testte izin verilen test reklamı sayısı, seçilen test günü, tur süresi, takvim,
        toplam harcama tahmini ve sığma durumu, risk sınırı etkisi, uyarılar. Bu bir tahmindir; Meta'nın günlük harcamasının sabit
        ya da kesin sınırlı olduğu iddia edilmez; gösterim eşiği hesabı güç analizi veya kazanan bulma garantisi değildir.
@@ -35,7 +37,7 @@ def scale_check(*, structure: str | None, cost_ok: bool, target_cpa: float | Non
     other_daily: ölçekleme dışındaki aktif günlük bütçeler (ana reklam seti ve varsa açık katman dışı setler)."""
     min_daily = round(SCALE_MIN_DAILY_MULT * float(target_cpa), 2) if (target_cpa and economics_exact) else None
     daily = float(proposed_daily) if proposed_daily else min_daily
-    checks = {"structure": structure == "creative_test", "cost": bool(cost_ok and economics_exact),
+    checks = {"structure": structure in ("creative_test", "ab_test"), "cost": bool(cost_ok and economics_exact),
               "min_daily": bool(min_daily is not None and daily is not None and daily + 1e-9 >= min_daily)}
     reasons = []
     if not checks["structure"]:
@@ -65,6 +67,83 @@ def scale_check(*, structure: str | None, cost_ok: bool, target_cpa: float | Non
     return {"eligible": all(checks.values()), "checks": checks, "min_daily": min_daily, "proposed_daily": daily,
             "days_left": int(days_left), "projected_need": need, "fits_note": fits_note, "reasons": reasons,
             "note": "Taşıma ayrıca okunmuş gönderi kimliği ister (post_id); yoksa madde yazılmaz. Bu bir tahmindir."}
+
+
+# Meta A/B testi (resmi: facebook.com/business/help/290009911394576 ve 3506622486044209, okundu 21.10.2026): tek değişken; en az 7 gün
+# önerilir, en fazla 30 gün; deneyler aracında en fazla 5 kampanya; sürümlere aynı bütçe; kitle başka kampanyalarla çakışmamalı;
+# bütçe kazananı güvenle belirleyecek kadar sonuç üretmeli (Meta sayı vermez). Hücre başına ≥ 30 beklenen sonuç YEREL eşiktir.
+AB_MIN_DAYS, AB_MAX_DAYS, AB_MAX_CELLS, AB_MIN_RESULTS_PER_CELL = 7, 30, 5, 30
+
+
+def ab_check(inp: dict) -> dict:
+    """A/B testi önerilir mi: hücre (konsept) sayısı, günlük test bütçesi ve beklenen sonuç maliyetiyle hücre başına beklenen sonuç.
+    Sonuç tahmindir; testi kullanıcı Ads Manager / Deneyler'de kurar, sistem yalnızca okur."""
+    reasons, warnings = [], []
+    try:
+        cells = int(inp.get("cells") or 0)
+        daily = float(inp.get("daily_total") or 0)
+    except (TypeError, ValueError):
+        cells, daily = 0, 0.0
+        reasons.append("hücre sayısı ve günlük bütçe sayı olmalı")
+    cpr = inp.get("expected_cpr")
+    try:
+        cpr = float(cpr) if cpr is not None and not isinstance(cpr, bool) else None
+    except (TypeError, ValueError):
+        cpr = None
+    if cpr is not None and not math.isfinite(cpr):
+        cpr = None
+    if not math.isfinite(daily):
+        daily = 0.0
+    src = inp.get("cpr_source")
+    if not 2 <= cells <= AB_MAX_CELLS:
+        reasons.append(f"hücre sayısı {cells}: A/B testi 2–{AB_MAX_CELLS} sürümü karşılaştırır")
+    if daily <= 0:
+        reasons.append("teste ayrılan günlük bütçe pozitif olmalı")
+    if cpr is None or cpr <= 0:
+        reasons.append("beklenen sonuç maliyeti yok (doğrulanmış hedef ya da geçmiş sonuç maliyeti gerekir): hücre başına sonuç hesaplanamaz")
+    if src not in ("target_exact", "history", "assumption"):
+        warnings.append("beklenen maliyet kaynağı belirtilmedi (target_exact | history | assumption)")
+    elif src == "assumption":
+        warnings.append("beklenen maliyet VARSAYIM: hücre başına sonuç tahmini zayıf")
+    out = {"cells": cells, "daily_total": round(daily, 2), "expected_cpr": cpr, "cpr_source": src,
+           "rules": {"min_days": AB_MIN_DAYS, "max_days": AB_MAX_DAYS, "max_cells": AB_MAX_CELLS, "min_results_per_cell": AB_MIN_RESULTS_PER_CELL,
+                     "source": ["https://www.facebook.com/business/help/290009911394576", "https://www.facebook.com/business/help/3506622486044209"],
+                     "local": "hücre başına ≥ 30 beklenen sonuç yerel eşiktir (Meta sayı vermez)"}}
+    if reasons:
+        return {**out, "eligible": False, "reasons": reasons, "warnings": warnings}
+    per_cell_daily = daily / cells
+    per_day_results = per_cell_daily / float(cpr)
+    need_days = math.ceil(AB_MIN_RESULTS_PER_CELL / per_day_results) if per_day_results > 0 else None
+    user_days = bool(inp.get("days"))
+    try:
+        days = int(inp["days"]) if user_days else (max(AB_MIN_DAYS, need_days) if need_days else None)
+    except (TypeError, ValueError):
+        return {**out, "eligible": False, "reasons": ["gün sayısı tam sayı olmalı"], "warnings": warnings}
+    if days is not None and not AB_MIN_DAYS <= days <= AB_MAX_DAYS:
+        if days > AB_MAX_DAYS:
+            reasons.append(f"süre {days} gün: A/B testi en fazla {AB_MAX_DAYS} gün sürer" if user_days else
+                           f"hücre başına {AB_MIN_RESULTS_PER_CELL} sonuç için {days} gün gerekir (en fazla {AB_MAX_DAYS})")
+        else:
+            reasons.append(f"süre {days} gün: en az {AB_MIN_DAYS} gün önerilir")
+    rem = inp.get("remaining_budget")
+    try:
+        rem = float(rem) if rem is not None else None
+    except (TypeError, ValueError):
+        rem = None
+        warnings.append("kalan bütçe sayı değil: toplam sınır kontrolü yapılmadı")
+    if rem is not None and days:
+        need_total = round(daily * days, 2)
+        if need_total > float(rem) + 1e-9:
+            reasons.append(f"testin toplam harcaması {need_total} kalan kampanya sınırını ({float(rem):.2f}) aşıyor")
+    exp = round(per_day_results * (days or 0), 1)
+    if days and exp < AB_MIN_RESULTS_PER_CELL and not reasons:
+        reasons.append(f"{days} günde hücre başına beklenen sonuç {exp} < {AB_MIN_RESULTS_PER_CELL}")
+    need_daily = round(cells * AB_MIN_RESULTS_PER_CELL * float(cpr) / AB_MAX_DAYS, 2)
+    return {**out, "eligible": not reasons, "reasons": reasons, "warnings": warnings, "days": days, "per_cell_daily": round(per_cell_daily, 2),
+            "expected_results_per_cell": exp, "min_daily_total_for_30_days": need_daily,
+            "min_daily_total_for_14_days": round(cells * AB_MIN_RESULTS_PER_CELL * float(cpr) / 14, 2),
+            "note": ("Uygunsa kullanıcıya seçenek olarak sunulur: kontrollü karşılaştırma (Meta kitleyi böler, kimse iki sürümü görmez). Uygun "
+                     "değilse kreatif test aracı / tek set yolu sürer. Hesabın uygunluğu ayrıca ads_experiment_check_eligibility ile okunur.")}
 
 
 def per_creative_spend(cpm: float, metric: str) -> float:
@@ -138,6 +217,18 @@ def plan(inp: dict) -> dict:
     cycle_days = chosen + 7
     out.update({"test_days": chosen, "cycle_days": cycle_days, "allowed_test_ads": n_allowed,
                 "required_test_days_formula": required_test_days(pc, n_allowed, daily_test), "production_blocked": False})
+    if inp.get("ab_test") is not None and not isinstance(inp.get("ab_test"), dict):
+        warnings.append("ab_test girdisi {cells, daily_total, expected_cpr, cpr_source} nesnesi olmalı: A/B uygunluğu hesaplanmadı")
+    elif inp.get("ab_test"):
+        abin = dict(inp["ab_test"])
+        if inp.get("budget_total") is not None and inp.get("spend_to_date") is not None and "remaining_budget" not in abin:
+            abin["remaining_budget"] = float(inp["budget_total"]) - float(inp["spend_to_date"])
+        out["ab_test"] = ab_check(abin)
+    if inp.get("target_cpl") and inp.get("result_type") == "lead":  # aday sonucu (1.5.0)
+        exp_l = daily_test * chosen / max(1, n_allowed) / float(inp["target_cpl"])
+        out["expected_leads_per_concept"] = round(exp_l, 2)
+        if exp_l < 10:
+            warnings.append("konsept başına beklenen aday < 10: aday maliyeti hükmü güvenilir olmaz, yalnızca yön tahmini")
     if inp.get("target_cpa") and inp.get("result_type") == "purchase":
         concept_budget = daily_test * chosen / max(1, n_allowed)
         exp_p = concept_budget / float(inp["target_cpa"])
@@ -204,10 +295,12 @@ def plan(inp: dict) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--input", required=True)
+    g = ap.add_mutually_exclusive_group(required=True)
+    g.add_argument("--input")
+    g.add_argument("--ab", help="yalnızca A/B testi uygunluğu: {cells, daily_total, expected_cpr, cpr_source, days?}")
     ap.add_argument("--out")
     a = ap.parse_args()
-    res = plan(read_json(a.input))
+    res = plan(read_json(a.input)) if a.input else ab_check(read_json(a.ab))
     if a.out:
         write_json(a.out, res)
     emit(res)

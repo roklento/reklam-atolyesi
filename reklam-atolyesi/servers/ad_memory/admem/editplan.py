@@ -109,7 +109,8 @@ SCHEMA: dict[str, Any] = {
         "seed": {"type": "integer"},
         "music": {"type": ["object", "null"], "properties": {"asset": {"type": "string"}, "offset_s": {"type": "number"}, "beats": {"type": "string"}, "gain_db": {"type": "number"}}},
         "vo": {"type": ["object", "null"], "properties": {"asset": {"type": "string"}, "words": {"type": "string"}}},
-        "captions": {"type": ["object", "null"], "properties": {"on": {"type": "boolean"}, "preset": {"type": "string"}}},
+        "captions": {"type": ["object", "null"], "properties": {"on": {"type": "boolean"},
+                                                                 "preset": {"enum": ["plain", "keyword", "keyword_upper", "karaoke"]}}},
         # videoda görünen açıklama metni (AI açıklaması, yasal not); 9:16'da alt %40 boş kalır (checks.py safe; ref-legal-tr-meta §7)
         "disclaimer": {"type": ["object", "null"], "properties": {"on": {"type": "boolean"}, "text": {"type": "string"},
                                                                    "reason": {"enum": ["ai", "legal", "price", "other"]}}},
@@ -123,6 +124,35 @@ SCHEMA: dict[str, Any] = {
 }
 
 DEFAULT_EFFECTS = {"signatureMax": 1, "transitionTypesMax": 2, "persistentAtmosphere": False}
+# Ses efekti yoğunluğu (1.5.0; yerel kural, kurgu ritmi): herhangi 1 saniyede en fazla 2 efekt, aynı efekt 2 saniye içinde tekrar edilmez.
+# Stil kitabı (effects.sfxMaxPerSec / effects.sfxRepeatGapS) yalnızca daha sıkı yapabilir.
+SFX_MAX_PER_SEC = 2
+SFX_REPEAT_GAP_S = 2.0
+
+
+def sfx_density(scenes: list[dict], effects: dict | None = None) -> list[str]:
+    """Plan genelinde efekt yoğunluğu ihlalleri (mutlak zamanla)."""
+    eff = effects or {}
+    per_sec = min(SFX_MAX_PER_SEC, int(eff.get("sfxMaxPerSec", SFX_MAX_PER_SEC)))
+    gap = max(SFX_REPEAT_GAP_S, float(eff.get("sfxRepeatGapS", SFX_REPEAT_GAP_S)))
+    cues = sorted((float(s["start_s"]) + float(c["at_s"]), c.get("sfx") or "?", s["id"]) for s in scenes for c in (s.get("audio_cues") or []))
+    out = []
+    j = 0
+    flagged_until = -1.0
+    for i, (t, _, sid) in enumerate(cues):
+        while cues[j][0] <= t - 1.0 + 1e-9:
+            j += 1
+        if i - j + 1 > per_sec and t > flagged_until:
+            out.append(f"ses efekti yoğunluğu: {cues[j][0]:.2f}–{t:.2f} sn arasında {i - j + 1} efekt (1 saniyede en fazla {per_sec})")
+            flagged_until = cues[j][0] + 1.0
+    last: dict[str, float] = {}
+    for t, name, sid in cues:
+        if name == "?":  # adı verilmemiş efekt: tekrar denetimine girmez (yoğunluğa girer)
+            continue
+        if name in last and t - last[name] < gap - 1e-9:
+            out.append(f"ses efekti tekrarı: '{name}' {last[name]:.2f} ve {t:.2f} sn'de ({gap:.0f} sn içinde aynı efekt tekrar edilmez)")
+        last[name] = t
+    return out
 
 
 def _norm_path(p: str) -> str:
@@ -234,6 +264,13 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
             errors.append(f"sahne {s['id']}: hazır üretim planında sahne başına kullanıcı ses kararı (decision_id) zorunlu (5.2, 5.13)")
         if mode == "user_vo" and not (s["audio"].get("user_vo_asset") or (plan.get("vo") or {}).get("asset")):
             errors.append(f"sahne {s['id']}: user_vo seçilmiş ama kullanıcı kaydı belirtilmemiş")
+
+    # Ses efekti yoğunluğu ve sahne içinde kalma (1.5.0)
+    for s in scenes:
+        for c in s.get("audio_cues") or []:
+            if float(c["at_s"]) > float(s["dur_s"]) + frame:
+                errors.append(f"sahne {s['id']}: ses efekti {c.get('sfx')} sahne süresinin dışında (at_s {c['at_s']} > {s['dur_s']})")
+    errors.extend(sfx_density(scenes, effects))
 
     # Efekt bütçesi (5.6)
     sig = sum(1 for s in scenes for l in s["layers"] if l.get("component") in SIGNATURE)

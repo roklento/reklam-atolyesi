@@ -42,6 +42,11 @@ Yok.
    | 5 | Reklamlarda asla olmasın dediğin bir şey var mı? | Serbest, boş geçilebilir | `brand_upsert(avoid_list)` |
    | 6 | Gerçek müşteri yorumların var mı, reklamda kullanabilir miyiz? | Evet + dosya / Hayır | her yorum: `review_add(text, name_display_mode=full|initials|hidden, consent_type, consent_date, consent_evidence_path, display_name?, rating?, source=<satın alma doğrulaması: sipariş/kanal>, processing_scope?)` — izin kanıtı ya da satın alma doğrulaması yoksa reklamda kullanılmaz (RG 33297, `ref-legal-tr-meta`) |
 
+   | 7 | Ne satıyorsun: ürün mü, hizmet mi, ikisi mi? Hizmetse nerede (şehir/semt, yarıçap ya da çevrim içi) ve hangi alanda? | Seçim + serbest; alan önerileri: sağlık/güzellik, hukuk, finans, eğitim, emlak, işe alım, diğer (1.5.0) | ürün kayıtları S00c'de `kind`; bölge ve alan `onboarding_save` (S00c'de `service_json.area`, `regulated_sector`, `special_ad_category`, `audience_regions`) |
+
+   Hizmet ya da düzenlenen alan (sağlık, hukuk, finans, emlak, işe alım…) söylenirse `ref-legal-tr-meta` §7'deki ilgili satır okunur ve
+   kullanıcıya **tek cümleyle** söylenir (ör. "konut/istihdam/finans reklamı ABD, Kanada ya da listelenen Avrupa ülkelerine gösterilirse
+   Meta'da özel reklam kategorisi seçilir; Türkiye'ye gösterimde gerekmez"); kural uydurulmaz, doğrulanmamışsa öyle söylenir.
    Her cevap `onboarding_save(profile_id, "brand", brand_id, question_key, answer, source=user|meta|inferred, confirmed)`;
    Meta'dan önerilen ve kullanıcının onayladığı cevap `source="meta"` ile.
 4. **Saat dilimi:** hesabın saat dilimi Meta'dan (MCP) ya da kullanıcının Ads Manager bilgisinden doğrulanır →

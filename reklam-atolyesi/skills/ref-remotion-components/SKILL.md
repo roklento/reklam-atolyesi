@@ -33,8 +33,10 @@ Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` ·
   `LowerThird` (`title`, `subtitle`, `color`, `bg`, `accent`, `y`) · `PriceTag` (`price`, `currency`, `referencePrice`,
   `referencePriceVerified`, `label`, `locale` — sayı biçimi profilin dilinden/para biriminden, ör. `tr-TR`, `en-US`; fiyat yoksa kırmızı uyarı kutusu
   render eder; **çizili/referans fiyat yalnızca
-  `referencePriceVerified=true`** ve fiyat geçmişi kanıtıyla) · `CaptionTrack` (`captions:[{text,start,end}]`, `fontSize`, `y`,
-  `offsetS`; metin VO ile birebir).
+  `referencePriceVerified=true`** ve fiyat geçmişi kanıtıyla) · `CaptionTrack` (`captions:[{text,start,end,words?,emph?}]`, `fontSize`, `y`,
+  `offsetS`, `preset`: `plain` · `keyword` (parçada en fazla bir vurgu sözcüğü, vurgu rengi + hafif büyütme) · `keyword_upper` (aynı +
+  Türkçe büyük harf, i → İ) · `karaoke` (o an söylenen sözcük vurgulu), `accent` (stil `captions.accent`, yoksa `palette.accent`; görece parlaklığı < 0,3 olan koyu renk okunur sarıya düşer); metin
+  VO ile birebir; planda `captions.preset`; 1.5.0).
 - **Geçiş (bileşen olarak test):** `Crossfade`, `DipToColor`, `LightLeak`, `WhipPan` (hareket bulanıklıklı), `MaskReveal`, `MatchZoom`,
   `SlideBlur`, `FilmBurn` (`type`, `color`, `durationFrames`, `seed`).
 - **Işık/atmosfer:** `LightSheen` (`angle`, `width`, `intensity`) · `SoftGlow` (`x`,`y`,`radius`,`color`,`pulse`) · `Bokeh` (`count`,`seed`) ·

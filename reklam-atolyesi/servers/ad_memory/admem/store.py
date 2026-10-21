@@ -10,6 +10,7 @@ from .s_comp import CompMixin
 from .s_conn import ConnMixin
 from .s_creative import CreativeMixin
 from .s_dm import DMMixin
+from .s_lead import LeadMixin
 from .s_legal import LegalMixin
 from .s_memory import MemoryMixin
 from .s_meta import MetaMixin
@@ -17,7 +18,7 @@ from .s_stage import StageMixin
 from .util import AdMemoryError
 
 
-class Store(StageMixin, MetaMixin, CreativeMixin, CompMixin, CoachMixin, MemoryMixin, LegalMixin, DMMixin, ConnMixin, BaseStore):
+class Store(StageMixin, MetaMixin, CreativeMixin, CompMixin, CoachMixin, MemoryMixin, LegalMixin, DMMixin, ConnMixin, LeadMixin, BaseStore):
     pass
 
 

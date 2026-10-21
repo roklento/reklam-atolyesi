@@ -418,7 +418,8 @@ class MemoryMixin:
             rows = self.qa("SELECT question_key, answer, source, confirmed FROM onboarding_answers WHERE scope='brand' AND scope_id=? ORDER BY id DESC LIMIT 20", (brand["id"],))
             add("Tanışma cevapları", rows)
         elif name == "campaign" and c:
-            add("Kampanya", {k: c[k] for k in ("name", "goal", "result_type", "season", "budget_total", "mode", "stage", "cycle")}, f"campaign:{c['id']}")
+            add("Kampanya", {k: c[k] for k in ("name", "goal", "result_type", "lead_method", "season", "budget_total", "mode", "stage", "cycle")},
+                f"campaign:{c['id']}")
         elif name in ("preferences",):
             q = "SELECT id, content, observations FROM memory_items WHERE profile_id=? AND layer='preference' AND status='active'"
             args: tuple = (pid,)

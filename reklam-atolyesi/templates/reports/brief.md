@@ -5,7 +5,7 @@
 ## Kampanya
 - Ürün: {{ürün}} (tanışma: {{ürün_tanışma_durumu}})
 - Kampanya amacı: {{amaç}}
-- Sonuç türü: {{sonuç_türü}} (purchase · messaging · profile_visit · link_click · engagement)
+- Sonuç türü: {{sonuç_türü}} (purchase · lead · messaging · profile_visit · link_click · engagement; lead ise yol: instant_form · website · call)
 - Sezon / hedef tarih: {{sezon}} / {{hedef_tarih}}
 - Kampanya modu: {{tam_tur_ya_da_hızlı_tur}}
 

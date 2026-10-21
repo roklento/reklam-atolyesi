@@ -17,7 +17,7 @@ dayanır ya da açıkça "doğrulanmadı" denir.
 Aktif ya da tanışmadaki profil. S00b'nin satış sinyali kontrolü (6b) yapılmışsa sonucu (`meta_signal_get`) başlangıç bilgisidir.
 
 ## Girdiler ve bağlam paketi
-`data_connection_get`, `meta_signal_get`, `brands.cta_url`, hafızadaki doğrulanmış platform kaynakları (`memory_search(tags=["platform_source"])`).
+`data_connection_get`, `meta_signal_get`, `brands.cta_url`, hafızadaki doğrulanmış platform kaynakları (`memory_search("platform_source <platform>", layer="semantic")`).
 
 ## Kullanılan hazır skill'ler ve OVERRIDES
 Yok.
@@ -85,6 +85,8 @@ Yok.
 - Platforma özgü her adımın resmi kaynağı (bağlantı + tarih) var ya da "doğrulanmadı" diye söylendi.
 - Müşteri verisi onayı olmadan Meta'ya veri gönderen yol önerilmedi; yüklemeyi insan yaptı.
 - "Tamam" yalnızca Purchase olayı görülerek (Meta yolu) ya da içe aktarma yapılarak (sistem yolu) yazıldı.
+- Müşteri adayı sitedeki formdan geliyorsa (1.5.0) aynı yolla **Lead** olayı kurulur ve S00b 6b'de `lead_seen` görülür; anlık form
+  (Meta içi) ve arama piksel gerektirmez. Aday kişisel bilgisi bu sisteme aktarılmaz; yalnızca dönem sayıları (`lead_outcome_set`).
 - Sipariş dosyasından kişisel veri okunmadı.
 
 ## Kapı mesajı

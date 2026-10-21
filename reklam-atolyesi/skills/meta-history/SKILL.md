@@ -48,6 +48,8 @@ Yok.
    ya da CSV yolundaysa `"unknown"` (kullanıcı Events Manager ekranını gösterirse `source="user_evidence"`). Sonuç sağlık raporuna ve
    kullanıcıya tek cümleyle: "Meta satışlarınızı görüyor / görmüyor: görmezse reklam tıklayanı bulur, alanı değil." Yol seçimi S01'de
    ya da `reklam-atolyesi:data-connection` ile (satış düzenine göre piksel, entegrasyon, yükleme, sipariş içe aktarma, DM).
+   Aynı okumada **Lead olayı** (1.5.0): son 7 günde Lead olayı geldiyse `meta_signal_set(..., lead_seen=true)` (sitedeki formla aday
+   sonucunun ön koşulu); gelmediyse `lead_seen=false`. Anlık form ve arama piksel istemez.
 7. **Hipotez adayları:** anomali ve geçmiş bulgulardan **önerilen** durumda — `memory_add(layer="semantic", kind="hypothesis_candidate",
    source="data", tags=["meta"], …)` (kaynak değerleri: `user | claude | data | system`; Meta verisinden çıkan bulgu `data`dır); kampanya hipotezi değildir (hipotez S03'te konseptten doğar).
 8. `profile_update(profile_id, history_status="ready"|"no_history", last_meta_sync_at=<şimdi>)`.

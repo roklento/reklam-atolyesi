@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import math
 import statistics
 import sys
@@ -257,9 +258,8 @@ def _days_left(snap: dict) -> int:
 def scale_candidates(dec: list[dict], snap: dict, structure: str | None, test_rows: list[dict], all_rows: list[dict]) -> list[dict]:
     """"Büyüt" hükmü alan her konsept için ölçekleme katmanına taşıma uygunluğu (coach 6a). Gönderi kimliği burada yoktur:
     skill salt okumayla okur; kimlik yoksa madde yazılmaz."""
-    eco = snap.get("economics") or {}
-    exact = eco.get("status") == "exact"
-    target = eco.get("target_cpa") if snap["campaign"].get("result_type") == "purchase" else None
+    from admem.s_lead import target_for
+    target, exact = target_for(snap["campaign"].get("result_type"), snap.get("economics"))
     layer = scale_layer_of(snap)
     active = bool(layer and layer.get("status", "active") == "active")
     cmap = concept_of(snap)
@@ -379,6 +379,110 @@ def channel_summary(snap: dict, days: list) -> dict:
                     "başarısız sayılmaz."}
 
 
+def ab_section(snap: dict, kpost: dict, structure: str | None) -> dict | None:
+    """Meta A/B testi (1.5.0): Meta kitleyi hücrelere rastgele böler; hücre = konsept. Sonuç oranı (sonuç/harcama) için zayıf
+    Gamma önseliyle her hücrenin en düşük sonuç maliyetine sahip olma olasılığı; Meta'nın okunan sonucu (snapshot extra.ab_test,
+    ads_experiment_abtest_get_test) ayrıca yazılır ve uyuşup uyuşmadığı belirtilir. Hüküm dilinde 'Meta'nın dağıtımı altında' yoktur."""
+    if structure != "ab_test":
+        return None
+    import numpy as np
+    ev = (snap.get("cycle") or {}).get("structure_evidence_json") or {}
+    if isinstance(ev, str):
+        try:
+            ev = json.loads(ev)
+        except ValueError:
+            ev = {}
+    study_cells = set(((ev or {}).get("study_read") or {}).get("cells") or [])
+    cells = {k: v["totals"] for k, v in kpost.items() if v["totals"].get("spend") and k != "(konseptsiz)"
+             and (not study_cells or k in study_cells)}
+    out = {"cells": {}, "meta_read": (snap.get("extra") or {}).get("ab_test"),
+           "rule": "Hücre başına ≥ 30 sonuç yerel eşiktir; altında yön olarak okunur."}
+    if len(cells) < 2:
+        out["note"] = "iki hücreden az harcama verisi: karşılaştırma yok"
+        return out
+    total_spend = sum(c["spend"] for c in cells.values())
+    total_res = sum(c["results"] or 0 for c in cells.values())
+    unit = (total_spend / total_res) if total_res else (total_spend / max(1, len(cells)))
+    rng = np.random.default_rng(1729)
+    draws = {k: rng.gamma(0.5 + float(c["results"] or 0), 1.0 / (0.5 + c["spend"] / unit), size=20000) for k, c in cells.items()}
+    stack = np.vstack(list(draws.values()))
+    best = np.argmax(stack, axis=0)  # en yüksek sonuç oranı = en düşük sonuç maliyeti
+    for i, (k, c) in enumerate(cells.items()):
+        res = float(c["results"] or 0)
+        out["cells"][k] = {"spend": round(c["spend"], 2), "results": int(res), "cost_per_result": round(c["spend"] / res, 2) if res else None,
+                           "p_lowest_cost": round(float(np.mean(best == i)), 4), "threshold_met": res >= 30}
+    if not total_res:
+        out["note"] = "hiçbir hücrede sonuç yok: önde olan hücre söylenmez"
+        return out
+    lead = max(out["cells"], key=lambda k: out["cells"][k]["p_lowest_cost"])
+    out["leader"] = lead
+    mr = out["meta_read"] or {}
+    winner = mr.get("winner_concept")
+    if winner:
+        out["agrees_with_meta"] = winner == lead
+        if winner != lead:
+            out["disagreement_note"] = ("Meta'nın kazananı ile bu hesabın önde gördüğü hücre farklı: Meta kendi güven ölçüsünü kullanır; karar "
+                                        "Meta'nın sonucu ve hücre başına sonuç sayısı birlikte okunarak verilir.")
+    return out
+
+
+LEAD_COVERAGE_MIN = 0.8  # yerel: büyütme kapısı için aday sonrası kaydın test penceresini kapsama oranı
+
+
+def lead_section(snap: dict, test_rows: list[dict], days: list | None = None) -> dict | None:
+    """Müşteri adayı kampanyası (1.5.0): aday maliyeti Meta'dan (sonuç), aday sonrası huni kullanıcı kaydından. Ucuz aday iyi aday
+    değildir: nitelikli aday ve satış başına maliyet, gözlenen dönüş oranı ile varsayılan oran kıyaslanır."""
+    if snap["campaign"].get("result_type") != "lead":
+        return None
+    from admem.s_lead import lead_funnel
+    spend, results = _sum(test_rows, "spend"), _sum(test_rows, "results")
+    allr = snap.get("lead_outcomes") or []
+    if days:  # yalnızca test penceresinin İÇİNDEKİ dönemler (harcama da pencereden): taşan dönem maliyeti küçük gösterirdi
+        rows = [r for r in allr if days[0] <= r["period_start"] and r["period_end"] <= days[-1]]
+        partial = [r for r in allr if _overlaps(r, days) and r not in rows]
+    else:
+        rows, partial = list(allr), []
+    # kayıtların kapsadığı günler: aday sonrası maliyetler ve Meta ↔ kayıt kıyası yalnızca bu günlerin harcaması/adayıyla
+    covered = set()
+    for r in rows:
+        d0, d1 = dt.date.fromisoformat(r["period_start"]), dt.date.fromisoformat(r["period_end"])
+        covered |= {(d0 + dt.timedelta(days=i)).isoformat() for i in range((d1 - d0).days + 1)}
+    cov_rows = [x for x in test_rows if x.get("date") in covered]
+    cov_spend, cov_leads = _sum(cov_rows, "spend"), _sum(cov_rows, "results")
+    window = len(days) if days else len(covered)
+    coverage = round(len(covered & set(days or covered)) / window, 3) if window else 0.0
+    out = {"method": snap["campaign"].get("lead_method"), "spend": round(spend, 2), "meta_leads": int(results),
+           "cost_per_lead": round(spend / results, 2) if results else None, "outcome_coverage": coverage,
+           "covered_spend": round(cov_spend, 2), **lead_funnel(rows, cov_leads if rows else None)}
+    t = out["totals"]
+    for k, label in (("qualified", "cost_per_qualified"), ("won", "cost_per_won")):
+        if t.get(k):
+            out[label] = round(cov_spend / t[k], 2) if cov_spend else None
+    if rows and coverage < LEAD_COVERAGE_MIN:
+        out["coverage_note"] = (f"Aday sonrası kayıt test penceresinin %{coverage * 100:.0f}'ini kapsıyor (< %{LEAD_COVERAGE_MIN * 100:.0f}): "
+                                "maliyetler yalnızca kapsanan günlerden; büyütme için pencerenin tamamı girilmeli.")
+    if t.get("leads", 0) >= 3 and t.get("won") is not None:
+        p = B.rate_posterior("ctr_link", t["won"], t["leads"], (1.0, 1.0), None)
+        if p:
+            out["close_rate_interval"] = {"mean": round(p.mean, 4), "lo": p.lo, "hi": p.hi,
+                                          "note": "Beta(1,1) önseliyle %90 aralık; adaylar bağımsız varsayılır"}
+    eco = snap.get("economics") or {}
+    assumed = eco.get("lead_close_rate")
+    if assumed is not None and out.get("close_rate_interval"):
+        iv = out["close_rate_interval"]
+        if not iv["lo"] <= float(assumed) <= iv["hi"]:
+            out["close_rate_check"] = (f"varsayılan dönüş oranı {float(assumed):.0%}, gözlenen %90 aralık {iv['lo']:.0%}–{iv['hi']:.0%}: hedef aday "
+                                       "maliyeti yeniden hesaplanmalı (ürün ekonomisinde lead_close_rate)")
+    if partial:
+        out["partial_periods"] = [[r["period_start"], r["period_end"]] for r in partial]
+        out["partial_note"] = ("Test penceresini aşan aday sonrası dönemler maliyet hesabına katılmadı (harcama yalnızca penceredendir): "
+                               "kayıtları haftalık ve test haftasıyla aynı günlere girin.")
+    if not rows:
+        out["note"] = ("Test penceresinde aday sonrası kayıt yok: ucuz aday satış demek değildir; büyütme önerilmez. Haftalık olarak "
+                       "adayların kaçına ulaşıldığı, kaçının nitelikli olduğu ve kaçının satışa döndüğü lead_outcome_set ile girilmeli.")
+    return out
+
+
 def dm_section(snap: dict, days: list) -> dict | None:
     """Mesajla satış hunisi test penceresinde (1.4.8). Toplamlar markanın; kampanya bağı yalnızca kanıtlı konuşmalarda."""
     dm = snap.get("dm") or {}
@@ -464,6 +568,14 @@ def metric_basis(snap: dict, cost: dict, test_rows: list[dict]) -> dict:
     """Hangi metrikle karar verildiği (1.4.7): olasılıklar ve kararlar raporda metrik adıyla yazılır."""
     purchases = _sum(test_rows, "purchases")
     cost_ok = [k for k, v in cost.items() if v.get("threshold_met")]
+    if snap["campaign"].get("result_type") == "lead":  # aday kampanyası: sonuç adaydır, satış aday sonrası kayıttan (1.5.0)
+        leads = _sum(test_rows, "results")
+        return {"superiority": "hook oranı (3 sn izlenme / gösterim): konseptin TÜM konseptlerin en iyisi olma olasılığı; aday değil, dikkat ölçüsü",
+                "decision": ("aday maliyeti (≥ 10 aday olan konseptlerde: " + ", ".join(sorted(cost_ok)) + ")") if cost_ok
+                            else "üst huni (hook ve bağlantı CTR'si): aday maliyeti için yeterli aday yok",
+                "meta_sees_sales": purchases > 0, "meta_leads": int(leads),
+                "note": (f"Meta bu turda {int(leads)} aday saydı; satış aday sonrası kayıttan okunur (lead_outcomes)." if leads else
+                         "Meta bu turda aday saymadı: aday maliyetine dayalı hüküm verilmez.")}
     return {"superiority": "hook oranı (3 sn izlenme / gösterim): konseptin TÜM konseptlerin en iyisi olma olasılığı; satış değil, dikkat ölçüsü",
             "decision": ("sonuç maliyeti (≥ 10 sonuç olan konseptlerde: " + ", ".join(sorted(cost_ok)) + ")") if cost_ok
                         else "üst huni (hook ve bağlantı CTR'si): sonuç maliyeti için yeterli sonuç yok",
@@ -523,9 +635,8 @@ def analyze(snap_path: str) -> dict:
         a, b = priors["hook_rate"]
         hist_mean = a / (a + b)
     sup = B.superiority(hook_posts, hist_mean)
-    eco = snap.get("economics") or {}
-    target = eco.get("target_cpa") if snap["campaign"].get("result_type") == "purchase" else None
-    verified = eco.get("status") == "exact"
+    from admem.s_lead import target_for
+    target, verified = target_for(snap["campaign"].get("result_type"), snap.get("economics"))
     cost = {k: B.cost_posterior(v["totals"]["spend"], v["totals"]["results"], target, verified) for k, v in kpost.items()}
     dist = spend_distribution(by_concept)
     all_rows = snap["rows"]
@@ -534,6 +645,24 @@ def analyze(snap_path: str) -> dict:
     ret = retention(snap, aggregate(test_rows, lambda r: r.get("creative_key") or r["meta_ad_id"]))
     lim = limit_alerts(snap, all_rows)
     dec = decisions(kpost, dist, snap, structure, cost)
+    leads = lead_section(snap, test_rows, parts["full_days"])
+    if leads is not None and (not leads.get("periods") or leads.get("outcome_coverage", 0) < LEAD_COVERAGE_MIN):
+        for d in dec:  # aday sonrası kayıt yoksa ya da pencerenin çoğunu kapsamıyorsa büyütme yok (ucuz aday ≠ satış)
+            if d["decision"] == "büyüt":
+                d.update(decision="tut", why=d["why"] + "; ancak aday sonrası kayıt yok ya da test penceresini kapsamıyor — nitelik ve "
+                         "satış görülmeden büyütülmez", ads_manager=None, gated="lead_outcomes")
+    if structure == "ab_test":  # A/B testinde yalnızca çalışmanın hücreleri hüküm alır
+        ev = (snap.get("cycle") or {}).get("structure_evidence_json") or {}
+        if isinstance(ev, str):
+            try:
+                ev = json.loads(ev)
+            except ValueError:
+                ev = {}
+        cells = set(((ev or {}).get("study_read") or {}).get("cells") or [])
+        for d in dec:
+            if cells and d["concept"] not in cells:
+                d.update(decision="tut", label="çalışma dışı", why="A/B çalışmasının hücresi değil: bu turda hüküm verilmez",
+                         ads_manager=None)
     scale = scale_section(snap, scale_rows)
     if scale:
         fat += scale["fatigue"]
@@ -541,6 +670,7 @@ def analyze(snap_path: str) -> dict:
     chan = channel_summary(snap, parts["full_days"])
     diag = funnel_diagnosis(kpost, test_rows, chan)
     dms = dm_section(snap, parts["full_days"])
+    abt = ab_section(snap, kpost, structure)
     svm = store_vs_meta(snap, test_rows, chan)
     basis = metric_basis(snap, cost, test_rows)
     quality = []
@@ -573,7 +703,7 @@ def analyze(snap_path: str) -> dict:
                        "post_rows": len(parts["post"]), "note": "sınır günleri saat oranıyla bölünmez; toplam harcamada tam sayılır"},
             "creatives": cpost, "concepts": kpost, "roles": rpost, "superiority_hook": sup, "cost": cost, "spend_distribution": dist,
             "fatigue": fat, "retention": ret, "limit_alerts": lim, "decisions": dec, "data_quality": quality,
-            "scale_layer": scale, "scale_candidates": scand, "channels": chan, "funnel_diagnosis": diag, "metric_basis": basis, "dm": dms, "store_vs_meta": svm,
+            "scale_layer": scale, "scale_candidates": scand, "channels": chan, "funnel_diagnosis": diag, "metric_basis": basis, "dm": dms, "store_vs_meta": svm, "lead": leads, "ab_test": abt,
             "competitive_context": competitive_context, "predictions": predictions,
             "portfolio_note": "Rol başına sonuç keşif karşılaştırmasıdır; önceden sabitlenmedikçe playbook adayı olmaz (6.16)."}
 

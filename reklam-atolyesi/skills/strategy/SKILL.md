@@ -49,6 +49,15 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
      payı ≤ 0,2: plugin'in yerel üst sınırı; Meta'nın ~%20 önerisi teyit edilmedi). Araç sınırları (test payı, reklam sayısı: 2–5, bazı
      hesaplarda 10 bildiriliyor) hesabın güncel Ads Manager ekranı ya da `ads_get_help_article` ile doğrulanır; doğrulanmayan sınır kesin
      sayılmaz (`ref-legal-tr-meta` §7).
+   - **Meta A/B testi seçeneği (1.5.0, yüksek bütçe):** girdiye `"ab_test": {cells: <konsept sayısı 2–5>, daily_total: <teste ayrılabilecek
+     toplam günlük bütçe>, expected_cpr: <doğrulanmış hedef maliyet ya da geçmiş sonuç maliyeti ortancası>, cpr_source:
+     target_exact|history|assumption}` eklenir (`budget.py`, ya da tek başına `budget.py --ab ab.json`). Uygunsa (hücre başına süre
+     içinde ≥ 30 beklenen sonuç — yerel; 7–30 gün, 2–5 hücre, eşit bütçe — resmi) kullanıcıya **seçenek** olarak sunulur: "Meta kitleyi
+     rastgele böler, kimse iki sürümü görmez: kazanan kontrollü bulunur; karşılığında her hücre ayrı bütçe ister." Kabul ederse plan
+     `budget_plan_json.ab_test` olarak kaydedilir, yayın talimatı launch-pack'te. Bu aşamada `ads_experiment_check_eligibility
+     (ad_account_id)` yalnızca hesap düzeyindeki uyarıları ve Lift uygunluğunu döndürür (araç tanımı: varlık kimliği verilmezse A/B
+     uygunluğu atlanır); A/B uygunluğu hücre kampanyaları kurulunca launch-pack'te `ad_entity_ids` ile okunur. Uygun değilse varsayılan yapı (ilk tur tek set, sonra
+     kreatif test) sürer; A/B testi zorlanmaz. Lift çalışması önerilmez (araç tanımı önerse de; bu sistem kurmaz).
 4. **Zarar-risk sınırı:** kullanıcıya sor: "Testteki her ayrı reklam için riske etmeyi kabul ettiğin azami reklam harcaması nedir?"
    (sonlu, pozitif; net zarar/kârlılık tahmini değil; otomatik CPA çarpanı atanmaz). Sınır kreatif başına gereken harcamadan düşükse o
    reklam eşiğe ulaşması beklenenlerden sayılmaz; asgari iki reklam koşulu yeniden sınanır.

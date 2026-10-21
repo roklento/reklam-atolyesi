@@ -35,8 +35,13 @@ Yok.
    **CSV:** kullanıcı dışa aktarımı → `meta_tools.py csv-check` → `metrics_import_csv`.
 3. **Test yapısı tespiti (6.3):** kampanya/reklam seti/bütçe/teklif `ads_get_ad_entities`; test durumu `ads_experiment_list_tests`,
    `ads_experiment_abtest_get_test` (okunabiliyorsa). Okunamıyorsa test kimliği, reklamları ve başlangıç/bitiş kullanıcıdan Ads Manager
-   ekranı/dışa aktarımıyla doğrulanır. → `cycle_set(profile_id, cycle_id, {structure_detected: bootstrap|creative_test|deviated|unverified,
+   ekranı/dışa aktarımıyla doğrulanır. A/B testinde (1.5.0) çalışma salt okumayla okunmadan `ab_test` yazılmaz (sunucu reddeder:
+   `meta_test_id` + `study_read`); çalışma bittiğinde sonucu (`winner_result` vb.) okunup koçluk kopyasına `extra.ab_test =
+   {study_id, winner_concept, confidence?}` olarak verilir (kazanan hücre konsepte eşlenerek; eşlenemezse yazılmaz). Test sürerken
+   bütçe/kitle/kreatif değişikliği önerilmez (araç tanımı da uyarır). → `cycle_set(profile_id, cycle_id, {structure_detected: bootstrap|creative_test|ab_test|deviated|unverified,
    structure_evidence_json: {source, at, evidence}, meta_test_id?, test_start?, test_end?})`. Eşit harcama kontrollü test kanıtı değildir.
+   Turun planında A/B testi varsa (`budget_plan_json.ab_test`) konsept başına ayrı kampanya/set sapma sayılmaz: çalışma okunana kadar yapı
+   `unverified` kalır, okununca `ab_test`.
    Sapma (konsept başına ayrı reklam seti, kreatif test açılmamış, maliyet hedefi/teklif sınırı/ROAS hedefi) → navigator üst satırı +
    nasıl düzeltileceği + turun hükümleri "doğrulanmamış yapı". `scale_layer_get` ile kayıtlı ölçekleme kampanyası/seti
    sapma sayılmaz ve test yapısı tespitine girmez; üyelerinin satırları test hesabından ayrı tutulur (yalnızca harcama, frekans,
@@ -69,6 +74,11 @@ Yok.
    target_meta_id, before, after, evidence:{input_snapshot:<yol/hash>}}], cycle_id)` (`proposed`) + bildirim + navigator üst satırı.
    Bu "istatistiksel kaybeden" değildir; ölçüm sorunu varsa "zarar kesin" denmez. Aynı hedef/sınır/onay sürümü için açık madde kopyalanmaz.
    Zamanlanmış iş onay vermez; kullanıcı onaylarsa `decision_log` + `action_item_set_status(item_id, "approved", approval_text)`.
+8b. **Müşteri adayı sonrası (1.5.0, `result_type='lead'`):** haftada bir kullanıcıya: "Geçen hafta gelen adaylardan kaçına ulaştınız,
+   kaçı nitelikli, kaçı satın aldı (varsa ciro)?" → `lead_outcome_set(profile_id, campaign_id, period_start, period_end, leads,
+   reached?, qualified?, won?, revenue?, currency?, source=crm_export|meta_leads_center|manual)`. Bilinmeyen aşama boş bırakılır (sıfır
+   yazılmaz); dönemler çakışmaz; aday kişisel bilgisi istenmez. Meta'nın saydığı aday ile kayıttaki aday belirgin farklıysa (ör. formlar
+   indirilmemiş) rapor bunu yazar.
 9. **Elle satış ve talep (6.2):** navigator "Satış gir" → `sales_add(profile_id, campaign_id, period_start, period_end, units,
    revenue, source_note, channel, kind)` — kanal (`shopier | site | instagram_dm | whatsapp | kurumsal | magaza | diger`) ve tür
    (`sale` | `lead`: ör. "40 adet buket" DM isteği). Atıf varsayımı ve tarih aralığı raporda; kreatiflere dağıtılmaz; DM/WhatsApp/kurumsal

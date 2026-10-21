@@ -25,7 +25,10 @@ Yok.
 
 ## Adımlar
 1. `stage_start(profile_id, "S16", campaign_id, cycle_id)`.
-2. **Değişmez girdi kopyası (6.4):** `decision_input_snapshot(profile_id, campaign_id, cycle_id, kind="coach_report", extra={competitor_snapshot_id})`
+2. **Değişmez girdi kopyası (6.4):** yapı `ab_test` ise önce çalışma salt okumayla okunur: `ads_experiment_abtest_get_test(study_id=
+   cycles.meta_test_id)` → kazanan hücre (varsa `winner_result`) konsept koduna eşlenir. Sonra
+   `decision_input_snapshot(profile_id, campaign_id, cycle_id, kind="coach_report", extra={competitor_snapshot_id, ab_test?: {study_id,
+   winner_concept, confidence?}})` (kazanan yoksa ya da eşlenemezse `winner_concept` yazılmaz; tahmin edilmez)
    — kullanılan satırlar ve kaynak/çekim zamanları, ölçüm bağlamı, dahil/dışlanan zaman aralıkları ve nedenleri, elle satış, ekonomi/hedef,
    bütçe ve risk sınırı, yapı kanıtı, dondurulmuş önseller, model/eşik sürümü, parametreler, tohum (1729), rakip görüntüsü kimliği ve hash'i.
    Kopya `reports/` altına tur/rapor sürümüyle, atomik ve SHA-256'lı; eski kopyanın üzerine yazılmaz. **Kopya saklanamazsa rapor
@@ -44,6 +47,12 @@ Yok.
    kapsamıyor" satırı kullanıcıyla kontrol edilir); **Meta ↔ mağaza** (`store_vs_meta`, yalnızca pikselin görebildiği site/Shopier
    siparişleri: Meta'nın atfettiği satın alma mağazanın ödenmiş siparişinden belirgin fazlaysa piksel/çift olay şüphesi); **mesajla satış hunisi** (`dm`: konuşma → nitelikli →
    teklif → satış, %90 aralık, kayıp nedenleri, ilk cevap süresi, kampanyaya kanıtla bağlı konuşmalar).
+   1.5.0: **müşteri adayı** (`lead`: aday başı maliyet, kayıttan nitelikli ve satış başına maliyet, adaydan satışa %90 aralık, varsayılan
+   dönüş oranının gözlenenle tutarlılığı; aday sonrası kayıt yoksa "ucuz aday satış demek değildir" uyarısı). Hedef maliyet sonuç türüne
+   göre: satışta hedef CPA, adayda hedef aday maliyeti (`target_cpl`; ikisi de yalnızca teyitliyse olasılık üretir). **Meta A/B testi**
+   (`ab_test`, yapı `ab_test` iken: hücre başına sonuç, sonuç başına maliyet, en düşük maliyet olasılığı; Meta'nın okunan kazananı ve
+   uyuşma). A/B yapısında hüküm dilinde "Meta'nın dağıtımı altında" yoktur (kitle rastgele bölünür). Tıklama çok, satış/aday sonrası
+   zayıfsa `profile-check` önerilir.
 4. **Grafikler:** `PY PR/scripts/analytics/charts.py --analysis <analysis.json> --snapshot <kopya.json> --out-dir reports/c<tur>-charts-v<n>`.
    Her grafiğin altına tek cümlelik yorum; görselleri **açıp bak**.
 5. **Kalibrasyon (6.13):** `calibration_get(profile_id)`; 30'dan az çözülmüş tahminde yalnızca sayı ("12 tahminden 9'u tuttu"), eşik önerisi yok.

@@ -13,7 +13,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "servers" / "ad_memory"))
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
-for sub in ("analytics", "audio", "analyze", "compose", "competitive", "ingest", "meta", "qc", "render", "setup", "selftest"):
+for sub in ("analytics", "audio", "analyze", "compose", "competitive", "ingest", "meta", "qc", "render", "setup", "selftest", "organic"):
     sys.path.insert(0, str(ROOT / "scripts" / sub))
 
 from admem import util  # noqa: E402

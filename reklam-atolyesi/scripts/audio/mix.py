@@ -2,7 +2,8 @@
 
 Sahne başına audio.mode: original (çekim sesi aynen) · original_clean (afftdn ile temizlenmiş) · user_vo (kullanıcı kaydı) ·
 generated (çekim sesi kaldırılır; üretilmiş VO/müzik/efekt) · none (çekim sesi kaldırılır; müzik + efekt).
-Çekim sesi ile üretilmiş ses arasındaki geçişler kısa çapraz geçişle; müzik VO/konuşmanın 4–5 dB altında + sidechain;
+Çekim sesi ile üretilmiş ses arasındaki geçişler kısa çapraz geçişle; müzik VO/konuşmanın 4–5 dB altında + sidechain; konuşma
+sırasında ses efektleri de kısılır (varsayılan 6 dB; konuşma hiçbir zaman efekt yüzünden kısılmaz — 1.5.0);
 efektler kare hassasiyetinde; iki geçişli loudnorm → -14 LUFS, ≤ -1 dBTP. Stem'ler ayrı yazılır.
 
 Kullanım: mix.py --plan plan.json --scene-audio scenes_map.json [--music m.wav] [--vo vo.wav] [--sfx-dir dir] --out-dir audio/stems
@@ -62,7 +63,7 @@ def _write(path: Path, y: np.ndarray) -> str:
 
 
 def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: dict[str, str], out_dir: Path,
-        duck_db: float = 4.5) -> dict:
+        duck_db: float = 4.5, sfx_duck_db: float = 6.0) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     total = float(plan["duration_s"])
     n = int(total * SR)
@@ -98,6 +99,10 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
                 a, b = int(s["start_s"] * SR), int((s["start_s"] + s["dur_s"]) * SR)
                 vo_track[a:b] = vo_clip[a:b]
                 speech_mask[a:b] |= np.abs(vo_clip[a:b]).max(axis=1) > 0.01
+    if speech_mask.any() and np.abs(effects).max() > 0:  # konuşma üstüne gelen efekt kısılır, konuşma değil
+        k = int(0.08 * SR)
+        senv = np.convolve(np.where(speech_mask, 10 ** (-sfx_duck_db / 20), 1.0), np.ones(k) / k, mode="same").astype(np.float32)
+        effects *= senv[:, None]
     music_track = np.zeros((n, 2), np.float32)
     m = _read(music, total)
     if m is not None:
@@ -114,7 +119,7 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
     pre_path = _write(out_dir / "mix_pre.wav", pre * 0.8)
     ln = LN.loudnorm(pre_path, str(out_dir / "mix_final.wav"))
     rep = {"stems": stems, "pre": pre_path, "final": ln["out"], "loudness": ln["verify"], "loudness_ok": ln["ok"], "applied_modes": applied,
-           "duck_db": duck_db}
+           "duck_db": duck_db, "sfx_duck_db": sfx_duck_db}
     write_json(out_dir / "mix_report.json", rep)
     return rep
 

@@ -61,7 +61,9 @@ export const zMasterProps = z.object({
   style: z.any().optional(),
   // sahne kimliği → katman sırası → public/ altındaki ara dosya yolu (staticFile ile çözülür)
   assets: z.record(z.string(), z.record(z.string(), z.string())).optional(),
-  captions: z.array(z.object({ text: z.string(), start: z.number(), end: z.number() })).optional(),
+  captions: z.array(z.object({ text: z.string(), start: z.number(), end: z.number(),
+    words: z.array(z.object({ text: z.string(), start: z.number(), end: z.number() })).optional(),
+    emph: z.number().nullable().optional() })).optional(),
   preview: z.boolean().optional(),
   beats: z.array(z.number()).optional(),
 });

@@ -48,6 +48,12 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
      yerleştirilir (sonraki sahnelerin `start_s`'i kayar); ses `original` (gürültülüyse `original_clean`), kesik yerlerinde dönüşümlü
      `camera: {preset: "punch_in", zoom: 1.12}` (1,0–1,2; kesiği gizler). Parçalar kare ızgarasındadır (ses-görüntü kayması olmaz).
      Kesimden sonra konuşmanın akışı kullanıcıya önizlemede dinletilir.
+   - Altyazı ön ayarı (1.5.0): `captions.preset` = `plain` · `keyword` · `keyword_upper` · `karaoke` (stil kitabının tercihi; yoksa
+     konuşmalı/sesli videoda `keyword`). Vurgu sözcüğü parçada en fazla bir tanedir; konseptin anahtar sözcükleri (ürün adı, teklif,
+     hook'un çekirdek sözcüğü) `--keywords` ile verilir: `PY PR/scripts/audio/asr_local.py captions --words <words.json>[@başlangıç] …
+     --keywords "<a,b>" --out edit/captions.words.json` (tek dosya için de). Vurgu kişiye atfedilen ifade ya da yasal uyarı sözcüğü olmaz.
+   - Ses efektleri (1.5.0): herhangi 1 saniyede en fazla 2 efekt, aynı efekt 2 saniye içinde tekrar edilmez (yerel kural; stil daha sıkı
+     yapabilir: `effects.sfxMaxPerSec`, `effects.sfxRepeatGapS`); efekt sahne süresi içinde. Doğrulayıcı reddeder.
    - Altyazı (5.14): VO ya da tutulan konuşma varsa `captions.on=true`, kelime zamanlarından; metin VO ile birebir. Konuşmalı sahnenin
      altyazısı `<klip>.cuts.words.json` (kurgu zamanında). VO da varsa tek dosyada:
      `PY PR/scripts/audio/asr_local.py captions --words audio/vo/<ad>.words.json@<VO başlangıcı> --words edit/speech/<klip>.cuts.words.json

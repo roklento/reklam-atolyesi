@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.4.9
+# Reklam Atölyesi (reklam-atolyesi) · 1.5.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,29 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.5.0** — yol haritasının son maddeleri
+- **Müşteri adayı (form) sonucu + hizmet işletmesi:** sonuç türü `lead` (yol: anlık form · sitedeki form · arama; sitedeki form için
+  Meta'nın Lead olayını görmesi gerekir). Ürün kaydı hizmet olabilir (`kind='service'`: süre, kapasite, randevu biçimi, bölge, düzenlenen
+  alan, Meta özel reklam kategorisi ve kitle ülkeleri). Başa baş/hedef aday maliyeti = katkı × adaydan satışa dönüş oranı. Aday sonrası
+  huni (ulaşılan → nitelikli → satış) haftalık dönem toplamıyla, kişisel veri olmadan (`lead_outcome_set`); koçlukta aday başı,
+  nitelikli ve satış başına maliyet, dönüş oranı %90 aralığı, varsayılan oranın gözlenenle tutarlılığı. Tanışma, brief, konsept, çekim
+  ve yayın paketinde hizmet dalı; özel reklam kategorisi resmi bölge listesinden; sağlıkta yönetmelik doğrulanamadığı için güvenli
+  varsayılan (§7).
+- **Meta A/B testi (yüksek bütçe):** `budget.py` `ab_check` (2–5 hücre, 7–30 gün, eşit bütçe — resmi; hücre başına ≥ 30 beklenen sonuç
+  — yerel); uygunsa seçenek olarak sunulur, testi kullanıcı Deneyler'de kurar. Yapı `ab_test` yalnızca okunmuş çalışmayla yazılır; koçlukta
+  hücre başına en düşük maliyet olasılığı ve Meta'nın kazananıyla uyuşma; hükümlerde "Meta'nın dağıtımı altında" yok.
+  `ads_experiment_check_eligibility` (salt okuma) izin listesine eklendi; çalışma oluşturma araçları listede değil.
+- **Vurgulu altyazı:** parçada en fazla bir vurgu sözcüğü (anahtar kelime → sayı/fiyat → en uzun anlamlı sözcük); ön ayarlar `plain` ·
+  `keyword` · `keyword_upper` (Türkçe büyük harf) · `karaoke`; vurgu rengi stilden.
+- **Ses efekti yoğunluğu:** 1 saniyede en fazla 2 efekt, aynı efekt 2 saniye içinde tekrar yok, efekt sahne içinde (doğrulayıcı); miks
+  konuşma üstündeki efekti ~6 dB kısar, konuşmayı kısmaz.
+- **Profil kontrolü** (`profile-check`): IG profili salt okumayla (son paylaşım, sıklık, video payı, yönlendirme, etkileşim); araçta
+  olmayanlar (biyografi, bağlantı, öne çıkanlar) kontrol listesi.
+- **Organik destek** (`organic`): kullanılmamış iyi klipler, kazanan reklamlar ve konuşma çekimlerinden aday listesi, haftalık takvim,
+  taslaklar; paylaşım yapılmaz, reklam kararlarına girmez.
+- Migration 006: `campaigns` ve `cycles` aynı satır ve kimliklerle yeniden kurulur (CHECK değişimi; yabancı anahtar denetimi işlem dışında
+  kapatılır, sonda bütünlük denetlenir, ihlalde geri alınır); `products.kind`, `products.service_json`, `lead_outcomes` eklenir.
+
 **1.4.9**
 - **Varsayılan ses EMA**; ses kütüphanesi (VoxCPM2, 6 tasarlanmış ses) artık varsayılan değil. `tts_local.py capability` bilgisayarı
   ölçer: NVIDIA ekran kartı, RTX 30xx ve sonrası (bfloat16 için compute ≥ 8.0), ≥ 8 GB ekran belleği, sürücü CUDA ≥ 12.8, ≥ 15 GB boş

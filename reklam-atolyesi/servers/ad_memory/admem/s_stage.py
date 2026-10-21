@@ -20,7 +20,8 @@ class StageMixin:
     # --- kampanya --------------------------------------------------------------
     def campaign_create(self, profile_id: int, product_id: int, name: str, goal: str | None = None,
                         result_type: str | None = None, season: str | None = None, budget_total: float | None = None,
-                        budget_total_confirmed: bool = False, mode: str = "full", trial: bool = False) -> dict:
+                        budget_total_confirmed: bool = False, mode: str = "full", trial: bool = False,
+                        lead_method: str | None = None) -> dict:
         p = self._profile(profile_id)
         if p["status"] != "active" and not (trial and p["status"] == "onboarding" and p["brand_id"]):
             raise AdMemoryError("kampanya açmak için profil tanışması tamamlanmış (active) olmalı (Faz 3, 17.2)")
@@ -33,16 +34,17 @@ class StageMixin:
             raise AdMemoryError("budget_total pozitif olmalı ya da açıkça NULL (sınır yok) bırakılmalı (6.3)")
         if result_type == "purchase":
             self._purchase_signal_required(profile_id)
+        self._lead_rules(profile_id, result_type, lead_method)
         slug = slugify(name)
         base, n = slug, 2
         while self.q1("SELECT 1 FROM campaigns WHERE brand_id=? AND slug=?", (p["brand_id"], slug)):
             slug = f"{base}-{n}"
             n += 1
         with self.tx():
-            cur = self.ex("""INSERT INTO campaigns(brand_id,product_id,name,slug,goal,result_type,season,budget_total,
-                             budget_total_confirmed,mode,stage,cycle,trial,created_at) VALUES(?,?,?,?,?,?,?,?,?,?, 'S01', 1, ?, ?)""",
-                          (p["brand_id"], prod["id"], name, slug, goal, result_type, season, budget_total,
-                           1 if budget_total_confirmed else 0, mode, 1 if trial else 0, now_iso()))
+            cur = self.ex("""INSERT INTO campaigns(brand_id,product_id,name,slug,goal,result_type,lead_method,season,budget_total,
+                             budget_total_confirmed,mode,stage,cycle,trial,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?, 'S01', 1, ?, ?)""",
+                          (p["brand_id"], prod["id"], name, slug, goal, result_type, lead_method if result_type == "lead" else None,
+                           season, budget_total, 1 if budget_total_confirmed else 0, mode, 1 if trial else 0, now_iso()))
             cid = cur.lastrowid
             cyc = self.ex("INSERT INTO cycles(campaign_id,cycle,status,created_at) VALUES(?,1,'production',?)", (cid, now_iso()))
             if trial and prod["onboarding_status"] == "pending":
@@ -83,11 +85,26 @@ class StageMixin:
         if sig.get("status") != "purchase_seen":
             raise AdMemoryError("satış (purchase) sonucu için Meta'nın son 7 günde Purchase olayı aldığı doğrulanmadı (meta_signal: "
                                 f"{sig.get('status', 'unknown')}). Yollar: piksel kur, satışları KVKK dayanağıyla Events Manager'a yükle, ya da "
-                                "bilinçli olarak messaging/link_click/profile_visit sonucuna optimize et; satışlar yine sales_add ile izlenir.")
+                                "bilinçli olarak messaging/link_click/profile_visit ya da anlık formla lead sonucuna optimize et; satışlar yine sales_add ile izlenir.")
+
+    def _lead_rules(self, profile_id: int, result_type: str | None, lead_method: str | None) -> None:
+        """Aday sonucu (1.5.0): yol zorunlu; sitedeki form için Meta'nın Lead olayını görmesi gerekir (satıştaki kuralın aynısı)."""
+        from .s_lead import LEAD_METHODS
+        if result_type != "lead":
+            if lead_method is not None:
+                raise AdMemoryError("lead_method yalnızca result_type='lead' ile verilir")
+            return
+        if lead_method not in LEAD_METHODS:
+            raise AdMemoryError(f"aday sonucu yol ister (lead_method): {' | '.join(LEAD_METHODS)} — instant_form: Meta anlık form (piksel "
+                                "gerekmez) · website: sitedeki form (Meta'nın Lead olayını görmesi gerekir) · call: arama")
+        if lead_method == "website" and not self.meta_signal_get(profile_id)["meta_signal"].get("lead_seen"):
+            raise AdMemoryError("sitedeki form için Meta'nın son 7 günde Lead olayı aldığı doğrulanmadı (meta_signal.lead_seen). Yollar: "
+                                "anlık form (instant_form) kullan, Lead olayını kur (veri bağlantısı), ya da mesaj sonucuna optimize et.")
 
     def campaign_update(self, profile_id: int, campaign_id: int, **fields: Any) -> dict:
         c = self._campaign(profile_id, campaign_id)
-        allowed = {"goal", "result_type", "season", "budget_total", "budget_total_confirmed", "test_structure", "mode", "status", "name"}
+        allowed = {"goal", "result_type", "lead_method", "season", "budget_total", "budget_total_confirmed", "test_structure", "mode",
+                   "status", "name"}
         bad = set(fields) - allowed
         if bad:
             raise AdMemoryError(f"campaign_update alanı desteklenmiyor: {', '.join(sorted(bad))} (stage/cycle yalnızca aşama makinesiyle)")
@@ -97,6 +114,14 @@ class StageMixin:
             raise AdMemoryError("hızlı tur yolu S03 kapısından önce seçilir (4.2)")
         if fields.get("result_type") == "purchase" and c["result_type"] != "purchase":
             self._purchase_signal_required(profile_id)
+        if "result_type" in fields or "lead_method" in fields:
+            rt = fields.get("result_type", c["result_type"])
+            lm = fields.get("lead_method", c.get("lead_method") if rt == "lead" else None)
+            self._lead_rules(profile_id, rt, lm)
+            if rt != "lead":
+                fields["lead_method"] = None
+        if fields.get("test_structure") == "ab_test":
+            raise AdMemoryError("ab_test yapısı yalnızca okunmuş Meta A/B çalışmasıyla tur kaydına yazılır (cycle_set structure_detected='ab_test')")
         sets = {k: v for k, v in fields.items()}
         if "budget_total" in sets and "budget_total_confirmed" not in sets:
             sets["budget_total_confirmed"] = 1
@@ -121,10 +146,15 @@ class StageMixin:
             raise AdMemoryError("turun önselleri dondurulmuş; ölçüm sırasında değiştirilemez (6.6)")
         if "risk_limits_json" in fields and fields["risk_limits_json"] is not None:
             self._validate_risk_limits(fields["risk_limits_json"])
-        if "structure_detected" in fields and fields["structure_detected"] not in (None, "bootstrap", "creative_test", "deviated", "unverified"):
-            raise AdMemoryError("structure_detected: bootstrap | creative_test | deviated | unverified")
-        if fields.get("structure_detected") in ("creative_test", "bootstrap") and not (fields.get("structure_evidence_json") or cy["structure_evidence_json"]):
+        if "structure_detected" in fields and fields["structure_detected"] not in (None, "bootstrap", "creative_test", "ab_test", "deviated", "unverified"):
+            raise AdMemoryError("structure_detected: bootstrap | creative_test | ab_test | deviated | unverified")
+        if fields.get("structure_detected") in ("creative_test", "bootstrap", "ab_test") and not (fields.get("structure_evidence_json") or cy["structure_evidence_json"]):
             raise AdMemoryError("yapı kaynak kanıtı olmadan doğrulanmış sayılmaz; kanıt yoksa 'unverified' (6.3)")
+        if fields.get("structure_detected") == "ab_test":
+            # Meta A/B testi (1.5.0): çalışma kimliği salt okuma aracıyla okunmuş olmalı (ads_experiment_abtest_get_test)
+            ev = jload(fields.get("structure_evidence_json") or cy["structure_evidence_json"], {}) or {}
+            if not (fields.get("meta_test_id") or cy["meta_test_id"]) or not ev.get("study_read"):
+                raise AdMemoryError("ab_test için meta_test_id ve kanıtta okunmuş çalışma (study_read: hücreler, tarih, değişken) gerekli")
         if "budget_plan_json" in fields:
             # Ölçekleme katmanı kaydı yalnızca scale_layer_set ile değişir; S02'nin yeni bütçe planı onu silmez (1.4.6).
             new_bp = jload(fields["budget_plan_json"], None) if isinstance(fields["budget_plan_json"], str) else fields["budget_plan_json"]
@@ -691,7 +721,12 @@ class StageMixin:
                     warnings.append(f"Tur {m['cycle']}: test yapısı {m['structure_detected']} — hükümler 'doğrulanmamış yapı' kaydıyla")
             if c["result_type"] == "purchase" and self.meta_signal_get(profile_id)["meta_signal"].get("status") != "purchase_seen":
                 warnings.append("Satış sonuçlu kampanya ama Meta'nın satışı gördüğü doğrulanmadı: Meta tıklayanı bulur, alanı değil (piksel/yükleme)")
-            out.append({"campaign": {k: c[k] for k in ("id", "name", "stage", "cycle", "mode", "result_type", "budget_total")},
+            if c["result_type"] == "lead":  # 1.5.0
+                if c.get("lead_method") == "website" and not self.meta_signal_get(profile_id)["meta_signal"].get("lead_seen"):
+                    warnings.append("Sitedeki formla aday kampanyası ama Meta'nın Lead olayını gördüğü doğrulanmadı (S00b 6b, veri bağlantısı)")
+                if measuring and not self.q1("SELECT 1 FROM lead_outcomes WHERE campaign_id=? LIMIT 1", (c["id"],)):
+                    warnings.append("Aday kampanyası ölçümde ama aday sonrası kayıt yok (lead_outcome_set): nitelik ve satış görülmeden büyütme önerilmez")
+            out.append({"campaign": {k: c[k] for k in ("id", "name", "stage", "cycle", "mode", "result_type", "lead_method", "budget_total")},
                         "stage_name": ST.STAGE_NAMES.get(c["stage"]), "skill": ST.SKILLS.get(c["stage"]),
                         "current_cycle_id": cy["id"] if cy else None,
                         "pending_gates": [{**g, "gate": ST.GATES.get(g["stage"])} for g in pending],

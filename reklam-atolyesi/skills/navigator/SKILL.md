@@ -128,6 +128,9 @@ Her maddenin işi `menu.json`'daki `action` alanıdır; hook seçimde bunu bağl
 | — | Ölçekleme katmanı (serbest metin) | `scale_layer_get`; taşıma kararı yalnızca S16'da (`coach` 6a) |
 | — | DM / mesaj satışı (serbest metin: "DM gir", "günlük DM", "DM özeti", "cevap taslağı", "takip listesi") | `reklam-atolyesi:dm-sales` |
 | — | Veri bağlantısı (serbest metin: "piksel", "satışları bağla", "sipariş yükle") | `reklam-atolyesi:data-connection` |
+| — | Profil kontrolü (serbest metin: "profilime bak", "profil hazır mı") | `reklam-atolyesi:profile-check` |
+| — | Organik paylaşım (serbest metin: "organik", "ne paylaşayım", "artık klipler") | `reklam-atolyesi:organic` |
+| — | Aday sonucu (serbest metin: "form doldurdular", "aday sonuçları", "kaçı aradı/satın aldı") | `lead_outcome_set` / `lead_outcomes_summary` (dönem toplamı; kişisel veri yok) |
 | — | Uygulama listesi (serbest metin) | `action_items_list` + `action_items_verify` (salt okuma) |
 
 ### 5. Profil yönetimi (17.3)

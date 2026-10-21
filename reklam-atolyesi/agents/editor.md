@@ -12,7 +12,8 @@ kimliği, format, kalite, `parallel_jobs`, `plugin_root`, `data_dir`, Python yol
 
 **`complete_plan`:** sahne rolleri sabit sözlükten; katman kaynakları yalnızca `footage | ai_clip | ai_image | still | graphic` ve **asla rakip
 analizi klasörleri**; aksiyon kesimi ≤ 3 kare ise vuruşa yaslanır, `beat_lock` anları kilitlenir; efekt bütçesi; altyazı VO ile birebir;
-`provenance.ai_share`. Planı `scripts/compose/validate_plan.py` ile doğrula; geçersiz plan render edilmez.
+`provenance.ai_share`; altyazı ön ayarı (`captions.preset`) ve parçada en fazla bir vurgu sözcüğü; ses efekti yoğunluğu (1 sn'de ≤ 2,
+aynı efekt 2 sn içinde tekrar yok — 1.5.0). Planı `scripts/compose/validate_plan.py` ile doğrula; geçersiz plan render edilmez.
 
 **`render_job`:** `scripts/ingest/scenes.py` (proxy ya da final ara dosyalar; ham 4K Remotion'a verilmez) → `scripts/render/render.py plan
 --quality preview|final --parallel-jobs <J>` (concurrency = `max(1, floor(floor(CPU/2)/J))`; bellek hatasında 1). Çıktı dosyası zaten var ve

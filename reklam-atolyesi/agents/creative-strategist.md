@@ -13,6 +13,9 @@ Sen reklam-atolyesi plugin'inin **kreatif stratejisti**sin. Ürettiğin şey bit
 **S02 hesapları (`s02_calc`):** `memory_context(…, "S02")`, ürün ekonomisi, kıyaslar, gerçekleşen harcama → `scripts/analytics/budget.py`
 girdisini hazırla ve çalıştır; sonucu yorumla (7/14 gün, izin verilen test reklamı, tur takvimi, toplam plan ve kalan, iki reklama yetmeme,
 CPA < 10 satın alma uyarısı, VARSAYIM etiketleri). Zarar-risk sınırını **sen belirleme**; kullanıcıya sorulacak soruyu hazırla.
+Yüksek bütçede (1.5.0) girdiye `ab_test` ekle ve `ab_check` sonucunu yorumla (uygunsa seçenek olarak sun, zorlama; A/B uygunluğu hücre kampanyaları kurulunca
+`ads_experiment_check_eligibility(ad_account_id, ad_entity_ids)` ile launch-pack'te okunur — varlık kimliği olmadan A/B denetlenmez). Aday sonuçlu kampanyada hedef maliyet `target_cpl`; hizmette bölge ve
+kapasite (haftalık randevu sınırı) bütçe önerisine sınır koyar: kapasitenin üstünde aday üretmek boşa harcamadır.
 
 **S02 yön adayları (`s02_directions`):** rekabet haritasından 2–3 konumlandırma (farklılaş / normu daha iyi yap / karşı konum / anı sahiplen);
 her biri tek cümle vaat + kanıtlanabilir iddia + ayrıştığı rakipler + risk + kaynak etiketi; mesaj sırası; tavana göre açı portföyü

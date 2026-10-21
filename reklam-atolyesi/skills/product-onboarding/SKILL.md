@@ -28,6 +28,16 @@ Yok. Çekim tarifi kartlarının dili `ref-shooting-basics`'tedir.
    gördüğünü söyler** (ürün türü, ambalaj, etiket, renk, doku, çeşitler); kullanıcı düzeltir. Doğrulanamayan (çeşit sayısı, belge
    gerektiren özellik) "teyit edilmedi" diye işaretlenir. → `product_upsert(observation_json={seen, corrected_by_user, unverified},
    photos_json=[…])`.
+2b. **Hizmet mi? (1.5.0):** S00a'da hizmet dendiyse ya da kullanıcı söylerse `product_upsert(..., kind="service")`. Hizmette ürün
+   gözlemi yerine **hizmetin yapıldığı yer ve an** gözlenir (mekân, ekipman, uygulayan kişi, süreç); fotoğraf/video yine istenir.
+   Ek sorular: süre (`duration_min`), haftalık kapasite (`capacity_per_week`), randevu biçimi (`booking`: appointment · walk_in ·
+   online · on_site · mixed), hizmet bölgesi (`area`: city, districts, radius_km, online), düzenlenen alan (`regulated_sector`), Meta özel
+   reklam kategorisi (`special_ad_category`: housing · employment · financial_products_services ya da yok) ve kitlenin ülkeleri
+   (`audience_regions`) → `product_upsert(service_json={…})` (sunucu doğrular; nota kişisel veri girmez). `service_info` özel kategori
+   gerekliliğini resmi bölge listesinden söyler. Hizmette satış çoğu zaman **müşteri adayı** ile başlar: soru 3'e ek olarak **adaydan
+   satışa dönüş oranı** sorulur ("10 kişi form doldurursa/ararsa kaçı müşteri olur?") → `economics_json.lead_close_rate` (0–1),
+   kullanıcının kayıtlarından teyitliyse `lead_close_rate_confirmed: true`. Bilinmiyorsa boş kalır; ilk turdan sonra `lead_outcome_set`
+   kayıtlarıyla gözlenen oran önerilir.
 3. **Sorular:**
 
    | # | Soru | Biçim | Kayıt |
@@ -47,11 +57,18 @@ Yok. Çekim tarifi kartlarının dili `ref-shooting-basics`'tedir.
    Aynı maliyet iki kez düşülmez; brüt marj bu kalemlerin hepsini içermiyorsa tek başına başa baş değildir. Sunucu `economics`
    alanında başa baş CPA (= katkı), başa baş ROAS (sepet/katkı) ve hedef CPA'yı (katkı × güvenlik payı, varsayılan 0,7) hesaplar.
    Katkı bilinmiyor/aralıksa sonuç varsayım/aralıktır; katkı ≤ 0 ise pozitif başa baş CPA üretilmez. Sonucu kullanıcıya bu dille söyle.
+   **Aday ekonomisi (1.5.0):** `lead_close_rate` varsa başa baş aday maliyeti = katkı × dönüş oranı, hedef aday maliyeti = × güvenlik payı
+   (`breakeven_cpl`, `target_cpl`); ikisi de teyitliyse `cpl_status: exact`, değilse varsayım. Örnek dil: "Satış başına katkın 900, 10
+   adaydan 2'si müşteri oluyorsa bir aday en fazla 180 değerinde; hedefimiz 126'nın altı.".
 5. **Ürüne özgü çekim tarifi (5.3):** sorular bitince ürün gözleminden **görüntü özelliğine göre** çekim riskleri çıkarılır (ışık
    yayan/çok parlak yüzey · yansıtıcı/şeffaf ambalaj · çok küçük ayrıntı/yazı · hareketli/akışkan/kısa ömürlü an · belirli ortamda
    anlam kazanan kullanım · kullanımla değişen görünüş). Her risk için genel kuralı uyarlayan kart **önerilen cevap** olarak
    gösterilir (soru sayılmaz). Kart alanları: `risk, what, phone, do, stop_when, success_check, overrides_rule, why`. Fotoğraf/videodan
    risk çıkarılamıyorsa kart üretilmez, genel kurallar geçerlidir. Onaylanınca `product_upsert(shoot_profile_json={"cards":[…]})`.
+   **Hizmette çekim tarifi:** risk kartları hizmetin görüntüsüne göre: uygulayan kişi kameraya konuşuyor (ses niyeti "çekimdeki ses",
+   konuşmalı kurgu), süreç adımları (eller, ekipman; kişi yüzü izinsiz görünmez), mekân güveni (temizlik, belge/sertifika görünürse
+   gerçek olmalı), sonuç gösterimi (düzenlenen alanda önce/sonra ve müşteri görüntüsü §7'ye göre; sağlıkta resmi metin okunana kadar
+   **kullanılmaz**). Müşteri yorumu yalnızca izinle (`review_add`).
 6. Ürün kartını yaz: `DD/profiles/<slug>/products/<ürün>/urun-karti.md` (gözlem, ekonomi ve dili, alıcılar, anlar, iddialar, çekim
    tarifi; atomik).
 7. `stage_complete(profile_id, "S00c", outputs=[{path: urun-karti.md}], summary, scope_key="product:<id>")` → `awaiting_gate`.

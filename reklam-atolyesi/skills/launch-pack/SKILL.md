@@ -39,8 +39,26 @@ Yok.
      Hükümler "Meta'nın dağıtımı altında".
    - **Sonraki turlar (`creative_test`):** aynı reklam setinde, yayındaki bir reklamdan başlatılan Meta kreatif testi; yeni konseptler
      test reklamı (araç sınırı içinde); test bütçesi ≤ `exploration_share` (plugin'in yerel üst sınırı 0,2; Meta'nın ~%20 önerisi teyit edilmedi, §7); reklam sayısı Ads Manager ekranından; süre 7 gün (ya da S02'nin seçtiği); "En yüksek hacim".
-     Maliyet hedefi/teklif sınırı/ROAS hedefi kreatif testi engeller. ABO ve Meta A/B testi desteklenmez: konsept başına ayrı set
-     bütçeyi parçalar ve her set ayrı öğrenir (çok set → daha az öğrenme, resmi; §7); eşit harcama da kontrollü karşılaştırma değildir.
+     Maliyet hedefi/teklif sınırı/ROAS hedefi kreatif testi engeller. Test dışında konsept başına ayrı set (ABO) desteklenmez: bütçeyi
+     parçalar ve her set ayrı öğrenir (çok set → daha az öğrenme, resmi; §7); eşit harcama da kontrollü karşılaştırma değildir. Ayrı
+     hücreler yalnızca aşağıdaki Meta A/B testi içinde geçerlidir.
+   - **Meta A/B testi (`ab_test`, 1.5.0; yalnızca S02'de uygun bulunup kullanıcı seçtiyse):** her konsept ayrı kampanya (ya da ayrı reklam
+     seti), ayarlar aynı, tek değişken kreatif; hücreler kurulunca uygunluk salt okumayla `ads_experiment_check_eligibility(ad_account_id,
+     ad_entity_ids=[hücre kampanyaları])` (uygun değilse test kurulmaz, varsayılan yapıya dönülür ve kullanıcıya gerekçe söylenir);
+     Deneyler (Experiments) → A/B testi → mevcut kampanyaları seç (en fazla 5); hücrelere
+     **aynı bütçe**; takvim S02'deki gün sayısı (7–30); kazanan ölçüsü "sonuç başına maliyet"; kitle aynı anda çalışan başka kampanyalarla
+     çakışmamalı (resmi; §7). Test kurulunca kullanıcı çalışma kimliğini verir ya da `ads_experiment_list_tests` ile bulunur →
+     `ads_experiment_abtest_get_test(study_id)` okunur → `cycle_set(profile_id, cycle_id, {structure_detected: "ab_test", meta_test_id:
+     <kimlik>, structure_evidence_json: {study_read: {cells: [<konsept kodları>], variable, start, end}, source: "meta_mcp"}})`. Hücreler
+     konsept kodlarıyla eşlenir (eşlenemeyen hücre yazılmaz). Okunamazsa yapı `unverified` kalır.
+   - **Müşteri adayı (`lead`, 1.5.0):** amaç "Potansiyel müşteriler"; dönüşüm yeri `instant_form` → anlık form (form türü: daha fazla hacim
+     · daha yüksek niyet · zengin içerik; en az bir soru; giriş metni; bitiş ekranında sonraki adım), `website` → sitedeki form ve Lead
+     olayı, `call` → arama. **Gizlilik politikası bağlantısı istenir** (Meta makaleleri çelişiyor: biri isteğe bağlı, biri gerekli diyor;
+     KVKK aydınlatması için de gerekir — yerel kural, §7). Formda yalnızca gereken bilgi sorulur; nitelik için 1–2 soru (bütçe, tarih,
+     ihtiyaç). Adaylar Meta'nın potansiyel müşteri merkezinden ya da CRM'den kullanıcıya gelir; **bu sisteme kişisel bilgi girmez**,
+     yalnızca haftalık sayılar (`lead_outcome_set`).
+   - **Özel reklam kategorisi:** `service_info` gerekli diyorsa (konut/istihdam/finansal + ABD/Kanada/listelenen Avrupa kitlesi) kampanya
+     oluştururken kategori seçilir; hedefleme kısıtlanır (resmi; §7). Gerekmiyorsa satır yazılmaz.
      İlk turun aç kalan konseptleri kaybeden sayılmaz; sonraki turun kreatif testinde ilk sıradadır (coach, learn).
    - **Ölçekleme katmanı (`scale`, varsa):** S16'da onaylanan ayrı kampanya; tek reklam seti, geniş kitle, "En yüksek hacim". Yeni turun
      test reklamları **buraya eklenmez**; yeni fikirler yalnızca test katmanında sınanır. Pakette katmanın durumu tek satırla yer alır

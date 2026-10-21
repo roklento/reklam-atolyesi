@@ -305,7 +305,7 @@ class BaseStore:
         self._profile(profile_id)
         allowed = {"price", "gross_margin", "aov", "currency", "safety_factor", "economics_json", "occasions_json", "buyers_json",
                    "provable_claims_json", "capacity_limit", "photos_json", "observation_json", "shoot_profile_json",
-                   "catalog_product_id", "onboarding_status"}
+                   "catalog_product_id", "onboarding_status", "kind", "service_json"}
         bad = set(fields) - allowed
         if bad:
             raise AdMemoryError(f"product_upsert alanı desteklenmiyor: {', '.join(sorted(bad))}")
@@ -313,6 +313,11 @@ class BaseStore:
             raise AdMemoryError(f"geçersiz para birimi: {fields['currency']}")
         if "shoot_profile_json" in fields and fields["shoot_profile_json"] is not None:
             self._validate_shoot_profile(fields["shoot_profile_json"])
+        if "kind" in fields and fields["kind"] not in ("product", "service"):
+            raise AdMemoryError("kind: product | service")
+        if "service_json" in fields and fields["service_json"] is not None:
+            from .s_lead import validate_service
+            fields["service_json"] = validate_service(fields["service_json"])
         for k in list(fields):
             if k.endswith("_json") and fields[k] is not None and not isinstance(fields[k], str):
                 fields[k] = jdump(fields[k])
@@ -383,6 +388,8 @@ class BaseStore:
             if contrib <= 0:
                 out.update(status="non_positive", contribution=contrib,
                            note="Katkı ≤ 0: pozitif başa baş CPA üretilmez (6.2)")
+                if eco.get("lead_close_rate") is not None:
+                    out.update(cpl_status="unknown", cpl_note="Katkı ≤ 0: başa baş aday maliyeti de üretilmez")
                 return out
             out.update(status="exact" if eco.get("confirmed") else "assumed", contribution=contrib,
                        breakeven_cpa=round(contrib, 2), target_cpa=round(contrib * sf, 2))
@@ -396,6 +403,11 @@ class BaseStore:
         else:
             out["note"] = "Katkı bilinmiyor: ekonomi VARSAYIMSAL; kesin kârlılık hükmü verilmez (6.2)" + (
                 f" · bilinmeyen kalemler: {', '.join(out['unknown_costs'])} (contribution_low/high ile aralık verilebilir)" if out.get("unknown_costs") else "")
+        if eco.get("lead_close_rate") is not None:  # aday sonucu: başa baş aday maliyeti (1.5.0); satış hesabından bağımsız eklenir
+            from .s_lead import lead_economics
+            rng = out.get("contribution_range")
+            out.update(lead_economics(eco, out.get("contribution") if out.get("status") in ("exact", "assumed") else None,
+                                      out.get("status") == "exact", sf, rng))
         return out
 
     def product_list(self, profile_id: int) -> dict:
