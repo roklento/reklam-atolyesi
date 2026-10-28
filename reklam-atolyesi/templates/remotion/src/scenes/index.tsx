@@ -9,6 +9,7 @@ import { FakeRackFocus, HandheldDrift, KenBurns } from "../components/camera";
 import { DemoPanel } from "../components/demo";
 import type { Layer, Scene } from "../plan";
 import type { Style } from "../style";
+import { anchorY, componentY } from "../layout";
 
 export type SceneProps = {
   scene: Scene;
@@ -20,19 +21,6 @@ export type SceneProps = {
 
 const TEXT_PRESETS: Record<string, string> = {
   text_reveal: "TextReveal", kinetic: "KineticWords", kinetic_words: "KineticWords", soft_type: "SoftType", lower_third: "LowerThird",
-};
-
-const ROLE_TEXT_Y: Record<string, number | "layout"> = {
-  hook: "layout", context: "layout", reveal: 0.7, product: "layout", process: "layout", demo: "layout", proof: 0.12, offer: 0.6, endcard: 0.4,
-};
-
-const anchorY = (anchor: string | undefined, role: string, style: Style, format: string): number => {
-  const titleY = style.layout[format]?.titleY ?? 0.12;
-  if (anchor === "safe_top") return titleY + 0.02;
-  if (anchor === "safe_bottom") return format === "9x16" ? 0.58 : 0.72;
-  if (anchor === "center") return 0.42;
-  const r = ROLE_TEXT_Y[role];
-  return r === "layout" || r === undefined ? titleY + 0.02 : r;
 };
 
 const withCamera = (node: React.ReactNode, cam: Layer["camera"]): React.ReactNode => {
@@ -74,14 +62,15 @@ export const LayerStack: React.FC<SceneProps> = ({ scene, style, format, assets,
       const e = BY_NAME[name];
       const props = { ...(e.schema.parse({ text: l.text ?? "", title: l.text ?? "",
         color: style.palette.ink, fontFamily: style.fonts.display, fontWeight: style.fonts.displayWeight,
-        y: anchorY(l.anchor, scene.role, style, format), ...(l.props ?? {}) }) as object) };
+        y: anchorY(l.anchor, scene.role, style.layout[format]?.titleY ?? 0.12, format), ...(l.props ?? {}) }) as object) };
       node = <e.Component {...props} />;
     } else if (l.type === "component" && l.component) {
       const e = BY_NAME[l.component];
       if (!e) {
         node = <DemoPanel label={`bilinmeyen bileşen: ${l.component}`} />;
       } else {
-        const props = e.schema.parse({ ...(l.props ?? {}) }) as Record<string, unknown>;
+        const dy = componentY(l.component, format);  // format başına güvenli konum (layout.json); props.y önceliklidir
+        const props = e.schema.parse({ ...(dy !== undefined ? { y: dy } : {}), ...(l.props ?? {}) }) as Record<string, unknown>;
         if (WRAPPERS.has(l.component)) {
           content = timed(l, fps, <e.Component {...props}>{content}</e.Component>, `w${i}`);
           return;

@@ -106,7 +106,7 @@ def test_disclaimer_field_and_safe_zone_40():
     r = editplan.validate(p, beats=[0.0, 2.0, 4.0])
     assert r["valid"], r["errors"]
     low = plan()
-    low["scenes"][0]["layers"][1] = {"type": "text", "preset": "text_reveal", "text": "Örnek", "props": {"y": 0.62}}
+    low["scenes"][0]["layers"][1] = {"type": "text", "preset": "text_reveal", "text": "Örnek", "props": {"y": 0.56}}  # blok %56–%61 (1.5.2: üst ve alt kenar)
     assert CK.safe_zone(low)["ok"] and CK.safe_zone(low)["zone"]["bottom"] == 0.35
     with_d = copy.deepcopy(low)
     with_d["disclaimer"] = {"on": True}

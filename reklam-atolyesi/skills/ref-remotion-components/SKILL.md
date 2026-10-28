@@ -22,7 +22,7 @@ yapılır. Bütün demo/örnek prop'lar nötr yer tutucudur ("Marka A", "Örnek 
 |---|---|
 | `video` | `source.kind=footage|ai_clip` → sahne ara dosyası `<OffthreadVideo>`; `camera.preset`: `static` · `kenburns_in` · `kenburns_out` · `handheld` · `rack_focus` · `punch_in` (sabit yakınlaştırma 1,0–1,2; konuşmalı kurguda kesik gizleme) (+ `zoom`) |
 | `image` | `source.kind=still|ai_image` (fotoğraf/AI görsel) |
-| `text` | `preset`: `text_reveal` (TextReveal) · `kinetic`/`kinetic_words` (KineticWords) · `soft_type` (SoftType) · `lower_third` (LowerThird); `anchor`: `safe_top` vb.; konum `style.layout[format].titleY` ve rol |
+| `text` | `preset`: `text_reveal` (TextReveal) · `kinetic`/`kinetic_words` (KineticWords) · `soft_type` (SoftType) · `lower_third` (LowerThird); `anchor`: `safe_top` · `safe_bottom` · `center`; konum `style.layout[format].titleY`, rol ve format (`src/layout.json`; `props.y` önceliklidir). Fiyat etiketi, buton, alt bant ve altyazının format başına varsayılan yeri de bu tablodadır; 2 satırlık blok güvenli alanda kalır (9:16'da açıklamalı reklamın alt %40'ı dahil). `props.y` verirken bloğun alt kenarı da güvenli alanda kalmalı (1.5.2) |
 | `component` | `component: "<Ad>"`, `props: {…}` (zod şemasıyla doğrulanır); sarmalayıcılar (`KenBurns`, `FakeRackFocus`, `HandheldDrift`, `Spotlight`, `LightRays`, `ParticleSwirl`, `HeatShimmer`, `SafeZoneGuide`) altındaki katmanı sarar |
 | `graphic` | düz grafik/renk alanı |
 Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` · `dipToColor` · `lightLeak` · `whipPan` · `maskReveal` ·

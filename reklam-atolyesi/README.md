@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.5.1
+# Reklam Atölyesi (reklam-atolyesi) · 1.5.2
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,14 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.5.2** — yazı konumu ve güvenli alan
+- Yazıların yeri tek tablodan (`templates/remotion/src/layout.json`): şablon ve güvenli alan denetimi aynı dosyayı okur. Fiyat etiketi,
+  harekete geçirme butonu, alt bant, altyazı ve rol yazılarının (reveal, offer, alt çapa) 9:16 varsayılanı yukarı alındı (ör. fiyat
+  ortası %70 → %53, buton %80 → %55, altyazı %70 → %52); 2 satırlık blok açıklamalı reklamın alt %40'ı dahil güvenli alanda kalır. 4:5'te
+  buton ve rol yazıları da sınır içine çekildi; 1:1 değişmedi. `props.y` her zaman önceliklidir.
+- `checks.py safe` artık yazı bloğunun üst ve alt kenarına bakar (satır sayısı ve bileşen boyu tahmini; gerçek render'la ölçüldü),
+  bileşen varsayılanlarını, `props.y` önceliğini ve altyazıyı (`--captions`) kapsar. Yazı şeritleri aynı hesabı kullanır.
+
 **1.5.1** — küçük yazının denetimi
 - **Yazı şeritleri:** öz denetim (`self_review.py`) önizlemeden her yazı anını (katman yazısı, fiyat etiketi, alt bant, kapanış kartı,
   altyazı) yazının durduğu yükseklikte 540 piksel genişliğinde, küçültmeden keser ve sayfalara dizer (`text_bands`). Kontak sayfasındaki

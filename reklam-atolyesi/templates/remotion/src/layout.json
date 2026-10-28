@@ -1,0 +1,19 @@
+{
+ "_doc": "Yazı yerleşimi (5.19): şablon (layout.ts) ve denetim (scripts/lib/text_layout.py) bu tabloyu birlikte okur. y oranı 0-1; 'layout' = stil kitabının titleY + 0,02. Değerler, 2 satırlık blok güvenli alanın içinde kalacak biçimde seçildi (9:16'da açıklama/AI içeren reklamın alt %40'ı dahil).",
+ "size": {"9x16": [1080, 1920], "4x5": [1080, 1350], "1x1": [1080, 1080]},
+ "role_y": {
+  "9x16": {"hook": "layout", "context": "layout", "reveal": 0.48, "product": "layout", "process": "layout", "demo": "layout", "proof": "layout", "offer": 0.36, "endcard": 0.4},
+  "4x5": {"hook": "layout", "context": "layout", "reveal": 0.64, "product": "layout", "process": "layout", "demo": "layout", "proof": "layout", "offer": 0.45, "endcard": 0.4},
+  "1x1": {"hook": "layout", "context": "layout", "reveal": 0.7, "product": "layout", "process": "layout", "demo": "layout", "proof": "layout", "offer": 0.6, "endcard": 0.4}
+ },
+ "anchor_y": {
+  "9x16": {"safe_bottom": 0.48, "center": 0.42},
+  "4x5": {"safe_bottom": 0.64, "center": 0.42},
+  "1x1": {"safe_bottom": 0.72, "center": 0.42}
+ },
+ "component_y": {
+  "9x16": {"LowerThird": 0.5, "PriceTag": 0.53, "CTAPulse": 0.55, "CaptionTrack": 0.52},
+  "4x5": {"LowerThird": 0.62, "PriceTag": 0.7, "CTAPulse": 0.74, "CaptionTrack": 0.7},
+  "1x1": {"LowerThird": 0.62, "PriceTag": 0.7, "CTAPulse": 0.8, "CaptionTrack": 0.7}
+ }
+}

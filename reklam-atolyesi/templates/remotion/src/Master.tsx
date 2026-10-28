@@ -6,6 +6,7 @@ import { BY_NAME, TRANSITIONS } from "./components";
 import type { MasterProps, Plan, Scene } from "./plan";
 import { SCENE_TEMPLATES } from "./scenes";
 import { fontFamiliesOf, resolveStyle, Style, useFontsReady } from "./style";
+import { componentY } from "./layout";
 
 const tKey = (t?: string) => (t ? t[0].toLowerCase() + t.slice(1) : "cut");
 
@@ -79,7 +80,7 @@ export const Master: React.FC<MasterProps> = (props) => {
         );
       })}
       {plan.captions?.on && props.captions?.length ? <caption.Component {...(caption.schema.parse({ captions: props.captions, fontFamily: style.fonts.body,
-        preset: plan.captions?.preset ?? "plain", accent: style.captions?.accent ?? style.palette.accent }) as object)} /> : null}
+        y: componentY("CaptionTrack", plan.format), preset: plan.captions?.preset ?? "plain", accent: style.captions?.accent ?? style.palette.accent }) as object)} /> : null}
       {(style.grade.grain > 0 || style.grade.vignette > 0) ? <grade.Component {...(grade.schema.parse({ grain: style.grade.grain, vignette: style.grade.vignette, seed: plan.seed ?? 9 }) as object)} /> : null}
     </AbsoluteFill>
   );

@@ -2,7 +2,8 @@
 
 Alt komutlar:
   black   --video v.mp4                       blackdetect + freezedetect (bütün video; örnek karelerden karar verilmez)
-  safe    --plan plan.json                    yazı katmanlarının güvenli alanda ve ≥ 1,5 sn ekranda olup olmadığı
+  safe    --plan plan.json [--style s.json] [--captions c.json]
+          yazı bloklarının (altyazı dahil; üst ve alt kenar) güvenli alanda ve ≥ 1,5 sn ekranda olup olmadığı
   meta-text --plan plan.json | --text metin.txt   Meta reklam standartları (ref-legal-tr-meta §8) için Türkçe metin taraması (uyarı)
   copy    --texts metin.json [--plan plan.json] [--promise "kelime,kelime"] [--targets hedef.json]
           reklam metni uzunluğu: birincil 125 / başlık 40 / açıklama 30 görünür karakter (Meta önerisi) + videonun yapısına göre kurallar
@@ -20,6 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "audio"))
 from common import emit, ffmpeg, ffprobe_json, read_json  # noqa: E402
+import text_layout as TL  # noqa: E402
 
 FORMAT_SIZE = {"9x16": (1080, 1920), "4x5": (1080, 1350), "1x1": (1080, 1080)}
 SAFE = {"9x16": {"top": 0.14, "bottom": 0.35, "side": 0.06}, "4x5": {"top": 250 / 1350, "bottom": 250 / 1350, "side": 100 / 1080},
@@ -54,36 +56,34 @@ def black_freeze(video: str, black_min: float = 0.12, freeze_min: float = 0.5) -
     return {"black_segments": blacks, "freeze_segments": freezes, "ok": not blacks and not freezes}
 
 
-def _text_y(layer: dict, scene_role: str, fmt: str, title_y: float) -> float:
-    anchor = layer.get("anchor")
-    if anchor == "safe_top":
-        return title_y + 0.02
-    if anchor == "safe_bottom":
-        return 0.58 if fmt == "9x16" else 0.72
-    if anchor == "center":
-        return 0.42
-    y = (layer.get("props") or {}).get("y")
-    return float(y) if y is not None else title_y + 0.02
-
-
-def safe_zone(plan: dict, style: dict | None = None) -> dict:
+def safe_zone(plan: dict, style: dict | None = None, captions: list | None = None) -> dict:
+    """Her yazı bloğunun üst ve alt kenarı güvenli alanda mı (konum şablonla aynı tablodan: lib/text_layout.py), ekranda ≥ 1,5 sn mi.
+    Altyazı açıksa altyazı bloğu da denetlenir (parça metni verilmezse 2 satır)."""
     fmt = plan["format"]
     z = safe_box(plan)
-    title_y = ((style or {}).get("layout") or {}).get(fmt, {}).get("titleY", 0.12)
+    lo, hi = z["top"], 1 - z["bottom"]
+    zone = f"{fmt}: üst %{z['top']*100:.0f}, alt %{z['bottom']*100:.0f}" + (f"; {z['reason']}" if z.get("reason") else "")
     issues, checked = [], 0
+
+    def place(ext: dict, scene: str, layer) -> None:
+        if ext["y0"] < lo - 1e-6 or ext["y1"] > hi + 1e-6:
+            issues.append({"scene": scene, "layer": layer, "component": ext["component"], "y": ext["y"], "y0": ext["y0"], "y1": ext["y1"],
+                           "issue": f"yazı güvenli alan dışında ({zone}; blok %{ext['y0']*100:.0f}–%{ext['y1']*100:.0f})"})
+
     for s in plan["scenes"]:
         for i, l in enumerate(s["layers"]):
-            is_text = l.get("type") == "text" or l.get("component") in ("TextReveal", "KineticWords", "SoftType", "LowerThird", "PriceTag", "CaptionTrack", "CTAPulse")
-            if not is_text:
+            ext = TL.layer_extent(l, s["role"], fmt, style)
+            if not ext or ext["mode"] == "full":
                 continue
             checked += 1
-            y = _text_y(l, s["role"], fmt, title_y)
-            if y < z["top"] - 1e-6 or y > 1 - z["bottom"] + 1e-6:
-                issues.append({"scene": s["id"], "layer": i, "y": round(y, 3), "issue": f"yazı güvenli alan dışında ({fmt}: üst %{z['top']*100:.0f}, alt %{z['bottom']*100:.0f}"
-                               + (f"; {z['reason']}" if z.get("reason") else "") + ")"})
+            place(ext, s["id"], i)
             dur = float(l.get("dur_s", s["dur_s"] - float(l.get("start_s", 0))))
             if dur < 1.5:
                 issues.append({"scene": s["id"], "layer": i, "issue": f"yazı {dur:.2f} sn ekranda (< 1,5 sn)"})
+    cap = TL.captions_extent(plan, captions)
+    if cap:
+        checked += 1
+        place(cap, "altyazı", None)
     return {"checked_text_layers": checked, "zone": z, "issues": issues, "ok": not issues}
 
 
@@ -327,6 +327,7 @@ def main() -> None:
     p = sp.add_parser("safe")
     p.add_argument("--plan", required=True)
     p.add_argument("--style")
+    p.add_argument("--captions", help="altyazı parçaları (captions.json); verilmezse altyazı 2 satır sayılır")
     p = sp.add_parser("meta-text")
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--plan")
@@ -345,7 +346,8 @@ def main() -> None:
     if a.cmd == "black":
         emit(black_freeze(a.video))
     elif a.cmd == "safe":
-        emit(safe_zone(read_json(a.plan), read_json(a.style) if a.style else None))
+        cap = read_json(a.captions) if a.captions else None
+        emit(safe_zone(read_json(a.plan), read_json(a.style) if a.style else None, cap.get("captions", cap) if isinstance(cap, dict) else cap))
     elif a.cmd == "copy":
         emit(copy_length(read_json(a.texts), read_json(a.plan) if a.plan else None,
                          [w.strip() for w in a.promise.split(",") if w.strip()] if a.promise else None,

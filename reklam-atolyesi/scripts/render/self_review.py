@@ -68,7 +68,7 @@ def review(video: str, plan: dict, out_dir: Path, style: dict | None, beats: lis
                            times=dense) if dense else None
     bands = CS.text_bands(video, plan, str(out_dir / "text_bands.jpg"), style, captions)
     val = editplan.validate(plan, style=style, beats=beats)
-    sz = QC.safe_zone(plan, style)
+    sz = QC.safe_zone(plan, style, captions)
     bf = QC.black_freeze(video)
     audio = None
     if any(s["codec_type"] == "audio" for s in ffprobe_json(video)["streams"]):

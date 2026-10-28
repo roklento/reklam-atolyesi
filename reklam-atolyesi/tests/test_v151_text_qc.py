@@ -125,11 +125,12 @@ def test_text_moments_follow_template_positions():
                                                                             {"type": "component", "component": "LightRays"}]},
         {"id": "f", "role": "endcard", "start_s": 10, "dur_s": 2, "layers": [{"type": "component", "component": "Ozel", "props": {"title": "Başlık"}}]}]}
     ms = {m["where"]: m for m in CS.text_moments(plan, {"layout": {"9x16": {"titleY": 0.14}}}, [{"text": "uzun altyazı", "start": 1.0, "end": 2.0}])}
-    assert ms["a/0"]["y0"] == pytest.approx(0.14) and ms["a/0"]["t"] == pytest.approx(1.3)
-    assert ms["b/0"]["y0"] == pytest.approx(0.68)  # reveal rolünün şablon konumu 0,7
-    assert ms["c/0"]["y0"] == pytest.approx(0.61) and ms["c/0"]["y1"] == pytest.approx(0.79)  # PriceTag ortası 0,7
-    assert (ms["d/0"]["y0"], ms["d/0"]["y1"]) == (0.28, 0.72)
-    assert ms["e/0"]["y0"] == pytest.approx(0.48) and ms["e/0"]["t"] == pytest.approx(8.5 + 0.65)  # props.y anchor'ı ezer
+    # şerit = yazı bloğu ± 0,03 pay; konumlar layout.json'dan (1.5.2)
+    assert ms["a/0"]["y0"] == pytest.approx(0.13) and ms["a/0"]["t"] == pytest.approx(1.3)  # safe_top = titleY + 0,02
+    assert ms["b/0"]["y0"] == pytest.approx(0.45)  # reveal rolünün 9:16 konumu 0,48
+    assert ms["c/0"]["y0"] == pytest.approx(0.53 - 84 / 1920 / 2 - 0.03, abs=1e-3) and ms["c/0"]["y1"] == pytest.approx(0.53 + 84 / 1920 / 2 + 0.03, abs=1e-3)  # PriceTag ortası 0,53
+    assert (ms["d/0"]["y0"], ms["d/0"]["y1"]) == pytest.approx((0.25, 0.75))  # kart %28–%72 ± pay
+    assert ms["e/0"]["y0"] == pytest.approx(0.47) and ms["e/0"]["t"] == pytest.approx(8.5 + 0.65)  # props.y anchor'ı ezer
     assert "e/1" not in ms and ms["f/0"]["component"] == "Ozel"  # yazısız bileşen yok; yazılı profil bileşeni var
     assert ms["altyazı"]["t"] == pytest.approx(1.5)
     order = [m["component"] for m in CS.text_moments(plan, None, None)]

@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.5.1",
+ "plugin_version": "1.5.2",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -251,7 +251,7 @@
    "name": "qc",
    "kind": "stage",
    "description": "reklam-atolyesi S13 kalite kontrol — teknik QC, bağımsız qc-reviewer incelemesi (workflow ya da yedek yol), yasal liste, yorum/kişi izni ve rakip uzaklığı; QC raporu. Kapılı.",
-   "sha256": "7123412a070916a6020c34edc973ae87654dd698940790bd7210954dcc8f5cc9"
+   "sha256": "8a923f066bfd6c6a14408f4d3b2b72ab9716fdea3fabf31d90f2e9a699a8d1fa"
   },
   {
    "name": "ref-creative-taxonomy",
@@ -281,7 +281,7 @@
    "name": "ref-remotion-components",
    "kind": "reference",
    "description": "reklam-atolyesi Remotion bileşen kütüphanesi — kompozisyonlar, plan katmanı → bileşen eşlemesi, bileşen prop'ları, geçiş/kamera/yazı presetleri, determinizm, yeni bileşen kuralı.",
-   "sha256": "7302b59ac7f934aa30ee45562abbfcb8230fcefec5be539153477192e5a78ed4"
+   "sha256": "d62b59a85161bbdef0ffe5f67d2ab971a88d71ea584302adf2e20381c8f0ba1c"
   },
   {
    "name": "ref-shooting-basics",
@@ -393,7 +393,7 @@
   {
    "name": "qc-reviewer",
    "description": "reklam-atolyesi bağımsız kalite kontrolcüsü. Üretimi görmemiş gözle teslim dosyalarını teknik, görsel ve yasal ölçütlerle inceler; görmediği/duymadığı kanıta onay vermez. S13'te kreatif başına (workflow ya da yedek yol).",
-   "sha256": "0c26d9cf0602b439ae7bc9c7a07d966a0cdfdb5d3ad57285ac486915312f5896"
+   "sha256": "348004bb98b273d24b0611713d7ba52184ce78465d7a2b0d64f3c9afa0e8adbe"
   },
   {
    "name": "sound-designer",
@@ -858,7 +858,7 @@
   "templates/remotion/package.json": "516b9b6e032801f99e858fc32280d5402cc4ea6955e57df4013bf9ca9c39ba0c",
   "templates/remotion/remotion.config.ts": "bbcd2c8f80fcf46db1a0a44c9387cd2329c0277f6da9d2a76d7ceb903d54654c",
   "templates/remotion/src/Gallery.tsx": "c3f31a449cf74c02ef88ea69c51ee3daa86efda2bb72526a455bcf12cc8b6506",
-  "templates/remotion/src/Master.tsx": "9faa8c8bd726cebfaa579b1a932cda06742fbf7a39dafbdb7854d8ade9f290fd",
+  "templates/remotion/src/Master.tsx": "070b6694d7e27b439c67a9a34d4307a6c6e979b9abf40e39a90c061b609b2a54",
   "templates/remotion/src/Root.tsx": "03c86c8c656f83a811be56ca029b3b02f8b5528e1e9ec4a5ce57c9b8699b6bb9",
   "templates/remotion/src/assets.ts": "435256a06b41fcea07f1651b501083e2d54688bb5bd813e3cb75d53a3cccaa8d",
   "templates/remotion/src/beats.ts": "99e33de15bfd47ead8ce71a58f0566beffcc891d4d030a5f77f15c48746570a6",
@@ -874,8 +874,10 @@
   "templates/remotion/src/components/transition.tsx": "9eaaa8aee397ab27f78f526589df8f10da4f7a4bb233e0803eff7ddeca19e812",
   "templates/remotion/src/components/types.ts": "22346ae87c6dd49f38ec7dfa60db7576af95df22ab1b0c597093480854a61f0b",
   "templates/remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74",
+  "templates/remotion/src/layout.json": "308c687b1ba2ad3e1e41b14f392e574b7a045ac3f4cab9432431810415a4e9f3",
+  "templates/remotion/src/layout.ts": "58976962a8ce27d4cdb755d4adaa092636fa6dc74826cb56f663cc31dea08ab1",
   "templates/remotion/src/plan.ts": "ed0962d6c3ccd42559d95f8c6da487a8d69e1703f8213f229df4c6f16025dfa3",
-  "templates/remotion/src/scenes/index.tsx": "9fdba4ea97e5fbc5c9a64f5950b75a2801fe92b661711b12086bd1a37ca42e46",
+  "templates/remotion/src/scenes/index.tsx": "f1797335418f0cd69bc03341d21e305e203eb27472340ef77580f2cee9a0d69a",
   "templates/remotion/src/style.ts": "6476d4210ce03e0e6d89aec69b4b67edbee5d81749426d179c6b5f2437d22abb",
   "templates/remotion/tsconfig.json": "105c802b11212454bf22365ad1766e6e4c2b986c110606a7e0d9338b63dbd93a",
   "templates/reports/brief.md": "35110aad099eb9b067e567c43bf3c0df908a9b1d5100cc549e0e8cfe42c68875",
@@ -889,11 +891,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 327,
+   "passed": 336,
    "failed": 3,
    "skipped": 5,
    "returncode": 1,
-   "summary": "327 passed, 3 failed, 5 skipped (1.5.1, Linux bulut ortamı; yeni testler tests/test_v151_text_qc.py: font glif kapsamı ve yazı şeritleri). Üç başarısızlık bu değişiklikten önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1 Windows'ta çalıştırılmadı.",
+   "summary": "336 passed, 3 failed, 5 skipped (1.5.2, Linux bulut ortamı; yeni testler tests/test_v151_text_qc.py: font glif kapsamı ve yazı şeritleri, tests/test_v152_safe_zone.py: yazı konumu ve güvenli alan). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1 ve 1.5.2 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
@@ -1481,6 +1483,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnek metni kategoriye işaret ettiği için genel bir ifadeyle değiştirildi; font adları genel (Inter, sentetik 'Marka Sans')",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "1.5.2: templates/remotion/src/layout.json ve layout.ts (yeni), scenes/index.tsx, Master.tsx, scripts/lib/text_layout.py (yeni), checks.py safe, contact_sheet.py, self_review.py, qc ve ref-remotion-components skill'leri, qc-reviewer ajanı, sürüm dizgileri, testler",
+    "files_reviewed": 19,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; konum değerleri ve test metinleri kategoriden bağımsız",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1491,16 +1501,16 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "f629bd0dde67b13d2138dd51901d2b28ba0dbc4af8f5df957f7b7320ae9c6ee1",
+   "plugin_json": "5cc71920b7cb476a494766de89d7c99e9c9d5330e338be3daae11ba42c5f9c70",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "fa20e07c7a626f19f3f0de5dfb921383fdb2e2c21a4add0b02a834348da9eff1",
-   "agents": "f2a15c859a7a08ac6e56f1c75e68b85c804eafd188b567e8f48b8416e195b14b",
+   "skills": "aaaa0e98e969da792268d920b6b826bb736f13c0839097fbf6984edb469ec33f",
+   "agents": "1c66986a8ab9ad4b532377ba4bebae5793ea6f5bcfc803d48ccd737cd42826f1",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "eac9577ca4fca01829bc5d58cf92a601c9f3ba6991b3b54ed71758de178dad2a",
-   "ad_memory": "9f77749026cc1ede60e3aaa968f89423e7d6d3ed1f24e0c57efea8b15cff07ee",
-   "scripts": "daffdd6584ec98d05c4fe64742bc3e24bd8f9513eb6e744862a940fd0f4e0dfb",
-   "templates": "aa6b59c5004acbdbb98ac167da569b9dc089b7063d3965a513f5b3d549f4c408",
+   "ad_memory": "a19f257554059661ef3871631597cdd22b2eeb08cea3bbed890f6ea93c008e59",
+   "scripts": "d8a7c173f2017719408f5839bcb0aff3b288d6fb010bf4e12089cc34f103ad63",
+   "templates": "57c0204cff09c8f2a02063a1dd3d82c8aa6c3b7b6f0052ea69e542a64793b834",
    "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
   },
   "checked_at": "2026-10-28"
@@ -1660,16 +1670,16 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "f629bd0dde67b13d2138dd51901d2b28ba0dbc4af8f5df957f7b7320ae9c6ee1",
+  "plugin_json": "5cc71920b7cb476a494766de89d7c99e9c9d5330e338be3daae11ba42c5f9c70",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "fa20e07c7a626f19f3f0de5dfb921383fdb2e2c21a4add0b02a834348da9eff1",
-  "agents": "f2a15c859a7a08ac6e56f1c75e68b85c804eafd188b567e8f48b8416e195b14b",
+  "skills": "aaaa0e98e969da792268d920b6b826bb736f13c0839097fbf6984edb469ec33f",
+  "agents": "1c66986a8ab9ad4b532377ba4bebae5793ea6f5bcfc803d48ccd737cd42826f1",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "eac9577ca4fca01829bc5d58cf92a601c9f3ba6991b3b54ed71758de178dad2a",
-  "ad_memory": "9f77749026cc1ede60e3aaa968f89423e7d6d3ed1f24e0c57efea8b15cff07ee",
-  "scripts": "daffdd6584ec98d05c4fe64742bc3e24bd8f9513eb6e744862a940fd0f4e0dfb",
-  "templates": "aa6b59c5004acbdbb98ac167da569b9dc089b7063d3965a513f5b3d549f4c408",
+  "ad_memory": "a19f257554059661ef3871631597cdd22b2eeb08cea3bbed890f6ea93c008e59",
+  "scripts": "d8a7c173f2017719408f5839bcb0aff3b288d6fb010bf4e12089cc34f103ad63",
+  "templates": "57c0204cff09c8f2a02063a1dd3d82c8aa6c3b7b6f0052ea69e542a64793b834",
   "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."

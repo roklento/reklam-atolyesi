@@ -29,7 +29,7 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
 2. **Teknik QC (otomatik)** her dosya için:
    `PY PR/scripts/qc/checks.py tech --video <mp4> --plan <plan.json> --expect-duration <sn> --format <9x16|4x5|1x1>` (süre, çözünürlük,
    fps, codec/profil, yuv420p, AAC 48 kHz, faststart, -14 LUFS ±1, ≤ -1 dBTP, siyah kare/donma **bütün videoda**, güvenli alan),
-   `checks.py black --video <mp4>`, `checks.py safe --plan <plan.json>` (yazılar güvenli alanda ve ≥ 1,5 sn ekranda), font glif kapsamı
+   `checks.py black --video <mp4>`, `checks.py safe --plan <plan.json> --style <style.json> [--captions <captions.json>]` (yazı bloklarının üst ve alt kenarı, altyazı dahil, güvenli alanda ve ≥ 1,5 sn ekranda; konumlar şablonla aynı tablodan), font glif kapsamı
    (`PY PR/scripts/qc/font_coverage.py --plan <plan.json> --project <kampanya>/src --data-dir DD`; eksik karakter ya da yüklenmeyen font →
    düzeltme notu), kontak sayfası (`contact_sheet.py --per-second`) ve yazı şeritleri (`contact_sheet.py --text-bands --plan <plan.json>`;
    kontak sayfasında 32 px yazı ≤ 8 px kalır, küçük yazı şeritten küçültmeden okunur), slayt gösterisi riski (`PY PR/scripts/qc/slideshow.py --plan <plan.json> --video <mp4>`:

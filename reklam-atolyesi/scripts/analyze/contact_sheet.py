@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from common import emit, ffmpeg, ffprobe_json, read_json, seconds_to_tc  # noqa: E402
+import text_layout as TL  # noqa: E402
 
 
 def extract(video: str, times: list[float], tmp: Path, width: int) -> list[Path]:
@@ -68,28 +69,11 @@ def sheet(video: str, out: str, cols: int = 6, rows: int = 4, per_second: bool =
     return {"sheet": out, "frames": len(times), "duration": round(dur, 3), "grid": [cols, rows], "times": [round(t, 3) for t in times]}
 
 
-# Şablonun yazı konumları (templates/remotion/src/scenes/index.tsx, components/*.tsx). "top": y yazının üst kenarı; "center": y orta
-# nokta (translate -50%); "full": kart ekranın ortasında, y yok.
-ROLE_TEXT_Y = {"hook": "layout", "context": "layout", "reveal": 0.7, "product": "layout", "process": "layout", "demo": "layout", "proof": 0.12,
-               "offer": 0.6, "endcard": 0.4}
-TEXT_COMPONENTS = {"TextReveal": ("top", 0.14), "KineticWords": ("top", 0.14), "SoftType": ("top", 0.14), "LowerThird": ("top", 0.62),
-                   "PriceTag": ("center", 0.7), "CTAPulse": ("center", 0.8), "BehindSubjectText": ("top", 0.32), "ReviewCard": ("full", None),
-                   "EndCard": ("full", None), "CaptionTrack": ("top", 0.7)}
+# Yazının dikey yeri şablonla aynı tablodan (lib/text_layout.py ← templates/remotion/src/layout.json); şeride yazının üstünden ve
+# altından pay eklenir (animasyonun kayması, harf kuyrukları).
 SMALL_TEXT_FIRST = ("PriceTag", "LowerThird", "ReviewCard", "EndCard", "CTAPulse")  # 32–36 px yazı taşıyanlar önce
-TEXT_KEYS = ("text", "title", "subtitle", "label", "quote", "displayName", "brand", "cta", "url")
 BAND_W, PAGE_H, MAX_BANDS, LABEL_H = 540, 1500, 12, 22
-
-
-def _anchor_y(anchor: str | None, role: str, style: dict | None, fmt: str) -> float:
-    title_y = (((style or {}).get("layout") or {}).get(fmt) or {}).get("titleY", {"9x16": 0.14, "4x5": 0.19, "1x1": 0.1}.get(fmt, 0.12))
-    if anchor == "safe_top":
-        return title_y + 0.02
-    if anchor == "safe_bottom":
-        return 0.58 if fmt == "9x16" else 0.72
-    if anchor == "center":
-        return 0.42
-    r = ROLE_TEXT_Y.get(role, "layout")
-    return title_y + 0.02 if r == "layout" else float(r)
+BAND_PAD = 0.03
 
 
 def text_moments(plan: dict, style: dict | None = None, captions: list | None = None, duration: float | None = None) -> list[dict]:
@@ -100,33 +84,23 @@ def text_moments(plan: dict, style: dict | None = None, captions: list | None = 
     out = []
     for s in plan.get("scenes", []):
         for i, l in enumerate(s.get("layers", [])):
-            props = l.get("props") or {}
-            comp = l.get("component") if l.get("type") == "component" else None
-            if l.get("type") == "text":
-                kind, y = "top", props.get("y", _anchor_y(l.get("anchor"), s.get("role", ""), style, fmt))
-                comp = "text"
-            elif comp in TEXT_COMPONENTS:
-                kind, y = TEXT_COMPONENTS[comp][0], props.get("y", TEXT_COMPONENTS[comp][1])
-            elif comp and any(isinstance(props.get(k), str) and props.get(k) for k in TEXT_KEYS):
-                kind, y = ("top", props["y"]) if isinstance(props.get("y"), (int, float)) else ("full", None)
-            else:
+            ext = TL.layer_extent(l, s.get("role", ""), fmt, style)
+            if not ext:
                 continue
             ls = float(l.get("start_s", 0) or 0)
             ld = float(l.get("dur_s", float(s["dur_s"]) - ls))
             t = float(s["start_s"]) + ls + 0.65 * max(0.0, ld)
             if dur:
                 t = min(max(0.0, t), dur - 0.05)
-            if kind == "full":  # ReviewCard ~%34 yükseklik, ekran ortasında
-                y0, y1 = 0.28, 0.72
-            elif kind == "center":  # PriceTag ~%10, CTAPulse ~%6
-                y0, y1 = float(y) - 0.09, float(y) + 0.09
-            else:  # üç satır 88 px başlık ~%16
-                y0, y1 = float(y) - 0.02, float(y) + 0.18
-            out.append({"t": round(t, 3), "where": f"{s.get('id')}/{i}", "component": comp, "y0": max(0.0, y0), "y1": min(1.0, y1)})
-    if (plan.get("captions") or {}).get("on") and captions:
+            comp = "text" if l.get("type") == "text" else ext["component"]
+            out.append({"t": round(t, 3), "where": f"{s.get('id')}/{i}", "component": comp,
+                        "y0": max(0.0, ext["y0"] - BAND_PAD), "y1": min(1.0, ext["y1"] + BAND_PAD)})
+    cap = TL.captions_extent(plan, captions)
+    if cap and captions:
         for c in sorted(captions, key=lambda c: -len(str(c.get("text", ""))))[:2]:
             t = (float(c["start"]) + float(c["end"])) / 2
-            out.append({"t": round(t, 3), "where": "altyazı", "component": "CaptionTrack", "y0": 0.68, "y1": 0.86})
+            out.append({"t": round(t, 3), "where": "altyazı", "component": "CaptionTrack",
+                        "y0": max(0.0, cap["y0"] - BAND_PAD), "y1": min(1.0, cap["y1"] + BAND_PAD)})
     out.sort(key=lambda m: (0 if m["component"] in SMALL_TEXT_FIRST else 1, m["t"]))
     return out
 

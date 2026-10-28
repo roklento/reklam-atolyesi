@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.5.1
+# Müşteri paketi — 1.5.2
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.1**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.2**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.5.2 migration içermez, yeni bağımlılık yok. Yazı konumları `templates/remotion/src/layout.json`'dan; yeni kampanya projesine
+kopyalanır. Mevcut projelerin `scenes/index.tsx` ve `Master.tsx` dosyaları değişmediği için eski konumlarla çizer; denetim yeni tabloyu
+kullanır, bu yüzden eski projede fiyat/buton/altyazı uyarısı çıkabilir (projeyi yeniden kurmak düzeltir).
 1.5.1 migration içermez, yeni bağımlılık yok. Yeni script `scripts/qc/font_coverage.py` (font glif kapsamı); öz denetim yazı
 şeritleri üretir ve `--project`/`--data-dir` verilmezse proje ile veri klasörünü çıktı yolundan bulur. Şablondaki font bekleme
 değişikliği (`style.ts`, `Master.tsx`) yalnızca yeni kampanya projelerine kopyalanır; mevcut projelerin `src` dosyaları değiştirilmez.
@@ -47,6 +50,10 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.5.2** (Linux bulut ortamı): tam paket 336 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v152_safe_zone.py` (9).
+Gerçek Remotion render'ında üç formatta her yazı bloğunun ekrandaki üst ve alt kenarı ölçüldü; hepsi denetimin tahmin ettiği aralığın
+içinde ve güvenli alanda. `tsc --noEmit` temiz.
 
 **1.5.1** (Linux bulut ortamı): tam paket 327 geçti, 3 başarısız, 5 atlandı; yeni testler `test_v151_text_qc.py` (8) geçti. Üç
 başarısızlık bu değişiklikten önce de vardı ve ortamdan geliyor (`test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces`,
