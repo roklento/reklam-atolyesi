@@ -71,8 +71,11 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
    out/drafts/<ad>_preview.mp4 --style <style> --scene-map footage/scenes/map_proxy.json --captions <words.json> --quality preview`
    (sahne önbelleği değişmeyen sahneyi yeniden render etmez; uzun render arka planda, süre tahminiyle).
 6. **Öz denetim (5.15):** `PY PR/scripts/render/self_review.py --video <preview.mp4> --plan <plan> --out-dir analysis/review_<ad>
-   --style <style> --beats <beats.json> --round <n>` → kontak sayfası ve sahne kareleri **görülür**; sayısal kontroller (yazı süresi ve
-   güvenli alan, `beat_lock` ↔ vuruş, efekt bütçesi, ses seviyesi, siyah kare/donma, **slayt gösterisi riski** — `qc/slideshow.py`:
+   --style <style> --beats <beats.json> --captions <words.json> --project <k>/src --data-dir DD --round <n>` → kontak sayfası, sahne
+   kareleri ve **yazı şeritleri** (`text_bands_<n>.jpg`: her yazılı anın yazı bölgesi en fazla 540 px genişlikte; kontak sayfasında 32 px
+   yazı ≤ 8 px kalır — şeritler küçültülmeden açılır, harfler, kırpılma ve zemin üstünde okunurluk buradan denetlenir; 1.5.1) **görülür**;
+   sayısal kontroller (**font glif kapsamı** — `qc/font_coverage.py`: yazının bir karakteri projede yüklenen font yüzlerinde yoksa ya da
+   font hiç yüklenmiyorsa bulgu, yalnızca ağırlık eksikse uyarı; yazı süresi ve güvenli alan, `beat_lock` ↔ vuruş, efekt bütçesi, ses seviyesi, siyah kare/donma, **slayt gösterisi riski** — `qc/slideshow.py`:
    durağan kaynak payı, zayıf hareket, açılışta hareket, ardışık tekrar, tekdüze ritim, yazıya yaslanma; `critical` düzeltilecek bulgu,
    `high` uyarı; eşikler yereldir, ham/UGC türünde az efekt kusur sayılmaz). Sorun varsa plan düzeltilir
    (`edit_plan_patch`), yeniden render; **en fazla 3 tur**. Kalan sorun kullanıcıya açıkça söylenir. Akıcılık, kısa ürün bozulması ve

@@ -13,9 +13,11 @@ Python yolu. Üretim gerekçesi, sohbet özeti ya da "bu iyi oldu" yorumu **iste
 
 **İnceleme**
 1. Teknik: `scripts/qc/checks.py tech --video <mp4> --plan <plan> --expect-duration <sn> --format <f>`, `checks.py black` (bütün video),
-   `checks.py safe --plan <plan>`, slayt gösterisi riski `scripts/qc/slideshow.py --plan <plan> --video <mp4>` (`critical` → düzeltme notu, `high` → uyarı).
-2. Görsel: `scripts/analyze/contact_sheet.py --video <mp4> --out … --per-second` ve sahne başı/ortası kareleri; görüntüleri **aç ve bak**:
-   yazım ve Türkçe karakterler, okunurluk (≥ 1,5 sn), güvenli alan, marka tutarlılığı, AI sahnelerde ürün bozulması (gerçek ürün fotoğrafıyla yan
+   `checks.py safe --plan <plan>`, slayt gösterisi riski `scripts/qc/slideshow.py --plan <plan> --video <mp4>` (`critical` → düzeltme notu, `high` → uyarı),
+   font glif kapsamı `scripts/qc/font_coverage.py --plan <plan> --project <campaign_dir>/src --data-dir <data_dir>` (çıkış 1 → düzeltme notu).
+2. Görsel: `scripts/analyze/contact_sheet.py --video <mp4> --out … --per-second`, sahne başı/ortası kareleri ve yazı şeritleri
+   (`contact_sheet.py --video <mp4> --out …/bands.jpg --text-bands --plan <plan>`); görüntüleri **aç ve bak** (şeritleri küçültmeden; kontak
+   sayfasında 32 px yazı ≤ 8 px kalır): yazım ve Türkçe karakterler (başka fontla çizilmiş harf, kırpılmış harf), okunurluk (≥ 1,5 sn), güvenli alan, marka tutarlılığı, AI sahnelerde ürün bozulması (gerçek ürün fotoğrafıyla yan
    yana), efekt bütçesi, kilitli anların vuruşa oturması (plan + beats).
 3. Yasal: iddiaları `products.provable_claims_json` ile; fiyat/indirim; plandaki her `ReviewCard` `review_query` kaydıyla (izin + satın alma
    doğrulaması; `withdrawn_at` boş) — yoksa **red**; kişi tespit edilen her klip `consent_query` ile — yoksa **red**; yüz/eller gerçek; ses klonu

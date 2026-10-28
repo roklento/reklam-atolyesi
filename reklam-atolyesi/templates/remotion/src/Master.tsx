@@ -5,7 +5,7 @@ import { AbsoluteFill, Freeze, Sequence, useCurrentFrame, useVideoConfig } from 
 import { BY_NAME, TRANSITIONS } from "./components";
 import type { MasterProps, Plan, Scene } from "./plan";
 import { SCENE_TEMPLATES } from "./scenes";
-import { resolveStyle, Style, useFontsReady } from "./style";
+import { fontFamiliesOf, resolveStyle, Style, useFontsReady } from "./style";
 
 const tKey = (t?: string) => (t ? t[0].toLowerCase() + t.slice(1) : "cut");
 
@@ -40,9 +40,9 @@ const SceneSlot: React.FC<{ scene: Scene; style: Style; format: string; assets?:
 };
 
 export const Master: React.FC<MasterProps> = (props) => {
-  useFontsReady();
   const plan = props.plan as Plan;
   const style = resolveStyle(props.style);
+  useFontsReady(fontFamiliesOf(style, plan), Array.from(new Set([400, 700, style.fonts.displayWeight])));
   const { fps } = useVideoConfig();
   const scenes = plan.scenes;
   const caption = BY_NAME["CaptionTrack"];

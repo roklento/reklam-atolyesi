@@ -29,8 +29,10 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
 2. **Teknik QC (otomatik)** her dosya için:
    `PY PR/scripts/qc/checks.py tech --video <mp4> --plan <plan.json> --expect-duration <sn> --format <9x16|4x5|1x1>` (süre, çözünürlük,
    fps, codec/profil, yuv420p, AAC 48 kHz, faststart, -14 LUFS ±1, ≤ -1 dBTP, siyah kare/donma **bütün videoda**, güvenli alan),
-   `checks.py black --video <mp4>`, `checks.py safe --plan <plan.json>` (yazılar güvenli alanda ve ≥ 1,5 sn ekranda), kontak sayfası
-   (`contact_sheet.py --per-second`), slayt gösterisi riski (`PY PR/scripts/qc/slideshow.py --plan <plan.json> --video <mp4>`:
+   `checks.py black --video <mp4>`, `checks.py safe --plan <plan.json>` (yazılar güvenli alanda ve ≥ 1,5 sn ekranda), font glif kapsamı
+   (`PY PR/scripts/qc/font_coverage.py --plan <plan.json> --project <kampanya>/src --data-dir DD`; eksik karakter ya da yüklenmeyen font →
+   düzeltme notu), kontak sayfası (`contact_sheet.py --per-second`) ve yazı şeritleri (`contact_sheet.py --text-bands --plan <plan.json>`;
+   kontak sayfasında 32 px yazı ≤ 8 px kalır, küçük yazı şeritten küçültmeden okunur), slayt gösterisi riski (`PY PR/scripts/qc/slideshow.py --plan <plan.json> --video <mp4>`:
    `critical` → düzeltme notu; ham/UGC türünde kullanıcı bilerek kabul ederse gerekçesiyle geçer; `high` → uyarı; eşikler yereldir),
    reklam metni varsa uzunluk (`checks.py copy`; uyarıdır).
 3. **Bağımsız görsel/yasal inceleme (paralel):** workflow `qc-review` — `PR/workflows/qc-review.js`, args: `{profile_id, campaign_id,
@@ -40,7 +42,8 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
    **Yedek yol (13.2):** `qc-reviewer`'ı kreatif başına alt ajan olarak çağır (Agent aracı, `subagent_type: "reklam-atolyesi:qc-reviewer"`);
    incelenmiş kreatif tekrar incelenmez; yol `journal_log`'a. Ajan görmediği/duymadığı kanıta (hareket akıcılığı, kısa ürün bozulması,
    ses) onay vermez: bunlar "insan kontrolü gerekli" diye döner.
-4. **Görsel ölçütler:** AI kliplerinde ürün bozulması (gerçek fotoğrafla yan yana), yazım ve Türkçe karakterler, okunurluk (≥ 1,5 sn),
+4. **Görsel ölçütler:** AI kliplerinde ürün bozulması (gerçek fotoğrafla yan yana), yazım ve Türkçe karakterler (yazı şeritlerinden: harf
+   başka fontla mı çizilmiş, kırpılmış mı, zemin üstünde okunuyor mu), okunurluk (≥ 1,5 sn),
    marka tutarlılığı, kilitli vurgu anlarının vuruşa oturması, efekt bütçesi.
 5. **Yasal ölçütler (`ref-legal-tr-meta`):** yalnızca kanıtlanabilir iddialar · fiyat/indirim satış sayfasıyla birebir ve indirimde
    referans fiyat kanıtı · yüz ve eller gerçek çekimden; AI insan yok · ses klonu yok · AI içeren varyasyon için Meta açıklama/etiket

@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.5.0
+# Müşteri paketi — 1.5.1
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.1**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.5.1 migration içermez, yeni bağımlılık yok. Yeni script `scripts/qc/font_coverage.py` (font glif kapsamı); öz denetim yazı
+şeritleri üretir ve `--project`/`--data-dir` verilmezse proje ile veri klasörünü çıktı yolundan bulur. Şablondaki font bekleme
+değişikliği (`style.ts`, `Master.tsx`) yalnızca yeni kampanya projelerine kopyalanır; mevcut projelerin `src` dosyaları değiştirilmez.
 1.5.0 migration 006 içerir: `campaigns` ve `cycles` tabloları aynı sütun, satır ve kimliklerle yeniden kurulur (sonuç türüne `lead`,
 yapıya `ab_test` eklenir; SQLite CHECK kısıtını yerinde değiştiremez). Bu iki tabloya bağlı tablolar olduğu için çalıştırıcı bu
 migration'ı yabancı anahtar denetimi kapalıyken tek işlemde uygular, sonda `PRAGMA foreign_key_check` boş değilse geri alır; Store
@@ -44,6 +47,12 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.5.1** (Linux bulut ortamı): tam paket 327 geçti, 3 başarısız, 5 atlandı; yeni testler `test_v151_text_qc.py` (8) geçti. Üç
+başarısızlık bu değişiklikten önce de vardı ve ortamdan geliyor (`test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces`,
+`test_media.py::test_ingest_outputs`, `test_media.py::test_measure_contact_sheet_material_map`). Gerçek Remotion render'ında: yalnızca
+`latin-700` yüklü projede glif denetimi ğ/ş/İ eksiğini buldu ve yazı şeridinde yedek font göründü; `latin-ext` eklenince denetim geçti,
+şerit doğru harfleri gösterdi. `tsc --noEmit` eski ve yeni şablonda temiz. Windows'ta ve müşteri bilgisayarında güncelleme denenmedi.
 
 **1.5.0** (Windows geliştirici ortamı): tam paket 327 geçti, 0 başarısız (yeni testler `test_v150.py`, `test_v150_media.py`,
 `test_v150_review.py`, `test_v150_verify.py`); iki bağımsız inceleme turu yapıldı (11 + 6 bulgu ve ikincil notlar düzeltildi, testlendi); migration 006, 005 şemalı ve

@@ -22,6 +22,7 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | sahne ara dosyaları | `PY PR/scripts/ingest/scenes.py --plan … --assets … --out-dir footage/scenes --quality proxy|final [--style …] [--map-out …]` |
 | ölçüm (netlik, pozlama, hareket, ses, kişi) | `PY PR/scripts/analyze/measure.py --clip … [--shake-permille …] [--audio …] --out …` |
 | kontak sayfası | `PY PR/scripts/analyze/contact_sheet.py --video … --out … [--per-second] [--times …]` |
+| yazı şeritleri | `PY PR/scripts/analyze/contact_sheet.py --video … --out bands.jpg --text-bands --plan … [--style] [--captions]` (her yazılı anın yazı bölgesi ≤ 540 px; sayfa ≤ 540×1500, küçültmeden okunur; 1.5.1) |
 | malzeme haritası | `PY PR/scripts/analyze/material_map.py --menu … --clips … [--photos …] --out … [--json-out …]` |
 | logodan renk | `PY PR/scripts/analyze/palette.py --logo … [--n 5] [--out …]` |
 | vuruş haritası | `PY PR/scripts/audio/beats.py --audio … --out beats.json` |
@@ -41,7 +42,8 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | kelime zamanları / altyazı (Scribe yedeği) | `PY PR/scripts/audio/words_align.py --transcript … --script vo.txt --out …words.json` |
 | plan doğrulama | `PY PR/scripts/compose/validate_plan.py <plan> [--style] [--beats] [--assets]` |
 | render (init / plan / galeri / Türkçe final) | `PY PR/scripts/render/render.py init|plan|gallery|turkish …` |
-| öz denetim | `PY PR/scripts/render/self_review.py --video … --plan … --out-dir … [--style] [--beats] [--round n]` |
+| öz denetim | `PY PR/scripts/render/self_review.py --video … --plan … --out-dir … --project <k>/src --data-dir DD [--style] [--beats] [--captions] [--round n]` (yazı şeritleri + font glif kapsamı dahil) |
+| font glif kapsamı | `PY PR/scripts/qc/font_coverage.py --plan … --project <k>/src --data-dir DD [--style] [--captions]` (çıkış 1: yedek fonta düşen karakter ya da yüklenmeyen font; 1.5.1) |
 | LUT | `PY PR/scripts/render/grade_lut.py identity|make|apply …` |
 | export / ad / anahtar | `PY PR/scripts/render/export.py video|name|key …` |
 | teknik QC | `PY PR/scripts/qc/checks.py black|safe|tech …` |

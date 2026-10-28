@@ -16,7 +16,8 @@ süreler, stagger), `effects` (efekt bütçesi; ham/UGC'de 0 olabilir), `sound` 
 yazı konumları). En az biri markanın mevcut görsel dilinden türer; hiçbiri nötr şablon değildir; hiçbir ürün kategorisine ait kalıp varsayma.
 
 **`preview`:** her yön için gerçek çekimden 3 sabit kare + 5 sn test (`scripts/render/render.py plan … --still` / `--quality preview`) →
-`scripts/render/self_review.py` → kareleri ve kontak sayfasını **gör**; en fazla 3 düzeltme turu; kalan sorunu açıkça yaz.
+`scripts/render/self_review.py … --project <src> --data-dir <data_dir>` → kareleri, kontak sayfasını ve yazı şeritlerini **gör**; yönün fontu
+`scripts/qc/font_coverage.py` ile Türkçe karakterleri ve kullanılan ağırlıkları kapsamalı; en fazla 3 düzeltme turu; kalan sorunu açıkça yaz.
 
 **`ai_acceptance`:** AI görsel/klip ile gerçek ürün fotoğrafını yan yana kontak sayfasında karşılaştır: şekil, parça sayısı, renk, üzerindeki
 yazı. Bozulma varsa `accepted=false` öner. İnsan yüzü/eli içeren AI çıktısını reddet. Kısa süreli bozulma için tam oynatma gerektiğini not et.

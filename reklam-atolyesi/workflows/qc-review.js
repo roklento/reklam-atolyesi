@@ -36,6 +36,8 @@ const promptFor = c => [
   `plugin_root=${a.plugin_root} data_dir=${a.data_dir} python=${a.py}`,
   `Rapor: ${a.campaign_dir}/reports/qc/${c.creative_id}.json (geçici ad → atomik).`,
   'Yorum ve kişi izinlerini review_query / consent_query ile eşle; eşleşmeyen ReviewCard ya da izinsiz kişili klip = failed.',
+  `Font glif kapsamı: python ${a.plugin_root}/scripts/qc/font_coverage.py --plan <plan> --project ${a.campaign_dir}/src --data-dir ${a.data_dir} (çıkış 1 → fixes).`,
+  `Yazı şeritleri: python ${a.plugin_root}/scripts/analyze/contact_sheet.py --video <teslim_dosyası> --out ${a.campaign_dir}/reports/qc/${c.creative_id}_bands.jpg --text-bands --plan <plan>; küçültmeden bak (kontak sayfasında 32 px yazı 8 px kalır).`,
   'Seyrek karelerden hareket akıcılığı, kısa ürün bozulması ve ses için onay verme: human_check_required içine yaz.',
 ].join('\n')
 

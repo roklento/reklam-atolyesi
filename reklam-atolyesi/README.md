@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.5.0
+# Reklam Atölyesi (reklam-atolyesi) · 1.5.1
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,17 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.5.1** — küçük yazının denetimi
+- **Yazı şeritleri:** öz denetim (`self_review.py`) önizlemeden her yazı anını (katman yazısı, fiyat etiketi, alt bant, kapanış kartı,
+  altyazı) yazının durduğu yükseklikte 540 piksel genişliğinde, küçültmeden keser ve sayfalara dizer (`text_bands`). Kontak sayfasındaki
+  270 piksellik karelerde 32 piksellik yazı okunamıyordu; bozuk harf, yedek font ve taşma artık şeritte görülür.
+- **Font glif kapsamı** (`scripts/qc/font_coverage.py`): projenin yüklediği fontların (Fontsource alt kümeleri ve ağırlıkları) plandaki
+  yazının, altyazının ve Türkçe alfabenin her karakterini kapsayıp kapsamadığını denetler. Eksikte (ör. `latin-ext` yüklenmemiş: ğ ş İ Ğ
+  Ş ₺) öz denetim bulgu verir; yüklenmeyen ağırlık uyarıdır. Önceki Türkçe testi yalnızca Inter'i sınıyordu.
+- **Önizlemede font bekleme:** şablon (`style.ts`, `Master.tsx`) stilde ve planda kullanılan bütün fontları her ağırlıkta, Türkçe örnek
+  metinle yükleyip bekler; ilk karede yedek fontla çizim olmaz. Mevcut kampanya projeleri eski `src` dosyalarını korur; glif denetimi
+  onlarda da çalışır.
+
 **1.5.0** — yol haritasının son maddeleri
 - **Müşteri adayı (form) sonucu + hizmet işletmesi:** sonuç türü `lead` (yol: anlık form · sitedeki form · arama; sitedeki form için
   Meta'nın Lead olayını görmesi gerekir). Ürün kaydı hizmet olabilir (`kind='service'`: süre, kapasite, randevu biçimi, bölge, düzenlenen

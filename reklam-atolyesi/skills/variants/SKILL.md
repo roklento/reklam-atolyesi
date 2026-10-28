@@ -62,7 +62,8 @@ S11 taslak kapısı geçilmiş (onaylı `ready` plan ve miks).
    video karelerine düşülür ve raporda belirtilir. Öz denetim → format başına yazı → gerekirse AI görsel desteği (`materials` protokolü
    ve AI etiketi) → statik 1080×1350 (istenirse 1080×1080) ve 3–5 kartlık carousel (hook → ürün → kanıt → CTA):
    `render.py plan … --still <kare>` (Master-45 / Master-11) + `export.py name --key … --format 4x5 [--card n] --ext jpg`.
-9. **Öz denetim** her final çıktıda (`self_review.py`) ve teknik ön kontrol (`PY PR/scripts/qc/checks.py tech --video <mp4> --plan <plan>
+9. **Öz denetim** her final çıktıda (`self_review.py … --project <k>/src --data-dir DD [--captions <words.json>]`; yazı şeritleri
+   final dosyadan 540 px genişlikte, font glif kapsamı dahil) ve teknik ön kontrol (`PY PR/scripts/qc/checks.py tech --video <mp4> --plan <plan>
    --expect-duration 15 --format 9x16`). Uzun render'lar arka planda; her final render süresi sistem hafızasına.
 10. **Kayıt:** her dosya `creative_register(profile_id, campaign_id, cycle_id, file_path, delivery_role, edit_plan_id, style_direction,
     music_bpm, ai_share, features={ortak sözlük eksenleri + taxonomy_version + competitive_role}, duration_s)`. Aynı anahtar/format/kart

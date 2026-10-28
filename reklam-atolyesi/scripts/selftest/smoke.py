@@ -279,16 +279,20 @@ def step4_render(ctx: Ctx) -> dict:
     assert QC.safe_zone(p916, style)["ok"]
     out["tech_qc_preview"] = {"ok": tq["ok"], "file": ex["file_name"]}
     # öz denetim + efekt bütçesi aşımının yakalanması
-    rv = SR.review(ex["out"], p916, work / "review_r1", style, beats, 1)
+    rv = SR.review(ex["out"], p916, work / "review_r1", style, beats, 1, str(project), str(ctx.data_dir))
     assert not [f for f in rv["numeric_findings"] if f["kind"] == "plan"], rv["numeric_findings"]
+    # font glif kapsamı gerçek kurulumun node_modules'ıyla, yazı şeritleri gerçek render'dan (1.5.1)
+    assert rv["font_coverage"]["checked"] and rv["font_coverage"]["ok"], rv["font_coverage"]
+    assert rv["text_bands"]["sheets"] and all(Path(x).exists() for x in rv["text_bands"]["sheets"]), rv["text_bands"]
     bad = copy.deepcopy(p916)
     bad["scenes"][4]["layers"].append({"type": "component", "component": "ParticleSwirl"})
     bad["scenes"][1]["transition_out"] = {"type": "whipPan", "dur_s": 0.3}
     bad["scenes"][2]["transition_out"] = {"type": "filmBurn", "dur_s": 0.3}
-    rb = SR.review(ex["out"], bad, work / "review_bad", style, beats, 2)
+    rb = SR.review(ex["out"], bad, work / "review_bad", style, beats, 2, str(project), str(ctx.data_dir))
     caught = [f["msg"] for f in rb["numeric_findings"] if f["kind"] == "plan"]
     assert any("imza" in m for m in caught) and any("geçiş" in m for m in caught), caught
-    out["self_review"] = {"frames": rv["frames_to_inspect"], "effect_budget_caught": caught}
+    out["self_review"] = {"frames": rv["frames_to_inspect"], "effect_budget_caught": caught,
+                          "text_bands": len(rv["text_bands"]["bands"]), "font_coverage_ok": rv["font_coverage"]["ok"]}
     # varyasyon yaması: 15 → 6 sn
     p6 = editplan.apply_patch(p916, [{"op": "trim", "duration_s": 6}])
     assert editplan.validate(p6, style=style)["valid"]

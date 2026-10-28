@@ -45,7 +45,8 @@ const promptFor = job => [
   `Komut: python ${a.plugin_root}/scripts/render/render.py plan --data-dir <data_dir> --project <proje> --plan <plan> --out <çıktı> --style <stil> --scene-map <sahne_haritası> --captions <altyazı> --quality ${job.quality ?? 'final'} --parallel-jobs ${J}`,
   `Bu render'ın Remotion concurrency değeri en fazla ${perRender} olmalı (toplam bütçe ${budget}, paralel ${J}).`,
   'Çıktı dosyası zaten var ve hash doğrulanıyorsa yeniden render etme (status=already_done).',
-  'Sonra self_review.py ile öz denetim; kontak sayfasına gerçekten bak; en fazla 3 düzeltme turu; kalan sorunları remaining_issues içinde yaz.',
+  `Sonra öz denetim: python ${a.plugin_root}/scripts/render/self_review.py --video <çıktı> --plan <plan> --out-dir <kampanya>/analysis/review_${job.key}_${job.format} --style <stil> --captions <altyazı> --project <proje> --data-dir <data_dir> --round <n>.`,
+  'Kontak sayfasına ve yazı şeritlerine (text_bands_<n>.jpg, küçültmeden) gerçekten bak; font_glyph/font_load bulgusu düzeltilmeden teslim etme; en fazla 3 düzeltme turu; kalan sorunları remaining_issues içinde yaz.',
 ].join('\n')
 
 log(`render-variants: ${a.jobs.length} iş · bütçe ${budget} · paralel ${J} · render başına concurrency ${perRender} · ${a.now_iso ?? ''}`)

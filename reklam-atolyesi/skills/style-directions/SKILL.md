@@ -41,14 +41,18 @@ S07 tamam (malzeme haritası). Profil `style.json` iskeleti (S00a, logodan renkl
    - LUT: `PY PR/scripts/render/grade_lut.py make --out DD/profiles/<slug>/styles/luts/<yön>.cube --contrast … --temperature …
      --saturation … --lift … --gain …` (parametreler yön kararından; varsayılanlar nötr).
    - Font: yönün fontu `@fontsource/<ad>` ile `DD/.node` altına kurulur (`npm install @fontsource/<ad>` — çalışma dizini `DD/.node`);
-     **hem `latin` hem `latin-ext`** CSS'i içe aktarılır (yalnızca latin-ext ile temel harfler yedek fonta düşer). Font lisansı dosya
+     **hem `latin` hem `latin-ext`** CSS'i içe aktarılır (yalnızca latin-ext ile temel harfler yedek fonta düşer); içe aktarma kampanya
+     projesinin `src/` dosyasındadır ve kullanılan her ağırlık için ayrıdır. Doğrulama: `PY PR/scripts/qc/font_coverage.py --plan <plan>
+     --style <yön.json> --project <src> --data-dir DD` (çıkış 0 değilse eksik karakterler/ağırlıklar düzeltilmeden önizleme yapılmaz;
+     öz denetim de aynı kontrolü yapar). Font lisansı dosya
      bazında kaydedilir.
 5. **Önizleme:** her yön için gerçek çekimden **3 sabit kare** + **5 sn hareket testi**:
    `PY PR/scripts/render/render.py plan --data-dir DD --project <src> --plan <plan_yön.json> --style <yön.json> --out
    analysis/style/<yön>_still_<n>.png --still <kare>` ve aynı komut `--out analysis/style/<yön>_test.mp4 --quality preview` (5 sn plan).
 6. **Öz denetim (5.15)** her render'dan sonra, kullanıcıya göstermeden önce:
-   `PY PR/scripts/render/self_review.py --video <test.mp4> --plan <plan> --out-dir analysis/review_<yön> --style <yön.json> --round 1`
-   → kontak sayfası ve kareler **görülür**; Türkçe karakter, güvenli alan, efekt bütçesi, siyah kare/donma, slayt gösterisi riski.
+   `PY PR/scripts/render/self_review.py --video <test.mp4> --plan <plan> --out-dir analysis/review_<yön> --style <yön.json>
+   --project <src> --data-dir DD --round 1` → kontak sayfası, kareler ve yazı şeritleri (`text_bands_<n>.jpg`, küçültmeden) **görülür**;
+   Türkçe karakter (font glif kapsamı bulgusu dahil), güvenli alan, efekt bütçesi, siyah kare/donma, slayt gösterisi riski.
    S03'te referans video ölçüldüyse (`references/<ad>/reference.json`) çekim süresi ve hareket profili `motion` yönünü besler; renk,
    yazı ve kurgu referanstan birebir alınmaz. Sorun varsa plan düzeltilir,
    yeniden render (en fazla 3 tur); kalan sorun kullanıcıya açıkça söylenir. Tekrarlayan hata → `memory_add(layer="procedural")`.

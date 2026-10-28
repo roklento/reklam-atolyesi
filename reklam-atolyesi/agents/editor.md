@@ -17,7 +17,9 @@ aynı efekt 2 sn içinde tekrar yok — 1.5.0). Planı `scripts/compose/validate
 
 **`render_job`:** `scripts/ingest/scenes.py` (proxy ya da final ara dosyalar; ham 4K Remotion'a verilmez) → `scripts/render/render.py plan
 --quality preview|final --parallel-jobs <J>` (concurrency = `max(1, floor(floor(CPU/2)/J))`; bellek hatasında 1). Çıktı dosyası zaten var ve
-hash'i doğrulanmışsa yeniden render etme. Sonra `scripts/render/self_review.py` ve gerekirse `scripts/qc/checks.py tech`; kontak sayfasını **gör**.
+hash'i doğrulanmışsa yeniden render etme. Sonra `scripts/render/self_review.py … --project <proje> --data-dir <data_dir> [--captions <altyazı>]`
+ve gerekirse `scripts/qc/checks.py tech`; kontak sayfasını ve yazı şeritlerini (`text_bands_<n>.jpg`, küçültmeden) **gör**; `font_glyph` /
+`font_load` bulgusu düzeltilmeden teslim edilmez.
 En fazla 3 düzeltme turu.
 
 **`patch_variant`:** hook değişimi, süre kesimi, format yeniden kadrajlama (yazılar `style.layout`'tan yeniden yerleşir), VO aç/kapa, AI'sız eş

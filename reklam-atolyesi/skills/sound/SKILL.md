@@ -43,7 +43,8 @@ S10 tamam: `ready` üretim planı ve öz denetimden geçmiş önizleme.
 7. **Altyazı (5.14):** VO ya da tutulan konuşma varsa `CaptionTrack` kelime zamanlarından (ön ayar ve vurgu: compose 2; miks konuşma
    üstündeki efekti ~6 dB kısar, konuşmayı kısmaz — `mix_report.sfx_duck_db`); font/konum stil kitabından, güvenli alanda;
    altyazı metni VO metniyle **birebir**. VO yoksa ana mesaj ekran yazısıyla.
-8. **Taslak render (miksli önizleme):** `render.py plan … --quality preview` (ses miksiyle) → öz denetim (`self_review.py`, ses seviyesi dahil).
+8. **Taslak render (miksli önizleme):** `render.py plan … --quality preview` (ses miksiyle) → öz denetim (`self_review.py … --captions <words.json> --project <k>/src --data-dir DD`, ses seviyesi, altyazı
+   şeridi ve altyazı fontunun glif kapsamı dahil).
 9. **Taslak kapısı:** taslak, **referans tahtasıyla yan yana** gösterilir; "ilk saniye kaydırmayı durdurur mu, marka gibi duruyor mu"
    yargısı kullanıcınındır — Claude yalnızca gözlemini söyler. İstenen düzeltmeler plana yama (`edit_plan_patch`) → yeniden render →
    yeni çıktı sürümü (eski onay geçersiz). Düzeltme istekleri tercih hafızasına (`memory_add(layer="preference", kind="edit")`).

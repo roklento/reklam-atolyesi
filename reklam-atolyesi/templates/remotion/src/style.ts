@@ -41,9 +41,25 @@ export const resolveStyle = (s?: Partial<Style> | null): Style => ({
   layout: { ...NEUTRAL_STYLE.layout, ...(s?.layout ?? {}) },
 });
 
-/** Fontlar yüklenene kadar render'ı bekletir (Türkçe karakterlerin yedek fonta düşmemesi için). */
-export const useFontsReady = () => {
+const TR_SAMPLE = "ğşıİçöüĞŞÇÖÜ";
+
+/** Yüklenmesi beklenecek font aileleri: stilin display/body/brand fontları, plandaki katmanların fontFamily'leri ve bileşen varsayılanı
+ *  Inter (1.5.1). Yalnızca Inter beklenirse marka fontu kare alınırken henüz yüklenmemiş olabilir ve yazı yedek fontla çizilir. */
+export const fontFamiliesOf = (style: Style, plan?: { scenes?: { layers?: { props?: Record<string, unknown> }[] }[] }): string[] => {
+  const fams = new Set<string>(["Inter", style.fonts.display, style.fonts.body, style.fonts.brand]);
+  for (const s of plan?.scenes ?? []) {
+    for (const l of s.layers ?? []) {
+      const f = l.props?.fontFamily;
+      if (typeof f === "string" && f.trim()) fams.add(f.split(",")[0].trim().replace(/^['"]|['"]$/g, ""));
+    }
+  }
+  return Array.from(fams).filter(Boolean);
+};
+
+/** Fontlar yüklenene kadar render'ı bekletir (Türkçe karakterlerin yedek fonta düşmemesi için). Aile verilmezse yalnızca Inter. */
+export const useFontsReady = (families: string[] = ["Inter"], weights: number[] = [400, 700]) => {
   const [handle] = useState(() => delayRender("fontlar yükleniyor"));
+  const key = families.join("|") + "/" + weights.join("|");
   useEffect(() => {
     let done = false;
     const finish = () => {
@@ -53,16 +69,15 @@ export const useFontsReady = () => {
       }
     };
     if (typeof document !== "undefined" && (document as Document).fonts) {
-      Promise.all([
-        document.fonts.load("400 32px Inter", "ğşıİçöüĞŞÇÖÜ"),
-        document.fonts.load("700 32px Inter", "ğşıİçöüĞŞÇÖÜ"),
-      ])
+      const fams = key.split("/")[0].split("|").filter(Boolean);
+      const ws = key.split("/")[1].split("|").map(Number);
+      Promise.all(fams.flatMap((f) => ws.map((w) => document.fonts.load(`${w} 32px "${f}"`, TR_SAMPLE))))
         .then(() => document.fonts.ready)
         .then(finish, finish);
     } else {
       finish();
     }
-  }, [handle]);
+  }, [handle, key]);
 };
 
 export const cubic = (e: [number, number, number, number]) => e;
