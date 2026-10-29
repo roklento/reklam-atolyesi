@@ -26,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from common import emit, read_json, write_json  # noqa: E402
 
 THRESHOLD_IMPRESSIONS = {"hook": 1000, "ctr": 3000}
+# Meta kreatif test aracı 2–7 test reklamı alır (resmi, ref-legal-tr-meta §7); hesabın ekranındaki sayı daha düşükse girdiyle verilir.
+CREATIVE_TEST_TOOL_MAX = 7
 # Ölçekleme seti günlük bütçesi ≥ 7 × hedef maliyet: 7 günde ~50 optimizasyon olayından türetilmiş YEREL eşik (ref-legal-tr-meta §7).
 SCALE_MIN_DAILY_MULT = 7
 
@@ -175,7 +177,7 @@ def plan(inp: dict) -> dict:
     if cpm_src == "assumption":
         warnings.append("CPM VARSAYIM: account_benchmarks/geçmiş yok")
     pc = per_creative_spend(cpm, metric)
-    tool_max = int(inp.get("creative_test_tool_max", 5))
+    tool_max = int(inp.get("creative_test_tool_max", CREATIVE_TEST_TOOL_MAX))
     structure = "bootstrap" if cycle_no <= 1 else "creative_test"
     out: dict = {"structure": structure, "decision_metric": metric, "threshold_impressions": THRESHOLD_IMPRESSIONS[metric],
                  "cpm": cpm, "cpm_source": cpm_src, "per_creative_spend": round(pc, 2), "daily_test_budget": round(daily_test, 2),

@@ -165,7 +165,7 @@ def test_meta_rules_have_source_status():
     'sektör ortalaması' vaadi engellenir."""
     pj = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
     desc = pj["userConfig"]["exploration_share"]["description"]
-    assert "aşamaz" not in desc and "teyit edilmedi" in desc
+    assert "aşamaz" not in desc and "sınır değil" in desc and "1423851372208214" in desc  # 1.5.3: Meta önerisi resmi, sınır değil
     legal = (ROOT / "skills" / "ref-legal-tr-meta" / "SKILL.md").read_text(encoding="utf-8")
     assert "## 7. Meta platform kuralları — kaynak protokolü" in legal and "ads_get_help_article" in legal
     for s in ("strategy", "launch-pack", "qc", "track", "coach", "compose"):

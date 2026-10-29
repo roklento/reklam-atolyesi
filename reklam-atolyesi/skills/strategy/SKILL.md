@@ -46,9 +46,9 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    - **Tur takvimi:** `test_days`, `cycle_days = test_days + 7`, plan günü = test bitişi + 3, yayın = plan günü + 4; ilk turda hazırlık
      takvimi (G1 plan … G7 yayın).
    - Test yapısı sabittir: ilk tur `bootstrap` (tek reklam seti, "En yüksek hacim"); sonraki turlar Meta **kreatif test** aracı (test
-     payı ≤ 0,2: plugin'in yerel üst sınırı; Meta'nın ~%20 önerisi teyit edilmedi). Araç sınırları (test payı, reklam sayısı: 2–5, bazı
-     hesaplarda 10 bildiriliyor) hesabın güncel Ads Manager ekranı ya da `ads_get_help_article` ile doğrulanır; doğrulanmayan sınır kesin
-     sayılmaz (`ref-legal-tr-meta` §7).
+     payı ≤ 0,2: plugin'in yerel üst sınırı; Meta'nın resmi önerisi de en fazla %20). Araç 2–7 test reklamı alır (resmi; `creative_test_tool_max`
+     varsayılanı 7); araçlar hesaplara kademeli açılabildiği için sayı hesabın güncel Ads Manager ekranında doğrulanır, ekrandaki sayı
+     daha düşükse o girilir (`ref-legal-tr-meta` §7).
    - **Meta A/B testi seçeneği (1.5.0, yüksek bütçe):** girdiye `"ab_test": {cells: <konsept sayısı 2–5>, daily_total: <teste ayrılabilecek
      toplam günlük bütçe>, expected_cpr: <doğrulanmış hedef maliyet ya da geçmiş sonuç maliyeti ortancası>, cpr_source:
      target_exact|history|assumption}` eklenir (`budget.py`, ya da tek başına `budget.py --ab ab.json`). Uygunsa (hücre başına süre

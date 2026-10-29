@@ -10,7 +10,7 @@ from . import competitive as CP
 from .util import AdMemoryError, canonical_json, jdump, jload, now_iso, parse_iso, sha256_text, utcnow
 
 SERVER_DIR = Path(__file__).resolve().parents[1]
-CREATIVE_TEST_TOOL_MAX = 5   # Meta kreatif test aracı: 2–5 test reklamı (6.3; hesapta doğrulanır)
+CREATIVE_TEST_TOOL_MAX = 7   # Meta kreatif test aracı: 2–7 test reklamı (resmi, ref-legal-tr-meta §7; hesapta doğrulanır)
 
 
 @lru_cache(maxsize=1)

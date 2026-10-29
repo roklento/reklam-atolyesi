@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: ad-memory
+Version: 1.4.0
+Summary: reklam-atolyesi veri deposu ve hafızası (MCP, stdio, SQLite)
+Requires-Python: >=3.11
+Requires-Dist: mcp<2
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: pandas
+Requires-Dist: matplotlib
+Requires-Dist: librosa
+Requires-Dist: soundfile
+Requires-Dist: pyloudnorm
+Requires-Dist: opencv-python<5
+Requires-Dist: pillow
+Requires-Dist: pillow-heif
+Requires-Dist: jsonschema
+Requires-Dist: duckdb

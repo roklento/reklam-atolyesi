@@ -114,7 +114,7 @@ def step2_stage_machine(ctx: Ctx) -> dict:
     import budget as BU
     base = {"cycle_no": 1, "adset_daily": 300, "exploration_share": 0.2, "cpm": 60, "cpm_source": "assumption", "decision_metric": "hook",
             "budget_total": None, "spend_to_date": 0, "data_cutoff": "2026-03-01", "launch_at": "2026-03-07", "risk_per_ad": 200,
-            "result_type": "purchase", "test_start_hour": 0, "creative_test_tool_max": 5}
+            "result_type": "purchase", "test_start_hour": 0, "creative_test_tool_max": 7}
     p7 = BU.plan(base)
     p14 = BU.plan({**base, "adset_daily": 9})
     slip = BU.plan({**base, "launch_at": "2026-03-10"})

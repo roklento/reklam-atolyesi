@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.5.2
+# Reklam Atölyesi (reklam-atolyesi) · 1.5.3
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,15 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.5.3** — Meta kural kayıtları resmi kaynakla güncellendi
+- `ref-legal-tr-meta` §7: Meta yardım merkezinden yeniden okundu (2026-10-29). Öğrenme aşaması için ~50 sonuç/hafta ve kreatif test
+  aracında bütçenin en fazla %20'si artık **resmi** (önceden "teyit edilmedi"); sayılan şey seçilen optimizasyon olayıdır.
+- Kreatif test aracı 2–7 test reklamı alır (önceden "2–5, bazı hesaplarda 10"): `budget.py` ve sunucudaki `creative_test_tool_max`
+  varsayılanı 5 → 7. Hesabın Ads Manager ekranındaki sayı daha düşükse girdiyle verilir. İlk turun reklam tavanı da bu sınırdır.
+- §7'ye Advantage+ kampanya bütçesi (CBO) set harcama limitleri ve "yeni set diğerlerini sıfırlamaz" kuralı eklendi (plugin CBO
+  kullanmaz; değerlendirme kaydı). "Benzer reklamlar tek varlık gibi gruplanır" hâlâ teyit edilmedi.
+- strategy, launch-pack, ref-metrics-math, yayın paketi şablonu ve `exploration_share` açıklaması aynı bilgiye çekildi.
+
 **1.5.2** — yazı konumu ve güvenli alan
 - Yazıların yeri tek tablodan (`templates/remotion/src/layout.json`): şablon ve güvenli alan denetimi aynı dosyayı okur. Fiyat etiketi,
   harekete geçirme butonu, alt bant, altyazı ve rol yazılarının (reveal, offer, alt çapa) 9:16 varsayılanı yukarı alındı (ör. fiyat

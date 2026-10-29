@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.5.2",
+ "plugin_version": "1.5.3",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -197,7 +197,7 @@
    "name": "launch-pack",
    "kind": "stage",
    "description": "reklam-atolyesi S14 yayın paketi — reklam adları, metinler, Ads Manager kurulum talimatı, harcama/risk sınırları, AI açıklaması, takvim; insan yayınından sonra launch_confirm. Kapılı.",
-   "sha256": "29d8884e5b745e27e9c499185e6edc660114c83b7db5ef60a3ea88bfc415825e"
+   "sha256": "e5e47da2ec41078a97d9a9c68e30384cb248e235f4861c2682de9ad6f2111253"
   },
   {
    "name": "learn",
@@ -263,13 +263,13 @@
    "name": "ref-legal-tr-meta",
    "kind": "reference",
    "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar.",
-   "sha256": "2b9b14207c208a25f71738338410cf2b64309cd970d9e4bec886cbf1e8db3959"
+   "sha256": "8589e9301d1d4080f035e669edb641d437de13b1126d36a565d5de23f3879f56"
   },
   {
    "name": "ref-metrics-math",
    "kind": "reference",
    "description": "reklam-atolyesi koçluk matematiği — metrikler, ekonomi, bütçe/matris, test penceresi ve olgunluk, Beta-Binom/Gamma, eşikler, hüküm dili, yorgunluk, kalibrasyon, bağımsız doğrulama.",
-   "sha256": "6074eebd13af837abf4397f1f5cdeb688d22584b295d890b14d754b27685cdaa"
+   "sha256": "c0359a49295cc278d5ac8fc717531c798d27b3562aba6706f326dcc5982d99c8"
   },
   {
    "name": "ref-production-recipes",
@@ -323,7 +323,7 @@
    "name": "strategy",
    "kind": "stage",
    "description": "reklam-atolyesi S02 strateji — (A) ekonomi, kreatif tavanı, tur takvimi, toplam harcama planı, zarar-risk sınırı; (B) rakibe dayalı konumlandırma, mesaj sırası, açı portföyü. Kapılı.",
-   "sha256": "634063404bcadd4abcb338a1381b47d4b897885714630aa9431dcb2667890731"
+   "sha256": "dfe662bc0e6bc86a1b9b2bcc4bac4a4eda61ec36a8b6f3c2b02e599d5ead7152"
   },
   {
    "name": "style-directions",
@@ -885,7 +885,7 @@
   "templates/reports/hesap-sagligi.md": "324c1f0a0ef2339f465b649bb965d94d27a9b4d98e575d6c3b33ffb39680c805",
   "templates/reports/rakip-analizi.md": "d882f273152c30f0f9a570a1aadc9bc959c42320df5c829c895c7a76cd12a54a",
   "templates/reports/strategy.md": "054003fb5b4bb672ca1eab99050d0d183264694ae48d1144da4b617ad98f3c93",
-  "templates/reports/yayin-paketi.md": "3328b863fe02c8fe726a4e21a28b9ced9b41aa8efcaa36b058655def807f5bb5",
+  "templates/reports/yayin-paketi.md": "8d60259e15062a5a63830cb306245c892140c7ddc27d7c8e3efe7e4620ee52b4",
   "templates/style.json": "3916baa82f3f8d5e57d5ee0c2ec1dd0d370bcc3c76f4c2bcda801d512087bb8a",
   "templates/voices/voices.json": "33f8a3c58480511df1b7d7f0ad15bcecc84d673125e245d112d2bc85a543ab11"
  },
@@ -895,14 +895,14 @@
    "failed": 3,
    "skipped": 5,
    "returncode": 1,
-   "summary": "336 passed, 3 failed, 5 skipped (1.5.2, Linux bulut ortamı; yeni testler tests/test_v151_text_qc.py: font glif kapsamı ve yazı şeritleri, tests/test_v152_safe_zone.py: yazı konumu ve güvenli alan). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1 ve 1.5.2 Windows'ta çalıştırılmadı.",
+   "summary": "336 passed, 3 failed, 5 skipped (1.5.3, Linux bulut ortamı). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.5.3 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
     "tests/test_media.py::test_measure_contact_sheet_material_map"
    ],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
-   "at": "2026-10-28",
+   "at": "2026-10-29",
    "platform": "linux"
   },
   "smoke": {
@@ -1491,6 +1491,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; konum değerleri ve test metinleri kategoriden bağımsız",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "1.5.3: ref-legal-tr-meta §7, strategy, launch-pack, ref-metrics-math, yayın paketi şablonu, plugin.json (exploration_share açıklaması), budget.py, s_comp.py, smoke.py, test_analytics.py, test_dagitim.py, README",
+    "files_reviewed": 13,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama; eklenen satırlar yalnızca Meta yardım merkezi ve Meta Engineering bağlantıları içerir",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1501,19 +1509,19 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "5cc71920b7cb476a494766de89d7c99e9c9d5330e338be3daae11ba42c5f9c70",
+   "plugin_json": "0b4bedfe49115db468b134de0fc6dc5a4aab6b92dc245b52495b0c1d17b56074",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "aaaa0e98e969da792268d920b6b826bb736f13c0839097fbf6984edb469ec33f",
+   "skills": "cb685a96f8edf9439f0053a2cc2c54e1bb72410b914b4c75c467140800b34dde",
    "agents": "1c66986a8ab9ad4b532377ba4bebae5793ea6f5bcfc803d48ccd737cd42826f1",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "eac9577ca4fca01829bc5d58cf92a601c9f3ba6991b3b54ed71758de178dad2a",
-   "ad_memory": "a19f257554059661ef3871631597cdd22b2eeb08cea3bbed890f6ea93c008e59",
-   "scripts": "d8a7c173f2017719408f5839bcb0aff3b288d6fb010bf4e12089cc34f103ad63",
-   "templates": "57c0204cff09c8f2a02063a1dd3d82c8aa6c3b7b6f0052ea69e542a64793b834",
+   "ad_memory": "afaf9094a2601959330b77cc5e0e5a93bd2980330206e9af228bc3637aa9df8a",
+   "scripts": "9e6f07843005a85ecf0568869cfecdb12dd1cd79a34f5d0ecc83c8cd0d0263cf",
+   "templates": "811793f2e4381c3d215a6c8edeedf54a2e9cd351bbe56c45751a5870b6e8ecc2",
    "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
   },
-  "checked_at": "2026-10-28"
+  "checked_at": "2026-10-29"
  },
  "live_checks": [
   {
@@ -1670,16 +1678,16 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "5cc71920b7cb476a494766de89d7c99e9c9d5330e338be3daae11ba42c5f9c70",
+  "plugin_json": "0b4bedfe49115db468b134de0fc6dc5a4aab6b92dc245b52495b0c1d17b56074",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "aaaa0e98e969da792268d920b6b826bb736f13c0839097fbf6984edb469ec33f",
+  "skills": "cb685a96f8edf9439f0053a2cc2c54e1bb72410b914b4c75c467140800b34dde",
   "agents": "1c66986a8ab9ad4b532377ba4bebae5793ea6f5bcfc803d48ccd737cd42826f1",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "eac9577ca4fca01829bc5d58cf92a601c9f3ba6991b3b54ed71758de178dad2a",
-  "ad_memory": "a19f257554059661ef3871631597cdd22b2eeb08cea3bbed890f6ea93c008e59",
-  "scripts": "d8a7c173f2017719408f5839bcb0aff3b288d6fb010bf4e12089cc34f103ad63",
-  "templates": "57c0204cff09c8f2a02063a1dd3d82c8aa6c3b7b6f0052ea69e542a64793b834",
+  "ad_memory": "afaf9094a2601959330b77cc5e0e5a93bd2980330206e9af228bc3637aa9df8a",
+  "scripts": "9e6f07843005a85ecf0568869cfecdb12dd1cd79a34f5d0ecc83c8cd0d0263cf",
+  "templates": "811793f2e4381c3d215a6c8edeedf54a2e9cd351bbe56c45751a5870b6e8ecc2",
   "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."

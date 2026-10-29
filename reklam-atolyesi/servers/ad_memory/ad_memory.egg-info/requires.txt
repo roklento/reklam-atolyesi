@@ -1,0 +1,13 @@
+mcp<2
+numpy
+scipy
+pandas
+matplotlib
+librosa
+soundfile
+pyloudnorm
+opencv-python<5
+pillow
+pillow-heif
+jsonschema
+duckdb

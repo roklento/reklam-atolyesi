@@ -13,7 +13,7 @@
 
 ## Ads Manager kurulum talimatı
 {{İlk tur (bootstrap): tek kampanya, tek reklam seti, teklif stratejisi "En yüksek hacim"; turun konseptleri birlikte.}}
-{{Sonraki tur (creative_test): aynı reklam setinde, yayındaki bir reklamdan başlatılan kreatif test; test bütçesi ≤ ~%20; süre 7 gün; "En yüksek hacim".}}
+{{Sonraki tur (creative_test): aynı reklam setinde, yayındaki bir reklamdan başlatılan kreatif test; test bütçesi ≤ %20 (Meta önerisi); 2–7 test reklamı; süre 7 gün; "En yüksek hacim".}}
 Adım adım: {{…}} (sayı/bütçe/süre kısıtları hesabın güncel ekranında doğrulanır)
 
 ## Harcama ve bitiş sınırları (insan uygular)

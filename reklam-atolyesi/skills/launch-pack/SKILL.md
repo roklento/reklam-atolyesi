@@ -38,7 +38,7 @@ Yok.
    - **İlk tur (`bootstrap`):** tek kampanya, tek reklam seti, teklif stratejisi "En yüksek hacim"; turun konseptleri birlikte.
      Hükümler "Meta'nın dağıtımı altında".
    - **Sonraki turlar (`creative_test`):** aynı reklam setinde, yayındaki bir reklamdan başlatılan Meta kreatif testi; yeni konseptler
-     test reklamı (araç sınırı içinde); test bütçesi ≤ `exploration_share` (plugin'in yerel üst sınırı 0,2; Meta'nın ~%20 önerisi teyit edilmedi, §7); reklam sayısı Ads Manager ekranından; süre 7 gün (ya da S02'nin seçtiği); "En yüksek hacim".
+     test reklamı (araç sınırı içinde); test bütçesi ≤ `exploration_share` (plugin'in yerel üst sınırı 0,2; Meta'nın resmi önerisi de en fazla %20, §7); 2–7 test reklamı (resmi; hesabın Ads Manager ekranında doğrulanır); test başlayınca değiştirilemez; süre 7 gün (ya da S02'nin seçtiği); "En yüksek hacim".
      Maliyet hedefi/teklif sınırı/ROAS hedefi kreatif testi engeller. Test dışında konsept başına ayrı set (ABO) desteklenmez: bütçeyi
      parçalar ve her set ayrı öğrenir (çok set → daha az öğrenme, resmi; §7); eşit harcama da kontrollü karşılaştırma değildir. Ayrı
      hücreler yalnızca aşağıdaki Meta A/B testi içinde geçerlidir.
