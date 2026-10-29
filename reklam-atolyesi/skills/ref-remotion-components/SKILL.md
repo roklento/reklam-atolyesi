@@ -29,8 +29,8 @@ Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` ·
 `matchZoom` · `slideBlur` · `filmBurn`. Efekt bütçesi: 15 sn'de en fazla 2 farklı geçiş türü (stil daraltabilir).
 
 ## Bileşenler (kategori · ad · başlıca prop'lar)
-- **Yazı:** `TextReveal`, `KineticWords`, `SoftType` (ortak: `text`, `color`, `fontFamily`, `fontWeight`, `fontSize`, `y` 0–1, `align`) ·
-  `LowerThird` (`title`, `subtitle`, `color`, `bg`, `accent`, `y`) · `PriceTag` (`price`, `currency`, `referencePrice`,
+- **Yazı:** `TextReveal`, `KineticWords`, `SoftType` (ortak: `text`, `color`, `fontFamily`, `fontWeight`, `fontSize`, `minFontSize`, `maxLines`, `y` 0–1, `align`) ·
+  `LowerThird` (`title`, `subtitle`, `color`, `bg`, `accent`, `y`, `minFontSize`) · `PriceTag` (`price`, `currency`, `referencePrice`,
   `referencePriceVerified`, `label`, `locale` — sayı biçimi profilin dilinden/para biriminden, ör. `tr-TR`, `en-US`; fiyat yoksa kırmızı uyarı kutusu
   render eder; **çizili/referans fiyat yalnızca
   `referencePriceVerified=true`** ve fiyat geçmişi kanıtıyla) · `CaptionTrack` (`captions:[{text,start,end,words?,emph?}]`, `fontSize`, `y`,
@@ -57,6 +57,11 @@ Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` ·
 - Video katmanı `<OffthreadVideo>`; Remotion'a **ham 4K verilmez**: sahne ara dosyaları (`scripts/ingest/scenes.py`; proxy 1080 kısa
   kenar, final yaklaşma payını taşıyan en küçük çözünürlük).
 - Hareket bulanıklığı `@remotion/motion-blur` ya da alt-kare ortalama.
+- **Yazı sığdırma (1.6.0, `components/fit.tsx`):** TextReveal, KineticWords, SoftType, LowerThird, PriceTag etiketi, CTAPulse, EndCard ve
+  BehindSubjectText satırlarını tarayıcıda gerçek fontla ölçer (`@remotion/layout-utils` measureText); yazı kutuya ve `maxLines`'a sığana dek
+  `fontSize`'dan `minFontSize`'a küçülür, büyütülmez. Sığmazsa kırmızı **YAZI SIĞMIYOR** çerçevesi çizilir ve `<mp4>.layout.json` kaydı
+  `fits:false` olur; `checks.py safe --layout` bunu sorun sayar. Çözüm metni kısaltmak ya da bileşeni değiştirmektir; `minFontSize`'ı
+  okunmayacak kadar düşürmek çözüm değildir. Yeni yazı bileşeni `useFit` ile yazılır.
 - Formatlar ayrı kompozisyondur; sahneler paylaşılır; yazı/grafik format başına yeniden yerleşir; video formatın oranına göre kadrajlanır.
   Güvenli alan (5.19): 9:16 üst %14, alt %35, yanlar %6 boş (açıklama metni ya da AI içeren planda alt %40: `disclaimer.on` / `ai_share > 0`); 4:5 üst/alt ~250 px, yanlar ~100 px; 1:1 kenarlardan pay.
 - Fontlar `@fontsource/<ad>` ile, **`latin` + `latin-ext`** CSS birlikte; nötr şablonda yalnızca `Inter`. Render, stilin display/body/brand

@@ -3,6 +3,7 @@
 import React from "react";
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
+import { FitAlarm, lineStyle, useFit } from "./fit";
 import { clamp01, easeOutCubic, Entry } from "./types";
 
 const reviewSchema = z.object({ reviewId: z.number().nullable(), quote: z.string(), displayName: z.string().nullable().default(null),
@@ -60,30 +61,47 @@ const endSchema = z.object({ brand: z.string(), cta: z.string(), url: z.string()
   accent: z.string().default("#6B6B6B"), fontFamily: z.string().default("Inter"), logo: z.string().nullable().default(null), brandTracking: z.string().default("0em") });
 const EndCard: React.FC<z.infer<typeof endSchema>> = (p) => {
   const f = useCurrentFrame();
+  const { width } = useVideoConfig();
   const a = easeOutCubic(f / 12);
   const b = easeOutCubic((f - 8) / 12);
+  // 1.6.0: marka adı, çağrı ve adres ölçülerek sığdırılır (en çok %88 genişlik)
+  const bf = useFit({ text: p.logo ? "" : p.brand, fontFamily: p.fontFamily, fontWeight: 700, fontSize: 110, minFontSize: 64, boxWidth: width * 0.88,
+    maxLines: 2, letterSpacing: p.brandTracking }, { component: "EndCard", part: "brand", mode: "full", lineHeight: 1.2 });
+  const cf = useFit({ text: p.cta, fontFamily: p.fontFamily, fontWeight: 700, fontSize: 52, minFontSize: 36, boxWidth: width * 0.88 - 92, maxLines: 2 },
+    { component: "EndCard", part: "cta", mode: "full", lineHeight: 1.2, padY: 44 });
+  const uf = useFit({ text: p.url ?? "", fontFamily: p.fontFamily, fontWeight: 400, fontSize: 36, minFontSize: 24, boxWidth: width * 0.88, maxLines: 1 },
+    { component: "EndCard", part: "url", mode: "full", lineHeight: 1.2 });
+  const rows = (fit: typeof bf) => fit.lines.map((ln, i) => <div key={i} style={lineStyle(fit)}>{ln}</div>);
   return (
-    <AbsoluteFill style={{ background: p.bg, alignItems: "center", justifyContent: "center", fontFamily: p.fontFamily, color: p.ink }}>
+    <AbsoluteFill style={{ background: p.bg, alignItems: "center", justifyContent: "center", fontFamily: p.fontFamily, color: p.ink, textAlign: "center" }}>
       {p.logo ? <Img src={p.logo} style={{ width: "40%", opacity: a, transform: `scale(${0.9 + 0.1 * a})` }} /> :
-        <div style={{ fontSize: 110, fontWeight: 700, letterSpacing: p.brandTracking, opacity: a, transform: `scale(${0.9 + 0.1 * a})` }}>{p.brand}</div>}
-      <div style={{ marginTop: 50, background: p.accent, color: p.bg, padding: "22px 46px", borderRadius: 999, fontSize: 52, fontWeight: 700,
-        opacity: b, transform: `translateY(${(1 - b) * 20}px)` }}>{p.cta}</div>
-      {p.url ? <div style={{ marginTop: 26, fontSize: 36, opacity: b }}>{p.url}</div> : null}
+        <FitAlarm on={!bf.fits}><div style={{ fontSize: bf.fontSize, fontWeight: 700, letterSpacing: p.brandTracking, lineHeight: 1.2, opacity: a,
+          transform: `scale(${0.9 + 0.1 * a})` }}>{rows(bf)}</div></FitAlarm>}
+      <div style={{ marginTop: 50, opacity: b, transform: `translateY(${(1 - b) * 20}px)` }}>
+        <FitAlarm on={!cf.fits}><div style={{ background: p.accent, color: p.bg, padding: "22px 46px", borderRadius: 999, fontSize: cf.fontSize,
+          fontWeight: 700, lineHeight: 1.2 }}>{rows(cf)}</div></FitAlarm>
+      </div>
+      {p.url ? <div style={{ marginTop: 26, fontSize: uf.fontSize, opacity: b, lineHeight: 1.2 }}><FitAlarm on={!uf.fits}>{rows(uf)}</FitAlarm></div> : null}
     </AbsoluteFill>
   );
 };
 
 const ctaSchema = z.object({ text: z.string(), color: z.string().default("#E6E6E6"), bg: z.string().default("#1F1F1F"), fontFamily: z.string().default("Inter"),
-  y: z.number().default(0.8), periodFrames: z.number().default(30) });
+  y: z.number().default(0.8), periodFrames: z.number().default(30), minFontSize: z.number().default(40) });
 const CTAPulse: React.FC<z.infer<typeof ctaSchema>> = (p) => {
   const f = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
   const k = 1 + 0.05 * Math.sin((2 * Math.PI * f) / p.periodFrames);
   const a = easeOutCubic(f / (fps * 0.4));
+  // nabız %5 büyütür: kutu buna göre daraltılır; iç boşluk 2×56 (1.6.0)
+  const fit = useFit({ text: p.text, fontFamily: p.fontFamily, fontWeight: 700, fontSize: 56, minFontSize: p.minFontSize, boxWidth: (width * 0.88) / 1.05 - 112,
+    maxLines: 2 }, { component: "CTAPulse", y: p.y, mode: "center", lineHeight: 1.2, padY: 48 });
   return (
     <AbsoluteFill style={{ alignItems: "center" }}>
       <div style={{ position: "absolute", top: `${p.y * 100}%`, transform: `translateY(-50%) scale(${k})`, opacity: a, background: p.bg, color: p.color,
-        fontFamily: p.fontFamily, fontSize: 56, fontWeight: 700, padding: "24px 56px", borderRadius: 999 }}>{p.text}</div>
+        fontFamily: p.fontFamily, fontSize: fit.fontSize, fontWeight: 700, padding: "24px 56px", borderRadius: 999, lineHeight: 1.2, textAlign: "center" }}>
+        <FitAlarm on={!fit.fits}>{fit.lines.map((ln, i) => <div key={i} style={lineStyle(fit)}>{ln}</div>)}</FitAlarm>
+      </div>
     </AbsoluteFill>
   );
 };
@@ -92,6 +110,6 @@ export const PROOF: Entry[] = [
   { name: "ReviewCard", category: "proof", version: "1.0.0", schema: reviewSchema, Component: ReviewCard,
     demo: reviewSchema.parse({ reviewId: 0, quote: "Örnek yorum metni; gerçek yorum yalnızca izin kaydıyla kullanılır.", displayName: "A. B.", rating: 4 }) },
   { name: "StarRating", category: "proof", version: "1.0.0", schema: starSchema, Component: StarRating, demo: starSchema.parse({ rating: 3.5 }) },
-  { name: "EndCard", category: "proof", version: "1.0.0", schema: endSchema, Component: EndCard, demo: endSchema.parse({ brand: "Marka A", cta: "Örnek çağrı", url: "ornek.test" }) },
-  { name: "CTAPulse", category: "proof", version: "1.0.0", schema: ctaSchema, Component: CTAPulse, demo: ctaSchema.parse({ text: "Örnek çağrı" }) },
+  { name: "EndCard", category: "proof", version: "1.1.0", schema: endSchema, Component: EndCard, demo: endSchema.parse({ brand: "Marka A", cta: "Örnek çağrı", url: "ornek.test" }) },
+  { name: "CTAPulse", category: "proof", version: "1.1.0", schema: ctaSchema, Component: CTAPulse, demo: ctaSchema.parse({ text: "Örnek çağrı" }) },
 ];

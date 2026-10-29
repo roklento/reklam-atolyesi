@@ -2,8 +2,9 @@
 
 Alt komutlar:
   black   --video v.mp4                       blackdetect + freezedetect (bütün video; örnek karelerden karar verilmez)
-  safe    --plan plan.json [--style s.json] [--captions c.json]
-          yazı bloklarının (altyazı dahil; üst ve alt kenar) güvenli alanda ve ≥ 1,5 sn ekranda olup olmadığı
+  safe    --plan plan.json [--style s.json] [--captions c.json] [--layout video.mp4.layout.json]
+          yazı bloklarının (altyazı dahil; üst ve alt kenar) güvenli alanda ve ≥ 1,5 sn ekranda olup olmadığı; --layout verilirse
+          blok boyu render ölçümünden (1.6.0) ve sığmayan yazı ayrı sorun
   meta-text --plan plan.json | --text metin.txt   Meta reklam standartları (ref-legal-tr-meta §8) için Türkçe metin taraması (uyarı)
   copy    --texts metin.json [--plan plan.json] [--promise "kelime,kelime"] [--targets hedef.json]
           reklam metni uzunluğu: birincil 125 / başlık 40 / açıklama 30 görünür karakter (Meta önerisi) + videonun yapısına göre kurallar
@@ -56,14 +57,17 @@ def black_freeze(video: str, black_min: float = 0.12, freeze_min: float = 0.5) -
     return {"black_segments": blacks, "freeze_segments": freezes, "ok": not blacks and not freezes}
 
 
-def safe_zone(plan: dict, style: dict | None = None, captions: list | None = None) -> dict:
+def safe_zone(plan: dict, style: dict | None = None, captions: list | None = None, layout: dict | None = None) -> dict:
     """Her yazı bloğunun üst ve alt kenarı güvenli alanda mı (konum şablonla aynı tablodan: lib/text_layout.py), ekranda ≥ 1,5 sn mi.
-    Altyazı açıksa altyazı bloğu da denetlenir (parça metni verilmezse 2 satır)."""
+    Altyazı açıksa altyazı bloğu da denetlenir (parça metni verilmezse 2 satır). layout (render.py → <çıktı>.layout.json) verilirse
+    blok boyu ölçümden alınır ve ölçümde sığmayan (YAZI SIĞMIYOR) her yazı ayrı sorundur (1.6.0)."""
+    records = (layout or {}).get("records") or []
     fmt = plan["format"]
     z = safe_box(plan)
     lo, hi = z["top"], 1 - z["bottom"]
     zone = f"{fmt}: üst %{z['top']*100:.0f}, alt %{z['bottom']*100:.0f}" + (f"; {z['reason']}" if z.get("reason") else "")
-    issues, checked = [], 0
+    issues, checked, measured = [], 0, 0
+    reported: set = set()
 
     def place(ext: dict, scene: str, layer) -> None:
         if ext["y0"] < lo - 1e-6 or ext["y1"] > hi + 1e-6:
@@ -73,7 +77,19 @@ def safe_zone(plan: dict, style: dict | None = None, captions: list | None = Non
     for s in plan["scenes"]:
         for i, l in enumerate(s["layers"]):
             ext = TL.layer_extent(l, s["role"], fmt, style)
-            if not ext or ext["mode"] == "full":
+            if not ext:
+                continue
+            if records:
+                ext = TL.measured_extent(ext, l, records)
+                measured += bool(ext.get("measured"))
+                for o in ext.get("overflow") or []:
+                    key = (ext["component"], o["part"], o["text"])
+                    if key not in reported:
+                        reported.add(key)
+                        issues.append({"scene": s["id"], "layer": i, "component": ext["component"], "part": o["part"],
+                                       "issue": f"yazı sığmıyor: {o['lines']} satır (en çok {o['maxLines']}), en küçük boyda ({o['fontSize']} px) bile; "
+                                                "metni kısalt ya da bileşeni değiştir"})
+            if ext["mode"] == "full":
                 continue
             checked += 1
             place(ext, s["id"], i)
@@ -84,7 +100,17 @@ def safe_zone(plan: dict, style: dict | None = None, captions: list | None = Non
     if cap:
         checked += 1
         place(cap, "altyazı", None)
-    return {"checked_text_layers": checked, "zone": z, "issues": issues, "ok": not issues}
+    for r in records:  # katmana eşlenemeyen ölçülmüş taşma da gizlenmez
+        key = (r.get("component"), r.get("part"), r.get("text"))
+        if r.get("fits") is False and key not in reported:
+            reported.add(key)
+            issues.append({"scene": None, "layer": None, "component": r.get("component"), "part": r.get("part"),
+                           "issue": f"yazı sığmıyor (katmana eşlenemedi): «{str(r.get('text'))[:60]}»"})
+    out = {"checked_text_layers": checked, "zone": z, "issues": issues, "ok": not issues}
+    if layout is not None:
+        out["measured_layers"] = measured
+        out["unmeasured_segments"] = layout.get("unmeasured_segments") or []
+    return out
 
 
 # --- Meta reklam standartları metin taraması (ref-legal-tr-meta §8, 1.4.3) ----------------------------------------------------
@@ -312,7 +338,8 @@ def tech(video: str, plan: dict | None, expect_duration: float | None, fmt: str 
     bf = black_freeze(video)
     check("siyah kare/donma yok", bf["ok"], {"black": bf["black_segments"], "freeze": bf["freeze_segments"]})
     if plan:
-        sz = safe_zone(plan)
+        lay = Path(video + ".layout.json")  # render.py plan çıktının yanına yazar (1.6.0)
+        sz = safe_zone(plan, layout=read_json(str(lay)) if lay.exists() else None)
         check("yazılar güvenli alanda ve ≥ 1,5 sn", sz["ok"], sz["issues"])
     res["ok"] = all(c["ok"] for c in res["checks"])
     res["note"] = "Teknik QC; görsel ve işitsel insan kontrolünün yerine geçmez (5.15)."
@@ -328,6 +355,7 @@ def main() -> None:
     p.add_argument("--plan", required=True)
     p.add_argument("--style")
     p.add_argument("--captions", help="altyazı parçaları (captions.json); verilmezse altyazı 2 satır sayılır")
+    p.add_argument("--layout", help="render ölçümü (<video>.layout.json; render.py plan yazar)")
     p = sp.add_parser("meta-text")
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--plan")
@@ -347,7 +375,8 @@ def main() -> None:
         emit(black_freeze(a.video))
     elif a.cmd == "safe":
         cap = read_json(a.captions) if a.captions else None
-        emit(safe_zone(read_json(a.plan), read_json(a.style) if a.style else None, cap.get("captions", cap) if isinstance(cap, dict) else cap))
+        emit(safe_zone(read_json(a.plan), read_json(a.style) if a.style else None, cap.get("captions", cap) if isinstance(cap, dict) else cap,
+                       read_json(a.layout) if a.layout else None))
     elif a.cmd == "copy":
         emit(copy_length(read_json(a.texts), read_json(a.plan) if a.plan else None,
                          [w.strip() for w in a.promise.split(",") if w.strip()] if a.promise else None,

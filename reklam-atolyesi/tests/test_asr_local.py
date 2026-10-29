@@ -283,3 +283,15 @@ def test_verify_takes_survives_worker_failure(tmp_path, monkeypatch):
     monkeypatch.setattr(A, "transcribe_files", boom)
     chk = A.verify_takes(tmp_path, ["a.wav"], "Merhaba.")
     assert chk == [{"checked": False, "how": "okunuş denetimi çalışmadı: işçi çöktü"}]
+
+
+def test_low_confidence_words_marked_only_for_reading():
+    """1.6.0: Whisper sözcük güveni < 0,5 → dökümde [?sözcük] ve low_confidence; altyazı ve words metni değişmez, dolgu işaretlenmez."""
+    asr = [{"text": "Kargo", "start": 0.0, "end": 0.4, "prob": 0.95}, {"text": "Mavişim'den", "start": 0.4, "end": 1.0, "prob": 0.31},
+           {"text": "eee", "start": 1.0, "end": 1.3, "prob": 0.2}, {"text": "bedava", "start": 1.3, "end": 1.8, "prob": 0.88}]
+    raw = A.words_doc(None, {"words": asr})
+    assert raw["text_marked"] == "Kargo [?Mavişim'den] eee bedava"
+    assert [x["text"] for x in raw["low_confidence"]] == ["Mavişim'den"] and "[?sözcük]" in raw["note"]
+    assert all("[?" not in w["text"] for w in raw["words"]) and all("[?" not in c["text"] for c in raw["captions"])
+    assert A.low_confidence([{"text": "eski", "start": 0, "end": 1}]) == []  # prob'suz eski döküm
+    assert "low_confidence" not in A.words_doc("Kargo bedava", {"words": asr})  # metinli yol değişmez

@@ -1,8 +1,9 @@
 """Yazı yerleşimi ve blok boyu (5.19): şablonun konum tablosu (templates/remotion/src/layout.json) ve bileşen ölçüleri.
 
 Güvenli alan denetimi (qc/checks.py safe) ve yazı şeritleri (analyze/contact_sheet.py) yazının nerede durduğunu buradan alır; şablon
-(layout.ts) aynı tabloyu okur. Blok boyu tahmindir: satır sayısı karakter sayısından (ortalama harf genişliği ≈ 0,56 × font boyu, büyük
+(layout.ts) aynı tabloyu okur. Blok boyu tahmindir: satırlar sözcük sözcük kırılır (ortalama harf genişliği ≈ 0,56 × font boyu, büyük
 harfte 0,6; gerçek render ile ölçüldü), satır yüksekliği ve iç boşluklar bileşenlerin stilinden (components/text.tsx, proof.tsx, product.tsx).
+1.6.0: render ölçümü varsa (<çıktı>.layout.json, components/fit.tsx) tahmin yerine o kullanılır: measured_extent.
 """
 from __future__ import annotations
 
@@ -51,8 +52,24 @@ def component_y(name: str, fmt: str) -> float | None:
 
 
 def lines(text: str, font_px: float, avail_px: float, upper: bool = False) -> int:
-    cpl = max(1, int(avail_px / (font_px * (0.6 if upper else 0.56))))
-    return sum(max(1, math.ceil(len(p.strip()) / cpl)) for p in str(text or "").split("\n")) or 1
+    """Tahmini satır sayısı: açık satır sonları korunur, sözcükler bütün kalır (tarayıcı gibi açgözlü kırma; boşluk ≈ 0,28 em).
+    Kutudan uzun tek sözcük sözcük ortasından bölünmez, kendi satırında taşar (taşmayı render ölçümü yakalar)."""
+    cw = font_px * (0.6 if upper else 0.56)
+    space = font_px * 0.28
+    n = 0
+    for para in str(text or "").split("\n"):
+        cur, k = 0.0, 1
+        for w in para.split():
+            wl = len(w) * cw
+            if cur == 0:
+                cur = wl
+            elif cur + space + wl <= avail_px:
+                cur += space + wl
+            else:
+                k += 1
+                cur = wl
+        n += k
+    return n or 1
 
 
 def _num(v, d):
@@ -121,3 +138,35 @@ def captions_extent(plan: dict, captions: list | None = None) -> dict | None:
     n = max((lines(c.get("text", ""), 58, 0.84 * w, upper) for c in captions or []), default=2)
     y = component_y("CaptionTrack", f)
     return {"component": "CaptionTrack", "mode": "top", "y": y, "y0": y, "y1": round(y + 58 * 1.15 * n / h, 4), "lines": n}
+
+
+MEASURED = {"TextReveal", "KineticWords", "SoftType", "BehindSubjectText", "LowerThird", "CTAPulse"}  # blok boyu ölçümden alınabilenler
+
+
+def _layer_texts(layer: dict) -> set[str]:
+    props = layer.get("props") or {}
+    out = {str(layer.get("text") or "")}
+    out |= {props[k] for k in TEXT_KEYS if isinstance(props.get(k), str)}
+    return {t[:160] for t in out if t}
+
+
+def measured_extent(ext: dict, layer: dict, records: list[dict]) -> dict:
+    """Ölçülmüş blok: aynı bileşen ve aynı metinli kayıtların heightPx toplamı (LowerThird başlık + alt başlık). Ölçüm yoksa ext aynen,
+    'measured': False. Sığmayan parça varsa 'overflow' listesi."""
+    texts = _layer_texts(layer)
+    recs = [r for r in records or [] if r.get("component") == ext["component"] and r.get("text") in texts]
+    if not recs:
+        return {**ext, "measured": False}
+    overflow = [{"part": r.get("part"), "text": r.get("text"), "lines": r.get("lines"), "maxLines": r.get("maxLines"),
+                 "fontSize": r.get("fontSize"), "minFontSize": r.get("minFontSize")} for r in recs if r.get("fits") is False]
+    out = {**ext, "measured": True, "overflow": overflow}
+    if ext["component"] in MEASURED and ext["mode"] != "full":
+        parts = {}
+        for r in recs:  # aynı parçanın birden çok kaydı (ör. önizleme ve final ölçeği) varsa en büyüğü
+            k = r.get("part") or "text"
+            parts[k] = max(parts.get(k, 0.0), float(r.get("heightPx") or 0) / max(1.0, float(r.get("height") or 1)))
+        hh = sum(parts.values()) * (1.05 if ext["component"] == "CTAPulse" else 1.0)
+        y = ext["y"]
+        y0, y1 = (y - hh / 2, y + hh / 2) if ext["mode"] == "center" else (y, y + hh)
+        out.update({"y0": round(y0, 4), "y1": round(y1, 4)})
+    return out

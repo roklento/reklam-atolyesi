@@ -94,6 +94,20 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.6.0 (geliştiriliyor, 1. dalga)** — kurulum denetimi, ölçülü yazı, sahne kesimi, döküm güveni
+- Kurulum denetimi kurulu **bütün** plugin'lere bakar (`claude plugin list --json`, olmazsa `~/.claude/plugins` kayıtları, claude.ai
+  senkronu, skills-dir). Video üretimi skill'i ya da ücretli/yayın sağlayıcısı MCP'si olan etkin plugin doctor'da `plugins` maddesidir;
+  kurulumda kullanıcı kapatır (`claude plugin disable`, geri alınabilir) ya da kimlik bazında sapma olarak bırakır (`--plugins`).
+  Kurulumdan sonra eklenen böyle bir plugin için navigator tek satır uyarır.
+- Yazı bileşenleri (TextReveal, KineticWords, SoftType, LowerThird, PriceTag etiketi, CTAPulse, EndCard, BehindSubjectText) satırlarını
+  gerçek fontla ölçer (`@remotion/layout-utils` 4.0.532, MIT); sığana dek `minFontSize`'a küçülür, sığmazsa kırmızı **YAZI SIĞMIYOR**.
+  Ölçüm `<video>.layout.json`'a yazılır; `checks.py safe --layout` (ve `tech`) blok boyunu ölçümden alır, taşmayı sorun sayar. Tahmin
+  yolu da sözcük sözcük kırmaya geçti.
+- Referans videoda kesimler PySceneDetect 0.7.2 (BSD-3) AdaptiveDetector ile (hızlı kamera hareketini kesim saymaz); kurulu değilse
+  ffmpeg yöntemine düşer ve `cut_method` kaydedilir. `--cut-method both` iki yöntemi karşılaştırır; kararmalar `fades_s`.
+- Yerel döküm: Whisper'ın emin olmadığı sözcükler (olasılık < 0,5) kullanıcıya gösterilen metinde `[?sözcük]` ve `low_confidence`
+  listesinde; altyazıya girmez.
+
 **1.5.3** — Meta kural kayıtları resmi kaynakla güncellendi
 - `ref-legal-tr-meta` §7: Meta yardım merkezinden yeniden okundu (2026-10-29). Öğrenme aşaması için ~50 sonuç/hafta ve kreatif test
   aracında bütçenin en fazla %20'si artık **resmi** (önceden "teyit edilmedi"); sayılan şey seçilen optimizasyon olayıdır.

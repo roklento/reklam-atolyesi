@@ -13,7 +13,7 @@ Python yolu. Üretim gerekçesi, sohbet özeti ya da "bu iyi oldu" yorumu **iste
 
 **İnceleme**
 1. Teknik: `scripts/qc/checks.py tech --video <mp4> --plan <plan> --expect-duration <sn> --format <f>`, `checks.py black` (bütün video),
-   `checks.py safe --plan <plan> --style <style> [--captions <captions>]`, slayt gösterisi riski `scripts/qc/slideshow.py --plan <plan> --video <mp4>` (`critical` → düzeltme notu, `high` → uyarı),
+   `checks.py safe --plan <plan> --style <style> [--captions <captions>] --layout <mp4>.layout.json`, slayt gösterisi riski `scripts/qc/slideshow.py --plan <plan> --video <mp4>` (`critical` → düzeltme notu, `high` → uyarı),
    font glif kapsamı `scripts/qc/font_coverage.py --plan <plan> --project <campaign_dir>/src --data-dir <data_dir>` (çıkış 1 → düzeltme notu).
 2. Görsel: `scripts/analyze/contact_sheet.py --video <mp4> --out … --per-second`, sahne başı/ortası kareleri ve yazı şeritleri
    (`contact_sheet.py --video <mp4> --out …/bands.jpg --text-bands --plan <plan>`); görüntüleri **aç ve bak** (şeritleri küçültmeden; kontak
