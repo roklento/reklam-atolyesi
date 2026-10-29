@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -309,3 +310,23 @@ def test_carry_over_reexport_keeps_audio(tmp_path):
     streams = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", out["out"]],
                              capture_output=True, text=True).stdout.split()
     assert "audio" in streams and "video" in streams and "_c2_" in Path(out["out"]).name
+
+
+@pytest.mark.skipif(not (shutil.which("ffmpeg") and shutil.which("ffprobe")), reason="ffmpeg yok")
+def test_reference_cuts_pyscenedetect_and_fallback(tmp_path, monkeypatch):
+    """1.6.0: kesimler varsayılan olarak PySceneDetect AdaptiveDetector ile; kurulu değilse ffmpeg'e düşer ve bu kaydedilir."""
+    import reference as RF
+    v = tmp_path / "ref.mp4"
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-f", "lavfi", "-i", "testsrc2=s=360x640:d=2:r=30", "-f", "lavfi", "-i", "color=c=blue:s=360x640:d=1:r=30",
+                    "-f", "lavfi", "-i", "color=c=black:s=360x640:d=1:r=30", "-f", "lavfi", "-i", "testsrc2=s=360x640:d=1.5:r=30",
+                    "-filter_complex", "[0][1][2][3]concat=n=4:v=1:a=0,format=yuv420p", str(v)], check=True)
+    d = RF.detect_cuts(str(v), "both")
+    assert d["cut_method"] == "adaptive" and d["cuts"] and d["cuts"][0] == pytest.approx(2.0, abs=0.1)
+    assert "ffmpeg_cuts" in d["compare"]
+    assert RF.detect_cuts(str(v), "ffmpeg")["cut_method"] == "ffmpeg"
+    monkeypatch.setitem(sys.modules, "scenedetect", None)  # kurulu değil
+    fb = RF.detect_cuts(str(v))
+    assert fb["cut_method"] == "ffmpeg_fallback" and "NotFoundError" in fb["fallback_reason"] and fb["cuts"]
+    res = RF.analyze(str(v), tmp_path / "references" / "ref", motion=False)
+    assert res["cuts"]["cut_method"] == "ffmpeg_fallback" and res["cuts"]["fades_s"] == []

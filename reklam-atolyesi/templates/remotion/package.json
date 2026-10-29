@@ -10,6 +10,7 @@
     "@react-three/fiber": "9.8.2",
     "@remotion/bundler": "4.0.532",
     "@remotion/cli": "4.0.532",
+    "@remotion/layout-utils": "4.0.532",
     "@remotion/media-utils": "4.0.532",
     "@remotion/motion-blur": "4.0.532",
     "@remotion/renderer": "4.0.532",

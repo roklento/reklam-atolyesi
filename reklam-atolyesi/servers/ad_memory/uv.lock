@@ -29,6 +29,7 @@ dependencies = [
     { name = "pillow" },
     { name = "pillow-heif" },
     { name = "pyloudnorm" },
+    { name = "scenedetect" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "soundfile" },
@@ -52,6 +53,7 @@ requires-dist = [
     { name = "pillow" },
     { name = "pillow-heif" },
     { name = "pyloudnorm" },
+    { name = "scenedetect", specifier = "==0.7.2" },
     { name = "scipy" },
     { name = "soundfile" },
 ]
@@ -2221,6 +2223,23 @@ wheels = [
 ]
 
 [[package]]
+name = "scenedetect"
+version = "0.7.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "opencv-python" },
+    { name = "platformdirs" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/97/8e/79fbe5db61cbfeacbaa70f3863d5ded2bc9f5ec9637a688e5541d7fd9fa6/scenedetect-0.7.2.tar.gz", hash = "sha256:5bd42e4543c5a6d27dc4c2158bf05298473e9d58fec48938c951f5409a4d103f", size = 274560, upload-time = "2026-10-12T05:18:46.305Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/59/db/2a0701e48dcbe50f91f8ae186ebb275885ef820a5f9348ff0b52299e4def/scenedetect-0.7.2-py3-none-any.whl", hash = "sha256:953b89fe7e6b82a497c263e26245ad599b004aa7afa74814312980479a040641", size = 149715, upload-time = "2026-10-12T05:18:43.09Z" },
+]
+
+[[package]]
 name = "scikit-learn"
 version = "1.9.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2523,6 +2542,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/00/dc/6c58154c1c65f758ea979e7139cb76993a9cfc662d14e9be3c4a667cfb77/threadpoolctl-3.7.0.tar.gz", hash = "sha256:61348cfb77d53b9242e0017029244b559b810c142ced65b4e21eeca1843959a7", size = 31961, upload-time = "2026-09-15T15:46:20.263Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/43/3f/f88a53f60a472b46f4023f56d204dd7de33d34c5d2acbfa0d70a674e639e/threadpoolctl-3.7.0-py3-none-any.whl", hash = "sha256:cd8b60b5641b45c67bbf73c64c843235fc2d8a480c87389f52f5dbee893b86be", size = 26362, upload-time = "2026-09-15T15:46:19.168Z" },
+]
+
+[[package]]
+name = "tqdm"
+version = "4.70.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0d/ea/b2a5bd54b28a324dae8211928b2d730b6547500342c7e6c6dea08bd0a485/tqdm-4.70.1.tar.gz", hash = "sha256:cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4", size = 171846, upload-time = "2026-09-11T07:25:16.601Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a7/03/921a3d3c75785aca9ebfbfcabfbc3a1be12e2ab5265deb026d55a5a3f83e/tqdm-4.70.1-py3-none-any.whl", hash = "sha256:c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73", size = 80199, upload-time = "2026-09-11T07:25:14.599Z" },
 ]
 
 [[package]]

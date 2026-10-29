@@ -1,0 +1,8 @@
+{
+ "_doc": "Kurulu öteki plugin'lerin sınıflandırma tablosu (1.6.0; scripts/lib/plugin_scan.py). video: skill adı ya da açıklaması video üretimi/kurgu işini üstlenebilir (plan → render → QC kapılarını atlatma riski). paid_or_write: MCP sunucusu ücretli üretim ya da yayın/yazma sağlayıcısı; meta_guard ve cost_guard yalnızca ads_* ve creative_* araç adlarını korur, bu kalıba uymayan araçlar korumasızdır. hooks: araç kullanımına giren kanca olayları (bilgi). Desenler küçük harfe çevrilmiş metinde aranır; sağlayıcı adları sunucu adının ayraçlarla bölünmüş parçalarıyla eşleşir.",
+ "video_patterns": ["\\bremotion\\b", "\\bvideos?\\b", "\\bffmpeg\\b", "\\bsubtitles?\\b", "\\bcaptions?\\b", "altyaz", "\\bmotion[ -]graphics?\\b",
+                    "\\breels?\\b", "\\bkurgu\\b", "\\bmontaj\\b"],
+ "paid_or_write_providers": ["elevenlabs", "meta", "facebook", "instagram", "fal", "replicate", "runway", "runwayml", "heygen", "openai", "gemini",
+                             "luma", "kling", "higgsfield", "pika", "suno", "stability", "midjourney", "synthesia", "invideo", "descript"],
+ "hook_events": ["PreToolUse", "PostToolUse", "PostToolUseFailure", "UserPromptSubmit", "UserPromptExpansion", "Stop"]
+}

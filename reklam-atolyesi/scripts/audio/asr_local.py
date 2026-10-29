@@ -8,6 +8,8 @@ Kullanım:
       → DIR/<ad>.transcript.json (döküm: sözcük, zaman, olasılık; sınırlar enerji zarfıyla gerçek sese oturtulmuş, `words_raw` ham
         Whisper zamanı, `nonspeech` dökümde olmayan sesli bölgeler) ve DIR/<ad>.words.json (words_align biçimi).
         --script varsa altyazı yazımı metinden; okunuş farkları `diffs` (850 TL ↔ "sekiz yüz elli lira" fark sayılmaz).
+        1.6.0: Whisper'ın sözcük güveni (prob) LOW_PROB altındaysa kullanıcıya gösterilen dökümde `[?sözcük]` diye işaretlenir ve
+        `low_confidence` listesine girer; words.json'daki sözcük metni ve altyazı değişmez (işaret yalnızca okuma içindir).
   asr_local.py align --transcript x.transcript.json --script metin.txt --out x.words.json     (motor gerekmez)
   asr_local.py cuts --transcript x.transcript.json --out cuts.json [--script duzeltilmis.txt] [--at 0] [--fps 30]
       [--punch 1.12] [--restore r3.20,r9.74] [--keep-retakes] [--role context] [--id-prefix konusma] [--asset <varlık kimliği>]
@@ -242,6 +244,25 @@ def align(script: str, asr_words: list[dict]) -> dict:
     return {"words": words, "matches_script": not diffs, "diffs": diffs}
 
 
+LOW_PROB = 0.5  # faster-whisper sözcük olasılığı; altı "emin değilim" sayılır (1.6.0)
+
+
+def low_confidence(words: list[dict]) -> list[dict]:
+    """Düşük güvenli sözcükler (dolgu hariç): {i, text, start, prob}. prob yoksa (eski döküm) boş."""
+    return [{"i": i, "text": w["text"], "start": w.get("start"), "prob": w["prob"]} for i, w in enumerate(words)
+            if isinstance(w.get("prob"), (int, float)) and w["prob"] < LOW_PROB and not is_filler(w["text"])]
+
+
+def marked_text(words: list[dict]) -> str:
+    """Kullanıcıya gösterilecek döküm: düşük güvenli sözcük `[?sözcük]`."""
+    low = {x["i"] for x in low_confidence(words)}
+    return " ".join(f"[?{w['text']}]" if i in low else w["text"] for i, w in enumerate(words))
+
+
+LOW_NOTE = ("[?sözcük] işaretli yerlerden Whisper emin değil: kullanıcı o sözcükleri özellikle kontrol eder (özel ad, marka, fiyat, "
+            "ürün adı sık yanlış duyulur). İşaret yalnızca okuma içindir; altyazıya girmez.")
+
+
 def words_doc(script: str | None, tr: dict) -> dict:
     """words_align biçimi: words + captions + matches_script (+ diffs)."""
     if script:
@@ -251,8 +272,10 @@ def words_doc(script: str | None, tr: dict) -> dict:
         return {"words": al["words"], "captions": WA.chunks(al["words"]), "matches_script": al["matches_script"], "diffs": al["diffs"],
                 "timing": "whisper", "note": note}
     words = [{"text": w["text"], "start": w["start"], "end": w["end"]} for w in tr["words"] if not is_filler(w["text"])]
+    low = low_confidence(tr["words"])
+    note = "Makine dökümü: altyazıdan önce kullanıcı metni okur; düzeltilmiş metin `align --script` ile uygulanır."
     return {"words": words, "captions": WA.chunks(words), "matches_script": None, "timing": "whisper",
-            "note": "Makine dökümü: altyazıdan önce kullanıcı metni okur; düzeltilmiş metin `align --script` ile uygulanır."}
+            "text_marked": marked_text(tr["words"]), "low_confidence": low, "note": note + (" " + LOW_NOTE if low else "")}
 
 
 # --- Sözcük sınırlarını sese oturtma ---------------------------------------------------------------------------------------------
@@ -639,8 +662,10 @@ def main() -> None:
             write_json(od / f"{stem}.words.json", doc)
             out.append({"in": f["in"], "transcript": str(od / f"{stem}.transcript.json"), "words": str(od / f"{stem}.words.json"),
                         "duration_s": f["duration_s"], "asr_s": f["asr_s"], "matches_script": doc["matches_script"],
-                        "diffs": doc.get("diffs"), "text": " ".join(w["text"] for w in f["words"])})
-        emit({"engine": ENGINE, "model": res.get("model"), "load_s": res.get("load_s"), "files": out, "errors": res.get("errors") or []})
+                        "diffs": doc.get("diffs"), "text": marked_text(f["words"]),
+                        "low_confidence": [{k: x[k] for k in ("text", "start", "prob")} for x in low_confidence(f["words"])]})
+        emit({"engine": ENGINE, "model": res.get("model"), "load_s": res.get("load_s"), "files": out, "errors": res.get("errors") or [],
+              **({"note": LOW_NOTE} if any(o["low_confidence"] for o in out) else {})})
     elif a.cmd == "align":
         tr = read_json(a.transcript)
         doc = words_doc(Path(a.script).read_text(encoding="utf-8"), tr)

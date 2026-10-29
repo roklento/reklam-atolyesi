@@ -1,8 +1,11 @@
 // Yazı bileşenleri (spec 5.12): TextReveal, KineticWords, SoftType, LowerThird, PriceTag, CaptionTrack.
 // Bütün animasyonlar useCurrentFrame()'den türetilir; CSS geçişi/zamanlayıcı/Math.random yok.
+// 1.6.0: TextReveal, KineticWords, SoftType, LowerThird ve PriceTag etiketi satırlarını gerçek ölçümle kurar (fit.tsx): yazı kutuya
+// ve maxLines'a sığana dek fontSize'dan minFontSize'a küçülür; sığmıyorsa "YAZI SIĞMIYOR" çerçevesi çizilir.
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
+import { FitAlarm, FitSpec, lineStyle, useFit } from "./fit";
 import { clamp01, easeOutCubic, Entry } from "./types";
 
 const base = z.object({
@@ -10,9 +13,17 @@ const base = z.object({
   fontFamily: z.string().default("Inter"),
   fontWeight: z.number().default(700),
   fontSize: z.number().default(88),
+  minFontSize: z.number().default(52),  // sığdırırken inilebilecek en küçük boy (1.6.0)
+  maxLines: z.number().int().min(1).default(3),
   y: z.number().min(0).max(1).default(0.14),
   align: z.enum(["left", "center", "right"]).default("center"),
 });
+type Base = z.infer<typeof base>;
+// textBlock kutusu: soldan/sağdan %6 → iç genişlik bileşen genişliğinin %88'i
+const blockSpec = (p: Base & { text: string }, W: number, fontWeight = p.fontWeight, reserve = 0): FitSpec => ({ text: p.text,
+  fontFamily: p.fontFamily, fontWeight, fontSize: p.fontSize, minFontSize: p.minFontSize, boxWidth: W * 0.88 - reserve, maxLines: p.maxLines,
+  letterSpacing: "-0.01em" });
+const NBSP = "\u00a0";
 
 const textBlock = (p: { y: number; align: string; fontFamily: string; fontWeight: number; fontSize: number; color: string }): React.CSSProperties => ({
   position: "absolute", left: "6%", right: "6%", top: `${p.y * 100}%`, textAlign: p.align as React.CSSProperties["textAlign"],
@@ -23,18 +34,21 @@ const textBlock = (p: { y: number; align: string; fontFamily: string; fontWeight
 const textRevealSchema = base.extend({ text: z.string(), revealFrames: z.number().default(14), staggerFrames: z.number().default(5) });
 const TextReveal: React.FC<z.infer<typeof textRevealSchema>> = (p) => {
   const f = useCurrentFrame();
-  const lines = p.text.split("\n");
+  const { width } = useVideoConfig();
+  const fit = useFit(blockSpec(p, width), { component: "TextReveal", y: p.y, lineHeight: 1.12 });
   return (
     <AbsoluteFill>
-      <div style={textBlock(p)}>
-        {lines.map((ln, i) => {
-          const t = easeOutCubic((f - i * p.staggerFrames) / p.revealFrames);
-          return (
-            <div key={i} style={{ overflow: "hidden" }}>
-              <div style={{ transform: `translateY(${(1 - t) * 110}%)`, opacity: clamp01(t * 1.4) }}>{ln}</div>
-            </div>
-          );
-        })}
+      <div style={{ ...textBlock(p), fontSize: fit.fontSize }}>
+        <FitAlarm on={!fit.fits}>
+          {fit.lines.map((ln, i) => {
+            const t = easeOutCubic((f - i * p.staggerFrames) / p.revealFrames);
+            return (
+              <div key={i} style={{ overflow: "hidden" }}>
+                <div style={{ transform: `translateY(${(1 - t) * 110}%)`, opacity: clamp01(t * 1.4), ...lineStyle(fit) }}>{ln || NBSP}</div>
+              </div>
+            );
+          })}
+        </FitAlarm>
       </div>
     </AbsoluteFill>
   );
@@ -45,17 +59,30 @@ const kineticSchema = base.extend({ text: z.string(), framesPerWord: z.number().
   emphasisColor: z.string().default("#6B6B6B") });
 const KineticWords: React.FC<z.infer<typeof kineticSchema>> = (p) => {
   const f = useCurrentFrame();
-  const words = p.text.split(/\s+/).filter(Boolean);
+  const { width } = useVideoConfig();
+  const fit = useFit(blockSpec(p, width), { component: "KineticWords", y: p.y, lineHeight: 1.12 });
+  let idx = 0;  // vurgu dizini metnin bütün sözcükleri üzerinden sayılır
   return (
     <AbsoluteFill>
-      <div style={{ ...textBlock(p), display: "flex", flexWrap: "wrap", justifyContent: p.align === "center" ? "center" : p.align === "right" ? "flex-end" : "flex-start", gap: "0 0.28em" }}>
-        {words.map((w, i) => {
-          const t = easeOutCubic((f - i * p.framesPerWord) / 8);
-          return (
-            <span key={i} style={{ display: "inline-block", opacity: t, transform: `translateY(${(1 - t) * 30}px) scale(${0.92 + 0.08 * t})`,
-              color: p.emphasis.includes(i) ? p.emphasisColor : p.color }}>{w}</span>
-          );
-        })}
+      <div style={{ ...textBlock(p), fontSize: fit.fontSize }}>
+        <FitAlarm on={!fit.fits}>
+          {fit.lines.map((ln, li) => (
+            <div key={li} style={lineStyle(fit)}>
+              {ln.split(/\s+/).filter(Boolean).map((w, wi) => {
+                const i = idx++;
+                const t = easeOutCubic((f - i * p.framesPerWord) / 8);
+                return (
+                  <React.Fragment key={wi}>
+                    {wi > 0 ? " " : null}
+                    <span style={{ display: "inline-block", opacity: t, transform: `translateY(${(1 - t) * 30}px) scale(${0.92 + 0.08 * t})`,
+                      color: p.emphasis.includes(i) ? p.emphasisColor : p.color }}>{w}</span>
+                  </React.Fragment>
+                );
+              })}
+              {ln ? null : NBSP}
+            </div>
+          ))}
+        </FitAlarm>
       </div>
     </AbsoluteFill>
   );
@@ -65,15 +92,33 @@ const KineticWords: React.FC<z.infer<typeof kineticSchema>> = (p) => {
 const softTypeSchema = base.extend({ text: z.string(), charsPerSecond: z.number().default(18), cursor: z.boolean().default(true) });
 const SoftType: React.FC<z.infer<typeof softTypeSchema>> = (p) => {
   const f = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const chars = Array.from(p.text);
-  const n = Math.min(chars.length, Math.floor((f / fps) * p.charsPerSecond));
+  const { fps, width } = useVideoConfig();
+  const weight = Math.min(p.fontWeight, 500);
+  const fit = useFit(blockSpec(p, width, weight, p.cursor ? p.fontSize * 0.6 : 0), { component: "SoftType", y: p.y, lineHeight: 1.12 });
+  const lines = fit.lines.map((ln) => Array.from(ln));
+  const total = lines.reduce((a, l) => a + l.length, 0) + Math.max(0, lines.length - 1);
+  const n = Math.min(total, Math.floor((f / fps) * p.charsPerSecond));
   const blink = Math.floor(f / (fps / 2)) % 2 === 0;
+  // satırlar baştan yerinde durur (blok boyu yazarken değişmez); imleç o an yazılan satırdadır
+  let left = n;
+  let cursorDone = false;
   return (
     <AbsoluteFill>
-      <div style={textBlock({ ...p, fontWeight: Math.min(p.fontWeight, 500) })}>
-        {chars.slice(0, n).join("")}
-        {p.cursor && <span style={{ opacity: blink ? 1 : 0 }}>▍</span>}
+      <div style={{ ...textBlock({ ...p, fontWeight: weight }), fontSize: fit.fontSize }}>
+        <FitAlarm on={!fit.fits}>
+          {lines.map((cs, i) => {
+            const shown = cs.slice(0, Math.max(0, left)).join("");
+            const here = !cursorDone && (left <= cs.length || i === lines.length - 1);
+            if (here) cursorDone = true;
+            left -= cs.length + 1;
+            return (
+              <div key={i} style={lineStyle(fit)}>
+                {shown || (here ? null : NBSP)}
+                {p.cursor && here ? <span style={{ opacity: blink ? 1 : 0 }}>▍</span> : null}
+              </div>
+            );
+          })}
+        </FitAlarm>
       </div>
     </AbsoluteFill>
   );
@@ -81,16 +126,26 @@ const SoftType: React.FC<z.infer<typeof softTypeSchema>> = (p) => {
 
 // --- LowerThird
 const lowerThirdSchema = z.object({ title: z.string(), subtitle: z.string().default(""), color: z.string().default("#1F1F1F"),
-  bg: z.string().default("rgba(230,230,230,0.92)"), accent: z.string().default("#6B6B6B"), fontFamily: z.string().default("Inter"), y: z.number().default(0.62) });
+  bg: z.string().default("rgba(230,230,230,0.92)"), accent: z.string().default("#6B6B6B"), fontFamily: z.string().default("Inter"), y: z.number().default(0.62),
+  minFontSize: z.number().default(36) });  // başlık için; alt başlık aynı oranda (1.6.0)
 const LowerThird: React.FC<z.infer<typeof lowerThirdSchema>> = (p) => {
   const f = useCurrentFrame();
+  const { width } = useVideoConfig();
   const t = easeOutCubic(f / 12);
+  const box = width * 0.88 - 70;  // en çok %88 genişlik; iç boşluk 2×30 + sol şerit 10
+  const tf = useFit({ text: p.title, fontFamily: p.fontFamily, fontWeight: 700, fontSize: 54, minFontSize: p.minFontSize, boxWidth: box, maxLines: 2 },
+    { component: "LowerThird", part: "title", y: p.y, lineHeight: 1.2, padY: 44 });
+  const sf = useFit({ text: p.subtitle, fontFamily: p.fontFamily, fontWeight: 400, fontSize: 36, minFontSize: Math.round((p.minFontSize * 36) / 54),
+    boxWidth: box, maxLines: 2 }, { component: "LowerThird", part: "subtitle", y: p.y, lineHeight: 1.2 });
   return (
     <AbsoluteFill>
-      <div style={{ position: "absolute", left: "6%", top: `${p.y * 100}%`, transform: `translateX(${(1 - t) * -60}px)`, opacity: t,
+      <div style={{ position: "absolute", left: "6%", maxWidth: "88%", boxSizing: "border-box", top: `${p.y * 100}%`, transform: `translateX(${(1 - t) * -60}px)`, opacity: t,
         background: p.bg, padding: "22px 30px", borderLeft: `10px solid ${p.accent}`, fontFamily: p.fontFamily, color: p.color }}>
-        <div style={{ fontSize: 54, fontWeight: 700 }}>{p.title}</div>
-        {p.subtitle ? <div style={{ fontSize: 36, fontWeight: 400, opacity: 0.85 }}>{p.subtitle}</div> : null}
+        <FitAlarm on={!tf.fits || !sf.fits}>
+          <div style={{ fontSize: tf.fontSize, fontWeight: 700, lineHeight: 1.2 }}>{tf.lines.map((ln, i) => <div key={i} style={lineStyle(tf)}>{ln}</div>)}</div>
+          {p.subtitle ? <div style={{ fontSize: sf.fontSize, fontWeight: 400, opacity: 0.85, lineHeight: 1.2 }}>
+            {sf.lines.map((ln, i) => <div key={i} style={lineStyle(sf)}>{ln}</div>)}</div> : null}
+        </FitAlarm>
       </div>
     </AbsoluteFill>
   );
@@ -101,22 +156,26 @@ const priceTagSchema = z.object({ price: z.number().nullable(), currency: z.stri
   referencePriceVerified: z.boolean().default(false), label: z.string().default(""), color: z.string().default("#1F1F1F"),
   bg: z.string().default("#E6E6E6"), fontFamily: z.string().default("Inter"), x: z.number().default(0.5), y: z.number().default(0.7),
   // Sayı biçimi profilin dilinden/para biriminden gelir (plan prop'u); varsayılan userConfig dil varsayılanıyla (tr) aynıdır.
-  locale: z.string().default("tr-TR") });
+  locale: z.string().default("tr-TR"), labelMinFontSize: z.number().default(24) });
 const fmt = (v: number, locale: string) => v.toLocaleString(locale, { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const PriceTag: React.FC<z.infer<typeof priceTagSchema>> = (p) => {
   const f = useCurrentFrame();
+  const { width } = useVideoConfig();
   const t = easeOutCubic(f / 10);
   const missing = p.price === null || !p.currency;
+  const lf = useFit({ text: p.label, fontFamily: p.fontFamily, fontWeight: 400, fontSize: 32, minFontSize: p.labelMinFontSize, boxWidth: width * 0.88 - 68,
+    maxLines: 2 }, { component: "PriceTag", part: "label", y: p.y, mode: "center", lineHeight: 1.2 });
   return (
     <AbsoluteFill>
       <div style={{ position: "absolute", left: `${p.x * 100}%`, top: `${p.y * 100}%`, transform: `translate(-50%,-50%) scale(${0.85 + 0.15 * t})`,
         opacity: t, background: missing ? "#B00020" : p.bg, color: missing ? "#FFFFFF" : p.color, fontFamily: p.fontFamily, padding: "18px 34px",
-        borderRadius: 14, textAlign: "center" }}>
+        borderRadius: 14, textAlign: "center", maxWidth: "88%", boxSizing: "border-box" }}>
         {missing ? (
           <div style={{ fontSize: 40, fontWeight: 700 }}>FİYAT/PARA BİRİMİ YOK</div>
         ) : (
           <>
-            {p.label ? <div style={{ fontSize: 32 }}>{p.label}</div> : null}
+            {p.label ? <FitAlarm on={!lf.fits}><div style={{ fontSize: lf.fontSize, lineHeight: 1.2 }}>
+              {lf.lines.map((ln, i) => <div key={i} style={lineStyle(lf)}>{ln}</div>)}</div></FitAlarm> : null}
             {p.referencePrice !== null && p.referencePriceVerified ? (
               <div style={{ fontSize: 34, textDecoration: "line-through", opacity: 0.7 }}>{fmt(p.referencePrice, p.locale)} {p.currency}</div>
             ) : null}
@@ -179,15 +238,15 @@ const CaptionTrack: React.FC<z.infer<typeof captionSchema>> = (p) => {
 };
 
 export const TEXT: Entry[] = [
-  { name: "TextReveal", category: "text", version: "1.0.0", schema: textRevealSchema, Component: TextReveal,
+  { name: "TextReveal", category: "text", version: "1.1.0", schema: textRevealSchema, Component: TextReveal,
     demo: textRevealSchema.parse({ text: "Örnek başlık\nğüşiöç İĞÜŞÇÖ" }) },
-  { name: "KineticWords", category: "text", version: "1.0.0", schema: kineticSchema, Component: KineticWords,
+  { name: "KineticWords", category: "text", version: "1.1.0", schema: kineticSchema, Component: KineticWords,
     demo: kineticSchema.parse({ text: "Örnek metin kelime kelime açılır", emphasis: [1] }) },
-  { name: "SoftType", category: "text", version: "1.0.0", schema: softTypeSchema, Component: SoftType,
+  { name: "SoftType", category: "text", version: "1.1.0", schema: softTypeSchema, Component: SoftType,
     demo: softTypeSchema.parse({ text: "Örnek yazı yavaşça yazılır" }) },
-  { name: "LowerThird", category: "text", version: "1.0.0", schema: lowerThirdSchema, Component: LowerThird,
+  { name: "LowerThird", category: "text", version: "1.1.0", schema: lowerThirdSchema, Component: LowerThird,
     demo: lowerThirdSchema.parse({ title: "Marka A", subtitle: "Örnek alt başlık" }) },
-  { name: "PriceTag", category: "text", version: "1.0.0", schema: priceTagSchema, Component: PriceTag,
+  { name: "PriceTag", category: "text", version: "1.1.0", schema: priceTagSchema, Component: PriceTag,
     demo: priceTagSchema.parse({ price: 100, currency: "PB", label: "Örnek fiyat" }) },
   { name: "CaptionTrack", category: "text", version: "1.0.0", schema: captionSchema, Component: CaptionTrack,
     demo: captionSchema.parse({ preset: "keyword", captions: [

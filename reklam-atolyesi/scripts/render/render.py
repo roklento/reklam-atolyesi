@@ -116,6 +116,25 @@ def stage_public(project: Path, scene_map: dict | None) -> dict:
     return assets
 
 
+def merge_layout(paths: list[Path]) -> dict:
+    """Segmentlerin ölçülmüş yazı yerleşimi (render.mjs → <segment>.layout.json; 1.6.0). Önbellekten gelen segmentin dosyası da okunur;
+    1.6.0 öncesi önbellekte dosya yoksa o segment 'unmeasured' listesine düşer (QC o katmanda tahmine döner)."""
+    seen, records, missing = set(), [], []
+    for p in paths:
+        f = p.with_name(p.name + ".layout.json")
+        try:
+            recs = json.loads(f.read_text(encoding="utf-8")).get("records") or []
+        except (OSError, ValueError):
+            missing.append(p.name)
+            continue
+        for r in recs:
+            k = json.dumps(r, sort_keys=True, ensure_ascii=False)
+            if k not in seen:
+                seen.add(k)
+                records.append(r)
+    return {"records": records, "unmeasured_segments": missing}
+
+
 def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dict | None, style_path: str | None, scene_map: dict | None,
                 captions: list | None, quality: str, parallel_jobs: int, still: int | None, use_cache: bool, beats: list | None) -> dict:
     if quality == "final" and plan.get("status") != "ready":
@@ -159,8 +178,12 @@ def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dic
     listfile.write_text("".join(f"file '{p.as_posix()}'\n" for p in segments), encoding="utf-8")
     out.parent.mkdir(parents=True, exist_ok=True)
     ffmpeg(["-f", "concat", "-safe", "0", "-i", str(listfile), "-c", "copy", "-movflags", "+faststart", str(out)])
+    layout = merge_layout(segments)
+    layout_path = out.with_name(out.name + ".layout.json")
+    write_json(layout_path, layout)
     ms = int((time.time() - t0) * 1000)
-    return {"out": str(out), "sha256": sha256_file(out), "quality": quality, "scale": scale, "concurrency": conc, "render_budget": render_budget(),
+    return {"out": str(out), "sha256": sha256_file(out), "layout": str(layout_path),
+            "text_overflow": [{"component": r.get("component"), "part": r.get("part"), "text": r.get("text")} for r in layout["records"] if r.get("fits") is False], "quality": quality, "scale": scale, "concurrency": conc, "render_budget": render_budget(),
             "segments_total": len(segments), "segments_rendered": len(jobs), "segments_reused": len(segments) - len(jobs), "ms": ms,
             "timing_record": {"format": plan["format"], "scenes": len(plan["scenes"]), "quality": quality, "ms": ms,
                               "glsl": any(l.get("component") in ("LightRays", "ParticleSwirl", "HeatShimmer") for s in plan["scenes"] for l in s["layers"])}}

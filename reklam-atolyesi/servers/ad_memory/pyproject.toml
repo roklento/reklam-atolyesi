@@ -17,6 +17,7 @@ dependencies = [
   "pillow-heif",      # kontak sayfası, fotoğraflar (HEIC, 5.4)
   "jsonschema",       # kurgu planı doğrulama (5.2)
   "duckdb",           # (isteğe bağlı) analitik sorgular (7.1)
+  "scenedetect==0.7.2",  # sahne kesimi (AdaptiveDetector; BSD-3; 1.6.0); opencv-python yukarıda, ek sürücü gerekmez
 ]
 
 [project.scripts]

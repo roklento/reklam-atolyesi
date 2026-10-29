@@ -66,3 +66,6 @@ Lisans: https://www.remotion.dev/docs/license/faq (`ref-legal-tr-meta`). Repoya 
 Makinede `~/.claude/skills` altında genel `remotion-*` skill'leri varsa (kullanıcı başka işler için kurmuş olabilir) plugin işlerinde
 **okunmaz ve uygulanmaz**; Remotion için yalnızca bu tablo ve `ref-remotion-components` geçerlidir. Kurulumda kullanıcı bu skill'lere
 dokunulmamasını seçerse doctor bunu `global_skills` sapması olarak kaydeder.
+Aynı kural kurulu **öteki plugin'ler** için de geçerlidir (1.6.0): Remotion'un resmi Claude Code plugin'i (`remotion@remotion`) ya da
+başka bir video/altyazı plugin'i kuruluysa onun skill'leri ve MCP araçları bu plugin'in işlerinde okunmaz ve çağrılmaz. Kurulum
+denetimi bunları `scripts/lib/plugin_scan.py` ile bulur; kullanıcı kapatmazsa `plugins` sapması olarak kaydedilir.

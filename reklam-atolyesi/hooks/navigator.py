@@ -9,12 +9,16 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import re
 import sys
 import traceback
 
 import menu as mn
 import plugin_mode as pm
+
+sys.path.insert(0, str(pm.PLUGIN_ROOT / "scripts" / "lib"))
+import plugin_scan as ps  # noqa: E402
 
 DECISION_HINTS = ("onay", "evet", "tamam", "seç", "sec", "olsun", "istemiyorum", "hayır", "hayir", "reddet", "kabul", "birleştir",
                   "birlestir", "değiştir", "degistir", "ertele", "kaydet", "bunu yapalım", "devam")
@@ -63,6 +67,29 @@ def status_lines(data_dir, sess: dict) -> list[str]:
     if sess.get("screen") == "menu":
         lines.append("son ekran: ana menü (tek sayı sabit menü maddesidir)")
     return lines
+
+
+def plugin_clash_line(data_dir) -> str | None:
+    """1.6.0: kurulumdan sonra eklenen, video üretimi ya da ücretli/yazma sağlayıcısı olan öteki plugin (kimliği kabul edilmiş sapmada
+    yoksa) tek satırlık uyarı. Yalnızca diskteki kayıtlar okunur (CLI ve ağ yok); bir şey okunamazsa sessiz kalır."""
+    sc = ps.scan(use_cli=False)
+    if not sc["clash"]:
+        return None
+    ok_ids: set[str] = set()
+    con = pm.ro_db(data_dir)
+    if con is not None:
+        try:
+            row = con.execute("SELECT value FROM settings WHERE key='install_deviations_json'").fetchone()
+            for d in json.loads(row[0]) if row and row[0] else []:
+                if d.get("check") == "plugins" and d.get("status") == "accepted":
+                    ok_ids |= set(d.get("plugin_ids") or [])
+        finally:
+            con.close()
+    new = [i for i in sc["clash"] if i not in ok_ids]
+    if not new:
+        return None
+    return (f"UYARI (menünün üstünde 1 kısa satır): video üretimi ya da ücretli/yayın işi yapabilen öteki plugin açık: {', '.join(new[:3])}. "
+            "Bu oturumda onların skill'lerini kullanma; kullanıcıya kurulum-kontrol ile kapatabileceğini (geri alınabilir) ya da açık bırakabileceğini söyle.")
 
 
 MENU_RULE = ("Menüyü SEN yazma, madde ekleme/çıkarma/yeniden adlandırma: aşağıdaki MENÜ bloğunu (işaretler hariç) olduğu gibi göster. "
@@ -158,6 +185,13 @@ def main() -> int:
                     out.append(f"Kullanıcı ana menünün {n}. maddesini seçti: «{lab}». Yapılacak: {it['action']}")
                 else:
                     out.append(f"Kullanıcı '{n}' yazdı ama ana menüde {len(mn.load()['items'])} madde var; ne istediğini sor.")
+        if trig:
+            try:
+                warn = plugin_clash_line(data_dir)
+                if warn:
+                    out.append(warn)
+            except Exception:  # tarama hiçbir zaman menüyü engellemez
+                pass
     except Exception as e:  # menü üretilemese bile mod çalışır
         out.append(f"menü üretilemedi ({type(e).__name__}: {e}); menu_render(session_id) aracını dene, o da olmazsa kullanıcıya söyle.")
     try:

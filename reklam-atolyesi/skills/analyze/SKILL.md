@@ -44,7 +44,8 @@ gerçek çekimli eşin kullanılabilirliği.
    ücretsiz, bilgisayardan çıkmaz; CPU'da sesin süresinden biraz kısa sürer). Sözcük sınırları ses enerjisine oturtulur; dökümde
    olmayan sesli bölgeler (çoğunlukla "eee"/nefes) `nonspeech` olarak kalır. Motor kurulu değilse kullanıcıya boyutu söylenir, onayla
    `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine whisper --yes` (≈ 1,9 GB); kurmak istemezse konuşmalı kurgu önerisi yapılmaz,
-   sahne elle kurgulanır. Döküm makine çıktısıdır: metin kullanıcıya gösterilir; düzeltirse düzeltilmiş metin S10'da `--script` ile
+   sahne elle kurgulanır. Döküm makine çıktısıdır: metin kullanıcıya gösterilir (çıktıdaki `text`; Whisper'ın emin olmadığı sözcükler
+   `[?sözcük]` işaretli ve `low_confidence` listesinde — kullanıcıdan özellikle bunlara bakması istenir; işaret altyazıya girmez); düzeltirse düzeltilmiş metin S10'da `--script` ile
    uygulanır. Döküm yolu klip kaydının `notes` alanına.
 5. **Malzeme haritası:** `clips.json` (`[{asset, shot_no, score, best_ranges, used_in, path}]`) hazırla →
    `PY PR/scripts/analyze/material_map.py --menu analysis/shoot_menu.json --clips analysis/clips.json [--photos analysis/photos.json]

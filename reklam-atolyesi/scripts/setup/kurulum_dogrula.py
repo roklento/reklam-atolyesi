@@ -29,6 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "servers" / "ad_memory"))
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
 TR_REFERENCE = ROOT / "scripts" / "setup" / "referans" / "tr_final_kare30.png"
 GALLERY_REFERENCE = ROOT / "templates" / "remotion" / "gallery.png"
@@ -180,6 +181,60 @@ def handle_global_skills(data_dir: Path, choice: str, interactive: bool) -> tupl
     return rec, {"clash": clash, "karar": "dokunulmadı (sapma olarak kaydedilecek)"}
 
 
+def handle_plugins(data_dir: Path, choice: str, interactive: bool, claude: str | None) -> tuple[dict | None, dict]:
+    """Öteki plugin'ler (1.6.0; scripts/lib/plugin_scan.py). Video üretimi skill'i ya da ücretli/yazma sağlayıcısı MCP'si olan etkin plugin:
+    'devre-disi': `claude plugin disable` ile kapatılır (geri alınabilir, kaldırılmaz; kuruma zorunlu senkron plugin kapatılamaz);
+    'birak': kullanıcı kararı kimlik listesiyle 'plugins' sapması olarak kaydedilir; 'sor': etkileşimli konsolda sorulur, değilse karar yok
+    (doctor maddeyi kırmızı gösterir). Daha önce kabul edilmiş kimlikler yeniden sorulmaz. Dönüş: (sapma kaydı ya da None, adım ayrıntısı)."""
+    import doctor as DR
+    import plugin_scan as PS
+    claude = DR.find_claude(claude)
+    sc = PS.scan(claude)
+    known = DR.accepted_plugin_ids(DR.load_install_deviations(data_dir))
+    clash = [p for p in sc["plugins"] if p["id"] in sc["clash"]]
+    new = [p for p in clash if p["id"] not in known]
+    det = {"source": sc["source"], "clash": [{"id": p["id"], "categories": p["categories"]} for p in clash], "notes": sc["notes"]}
+    if not clash:
+        return None, det
+    if not new:
+        return None, {**det, "karar": "daha önce kabul edilmiş sapma (dokunulmadı)"}
+    if choice == "sor":
+        if interactive and sys.stdin and sys.stdin.isatty():
+            say("  Kurulu öteki plugin'lerden bazıları video üretimi ya da ücretli/yayın işi yapabiliyor:")
+            for p in new:
+                c = p["categories"]
+                why = "; ".join(x for x in (("video skill'leri: " + ", ".join(c["video"][:4])) if c["video"] else "",
+                                             ("sağlayıcı: " + ", ".join(c["paid_or_write"][:4])) if c["paid_or_write"] else "") if x)
+                say(f"   - {p['id']} ({why})")
+            say("  reklam-atolyesi bunları kullanmaz; açık kalırlarsa video işinde plan, render ve QC kapılarını atlatabilirler.")
+            say("  Kapatmak geri alınabilir (claude plugin enable <ad>); plugin silinmez.")
+            while True:
+                ans = input("  [K] kapat  /  [D] dokunma: ").strip().lower()
+                if ans in ("k", "kapat", "devre-disi"):
+                    choice = "devre-disi"
+                    break
+                if ans in ("d", "dokunma", "b", "birak", "bırak"):
+                    choice = "birak"
+                    break
+        else:
+            return None, {**det, "karar": "verilmedi (etkileşimsiz); --plugins devre-disi|birak ile yeniden çalıştırın"}
+    if choice == "devre-disi" and claude:
+        res = [PS.disable(claude, p) for p in new]
+        left = [x["id"] for x in res if not x["ok"]]
+        det = {**det, "karar": "kapatıldı" if not left else "kısmen kapatıldı", "sonuc": res}
+        if not left:
+            return None, det
+        new = [p for p in new if p["id"] in left]  # kapatılamayan (ör. kuruma zorunlu) sapma olarak kaydedilir
+    elif choice == "devre-disi":
+        det = {**det, "karar": "kapatılamadı (claude yürütülebilir dosyası bulunamadı)"}
+    ids = sorted(p["id"] for p in new) + sorted(known & set(sc["clash"]))
+    rec = {"id": "other_plugins", "check": "plugins", "spec": "1.6.0 A", "plugin_ids": sorted(set(ids)),
+           "deviation": (f"Video üretimi ya da ücretli/yazma sağlayıcısı olan öteki plugin'ler açık bırakıldı ({', '.join(sorted(set(ids)))}). "
+                         "reklam-atolyesi bunların skill'lerini okumaz ve uygulamaz; Remotion için ref-remotion-components ve ref-vendor-map geçerlidir."),
+           "decided_by": "user", "decided_at": dt.date.today().isoformat(), "status": "accepted"}
+    return rec, {**det, "karar": det.get("karar", "dokunulmadı") + " (sapma olarak kaydedilecek)"}
+
+
 def backup_before_update(data_dir: Path, version: str) -> dict:
     db = data_dir / "db" / "ad-memory.sqlite"
     if not db.exists():
@@ -202,6 +257,9 @@ def main() -> None:
     ap.add_argument("--etkilesimli", action="store_true", help="eşik geçilmezse kareleri açıp kullanıcıya sor")
     ap.add_argument("--global-skills", choices=("sor", "tasi", "birak"), default="sor",
                     help="~/.claude/skills altında çakışan genel skill'ler: sor (etkileşimli), tasi (yedeğe taşı), birak (sapma olarak kaydet)")
+    ap.add_argument("--plugins", choices=("sor", "devre-disi", "birak"), default="sor",
+                    help="video üretimi ya da ücretli/yazma sağlayıcısı olan öteki plugin'ler: sor (etkileşimli), devre-disi (claude plugin disable), "
+                         "birak (sapma olarak kaydet)")
     ap.add_argument("--work")
     ap.add_argument("--json-out")
     a = ap.parse_args()
@@ -269,10 +327,15 @@ def main() -> None:
     rec, gdet = handle_global_skills(data_dir, a.global_skills, a.etkilesimli)
     if gdet.get("clash"):
         step("Çakışan genel skill'ler (~/.claude/skills)", gdet.get("karar", "").startswith(("yedeğe", "dokunulmadı", "daha önce")), gdet)
-    if rec:
+    prec, pdet = handle_plugins(data_dir, a.plugins, a.etkilesimli, a.claude)
+    if pdet.get("clash"):
+        step("Öteki plugin'ler (video üretimi / ücretli sağlayıcı)",
+             pdet.get("karar", "").startswith(("kapatıldı", "kısmen", "kapatılamadı", "dokunulmadı", "daha önce")), pdet)
+    new_recs = [x for x in (rec, prec) if x]
+    if new_recs:
         recs = json.loads(Path(a.deviations_json).read_text(encoding="utf-8")) if a.deviations_json else []
         dev_json = str(work / "sapmalar.json")
-        Path(dev_json).write_text(json.dumps([*recs, rec], ensure_ascii=False, indent=1), encoding="utf-8")
+        Path(dev_json).write_text(json.dumps([*recs, *new_recs], ensure_ascii=False, indent=1), encoding="utf-8")
 
     say("• Statik kontrol (doctor; otomatik testler dahil, yaklaşık 5 dk)…")
     args = [str(ROOT / "scripts" / "setup" / "doctor.py"), "--data-dir", str(data_dir), "--results-dir", str(work),

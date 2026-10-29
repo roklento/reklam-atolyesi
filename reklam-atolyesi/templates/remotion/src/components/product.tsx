@@ -5,17 +5,24 @@ import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
 import { clamp01, easeInOut, easeOutCubic, Entry } from "./types";
 import { DemoPanel, DemoSubject } from "./demo";
+import { FitAlarm, lineStyle, useFit } from "./fit";
 
 const bstSchema = z.object({ text: z.string(), background: z.string().nullable().default(null), cutout: z.string().nullable().default(null),
-  color: z.string().default("#FFFFFF"), fontFamily: z.string().default("Inter"), fontSize: z.number().default(220), y: z.number().default(0.32) });
+  color: z.string().default("#FFFFFF"), fontFamily: z.string().default("Inter"), fontSize: z.number().default(220), y: z.number().default(0.32),
+  minFontSize: z.number().default(120), maxLines: z.number().int().min(1).default(2) });
 const BehindSubjectText: React.FC<z.infer<typeof bstSchema>> = (p) => {
   const f = useCurrentFrame();
+  const { width } = useVideoConfig();
   const t = easeOutCubic(f / 14);
+  const fit = useFit({ text: p.text, fontFamily: p.fontFamily, fontWeight: 700, fontSize: p.fontSize, minFontSize: p.minFontSize, boxWidth: width * 0.94,
+    maxLines: p.maxLines, letterSpacing: "-0.02em" }, { component: "BehindSubjectText", y: p.y, lineHeight: 1.1 });
   return (
     <AbsoluteFill>
       {p.background ? <Img src={p.background} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <DemoPanel withProduct={false} label="" />}
       <div style={{ position: "absolute", left: 0, right: 0, top: `${p.y * 100}%`, textAlign: "center", fontFamily: p.fontFamily, fontWeight: 700,
-        fontSize: p.fontSize, color: p.color, opacity: t, transform: `translateY(${(1 - t) * 40}px)`, letterSpacing: "-0.02em" }}>{p.text}</div>
+        fontSize: fit.fontSize, color: p.color, opacity: t, transform: `translateY(${(1 - t) * 40}px)`, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+        <FitAlarm on={!fit.fits}>{fit.lines.map((ln, i) => <div key={i} style={lineStyle(fit)}>{ln}</div>)}</FitAlarm>
+      </div>
       {p.cutout ? <Img src={p.cutout} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} /> : <DemoSubject />}
     </AbsoluteFill>
   );
@@ -67,7 +74,7 @@ const StillTurn: React.FC<z.infer<typeof turnSchema>> = (p) => {
 };
 
 export const PRODUCT: Entry[] = [
-  { name: "BehindSubjectText", category: "product", version: "1.0.0", schema: bstSchema, Component: BehindSubjectText, demo: bstSchema.parse({ text: "ÖRNEK" }) },
+  { name: "BehindSubjectText", category: "product", version: "1.1.0", schema: bstSchema, Component: BehindSubjectText, demo: bstSchema.parse({ text: "ÖRNEK" }) },
   { name: "Spotlight", category: "product", version: "1.0.0", schema: spotSchema, Component: Spotlight, demo: spotSchema.parse({}) },
   { name: "OutlineGlow", category: "product", version: "1.0.0", schema: outlineSchema, Component: OutlineGlow, demo: outlineSchema.parse({}) },
   { name: "StillTurn", category: "product", version: "1.0.0", schema: turnSchema, Component: StillTurn, demo: turnSchema.parse({ sheen: true }) },
