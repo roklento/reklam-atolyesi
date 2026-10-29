@@ -1,2 +1,0 @@
-[console_scripts]
-ad-memory = server:main
