@@ -1,7 +1,8 @@
 """Tasarım sesleri kodla sentez (spec 5.9): whoosh, shimmer, riser, impact, pop, tone. Deterministik (tohumlu).
 
 Kullanım: sfx_synth.py --kind whoosh --dur 0.6 --out whoosh.wav [--seed 7] [--gain-db -6]
-Organik sesler (kağıt, kumaş, sıvı…) ElevenLabs sfx ile, fiyat ve onayla üretilir; burası yalnızca tasarım sesleri.
+Organik sesler (kağıt, kumaş, sıvı…) önce ses kütüphanesinden (sfx_library.py), yoksa ElevenLabs sfx ile, fiyat ve onayla; burası
+yalnızca tasarım sesleri.
 """
 from __future__ import annotations
 

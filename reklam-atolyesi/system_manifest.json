@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.5.3",
+ "plugin_version": "1.5.4",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -299,7 +299,7 @@
    "name": "ref-vendor-map",
    "kind": "reference",
    "description": "reklam-atolyesi hazır skill eşlemesi — hangi aşamada hangi vendor dosyasının hangi bölümü okunur, önce OVERRIDES kuralı, devre dışı kısımlar ve Remotion için resmi belge yolu.",
-   "sha256": "e8cef52e0dd28d9b37bbd09b30e03e04dbb4d59cf2dd11f19c8e08a818c65749"
+   "sha256": "6b592b4ef3cfd60cd10f369f916123b84b9f38ca8f98b7e747cd4707e4c4966b"
   },
   {
    "name": "shoot-feedback",
@@ -311,13 +311,13 @@
    "name": "shoot-guide",
    "kind": "stage",
    "description": "reklam-atolyesi S04 çekim planı — hiç video çekmemiş biri için ürün tarifini uygulayan kartlar, numaralı çekim menüsü (her hook ayrı satır), fotoğraf listesi, ses talimatı, sfx_plan. Kapılı.",
-   "sha256": "ead58fb1b61464a3208ee2080d28cb26ec351dd7a123d446c6e0e5957b5d4fe4"
+   "sha256": "5eafe5c17034b630e43bfc8b66ec4047e8c09f9fce6250193993b862811679c3"
   },
   {
    "name": "sound",
    "kind": "stage",
    "description": "reklam-atolyesi S11 ses — sahne ses kararlarını uygular, vuruş haritası, temizlik, ducking, -14 LUFS/≤-1 dBTP miks, telefon testi, altyazı; taslağı kullanıcıyla izletir. Kapılı (taslak).",
-   "sha256": "6b26730d1decd8910fe4359953367c190b6bde4de32dc45f2f035685ba264abe"
+   "sha256": "e824cd673f39eb861a8ec44147be8b64b50ab7f9ec290b0235be41e144d3f129"
   },
   {
    "name": "strategy",
@@ -891,11 +891,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 336,
+   "passed": 341,
    "failed": 3,
    "skipped": 5,
    "returncode": 1,
-   "summary": "336 passed, 3 failed, 5 skipped (1.5.3, Linux bulut ortamı). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.5.3 Windows'ta çalıştırılmadı.",
+   "summary": "341 passed, 3 failed, 5 skipped (1.5.4, Linux bulut ortamı; yeni testler tests/test_v154_sfx.py: Türkçe efekt araması ve kaynağı kayıtlı arşiv). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.5.4 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
@@ -1499,6 +1499,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama; eklenen satırlar yalnızca Meta yardım merkezi ve Meta Engineering bağlantıları içerir",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "1.5.4: scripts/audio/sfx_library.py, sfx_synth.py, sound, shoot-guide ve ref-vendor-map skill'leri, ai-product-video OVERRIDES.md, 5 arşiv dosyasının silinmesi, test_v154_sfx.py, README",
+    "files_reviewed": 13,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); eklenen satırlar yalnızca genel ses etiketleri ve arşiv dosya adları içerir",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1509,17 +1517,17 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "0b4bedfe49115db468b134de0fc6dc5a4aab6b92dc245b52495b0c1d17b56074",
+   "plugin_json": "3ea912251a163808dac1bf4dcbfe76330f0155c27485adb11133bfb94fdc7f6c",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "cb685a96f8edf9439f0053a2cc2c54e1bb72410b914b4c75c467140800b34dde",
+   "skills": "9b98db09a089b4f79d2f81b9488bb787dcb43a5d1afe1e7e57eed66cd2b1a442",
    "agents": "1c66986a8ab9ad4b532377ba4bebae5793ea6f5bcfc803d48ccd737cd42826f1",
    "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "eac9577ca4fca01829bc5d58cf92a601c9f3ba6991b3b54ed71758de178dad2a",
    "ad_memory": "afaf9094a2601959330b77cc5e0e5a93bd2980330206e9af228bc3637aa9df8a",
-   "scripts": "9e6f07843005a85ecf0568869cfecdb12dd1cd79a34f5d0ecc83c8cd0d0263cf",
+   "scripts": "e03e99dc61670bf6041d489ea90f570213cd5718c93c92dd7ed205e333b6eecb",
    "templates": "811793f2e4381c3d215a6c8edeedf54a2e9cd351bbe56c45751a5870b6e8ecc2",
-   "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
+   "vendor_skills": "b391133e403bb484e134ef569f65aaf3305fd56369f1f4f1fba96a55ab9c3a2b"
   },
   "checked_at": "2026-10-29"
  },
@@ -1678,17 +1686,17 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "0b4bedfe49115db468b134de0fc6dc5a4aab6b92dc245b52495b0c1d17b56074",
+  "plugin_json": "3ea912251a163808dac1bf4dcbfe76330f0155c27485adb11133bfb94fdc7f6c",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "cb685a96f8edf9439f0053a2cc2c54e1bb72410b914b4c75c467140800b34dde",
+  "skills": "9b98db09a089b4f79d2f81b9488bb787dcb43a5d1afe1e7e57eed66cd2b1a442",
   "agents": "1c66986a8ab9ad4b532377ba4bebae5793ea6f5bcfc803d48ccd737cd42826f1",
   "commands": "4af3d2091277797e9e78ab85b634c698e57e23acfacec408dadc890d5d33aebb",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "eac9577ca4fca01829bc5d58cf92a601c9f3ba6991b3b54ed71758de178dad2a",
   "ad_memory": "afaf9094a2601959330b77cc5e0e5a93bd2980330206e9af228bc3637aa9df8a",
-  "scripts": "9e6f07843005a85ecf0568869cfecdb12dd1cd79a34f5d0ecc83c8cd0d0263cf",
+  "scripts": "e03e99dc61670bf6041d489ea90f570213cd5718c93c92dd7ed205e333b6eecb",
   "templates": "811793f2e4381c3d215a6c8edeedf54a2e9cd351bbe56c45751a5870b6e8ecc2",
-  "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
+  "vendor_skills": "b391133e403bb484e134ef569f65aaf3305fd56369f1f4f1fba96a55ab9c3a2b"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }

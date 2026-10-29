@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.5.3
+# Müşteri paketi — 1.5.4
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,12 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.3**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.4**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.5.4 migration içermez, yeni bağımlılık yok. Efekt araması Türkçe etiketle çalışır; kaynağı kayıtsız 5 efekt dosyası paketten çıktı
+(kullanılmıyorlardı). Yalnızca `sfx_library.py`, skill metinleri ve ses arşivi değişti.
 1.5.3 migration içermez, yeni bağımlılık yok. Kreatif test aracının reklam tavanı varsayılanı 5 → 7 (Meta resmi sınırı); kayıtlı eski
 turların bütçe planları değişmez, yeni S02 hesabı 7'yi kullanır. Yalnızca skill metinleri, `budget.py` ve sunucu sabiti değişti.
 1.5.2 migration içermez, yeni bağımlılık yok. Yazı konumları `templates/remotion/src/layout.json`'dan; yeni kampanya projesine
@@ -52,6 +54,8 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.5.4** (Linux bulut ortamı): tam paket 341 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v154_sfx.py` (5).
 
 **1.5.3** (Linux bulut ortamı): tam paket 336 geçti, aynı 3 ortam başarısızlığı, 5 atlandı. Kural kayıtları Meta yardım merkezinden `ads_get_help_article` ile 2026-10-29'da okundu.
 

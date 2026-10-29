@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.5.3
+# Reklam Atölyesi (reklam-atolyesi) · 1.5.4
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,15 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.5.4** — Ses efekti araması Türkçe etiketle çalışıyor
+- `sfx_library.py`: arama alt dize yerine kategori + dosya adı kelimeleriyle; Türkçe etiketler İngilizce karşılığına çevrilir ("kağıt" →
+  paper, "cam" → glass, "geçiş" → transition/whoosh). Önceden Türkçe sorgu hiç sonuç vermiyordu; "cam" kamera seslerini, "su" success
+  dosyasını buluyordu. Kategori eşleşmesi sıralamada öne geçer.
+- Kaynağı doğrulanamayan 5 arşiv dosyası silindi (`sparkle`, `riser-cine`, `keyboard`, `whoosh-big`, `pop`); zaten kullanılmıyorlardı.
+  "riser → impact → sparkle" cümlesi kodla sentezlenen riser ve kayıtlı dosyalarla kurulur (karşılıklar ai-product-video `OVERRIDES.md`).
+- S04 `sfx_plan` organik sesleri doğrudan ElevenLabs'e değil önce kütüphaneye yönlendirir (arşivde kağıt, cam, su sesleri var).
+- `ref-vendor-map`: ATTRIBUTION.md yolu düzeltildi.
+
 **1.5.3** — Meta kural kayıtları resmi kaynakla güncellendi
 - `ref-legal-tr-meta` §7: Meta yardım merkezinden yeniden okundu (2026-10-29). Öğrenme aşaması için ~50 sonuç/hafta ve kreatif test
   aracında bütçenin en fazla %20'si artık **resmi** (önceden "teyit edilmedi"); sayılan şey seçilen optimizasyon olayıdır.

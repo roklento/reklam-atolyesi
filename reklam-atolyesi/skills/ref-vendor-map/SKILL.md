@@ -45,7 +45,7 @@ S01b ve S02 hazır skill kullanmaz.
 | S12 | `ad-creative-video/SKILL.md`, `references/platform-specs.md`; `testimonial-video/SKILL.md`, `references/quote-card.md`; `ffmpeg/SKILL.md` | şablon × hooks.csv; alıntı kartı; yöntem |
 | S13 | `product-demo-director/criteria/demo-skill-rubric.md`, `SKILL.md` (QA ilkeleri); `promo-video/SKILL.md` (render doğrulama); `ai-product-video/references/final-review.md` | QC ölçütleri |
 
-Efekt arşivi: `ai-product-video/assets/audio/sfx/` yalnızca `references/shots/ATTRIBUTION.md` (ve OVERRIDES lisans koşulu) ile kaynağı kayıtlı
+Efekt arşivi: `ai-product-video/assets/audio/sfx/` yalnızca `assets/audio/ATTRIBUTION.md` (ve OVERRIDES lisans koşulu) ile kaynağı kayıtlı
 dosyalar (`sfx_library.py` bunu uygular). `ad-video-scripts/` yalnızca yöntem referansı. `setup-api-key` tamamen devre dışı (anahtar yok;
 OAuth). `elevenlabs-mcp/mcp.json` yalnızca resmi uzak MCP adresinin kaynağı.
 

@@ -15,13 +15,16 @@ Bu dosya upstream dosyalardan **önce** okunur (spec 5.22). Upstream içerik hi�
 - Kartlardaki örnek palet, font ve metinler varsayılan değildir (ilke 12).
 
 ## Ses dosyaları (lisans)
-- `assets/audio/ATTRIBUTION.md`'de **kaynak URL'si kayıtlı** dosyalar (144 dosya) Mixkit Sound Effects Free License kapsamındadır; yalnızca yerel kreatiflerde kullanılır, dosyalar başka yere yeniden dağıtılmaz.
-- Kaynağı doğrulanamayan şu dosyalar **kullanılmaz** (upstream "商用前须确认" notu):
-  - `sfx/light/sparkle.mp3`
-  - `sfx/riser/riser-cine.mp3`
-  - `sfx/text/keyboard.mp3`
-  - `sfx/transition/whoosh-big.mp3`
-  - `sfx/ui/pop.mp3`
+- `assets/audio/ATTRIBUTION.md`'de **kaynak URL'si kayıtlı** dosyalar (144 dosya; kayıtsız 5 dosya 1.5.4'te silindi) Mixkit Sound Effects Free License kapsamındadır; yalnızca yerel kreatiflerde kullanılır, dosyalar başka yere yeniden dağıtılmaz.
+- Kaynağı doğrulanamayan şu dosyalar 1.5.4'te **depodan silindi** (upstream "商用前须确认" notu). `references/sound-design.md` hâlâ
+  bunları anar; tarifte geçtiklerinde karşılığı kullanılır:
+  - `sfx/light/sparkle.mp3` → `sfx/light/shimmer-sparkle-sweep.mp3` (ya da `sparkle-touch.mp3`, `sparkle-wand.mp3`)
+  - `sfx/riser/riser-cine.mp3` → `PY PR/scripts/audio/sfx_synth.py --kind riser` (arşivde kayıtlı riser yok)
+  - `sfx/text/keyboard.mp3` → `sfx/text/typewriter-hit-soft.mp3` / `typewriter-digital.mp3`
+  - `sfx/transition/whoosh-big.mp3` → `sfx/transition/air-whoosh-powerful.mp3`
+  - `sfx/ui/pop.mp3` → `sfx/ui/ui-message-pop.mp3` / `pop-electric.mp3`
+- `template/src/aifl/Main.tsx` demo da bu dosyaları anar; demo üretim hattında kullanılmaz.
+- "riser → impact → sparkle" cümlesi bu kopyada: sentez riser → `sfx/impact/impact-deep-whoosh.mp3` → `sfx/light/shimmer-sparkle-sweep.mp3`.
 - `ui/` klasöründeki sentetik geri bildirim sesleri tek tek dinlenmeden kullanılmaz (upstream sound-design 3.3); doğrulanmış dinleme aracı yoksa dinleme kullanıcıya bırakılır (5.13).
 - Bu liste `scripts/audio/sfx_library.py` tarafından makinece uygulanır (izinli liste URL kaydından üretilir).
 

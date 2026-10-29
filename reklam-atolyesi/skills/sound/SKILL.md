@@ -20,7 +20,7 @@ S10 tamam: `ready` üretim planı ve öz denetimden geçmiş önizleme.
 - **voice-isolator**: `PR/vendor-skills/voice-isolator/OVERRIDES.md` → `SKILL.md` (yalnızca `afftdn` yetmezse; ücretli, `materials`
   skill'indeki protokolle).
 - **ai-product-video**: `PR/vendor-skills/ai-product-video/OVERRIDES.md` → `references/sound-design.md` (riser → impact → sparkle
-  cümlesi), efekt arşivi (yalnızca kaynağı kayıtlı dosyalar).
+  cümlesi; riser kodla sentezlenir, silinen dosyaların karşılığı OVERRIDES'ta), efekt arşivi (yalnızca kaynağı kayıtlı dosyalar).
 - **ffmpeg**: `PR/vendor-skills/ffmpeg/OVERRIDES.md` → `SKILL.md` (yöntem; loudness ve export kuralları plugin'indir).
 
 ## Adımlar

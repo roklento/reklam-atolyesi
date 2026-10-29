@@ -55,7 +55,8 @@ Ayrıca `c<tur>-hooks.csv`, `strategy_get`, `products.provable_claims_json` (ön
    kapısı (bölüm 10) dosya istenmeden önce.
 9. **Teslim:** sıkıştırmadan (WhatsApp değil; Drive, AirDrop, kablo), dosya adı çekim numarasıyla; videolar `footage/raw/`, fotoğraflar
    `photos/raw/` (ham klasörler salt okunur kabul edilir).
-10. **sfx_plan:** konseptlerden ve çekim menüsünden üretilecek efektlerin başlangıç listesi (organik → ElevenLabs, tasarım → kodla sentez).
+10. **sfx_plan:** konseptlerden ve çekim menüsünden üretilecek efektlerin başlangıç listesi (önce ses kütüphanesi `sfx_library.py` — kağıt, cam, su gibi organik sesler de var; yoksa tasarım → kodla sentez, organik →
+    ElevenLabs).
 11. Rehber: `PR/templates/reports/cekim-rehberi.md` → `DD/profiles/<slug>/campaigns/<k>/c<tur>-cekim-rehberi.md` (atomik).
 12. `stage_complete(profile_id, "S04", outputs=[{path: rehber}, {path: shoot_menu.json}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
 
