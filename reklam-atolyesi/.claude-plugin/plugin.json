@@ -1,7 +1,7 @@
 {
   "name": "reklam-atolyesi",
   "displayName": "Reklam Atölyesi",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Meta video reklamlarını rakip analiziyle stratejiden yayın paketine kadar üreten, yayındaki reklamları matematikle okuyup koçluk yapan ve her turda öğrenen reklam sistemi. Başlatmak için yalnızca 'reklam-atolyesi' yazın.",
   "author": {
     "name": "Reklam Atölyesi"

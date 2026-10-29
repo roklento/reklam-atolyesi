@@ -23,6 +23,7 @@ kontrolü, özellik keşfi ve tur karşılaştırması aynı dili konuşur. Kayn
 | `vo` | `none` · `generated` · `user` · `original_speech` |
 | `people` | `none` · `hands` · `person` |
 | `text_density` | `low` · `medium` · `high` |
+| `stage` (1.9.0) | `tofu` · `mofu` · `bofu` — huni aşaması: mesajın seslendiği karar anı (kitle değildir); S03 mesaj kartından yazılır |
 | `cta` | Meta CTA türü (`SHOP_NOW`, `LEARN_MORE`, `ORDER_NOW`, `BUY_NOW`, `SIGN_UP`, `CONTACT_US`, `SEND_MESSAGE`, `SEND_WHATSAPP_MESSAGE`, `GET_OFFER`, `BOOK_NOW`, `SUBSCRIBE`, `NO_BUTTON`) |
 
 ## Profil eksenleri (açık; değerler profilden doğar — kurulum hiç değer yazmaz, ilke 12)
@@ -50,3 +51,21 @@ status, user_said)`. Rakip kodlamasında profilde olmayan değer `other:<kısa a
 - **Özellik etkisi (6.6):** özellik farkları, önceden yazılmış hipotez + diğer unsurlar sabit + doğrulanmış yapı olmadan yalnızca
   keşif/ilişkidir; `competitive_role` da bir özelliktir ve aynı kurala tabidir.
 - Rol (`proven · gap · counter · free`) sözlük ekseni değil, strateji portföyü alanıdır (`concepts.competitive_role`).
+- **Huni turu (1.9.0):** S02'de `round_mode="funnel"` seçildiyse çeşitlilik kuralı yerine şu uygulanır: keşif konseptleri (2–3) **aynı
+  alıcıya** konuşur, ikişer ikişer **farklı aşamadadır** (`stage`), her birinin tek test hook'u ve mesaj kartı vardır (`funnel_round`
+  taxonomy.json'da; kapı denetler). Normal turda aynı alıcıya aşama üçlüsü kurulmaz.
+
+## Huni aşaması: içerik kuralları (1.9.0; her sektör)
+Aşama reklamın beş parçasını **birlikte** belirler; yalnızca CTA'yı değiştirmek aşama farkı değildir. Aşama bir kitle değildir: plugin
+tek geniş set kurar, reklamı kimin göreceğini Meta seçer; kimin gördüğü varsa kitle segmenti dökümüyle sonradan okunur.
+
+| Parça | TOFU: ihtiyacı ya da çözümü bilmiyor | MOFU: seçenekleri tartıyor | BOFU: almaya yakın, tereddüdü var |
+|---|---|---|---|
+| Açılış (ilk 1–2 sn) | an ya da problem: kullanım sahnesi, merak uyandıran görüntü, §8a özelliği ima etmeyen soru | ürünün kendisi ve ayırt edici yanı: elde ürün, süreç, boyut | tereddüdün kendisi ("Kaç günde gelir?"), paket açılışı, sonuç |
+| Sahneler | kullanım bağlamı, ihtiyacın doğduğu an; ürün sonlarda | gösterim, yakın çekim, işçilik, kullanım adımları, karşılaştırma (rakip adı yok) | teslimat, paketleme, iade, izinli müşteri yorumu, ödeme kolaylığı |
+| Kanıt (`proof`) | doğrulanmış bilgi ya da `none` | `demo`, `process`, belgeli `number` | `review` (izinli), `document`, sayfada okunmuş teslimat/iade bilgisi |
+| Ses | duygu ve an; ürün adı geç | fayda ve neden bu ürün | tereddüdün cevabı, sonra net adım |
+| Kapanış / CTA | yumuşak (`LEARN_MORE`, profile bak) | incele (`SHOP_NOW`, `LEARN_MORE`) | al / sipariş / mesaj (`ORDER_NOW`, `BUY_NOW`, `SEND_MESSAGE`); geçerli teklif varsa |
+| Dikkat | fiyatla açmak | belgesiz üstünlük, rakip adı/logosu | uydurma yorum, stok azlığı ya da süre baskısı (`offer: limited` yalnızca satış sayfasında görülürse); indirimde referans fiyat |
+
+Düzenlenen sektörde (`service_json.regulated_sector`) her aşama önce `ref-legal-tr-meta` §8c ve sektör kurallarından geçer.

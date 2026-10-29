@@ -317,6 +317,32 @@ def meta_text(items: list[tuple[str, str]]) -> dict:
             "note": "Kelime/kalıp taraması uyarıdır, karar değildir; her uyarı gözle 'sorun yok' ya da 'düzelt' diye kayda geçer (§8e)."}
 
 
+def _scene_signature(scene: dict) -> tuple:
+    """Sahnenin içeriği: kaynak klipler (varlık/yol + aralık), yazılar ve bileşenler. Süre ve geçiş imzaya girmez."""
+    parts = []
+    for l in scene.get("layers", []):
+        src = l.get("source") or {}
+        parts.append((l.get("type"), src.get("asset") or src.get("path"), src.get("in_s"), src.get("out_s"), l.get("text"),
+                      l.get("component")))
+    return tuple(sorted(parts, key=repr))
+
+
+def funnel_diff(plans: dict[str, dict]) -> dict:
+    """Huni turu (1.9.0): aşama farkı açılışı, sahneleri, kanıtı, sesi ve kapanışı birlikte değiştirir. İki plan yalnızca son sahnede
+    (kapanış/CTA) ayrılıyorsa uyarı verilir. Aynı çekimin kullanılması serbesttir; aynı kurgu değildir."""
+    sigs = {k: [_scene_signature(s) for s in (p.get("scenes") or [])] for k, p in plans.items()}
+    warnings, keys = [], sorted(sigs)
+    for i, a in enumerate(keys):
+        for b in keys[i + 1:]:
+            sa, sb = sigs[a], sigs[b]
+            if sa == sb:
+                warnings.append({"plans": [a, b], "why": "iki plan sahne sahne aynı: aşama farkı kurguya yansımamış"})
+            elif len(sa) == len(sb) and len(sa) > 1 and sa[:-1] == sb[:-1]:
+                warnings.append({"plans": [a, b], "why": "aşama farkı yalnız kapanışta: açılış, sahneler ve kanıt aynı, yalnızca son sahne/CTA farklı"})
+    return {"compared": len(keys), "warnings": warnings, "ok": not warnings,
+            "rule": "Huni turunda aşama; açılışı, sahne seçimini, kanıtı, seslendirmeyi ve kapanışı birlikte belirler (1.9.0)."}
+
+
 def tech(video: str, plan: dict | None, expect_duration: float | None, fmt: str | None) -> dict:
     import loudness as LN
     info = ffprobe_json(video)
@@ -378,6 +404,8 @@ def main() -> None:
     p.add_argument("--plan")
     p.add_argument("--promise", help="görünür kısımda olması gereken ana vaat/teklif sözcükleri, virgülle")
     p.add_argument("--targets", help="profil/stil kitabından daha sıkı hedefler (JSON)")
+    p = sp.add_parser("funnel-diff")
+    p.add_argument("--plans", nargs="+", required=True, help="huni turundaki konseptlerin kurgu planları (KOD=plan.json)")
     p = sp.add_parser("tech")
     p.add_argument("--video", required=True)
     p.add_argument("--plan")
@@ -394,6 +422,12 @@ def main() -> None:
         emit(copy_length(read_json(a.texts), read_json(a.plan) if a.plan else None,
                          [w.strip() for w in a.promise.split(",") if w.strip()] if a.promise else None,
                          read_json(a.targets) if a.targets else None))
+    elif a.cmd == "funnel-diff":
+        plans = {}
+        for item in a.plans:
+            code, _, path = item.partition("=")
+            plans[code if path else Path(code).stem] = read_json(path or code)
+        emit(funnel_diff(plans))
     elif a.cmd == "meta-text":
         items = _plan_texts(read_json(a.plan)) if a.plan else [(Path(a.text).name, Path(a.text).read_text(encoding="utf-8"))]
         emit(meta_text(items))

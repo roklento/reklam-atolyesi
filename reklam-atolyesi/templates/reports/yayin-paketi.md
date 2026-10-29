@@ -14,6 +14,7 @@
 ## Ads Manager kurulum talimatı
 {{İlk tur (bootstrap): tek kampanya, tek reklam seti, teklif stratejisi "En yüksek hacim"; turun konseptleri birlikte.}}
 {{Sonraki tur (creative_test): aynı reklam setinde, yayındaki bir reklamdan başlatılan kreatif test; test bütçesi ≤ %20 (Meta önerisi); 2–7 test reklamı; süre 7 gün; "En yüksek hacim".}}
+{{Huni turu (round_mode=funnel): aşama reklamları aynı sette; ayrı set ya da yeniden hedefleme kitlesi kurulmaz. Kitle segmentleri (raporlama için, hedeflemeye eklenmez): etkileşime geçmiş kitle {{tanım}} · mevcut müşteri {{tanım}} · {{tanımlı | hesapta görünmüyor}}}}
 Adım adım: {{…}} (sayı/bütçe/süre kısıtları hesabın güncel ekranında doğrulanır)
 
 ## Harcama ve bitiş sınırları (insan uygular)

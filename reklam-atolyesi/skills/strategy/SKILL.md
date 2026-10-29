@@ -73,6 +73,19 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    (kanıtlanabilir üstünlükle) · *Karşı konum* (baskın rakip mesajının tersi) · *Anı sahiplen* (rakiplerin boş bıraktığı satın alma anı).
    Her aday: tek cümlelik ana vaat, destekleyen **kanıtlanabilir** iddia (`provable_claims_json`), ayrıştığı rakipler, risk, kaynak etiketi.
 7. **Mesaj sırası:** ana vaat → kanıt → teklif → CTA; hook'un (ilk 1–2 sn) hangisini taşıyacağı.
+7b. **Huni durumu ve tur modu (1.9.0):** strateji belgesine "huni durumu" bölümü yazılır. Dayanaklar: hesabın geçmişi (yeni hesapta
+   "veri yok"), Meta'nın gördüğü olaylar (içerik görüntüleme, sepete ekleme, ödeme başlatma, satın alma; S00b), tanımlıysa kitle
+   segmenti dökümü (yeni / etkileşime geçmiş / mevcut müşteri) ve S00b mesaj karışımı tablosu (harcamanın hangi aşama mesajına gittiği).
+   Çıktı **önerilen aşama dağılımıdır, hüküm değildir** ("satış az çünkü MOFU yok" yazılmaz; "teşhis hipotezi" etiketiyle). Aşama bir
+   kitle değildir: plugin tek geniş set kurar, reklamı kimin göreceğini Meta seçer (`ref-legal-tr-meta` §7).
+   **Tur modu** kullanıcıyla seçilir ve `budget_plan_json.round_mode`'a yazılır:
+   - `explore` (varsayılan): keşif konseptleri farklı alıcılara konuşur (S03 çeşitlilik kuralı).
+   - `funnel` (huni turu): 2–3 konsept **aynı alıcıya**, her biri farklı bir aşamaya (TOFU · MOFU · BOFU) konuşur. **İlk turda
+     açılmaz** (tek sette Meta bütçeyi satışa en yakın mesaja akıtır, aşamalar adil karşılaştırılmaz); 2. turdan itibaren kreatif test
+     bütçeyi test reklamlarına eşit böler (sunucu ilk turda reddeder). Yalnızca bilerek seçilir; önerilmesi için dayanak gerekir: önceki turda kazanan ya da güçlü yön veren konsept/alıcı, ya da kullanıcının açık
+     gerekçesi. Az bütçede (tavan 2–3) huni turu bütün turu tek alıcıya verir; bu bedel kullanıcıya söylenir. BOFU konsepti için ürün
+     kartında kanıtlı engel cevabı ya da izinli yorum yoksa huni turu 2 konseptle (TOFU + MOFU) kurulur ya da önce kanıt toplanır.
+     Kayıt: `budget_plan_json.funnel = {buyer, basis, user_said}` (sunucu dayanaksız huni turunu reddeder).
 8. **Açı portföyü:** izin verilen test reklamı sayısı rollere dağıtılır — `proven` (kategoride uzun soluklu açının bizim
    farklılaşmamızla yorumu) · `gap` (keşif) · `counter` · `free` (hesap verisi, ürün gözlemi ya da kullanıcı fikri). Varsayılan:
    tavan ≥ 3 → en az 1 `proven` + en az 1 `gap`, kalanı görüşmede; tavan 2 → 1 `proven` + 1 `gap`; kanıtlanmış açı yoksa `proven` payı
@@ -80,6 +93,7 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    varsa önce o gelir; rakip sinyali hesabın verisini geçersiz kılmaz. Roller arası karşılaştırma keşiftir. Keşifte her test reklamı
    ayrı bir konsepttir ve ayrı bir alıcıya konuşur (S03 çeşitlilik kuralı, `ref-creative-taxonomy`); aynı konseptin açılış
    karşılaştırması yalnızca birincil doğrulama çiftiyle yapılır. Çıkabilecek farklı konsept sayısı tavandan azsa reklam sayısı düşer.
+   Huni turunda (7b) portföy rolü yerine aşama dağılımı yazılır: konseptler aynı alıcıya, farklı aşamalara konuşur.
    Önceki turda aç kalan konseptler (S16 `carry_over`) varsa test hakkı önce onlara verilir (hazır kreatif; üretim maliyeti yok);
    kalan hak yeni konseptlere. İlk turun tavanı da kreatif test aracı sınırıdır (`creative_test_tool_max`; `budget.py`): aç kalanların
    hepsi sonraki turun tek testine sığmalıdır.
@@ -123,8 +137,9 @@ belgesi, hipotez adayları, devam notu.
 - Rakip bağlamı yokken `general` etiketi ve rol yok.
 - İki reklama yetmeyen bütçede, toplam sınır aşımında ya da onaysız risk sınırında kapı **açılmaz** (sunucu `_s02_blockers`).
 - "Kategoride işe yarıyor" ifadeleri vekil diye etiketli; hesap verisiyle çelişirse hesabın verisi geçerli.
+- Huni durumu teşhis hipotezi diliyle yazıldı; huni turu seçildiyse alıcı ve dayanak `budget_plan_json.funnel`'da (1.9.0).
 
 ## Kapı mesajı
-"Strateji: konumlandırma *<seçilen tür>: <tek cümle>*; ana vaat …; portföy N reklam = … proven · … gap · … free; teklif tutumu: …;
+"Strateji: konumlandırma *<seçilen tür>: <tek cümle>*; ana vaat …; tur modu: <normal | huni turu: alıcı …, dayanak …>; portföy N reklam = … proven · … gap · … free; teklif tutumu: …;
 önerilen yayın: <tarih>; test <7|14> gün, tur <14|21> gün; bütçe ve reklam başı risk sınırı: …; toplam plan … / kalan …. Onaylıyor musun,
 neyi değiştirelim?" → açık onayda `gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, checkpoint=…)`.

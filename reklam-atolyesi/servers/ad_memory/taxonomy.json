@@ -1,6 +1,6 @@
 {
-  "_comment": "Ortak kreatif sözlüğü (spec 4.7). Kodlar İngilizce, etiketler Türkçe. Sabit eksenler kapalı listedir; değer eklemek sözlük sürümü (plugin güncellemesi) gerektirir. Profil eksenlerinin değerleri kurulumdan gelmez; taxonomy_values tablosunda profil kapsamlı doğar (ilke 12). 'unknown' her eksende geçerlidir; tahmin edilen değer yazılmaz. 1.5.0: 'buyer' (kime konuşuyor) profil ekseni; S03 keşif konseptleri ikişer ikişer farklı alıcıya konuşur ve diversity_axes'ten en az diversity_min_axes kadarında farklıdır (kapı denetler).",
-  "taxonomy_version": "1.5.0",
+  "_comment": "Ortak kreatif sözlüğü (spec 4.7). Kodlar İngilizce, etiketler Türkçe. Sabit eksenler kapalı listedir; değer eklemek sözlük sürümü (plugin güncellemesi) gerektirir. Profil eksenlerinin değerleri kurulumdan gelmez; taxonomy_values tablosunda profil kapsamlı doğar (ilke 12). 'unknown' her eksende geçerlidir; tahmin edilen değer yazılmaz. 1.5.0: 'buyer' (kime konuşuyor) profil ekseni; S03 keşif konseptleri ikişer ikişer farklı alıcıya konuşur ve diversity_axes'ten en az diversity_min_axes kadarında farklıdır (kapı denetler). 1.9.0: 'stage' (huni aşaması: mesajın seslendiği karar anı; kitle değildir) sabit ekseni ve huni turu (funnel_round): S02'de bilerek seçilen turda keşif konseptleri aynı alıcıya, ikişer ikişer farklı aşamada konuşur.",
+  "taxonomy_version": "1.9.0",
   "fixed_axes": {
     "video_type": {
       "label": "Video türü",
@@ -24,6 +24,10 @@
     "vo": {"label": "Seslendirme", "values": {"none": "Yok", "generated": "Üretilmiş", "user": "Kullanıcının sesi", "original_speech": "Çekimdeki konuşma"}},
     "people": {"label": "Kişi", "values": {"none": "Yok", "hands": "Eller", "person": "Kişi"}},
     "text_density": {"label": "Yazı yoğunluğu", "values": {"low": "Düşük", "medium": "Orta", "high": "Yüksek"}},
+    "stage": {
+      "label": "Huni aşaması (mesajın seslendiği karar anı; kitle değildir)",
+      "values": {"tofu": "Huninin başı: ihtiyacı ya da çözümü bilmiyor", "mofu": "Huninin ortası: seçenekleri tartıyor", "bofu": "Huninin sonu: almaya yakın, tereddüdü var"}
+    },
     "cta": {
       "label": "CTA (Meta CTA türü)",
       "values": {"SHOP_NOW": "Şimdi alışveriş yap", "LEARN_MORE": "Daha fazla bilgi", "ORDER_NOW": "Sipariş ver", "BUY_NOW": "Hemen al", "SIGN_UP": "Kaydol", "CONTACT_US": "Bize ulaşın", "SEND_MESSAGE": "Mesaj gönder", "SEND_WHATSAPP_MESSAGE": "WhatsApp mesajı gönder", "GET_OFFER": "Teklifi al", "BOOK_NOW": "Rezervasyon yap", "SUBSCRIBE": "Abone ol", "NO_BUTTON": "Düğme yok"}
@@ -40,5 +44,7 @@
   "diversity_axes": ["emotion", "moment", "proof", "first_frame"],
   "diversity_distinct_axis": "buyer",
   "diversity_min_axes": 2,
+  "funnel_round": {"distinct_axis": "stage", "shared_axis": "buyer", "min_concepts": 2, "max_concepts": 3,
+                   "bofu_evidence_kinds": ["review", "claim", "page_info"]},
   "distance": {"min_axes_besides_angle": 2, "max_4gram_overlap": 0.20}
 }

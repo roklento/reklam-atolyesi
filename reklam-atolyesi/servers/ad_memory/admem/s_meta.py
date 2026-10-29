@@ -15,9 +15,10 @@ from .util import AdMemoryError, atomic_write, canonical_json, jdump, jload, now
 CONTEXT_DEF_KEYS = ("account_id", "timezone", "currency", "result_definition", "metric_definitions",
                     "attribution_window", "action_report_time")
 METRIC_COLS = ("impressions", "reach", "frequency", "spend", "cpm", "video_3s", "thruplay", "p25", "p50", "p75", "p95",
-               "p100", "avg_watch_s", "link_clicks", "ctr_link", "results", "result_type", "add_to_cart", "purchases", "revenue")
+               "p100", "avg_watch_s", "link_clicks", "ctr_link", "results", "result_type", "add_to_cart", "purchases", "revenue",
+               "landing_page_views", "view_content", "initiate_checkout")
 INT_COLS = {"impressions", "reach", "thruplay", "p25", "p50", "p75", "p95", "p100", "link_clicks", "results",
-            "add_to_cart", "purchases"}
+            "add_to_cart", "purchases", "landing_page_views", "view_content", "initiate_checkout"}
 SERVER_DIR = Path(__file__).resolve().parents[1]
 
 
@@ -427,12 +428,13 @@ class MetaMixin:
                 key = str(r["campaign_id"])
             g = groups.setdefault(key, {"key": key, "days": set(), "ads": set(), "fingerprints": set(),
                                         **{k: 0.0 for k in ("impressions", "spend", "video_3s", "thruplay", "link_clicks", "results",
-                                                            "purchases", "revenue", "add_to_cart", "p25", "p50", "p75", "p95", "p100")}})
+                                                            "purchases", "revenue", "add_to_cart", "p25", "p50", "p75", "p95", "p100",
+                                                            "landing_page_views", "view_content", "initiate_checkout")}})
             g["days"].add(r["date"])
             g["ads"].add(r["meta_ad_id"])
             g["fingerprints"].add(r["measurement_fingerprint"])
             for k in ("impressions", "spend", "video_3s", "thruplay", "link_clicks", "results", "purchases", "revenue",
-                      "add_to_cart", "p25", "p50", "p75", "p95", "p100"):
+                      "add_to_cart", "p25", "p50", "p75", "p95", "p100", "landing_page_views", "view_content", "initiate_checkout"):
                 if r.get(k) is not None:
                     g[k] += float(r[k])
         out = []

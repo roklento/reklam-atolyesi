@@ -21,6 +21,10 @@ Uygulama kodu: `PR/scripts/analytics/{budget,bayes,coach,charts,report,calibrati
 | Frekans | gösterim / erişim | aynı kişiye tekrar |
 - 3 sn izlenme reklam düzeyinde gelmez: `amount_spent / cost_per_video_view` ile türetilir (türetme payı veri kalitesinde raporlanır).
 - Hüküm **sonuç türüne** göre verilir; hook, tutma, CTR teşhis metrikleridir. Üst huniye dayanan hüküm açıkça yazılır.
+- **Huni aşaması (1.9.0):** aşaması olan konsept kendi aşama metriğiyle teşhis edilir — TOFU hook ve tutma; MOFU bağlantı CTR'si,
+  açılış sayfası / tıklama, içerik görüntüleme / tıklama; BOFU sepete ekleme / tıklama, ödeme başlatma / tıklama, satın alma başı
+  maliyet. Payda her zaman yazılır; olay gelmiyorsa "okunamadı". Farklı aşamaların sonuç maliyeti kıyası keşiftir; huni turunda
+  TOFU/MOFU yalnızca satış maliyetiyle kapatılmaz. Aşama kitle değildir; kimin gördüğü yalnızca Meta'nın segment dökümüyle söylenir.
 - Erişim benzersiz kişidir; reklam/gün erişimleri toplanmaz; dönem frekansı yalnızca Meta'nın tekilleştirilmiş erişimi varsa.
 - Huni oranları iç içe koşullu olasılık değildir, **çarpılmaz** (hook × CTR × CVR yok).
 

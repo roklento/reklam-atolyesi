@@ -27,7 +27,7 @@ class CompMixin:
         t = self._taxonomy()
         out = {"taxonomy_version": t["taxonomy_version"], "fixed_axes": t["fixed_axes"], "profile_axes": t["profile_axes"],
                "diversity_axes": t["diversity_axes"], "diversity_distinct_axis": t.get("diversity_distinct_axis"),
-               "diversity_min_axes": t.get("diversity_min_axes", 2), "distance": t["distance"]}
+               "diversity_min_axes": t.get("diversity_min_axes", 2), "distance": t["distance"], "funnel_round": t.get("funnel_round")}
         if profile_id is not None:
             self._profile(profile_id, allow_archived=True)
             out["profile_values"] = self.qa("SELECT axis, code, label, status FROM taxonomy_values WHERE profile_id=? ORDER BY axis, code", (profile_id,))

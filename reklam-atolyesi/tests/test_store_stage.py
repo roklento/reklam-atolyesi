@@ -31,7 +31,9 @@ def advance_to(s, pid, cid, cyid, target, gate_text="onaylıyorum"):
         if st == "S03":
             s.taxonomy_value_add(pid, "buyer", "alici-a", "Örnek alıcı", status="active", user_said="bu alıcıya konuşalım")
             k = s.concept_upsert(pid, cid, cyid, "A", "Konsept A", "general", decision="accepted", user_said="A olsun",
-                                 features={"proof": "process", "first_frame": "product", "buyer": "alici-a"})
+                                 features={"proof": "process", "first_frame": "product", "buyer": "alici-a"},
+                                 message={"stage": "mofu", "stage_basis": "assumption", "belief": "el işçiliği fiyatına değer",
+                                          "focus": "desire", "evidence": [{"kind": "none"}], "expected_action": "ürün sayfasını incelemek"})
             h = s.hypothesis_add(pid, "A konsepti hook oranında öndedir", "hook_rate", cid, cyid, concept_id=k["id"])
             s.hook_upsert(pid, k["id"], "h1", "product", "ürün masada", "yavaş itme", "kağıt sesi", "Örnek metin", decision="accepted", user_said="h1 tamam")
         if st == "S13":

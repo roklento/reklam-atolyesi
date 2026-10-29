@@ -305,7 +305,7 @@ class BaseStore:
         self._profile(profile_id)
         allowed = {"price", "gross_margin", "aov", "currency", "safety_factor", "economics_json", "occasions_json", "buyers_json",
                    "provable_claims_json", "capacity_limit", "photos_json", "observation_json", "shoot_profile_json",
-                   "catalog_product_id", "onboarding_status", "kind", "service_json"}
+                   "catalog_product_id", "onboarding_status", "kind", "service_json", "objections_json"}
         bad = set(fields) - allowed
         if bad:
             raise AdMemoryError(f"product_upsert alanı desteklenmiyor: {', '.join(sorted(bad))}")
@@ -318,6 +318,9 @@ class BaseStore:
         if "service_json" in fields and fields["service_json"] is not None:
             from .s_lead import validate_service
             fields["service_json"] = validate_service(fields["service_json"])
+        if "objections_json" in fields and fields["objections_json"] is not None:  # satın alma engelleri (S00c; 1.9.0)
+            from .funnel import validate_objections
+            fields["objections_json"] = validate_objections(fields["objections_json"])
         for k in list(fields):
             if k.endswith("_json") and fields[k] is not None and not isinstance(fields[k], str):
                 fields[k] = jdump(fields[k])

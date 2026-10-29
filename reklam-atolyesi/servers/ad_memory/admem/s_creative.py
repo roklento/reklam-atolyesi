@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from . import editplan, hashing, naming
+from . import editplan, funnel, hashing, naming
 from .util import AdMemoryError, atomic_write, jdump, jload, now_iso, parse_iso, sha256_file, utcnow
 
 CONCEPT_SOURCES = ("evidence", "direction", "general", "product", "brand_doc", "competitor")
@@ -55,10 +55,11 @@ class CreativeMixin:
                        rationale: str | None = None, competitive_role: str | None = None,
                        source_competitor_ad_ids: list[int] | None = None, features: dict | None = None,
                        sound_intent: str | None = None, hypothesis_id: int | None = None,
-                       checkpoint: dict | None = None) -> dict:
+                       checkpoint: dict | None = None, message: dict | None = None) -> dict:
         """Yeni konsept ya da güncelleme. Güncellemede verilmeyen (None) alanlar korunur; features eksen bazında birleşir (bir ekseni
         boşaltmak için 'unknown'). Ses niyeti ya da hipotez bağı gibi tek alanlı bir güncelleme kararı, alıcıyı ve sözlük özelliklerini
-        silmez (1.4.5; S03 kapısı bu alanlara dayanır)."""
+        silmez (1.4.5; S03 kapısı bu alanlara dayanır). message = mesaj kartı (1.9.0): aşama, dayanağı, değişecek düşünce, odak,
+        kanıt, beklenen aksiyon; aşama sözlükteki `stage` eksenine de yazılır."""
         c = self._campaign(profile_id, campaign_id)
         cy = self._cycle(profile_id, cycle_id, campaign_id)
         if c["stage"] != "S03":
@@ -77,6 +78,11 @@ class CreativeMixin:
                 if not r or r["profile_id"] != int(profile_id):
                     raise AdMemoryError(f"rakip reklamı {aid} bu profile ait değil")
         feats = self._validate_features(profile_id, features)
+        msg = self._validate_message(profile_id, c, message) if message is not None else None
+        if msg is not None:
+            if feats.get("stage") not in (None, "unknown", msg["stage"]):
+                raise AdMemoryError(f"features.stage={feats['stage']!r} mesaj kartındaki aşamayla ({msg['stage']}) çelişiyor")
+            feats["stage"] = msg["stage"]
         tv = self._taxonomy()["taxonomy_version"]
         with self.tx():
             ex = self.q1("SELECT * FROM concepts WHERE cycle_id=? AND code=?", (cy["id"], code))
@@ -101,6 +107,8 @@ class CreativeMixin:
                         source_competitor_ad_ids_json=jdump(src_ids) if src_ids else None,
                         features_json=jdump(feats) if feats else None, taxonomy_version=tv,
                         sound_intent=keep(sound_intent, "sound_intent"), hypothesis_id=keep(hypothesis_id, "hypothesis_id"),
+                        message_json=jdump(msg) if msg is not None else (jdump(old["message_json"]) if isinstance(old.get("message_json"), (dict, list))
+                                                                          else old.get("message_json")),
                         updated_at=now_iso())
             if ex:
                 if ex["distance_check_json"] and (features is not None or source_competitor_ad_ids is not None):
@@ -116,6 +124,34 @@ class CreativeMixin:
             if checkpoint:
                 self._checkpoint_in_tx(profile_id, "S03", checkpoint, c["id"], cy["id"])
         return self.q1("SELECT * FROM concepts WHERE id=?", (kid,))
+
+    def _validate_message(self, profile_id: int, campaign: dict, message: Any) -> dict:
+        """Mesaj kartı (1.9.0): biçim + kanıtların kayıtla eşleşmesi. Yorum izinli ve geri çekilmemiş, iddia ürün kartında kanıtlanabilir
+        olmalı; BOFU kartı en az bir gerçek kanıt (izinli yorum, kanıtlanabilir iddia ya da okunmuş sayfa bilgisi) taşır."""
+        prod = self.q1("SELECT * FROM products WHERE id=?", (campaign["product_id"],)) if campaign.get("product_id") else None
+        objections = funnel.validate_objections((prod or {}).get("objections_json"))
+        msg = funnel.validate_message(message, objections)
+        claims = jload((prod or {}).get("provable_claims_json"), []) or []
+        for e in msg["evidence"]:
+            if e["kind"] == "review":
+                try:
+                    rid = int(e["ref"])
+                except (TypeError, ValueError) as ex:
+                    raise AdMemoryError(f"yorum kanıtı reviews kaydının kimliğiyle verilir (ref={e['ref']!r})") from ex
+                r = self.q1("SELECT * FROM reviews WHERE id=? AND brand_id=?", (rid, campaign["brand_id"]))
+                if not r or r["withdrawn_at"] or not r["consent_type"]:
+                    raise AdMemoryError(f"yorum {rid}: bu markanın izinli ve geri çekilmemiş yorumu değil; uydurma ya da izinsiz yorum kullanılmaz")
+            elif e["kind"] == "claim" and not funnel.claim_usable(str(e["ref"]), claims):
+                raise AdMemoryError(f"iddia «{e['ref']}» ürün kartında kanıtlanabilir iddia olarak kayıtlı değil (provable_claims_json; belgesi gerekiyorsa doğrulanmış)")
+        kinds = (self._taxonomy().get("funnel_round") or {}).get("bofu_evidence_kinds") or ["review", "claim", "page_info"]
+        if msg["stage"] == "bofu" and not funnel.bofu_evidence_ok(msg, kinds):
+            raise AdMemoryError("BOFU mesajı tereddüdü kanıtla cevaplar: izinli yorum, kanıtlanabilir iddia ya da okunmuş sayfa bilgisi "
+                                f"({', '.join(kinds)}) gerekir. Kanıt yoksa BOFU önerilmez; önce yorum izni ya da sayfa bilgisi toplanır")
+        if msg["focus"] == "objection":
+            ob = next(o for o in objections if o["code"] == msg["objection_code"])
+            if msg["stage"] == "bofu" and not ob.get("evidence"):
+                raise AdMemoryError(f"engel «{ob['text']}» için ürün kartında cevap kanıtı yok; BOFU bu engeli cevaplayamaz")
+        return msg
 
     def hook_upsert(self, profile_id: int, concept_id: int, code: str, first_frame_type: str, first_frame_desc: str,
                     first_motion: str, first_sound: str, text: str, vo: str | None = None, duration_s: float = 1.5,
@@ -201,8 +237,12 @@ class CreativeMixin:
         """Keşif konsepti: seçilmiş (accepted|merged), birincil doğrulama hipotezine bağlı olmayan ve en az bir test (yedek olmayan) hook'u
         olan konsept. Her keşif konseptinin tek test hook'u ve tek alıcısı (buyer) olur; keşif konseptleri ikişer ikişer farklı alıcıya
         konuşur ve diversity_axes'ten en az diversity_min_axes kadarında farklıdır. Açılış karesi test hook'undan okunur. Bilinmeyen
-        (unknown) ya da boş değer fark sayılmaz. Doğrulama çifti (birincil hipotez) muaftır; tümüyle yedek konsept bu turda test edilmez."""
+        (unknown) ya da boş değer fark sayılmaz. Doğrulama çifti (birincil hipotez) muaftır; tümüyle yedek konsept bu turda test edilmez.
+        Huni turunda (S02 budget_plan_json.round_mode='funnel'; 1.9.0) kural değişir: keşif konseptleri AYNI alıcıya konuşur, ikişer ikişer
+        farklı aşamadadır (stage) ve her birinin mesaj kartı vardır; sayısı funnel_round sınırları içindedir."""
         tax = self._taxonomy()
+        cy = self.q1("SELECT budget_plan_json FROM cycles WHERE id=?", (cycle_id,))
+        round_mode = (jload((cy or {}).get("budget_plan_json"), {}) or {}).get("round_mode") or "explore"
         axes = list(tax["diversity_axes"])
         distinct = tax.get("diversity_distinct_axis") or "buyer"
         min_axes = int(tax.get("diversity_min_axes", 2))
@@ -233,6 +273,8 @@ class CreativeMixin:
             elif len(buyer) > 1:
                 issues.append(f"konsept {k['code']}: tek bir alıcıya konuşur ({distinct}: {', '.join(sorted(buyer))})")
             explore.append({"code": k["code"], "buyer": buyer, "vals": vals, "tests": [t["code"] for t in tests]})
+        if round_mode == "funnel":
+            return self._funnel_portfolio(tax, sel, explore, validation, reserve_only, issues, distinct)
         pairs = []
         for i, a in enumerate(explore):
             for b in explore[i + 1:]:
@@ -246,11 +288,45 @@ class CreativeMixin:
                     issues.append(f"konsept {a['code']} ve {b['code']} yalnızca {len(differing)} eksende farklı "
                                   f"({', '.join(differing) or 'hiçbiri'}); {', '.join(axes)} eksenlerinden en az {min_axes} gerekir, "
                                   "bilinmeyen eksen fark sayılmaz")
-        return {"passed": not issues, "issues": issues,
+        return {"passed": not issues, "issues": issues, "round_mode": "explore",
                 "exploration": [{"code": e["code"], "buyer": sorted(e["buyer"]), "test_hooks": e["tests"],
                                  "axes": {ax: sorted(v) for ax, v in e["vals"].items()}} for e in explore],
                 "pairs": pairs, "validation": validation, "reserve_only": reserve_only,
                 "rule": {"distinct_axis": distinct, "diversity_axes": axes, "min_axes": min_axes, "test_hooks_per_concept": 1}}
+
+    def _funnel_portfolio(self, tax: dict, sel: list[dict], explore: list[dict], validation: list, reserve_only: list,
+                          issues: list[str], buyer_axis: str) -> dict:
+        """Huni turu (1.9.0): aynı alıcı, farklı aşama. Aşama kitle değildir: aynı geniş sette mesaj farkıdır."""
+        fr = tax.get("funnel_round") or {}
+        lo, hi = int(fr.get("min_concepts", 2)), int(fr.get("max_concepts", 3))
+        stages = {}
+        for k in sel:
+            if k["code"] in validation or k["code"] in reserve_only:
+                continue
+            msg = jload(k.get("message_json"), None)
+            stages[k["code"]] = msg.get("stage") if isinstance(msg, dict) else None
+        if not lo <= len(explore) <= hi:
+            issues.append(f"huni turunda {lo}–{hi} keşif konsepti olur (bu turda {len(explore)}); fazlası yedeğe alınır")
+        buyers = set().union(*(e["buyer"] for e in explore)) if explore else set()
+        if len(buyers) > 1:
+            issues.append(f"huni turunda bütün konseptler aynı alıcıya konuşur ({buyer_axis}: {', '.join(sorted(buyers))})")
+        for e in explore:
+            if not stages.get(e["code"]):
+                issues.append(f"konsept {e['code']}: huni turunda mesaj kartı ve aşaması (stage) zorunlu")
+        pairs = []
+        for i, a in enumerate(explore):
+            for b in explore[i + 1:]:
+                sa, sb = stages.get(a["code"]), stages.get(b["code"])
+                pairs.append({"concepts": [a["code"], b["code"]], "stages": [sa, sb]})
+                if sa and sa == sb:
+                    issues.append(f"konsept {a['code']} ve {b['code']} aynı aşamada ({sa}); huni turunda her konsept farklı bir karar anına konuşur")
+        return {"passed": not issues, "issues": issues, "round_mode": "funnel",
+                "exploration": [{"code": e["code"], "buyer": sorted(e["buyer"]), "stage": stages.get(e["code"]), "test_hooks": e["tests"]}
+                                for e in explore],
+                "pairs": pairs, "validation": validation, "reserve_only": reserve_only,
+                "rule": {"round_mode": "funnel", "shared_axis": buyer_axis, "distinct_axis": "stage", "min_concepts": lo, "max_concepts": hi,
+                         "test_hooks_per_concept": 1,
+                         "note": "aşama mesajın seslendiği karar anıdır, kitle değildir; reklamı kimin gördüğü segment dökümüyle okunur"}}
 
     # --- hipotezler (4.3, 6.6, 6.14) ---------------------------------------------------
     def hypothesis_add(self, profile_id: int, statement: str, metric: str, campaign_id: int | None = None,

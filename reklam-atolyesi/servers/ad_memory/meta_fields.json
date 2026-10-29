@@ -30,6 +30,9 @@
     "results":       {"meta": "results",                             "csv_headers": ["Sonuçlar", "Results"]},
     "result_type":   {"meta": null, "note": "Meta'da alan olarak yok; sonuç türü kampanya amacından okunur, reklam düzeyinde cost_per_result var", "aliases": ["result_type"], "csv_headers": ["Sonuç türü", "Result indicator", "Result type"]},
     "add_to_cart":   {"meta": "omni_add_to_cart", "aliases": ["actions:omni_add_to_cart"], "csv_headers": ["Sepete Eklemeler", "Adds to cart"]},
+    "landing_page_views": {"meta": "landing_page_view", "csv_headers": ["Website landing page views", "Landing page views"], "note": "1.9.0 (huni aşaması teşhisi); canlı ads_get_field_context 2026-10-29. TR arayüz başlığı doğrulanmadı"},
+    "view_content":  {"meta": "omni_view_content", "aliases": ["content_views"], "csv_headers": ["Content views"], "note": "1.9.0; canlı ads_get_field_context 2026-10-29. TR arayüz başlığı doğrulanmadı; piksel ViewContent göndermiyorsa boş kalır"},
+    "initiate_checkout": {"meta": "omni_initiated_checkout", "aliases": ["checkouts_initiated"], "csv_headers": ["Checkouts initiated"], "note": "1.9.0; canlı ads_get_field_context 2026-10-29. TR arayüz başlığı doğrulanmadı; piksel InitiateCheckout göndermiyorsa boş kalır"},
     "purchases":     {"meta": "omni_purchase", "aliases": ["actions:omni_purchase"], "csv_headers": ["Satın Almalar", "Purchases"]},
     "revenue":       {"meta": "omni_purchase_values", "aliases": ["action_values:omni_purchase"], "csv_headers": ["Satın alma dönüşüm değeri", "Purchases conversion value"]}
   },

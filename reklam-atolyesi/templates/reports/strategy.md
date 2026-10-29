@@ -18,6 +18,8 @@ Uyarılar: {{bütçe uyarıları}} — Bu bir tahmindir; Meta'nın günlük harc
 ## (B) Stratejik yön
 - Konumlandırma: *{{tür}}: {{tek_cümle}}* — ana vaat: {{vaat}} · destekleyen kanıtlanabilir iddia: {{iddia}} · ayrıştığı rakipler: {{rakipler}} · risk: {{risk}} · kaynak: {{etiket}}
 - Mesaj sırası: ana vaat → kanıt → teklif → CTA; hook'un taşıdığı: {{…}}
+- Huni durumu (teşhis hipotezi; aşama kitle değildir): dayanak {{hesap geçmişi / Meta olayları / segment dökümü / mesaj karışımı | veri yok}} · önerilen aşama dağılımı {{…}}
+- Tur modu: {{normal (farklı alıcılar) | huni turu: alıcı {{…}}, dayanak {{…}}, aşamalar {{TOFU · MOFU · BOFU}}}}
 - Açı portföyü ({{n}} reklam): proven {{a}} · gap {{b}} · counter {{c}} · free {{d}} {{birincil doğrulama çifti varsa önce}}
 - Teklif tutumu: {{eşleş | değerle ayrış | yalnızca belirli dönemde}} (fiyat/indirim kararı kullanıcınındır)
 - Zamanlama: önerilen yayın {{tarih}} ({{gerekçe}})

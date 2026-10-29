@@ -33,6 +33,8 @@ Yok.
    zorunlu; doğrulanamayan alan `null` + `null_reasons`. → `metrics_ingest(profile_id, rows, source="meta_mcp", measurement_context)`.
    Uyumsuz tanımlı satır tüm içe almayı geri alır; hangi ayarın gerektiği kullanıcıya/devam notuna yazılır.
    **CSV:** kullanıcı dışa aktarımı → `meta_tools.py csv-check` → `metrics_import_csv`.
+   1.9.0: alan listesine huni aşaması teşhis alanları da girer (`landing_page_view`, `omni_view_content`, `omni_initiated_checkout`;
+   `meta_fields.json`). Piksel bu olayları göndermiyorsa satırda boş kalır; sıfır yazılmaz.
 3. **Test yapısı tespiti (6.3):** kampanya/reklam seti/bütçe/teklif `ads_get_ad_entities`; test durumu `ads_experiment_list_tests`,
    `ads_experiment_abtest_get_test` (okunabiliyorsa). Okunamıyorsa test kimliği, reklamları ve başlangıç/bitiş kullanıcıdan Ads Manager
    ekranı/dışa aktarımıyla doğrulanır. A/B testinde (1.5.0) çalışma salt okumayla okunmadan `ab_test` yazılmaz (sunucu reddeder:

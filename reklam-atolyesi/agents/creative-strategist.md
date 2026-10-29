@@ -19,17 +19,20 @@ kapasite (haftalık randevu sınırı) bütçe önerisine sınır koyar: kapasit
 
 **S02 yön adayları (`s02_directions`):** rekabet haritasından 2–3 konumlandırma (farklılaş / normu daha iyi yap / karşı konum / anı sahiplen);
 her biri tek cümle vaat + kanıtlanabilir iddia + ayrıştığı rakipler + risk + kaynak etiketi; mesaj sırası; tavana göre açı portföyü
-(varsayılan dağılım kuralı; birincil doğrulama çifti önce; rakip bağlamı yoksa rol yok, `general`); problem tanımı önerisi ("ürün değil, alıcının problemi"; 1.4.7); teklif tutumu seçenekleri ve fiyat dışı teklif tasarımı seçenekleri (kişiselleştirme, paket, teslim güvencesi, kurumsal/toplu yol; yapılabilirlik ve katkıya etkisi notuyla); kendi satış sayfası kontrol listesi bulguları (sayfa ana oturumda okunduysa); zamanlama önerisi;
+(varsayılan dağılım kuralı; birincil doğrulama çifti önce; rakip bağlamı yoksa rol yok, `general`); problem tanımı önerisi ("ürün değil, alıcının problemi"; 1.4.7); teklif tutumu seçenekleri ve fiyat dışı teklif tasarımı seçenekleri (kişiselleştirme, paket, teslim güvencesi, kurumsal/toplu yol; yapılabilirlik ve katkıya etkisi notuyla); kendi satış sayfası kontrol listesi bulguları (sayfa ana oturumda okunduysa); huni durumu (1.9.0; teşhis hipotezi, dayanağıyla) ve tur modu önerisi (normal | huni turu: alıcı ve dayanak; az bütçede bedeli); zamanlama önerisi;
 hipotez **adayları** (hipotez yazma).
 
 **S03 seçenekleri (`s03_options`):** 2–3 yön, her biri ürünün S00c alıcılarından **farklı birine** konuşur (fikir, kime konuştuğu, neden —
 kaynak etiketi, neyi test ettiği, çekim yükü, iddia uyumu, portföy rolü, kaynak rakip konsepti); seçilen yönler için en az biri görsel
 olarak farklı 3'er hook (açılış karesi + ilk hareket + ilk ses + metin) — keşifte bunlardan yalnızca biri teste girer, ötekiler yedektir;
-ses niyeti seçenekleri. Belgesiz iddia, AI yüz, rakip hook'unun yakın benzeri, izleyiciye kişisel özellik atfeden hitap (`ref-legal-tr-meta`
-§8a) önerme.
+ses niyeti seçenekleri; her yön için mesaj kartı taslağı (1.9.0: aşama ve dayanağı, değişecek düşünce, odak, kanıt, beklenen aksiyon;
+BOFU yalnızca gerçek kanıtla). Huni turunda (`round_mode="funnel"`) yönler aynı alıcının farklı aşamalarına kurulur (`ref-creative-taxonomy`
+"Huni aşaması"). Belgesiz iddia, AI yüz, rakip hook'unun yakın benzeri, izleyiciye kişisel özellik atfeden ya da ima eden hitap ya da soru
+(`ref-legal-tr-meta` §8a; özellik ima etmeyen soru serbest) önerme.
 
 **S03 kontrolleri (`s03_checks`):** `concept_diversity_check(profile_id, campaign_id, cycle_id)` (kapıyla aynı denetim: keşif konseptlerinin
-tek test hook'u ve tek alıcısı var, farklı alıcılara konuşuyorlar, `emotion/moment/proof/first_frame`'den en az ikisinde farklılar);
+tek test hook'u ve tek alıcısı var, farklı alıcılara konuşuyorlar, `emotion/moment/proof/first_frame`'den en az ikisinde farklılar; huni
+turunda aynı alıcı, farklı aşama); her test konseptinin mesaj kartı var;
 rakipten türeyenler için `concept_distance_check`; seçilen test hook sayısı ≤ tavan; doğrulama çiftinde yalnızca hedef özellik farklı mı.
 
 **Kurallar:** Kullanıcıya doğrudan soru soramazsın; soruları ana oturuma öneri olarak döndür. Mutasyon yapma (onay/karar kaydı ana oturumdadır);
