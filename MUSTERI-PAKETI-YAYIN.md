@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.6.0
+# Müşteri paketi — 1.7.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,14 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.6.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.7.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.7.0 migration içermez, yeni bağımlılık yok (ffmpeg'in standart `colorchannelmixer` süzgeci kullanılır; doctor bunu da arar).
+Renk eşitleme varsayılan açıktır: düzeltme gereken klibin sahne ara dosyası ve tüm render segmentleri ilk render'da bir kez yeniden
+üretilir (segment anahtarı artık ara dosya içeriğini görüyor). Düzeltilmeyen klipte ara dosya anahtarı 1.6.0 ile aynıdır. Kapatmak için
+stilde `grade.match: false`. Yeni `vendor-skills/sfx-cc0/` klasörü ~4,4 MB (Kenney CC0 OGG; dosya başına kaynak kaydı `ATTRIBUTION.md`).
 1.6.0 migration içermez. Yeni bağımlılıklar: npm `@remotion/layout-utils` 4.0.532 (MIT) ve Python `scenedetect` 0.7.2 (BSD-3, + tqdm);
 güncelleyici kilit dosyaları değiştiği için `npm ci` ve `uv sync`'i kendisi çalıştırır. Mevcut kampanya projelerinin `components/`
 klasörü `render.py init` ile kopyalandığı için eski bileşenlerle çizer (ölçüm kaydı üretmez, denetim tahmine döner); yeni ölçülü yazı

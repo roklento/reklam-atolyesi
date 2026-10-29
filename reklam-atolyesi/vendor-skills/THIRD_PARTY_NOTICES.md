@@ -16,3 +16,5 @@ Upstream `SKILL.md` dosyaları değiştirilmemiştir. Lisansı belirsiz repo kop
 | [crimeacs/product-demo-director](https://github.com/crimeacs/product-demo-director) | `a610beee453dc1dc93d3ac260c64987a1f07a765` | MIT | SKILL.md criteria motion engine | vendored |
 | [digitalsamba/claude-code-video-toolkit](https://github.com/digitalsamba/claude-code-video-toolkit) | `2c99460a5d0cba253f983283fb8d0fb9c4edb4a7` | MIT | .claude/skills/ffmpeg | vendored |
 | [kapishdima/soundcn](https://github.com/kapishdima/soundcn) | `7cbfbb3f56e8548b81fb26410bdcea657447d087` | MIT | assets/kenney_interface-sounds assets/kenney_digital-audio assets/kenney_impact-sounds assets/kenney_music-jingles | vendored |
+
+sfx-cc0: ses dosyaları Kenney (www.kenney.nl) paketleridir, lisansları CC0 1.0 (kamu malı adanması); soundcn deposunun MIT lisanslı kodu kullanılmaz, yalnız `assets/kenney_*` klasörleri alındı. Dosya başına kaynak: `sfx-cc0/ATTRIBUTION.md`.

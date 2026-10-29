@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.6.0",
+ "plugin_version": "1.7.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -167,7 +167,7 @@
    "name": "compose",
    "kind": "stage",
    "description": "reklam-atolyesi S10 kurgu — kurgu planını kesin zamanlama, katman ve geçişlerle tamamlar, vuruşa yaslar, sahne ara dosyalarından Remotion render eder ve görsel öz denetimden geçirir.",
-   "sha256": "1239bb55d0119a5ace7253f0308d2d184536e9ee06173702492c0728287d8970"
+   "sha256": "0640d247fc5ea8bbe3355623b2b2aed8fd4169f77d7d88ff69865065928658f7"
   },
   {
    "name": "concepts",
@@ -209,7 +209,7 @@
    "name": "materials",
    "kind": "stage",
    "description": "reklam-atolyesi S09 malzeme — sahne başına ses kararı (kullanıcıyla), seslendirme, müzik, efekt, AI görsel/klip; her ücretli üretim tahmin → kayıt → açık onay → rezervasyon yolundan. Kapılı.",
-   "sha256": "6dd12418a1c119f9b26587b2297c74b2976507a0acfb52b18e7859142f288a58"
+   "sha256": "33863bdb8b90d6655134ee6e4a75e5dd220dd47096b58f9f4f0578b08e154f7a"
   },
   {
    "name": "memory",
@@ -275,7 +275,7 @@
    "name": "ref-production-recipes",
    "kind": "reference",
    "description": "reklam-atolyesi üretim tarifleri — script haritası, ffmpeg komutları, ses hedefleri, AI model yönlendirme, çekim kurtarma, render altyapısı, export/adlandırma, maliyet kuralları.",
-   "sha256": "daf426492a01ccde24b036ecc37debdd0b8dbee4828687d6b4507f7028de77af"
+   "sha256": "a6dbb4fd789d89742f34209de1ab7f0a7b0af49e9cfd2ba35e32445e7ed76e6f"
   },
   {
    "name": "ref-remotion-components",
@@ -299,7 +299,7 @@
    "name": "ref-vendor-map",
    "kind": "reference",
    "description": "reklam-atolyesi hazır skill eşlemesi — hangi aşamada hangi vendor dosyasının hangi bölümü okunur, önce OVERRIDES kuralı, devre dışı kısımlar ve Remotion için resmi belge yolu.",
-   "sha256": "ebd0d8f9a8f3ecf88e24a5cbaef311aa619e77cc9666b4be08c83a7353243583"
+   "sha256": "06547c6979be4e7e0ec2485cce636ff5ad5823836a569869ba4a802638e8970f"
   },
   {
    "name": "shoot-feedback",
@@ -317,7 +317,7 @@
    "name": "sound",
    "kind": "stage",
    "description": "reklam-atolyesi S11 ses — sahne ses kararlarını uygular, vuruş haritası, temizlik, ducking, -14 LUFS/≤-1 dBTP miks, telefon testi, altyazı; taslağı kullanıcıyla izletir. Kapılı (taslak).",
-   "sha256": "6b26730d1decd8910fe4359953367c190b6bde4de32dc45f2f035685ba264abe"
+   "sha256": "569bd0d1fbb4995dba29e4e1f63ec21b361784d7de85a53c176282a74beeeb13"
   },
   {
    "name": "strategy",
@@ -329,7 +329,7 @@
    "name": "style-directions",
    "kind": "stage",
    "description": "reklam-atolyesi S08 stil yönleri — çekimden 2–3 farklı yön (renk/LUT, tipografi, hareket, ses imzası, efekt bütçesi), 3 kare + 5 sn test, öz denetim, sürümlü stil kitabı. Kapılı.",
-   "sha256": "476275e2ef619ba285a6162c9f599e5eac47e8a8e98429e1a9785ba8a5246c26"
+   "sha256": "46c941fdef9582afdf7656b7711b6aa56cee639c049555f9d3b0671e51c7a1f7"
   },
   {
    "name": "track",
@@ -341,7 +341,7 @@
    "name": "variants",
    "kind": "stage",
    "description": "reklam-atolyesi S12 varyasyon ve export — plan yamaları, 9:16 + 4:5 final render (workflow ya da editor yedek yolu), statik/carousel, AI'sız eş, adlandırma ve kreatif kaydı.",
-   "sha256": "48b03b66dbf3cc6fa4ea4d3b11b579ef559c9bcb46b2c8a97ecd141ccdb91dc4"
+   "sha256": "7d2692f9d9734a700217592ebb214dbc60b3c145a20371939c105c85d4f71ae4"
   }
  ],
  "agents": [
@@ -398,7 +398,7 @@
   {
    "name": "sound-designer",
    "description": "reklam-atolyesi ses tasarımcısı. Sahne ses kararlarını önerir, seslendirme/müzik/efekt hatlarını (ücretli üretim yalnızca tahmin → onay → rezervasyonla) hazırlar, miksi -14 LUFS / ≤ -1 dBTP'ye getirir, ses imzasını korur. S09 ve S11.",
-   "sha256": "66de17b33b702e3034218450e0759c0f5062bd1c1af1739a575fa7ab011ece8b"
+   "sha256": "22a0181f7833fe3125db857571b6a6cb5815042b75e2e0531065de067462ee08"
   }
  ],
  "commands": [
@@ -807,6 +807,7 @@
   "analyze: contact_sheet, yazı şeritleri (küçük yazıyı küçültmeden gösterir)": "scripts/analyze/contact_sheet.py",
   "analyze: material_map": "scripts/analyze/material_map.py",
   "analyze: palette (logodan renk)": "scripts/analyze/palette.py",
+  "analyze: klipler arası pozlama ve beyaz dengesi eşitleme, önce|sonra kareleri": "scripts/analyze/color_match.py",
   "compose: edit_plan şeması ve doğrulama": "scripts/compose/validate_plan.py",
   "compose: sahne önbelleği": "scripts/compose/scene_cache.py",
   "audio: beats": "scripts/audio/beats.py",
@@ -892,11 +893,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 351,
+   "passed": 361,
    "failed": 3,
    "skipped": 5,
    "returncode": 1,
-   "summary": "351 passed, 3 failed, 5 skipped (1.6.0, Linux bulut ortamı; yeni testler tests/test_v160_plugins.py: öteki plugin taraması ve kullanıcı kararı, tests/test_v160_fit.py: ölçülü yazı ve güvenli alan, referans kesimleri ve döküm güveni). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.6.0 Windows'ta çalıştırılmadı.",
+   "summary": "361 passed, 3 failed, 5 skipped (1.7.0, Linux bulut ortamı; yeni testler tests/test_v170_color.py: klipler arası pozlama/beyaz dengesi eşitleme, sınırlar, ara dosya ve render segment anahtarı; tests/test_v170_sfx.py: CC0 Kenney çekirdeği, kaynak/hash kaydı, Türkçe sorgu). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.7.0 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
@@ -1361,7 +1362,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1509,6 +1510,15 @@
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yalnızca resmi belge ve sağlayıcı alan adları); fark satır satır okundu",
     "fixed": "döküm testindeki marka adına benzeyen örnek sözcük nötr bir sözcükle değiştirildi",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "1.7.0: renk eşitleme (color_match.py, scenes.py, render.py segment anahtarı, doctor/kurulum.ps1 süzgeç listesi, manifest.py), CC0 ses çekirdeği (sfx_library.py, vendor-skills/sfx-cc0 kayıtları, vendor.lock, vendor-skills.sh, THIRD_PARTY_NOTICES), skill/ajan metinleri, testler, README",
+    "files_reviewed": 29,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yalnızca dağıtım deposu adı ve üçüncü taraf kaynak URL'leri); fark satır satır okundu; ses dosyaları üçüncü taraf CC0 içerik, marka içermiyor",
+    "fixed": "—",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1519,17 +1529,17 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "ba493b40522869c4f7a8bbbe6fd9f672a152def185e3e278a92d6d393db1983a",
+   "plugin_json": "f7e25198076515c96dd738415d1f205ed076c0915dfbdd02ceac7ccc4ec4e3cf",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "a6df2ddbaff8d273f51fc91f8745c29fa70e4bf8d30c10d6e6e90356182d2107",
-   "agents": "4343b53f68478ff171f6aaaeb546f5287e490acac2657ba660dac75d2fad0b5a",
+   "skills": "0035cc9f051f45c20b157e09e69bf694fe0d3be9ac088722bd716208255e34e1",
+   "agents": "6e9b32f0d0039428c857d9546dd856f68eadab7bba8a72f6d845abe195afa2fd",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-   "ad_memory": "2132e035f4b984fc4df58dcfd07291bf393343b43517b8462225dbaf670a2266",
-   "scripts": "00c17abec7de7b8f380e51489a356ba67b48df8e62b16cecf6001caebdfa106a",
+   "ad_memory": "8345816dbf1262a42999d2067a8b880d632413eab5b1367299c92b5857efaea3",
+   "scripts": "98c3c5235fc832389a71f8da78f3ed763e2297c0692e963b1b7c2b629c8e81eb",
    "templates": "9e8e4af7fb3368c6931c508475f2450ed7816dc80d5a69a2fe6b0e20ca179536",
-   "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
+   "vendor_skills": "4a77a509a853e5ff1b3e84b591e3b5be295899bf528f51ba52bf2648238a2741"
   },
   "checked_at": "2026-10-29"
  },
@@ -1688,17 +1698,17 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "ba493b40522869c4f7a8bbbe6fd9f672a152def185e3e278a92d6d393db1983a",
+  "plugin_json": "f7e25198076515c96dd738415d1f205ed076c0915dfbdd02ceac7ccc4ec4e3cf",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "a6df2ddbaff8d273f51fc91f8745c29fa70e4bf8d30c10d6e6e90356182d2107",
-  "agents": "4343b53f68478ff171f6aaaeb546f5287e490acac2657ba660dac75d2fad0b5a",
+  "skills": "0035cc9f051f45c20b157e09e69bf694fe0d3be9ac088722bd716208255e34e1",
+  "agents": "6e9b32f0d0039428c857d9546dd856f68eadab7bba8a72f6d845abe195afa2fd",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-  "ad_memory": "2132e035f4b984fc4df58dcfd07291bf393343b43517b8462225dbaf670a2266",
-  "scripts": "00c17abec7de7b8f380e51489a356ba67b48df8e62b16cecf6001caebdfa106a",
+  "ad_memory": "8345816dbf1262a42999d2067a8b880d632413eab5b1367299c92b5857efaea3",
+  "scripts": "98c3c5235fc832389a71f8da78f3ed763e2297c0692e963b1b7c2b629c8e81eb",
   "templates": "9e8e4af7fb3368c6931c508475f2450ed7816dc80d5a69a2fe6b0e20ca179536",
-  "vendor_skills": "14c051ecdc81fcd1afff61338ff3cdb2cddef2fbf30c7249aac599aae492812f"
+  "vendor_skills": "4a77a509a853e5ff1b3e84b591e3b5be295899bf528f51ba52bf2648238a2741"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }

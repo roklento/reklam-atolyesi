@@ -178,6 +178,7 @@ SCRIPT_MAP = {
     "analyze: contact_sheet, yazı şeritleri (küçük yazıyı küçültmeden gösterir)": "scripts/analyze/contact_sheet.py",
     "analyze: material_map": "scripts/analyze/material_map.py",
     "analyze: palette (logodan renk)": "scripts/analyze/palette.py",
+    "analyze: klipler arası pozlama ve beyaz dengesi eşitleme, önce|sonra kareleri": "scripts/analyze/color_match.py",
     "compose: edit_plan şeması ve doğrulama": "scripts/compose/validate_plan.py",
     "compose: sahne önbelleği": "scripts/compose/scene_cache.py",
     "audio: beats": "scripts/audio/beats.py",
