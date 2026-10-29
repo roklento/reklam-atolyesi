@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.5.3
+# Reklam Atölyesi (reklam-atolyesi) · 1.6.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,7 +94,7 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
-**1.6.0 (geliştiriliyor, 1. dalga)** — kurulum denetimi, ölçülü yazı, sahne kesimi, döküm güveni
+**1.6.0** — kurulum denetimi bütün plugin'ler, ölçülü yazı, sahne kesimi, döküm güveni
 - Kurulum denetimi kurulu **bütün** plugin'lere bakar (`claude plugin list --json`, olmazsa `~/.claude/plugins` kayıtları, claude.ai
   senkronu, skills-dir). Video üretimi skill'i ya da ücretli/yayın sağlayıcısı MCP'si olan etkin plugin doctor'da `plugins` maddesidir;
   kurulumda kullanıcı kapatır (`claude plugin disable`, geri alınabilir) ya da kimlik bazında sapma olarak bırakır (`--plugins`).

@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.5.3
+# Müşteri paketi — 1.6.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,16 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.5.3**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.6.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.6.0 migration içermez. Yeni bağımlılıklar: npm `@remotion/layout-utils` 4.0.532 (MIT) ve Python `scenedetect` 0.7.2 (BSD-3, + tqdm);
+güncelleyici kilit dosyaları değiştiği için `npm ci` ve `uv sync`'i kendisi çalıştırır. Mevcut kampanya projelerinin `components/`
+klasörü `render.py init` ile kopyalandığı için eski bileşenlerle çizer (ölçüm kaydı üretmez, denetim tahmine döner); yeni ölçülü yazı
+yeni projelerde ya da `render.py init --force-library` sonrasında gelir. Kurulum doğrulaması (kur.cmd) artık öteki plugin'leri de sorar;
+güncelleme yolunda bu soru yok, navigator çakışan plugin için menüde tek satır uyarır. Galeri referansı yenilendi (yalnız TextReveal,
+KineticWords, SoftType).
 1.5.3 migration içermez, yeni bağımlılık yok. Kreatif test aracının reklam tavanı varsayılanı 5 → 7 (Meta resmi sınırı); kayıtlı eski
 turların bütçe planları değişmez, yeni S02 hesabı 7'yi kullanır. Yalnızca skill metinleri, `budget.py` ve sunucu sabiti değişti.
 1.5.2 migration içermez, yeni bağımlılık yok. Yazı konumları `templates/remotion/src/layout.json`'dan; yeni kampanya projesine
@@ -52,6 +58,10 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.6.0** (Linux bulut ortamı): tam paket 351 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v160_plugins.py` (8),
+`test_v160_fit.py` (5), referans ve döküm (birer). Gerçek Remotion render'ında (headless Chromium) 8 yazı bileşeni demo ve uzun metinle
+ölçüldü; galerinin değişmeyen 34 bileşeni eski referansla eşleşti (ortalama 46 dB). `tsc --noEmit` temiz.
 
 **1.5.3** (Linux bulut ortamı): tam paket 336 geçti, aynı 3 ortam başarısızlığı, 5 atlandı. Kural kayıtları Meta yardım merkezinden `ads_get_help_article` ile 2026-10-29'da okundu.
 
