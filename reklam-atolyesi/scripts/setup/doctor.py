@@ -24,6 +24,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "servers" / "ad_memory"))
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+import plugin_scan as PS  # noqa: E402
 
 EXPECTED_SKILLS = ["navigator", "brand-onboarding", "meta-history", "product-onboarding", "brief", "competitor-analysis", "strategy", "concepts",
                    "shoot-guide", "shoot-feedback", "ingest", "analyze", "style-directions", "materials", "compose", "sound", "variants", "qc",
@@ -233,6 +235,31 @@ def check_global_skills(r: Report, deviations: dict) -> None:
     clash = global_skill_clash()
     r.add("global_skills", "~/.claude/skills altında plugin'inkilerle çakışan genel skill yok", not clash,
           {"clash": clash, "path": "~/.claude/skills"} if clash else None, deviation=deviations.get("global_skills") if clash else None)
+
+
+def accepted_plugin_ids(dev_records: list[dict]) -> set[str]:
+    """Kullanıcının 'dokunma' dediği plugin kimlikleri (1.6.0). Kabul kimlik bazındadır: sonradan kurulan yeni bir çakışan plugin kapsanmaz."""
+    ids: set[str] = set()
+    for d in dev_records:
+        if d.get("check") == "plugins" and d.get("decided_by") == "user" and d.get("status") == "accepted":
+            ids |= set(d.get("plugin_ids") or [])
+    return ids
+
+
+def check_plugins(r: Report, dev_records: list[dict], claude: str | None) -> dict:
+    # 1.6.0: ~/.claude/skills dışındaki plugin'ler (marketplace, claude.ai senkronu, proje kapsamı). Video üretimi skill'i ya da ücretli/yazma
+    # sağlayıcısı MCP'si olan etkin plugin kırmızı maddedir; kullanıcı 'dokunma' dediyse (kimlik bazında sapma) kurulumu engellemez.
+    sc = PS.scan(claude)
+    ok_ids = accepted_plugin_ids(dev_records)
+    clash = sc["clash"]
+    detail = {"source": sc["source"], "clash": [p for p in sc["plugins"] if p["id"] in clash],
+              "others": [p["id"] for p in sc["plugins"] if p["id"] not in clash], "notes": sc["notes"]}
+    dev = None
+    if clash and set(clash) <= ok_ids:
+        dev = next((d["deviation"] for d in dev_records if d.get("check") == "plugins" and d.get("status") == "accepted"), "kabul edildi")
+    r.add("plugins", "Öteki plugin'lerde video üretimi ya da ücretli/yazma sağlayıcısı olan etkin plugin yok", not clash,
+          detail if clash or sc["notes"] else None, deviation=dev)
+    return sc
 
 
 def check_components(r: Report) -> None:
@@ -493,15 +520,7 @@ def check_claude(r: Report, claude: str | None) -> None:
     r.add("plugin_validate", "claude plugin validate hatasız", pv.returncode == 0 and "Validation passed" in out, out.strip().splitlines()[-1:])
     # Marketplace adı kuruluma göre değişir (yerel: reklam-atolyesi-local, dağıtım: kendi adı); kimlik reklam-atolyesi@<marketplace>.
     pl = _run([claude, "plugin", "list", "--json"], timeout=180)
-    rows = None
-    if pl.returncode == 0:
-        # Çıktı birden çok satırlı JSON dizisidir; öncesinde bilgi satırı olabilir: '[' ile başlayan ilk satırdan ayrıştırılır.
-        lines = pl.stdout.decode("utf-8", "replace").splitlines()
-        start = next((i for i, ln in enumerate(lines) if ln.lstrip().startswith("[")), None)
-        try:
-            rows = json.loads("\n".join(lines[start:])) if start is not None else None
-        except json.JSONDecodeError:
-            rows = None
+    rows = PS.parse_list_json(pl.stdout.decode("utf-8", "replace")) if pl.returncode == 0 else None
     if isinstance(rows, list):
         mine = [x for x in rows if str(x.get("id", "")).startswith("reklam-atolyesi@")]
         enabled = any(x.get("enabled") is True and x.get("scope") == "user" for x in mine)
@@ -620,6 +639,7 @@ def main() -> None:
     check_taxonomy(r)
     check_manifest(r, manifest)
     check_claude(r, find_claude(a.claude))
+    check_plugins(r, dev_records, find_claude(a.claude))
     check_disk(r, data_dir, deviations)
     check_voice_engines(r, data_dir)
     check_data_dir_contents(r, data_dir, final=a.write_ok, update=a.update)

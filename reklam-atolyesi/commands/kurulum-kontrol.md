@@ -34,6 +34,13 @@ Canlı kurulum kontrolünü yürüt (spec 12.10 canlı liste, 16.5, 12.13). Stat
 9. **Workflow'lar:** `analyze-footage` iki sentetik klipte (ya da yedek yol), `render-variants`, `qc-review`, `analyze-competitors`.
 10. **Canlı kabul listesi (16.5)** sentetik profilde (`profile_create(..., synthetic=True)`), **hiçbir ücretli çağrı ve Meta yazma olmadan**;
     sonunda sentetik profil arşivlenir.
+11. **Öteki plugin'ler (1.6.0):** `python scripts/lib/plugin_scan.py` çalıştırılır (`claude plugin list --json`, olmazsa
+    `~/.claude/plugins` kayıtları). Video üretimi/kurgu işini üstlenebilecek skill'i olan ya da ücretli üretim/yayın sağlayıcısına MCP
+    sunucusu bağlayan plugin'ler (`hooks/plugin_clash.json`) kullanıcıya adıyla gösterilir: bu sunucuların araçları `meta_guard` ve
+    `cost_guard` kalıplarına uymayabilir, skill'leri plan → render → QC kapılarını atlatabilir. Kullanıcı her biri için **kapat**
+    (`claude plugin disable <id>`, geri alınabilir) ya da **dokunma** der; "dokunma" `settings.install_deviations_json` içine
+    `check="plugins"`, `plugin_ids`, `decided_by="user"` ile yazılır. Kuruluşça zorunlu (`required_by_org`) plugin kapatılmaz, yalnızca
+    sapma olarak kaydedilir. Öteki plugin'lerin skill'leri ve MCP araçları bu plugin'in işlerinde hiçbir zaman çağrılmaz.
 
 Her madde `runtime_record(item_id, status, scope, evidence_ref, component_hashes, not_applicable_reason?)` ile kaydedilir; `component_hashes` içine maddenin `components` listesindeki her anahtarın `system_manifest_get(section="component_hashes")` değeri konur (sürüm değişince yalnızca etkilenen maddeler `stale` olur; 12.13). Profil/hesap/veri yoluna özgü sonuçlar `scope="profile:<id>" | "account:<id>" | "data_path:mcp|csv"` ile yazılır. Ortak zorunlu
 maddeler geçince ve statik kontrol kayıtlıysa (`setup_static_ok_at`) `setup_verified_at` sunucu tarafından yazılır. `setup_static_ok_at` boşsa

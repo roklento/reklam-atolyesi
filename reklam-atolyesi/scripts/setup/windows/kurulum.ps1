@@ -17,7 +17,10 @@ param(
     [switch]$DogrulamaYok,
     # ~/.claude/skills altında çakışan genel skill'ler: sor (pencerede sorulur), tasi (yedeğe taşı), birak (sapma olarak kaydet).
     # Eski kur.ps1 bu parametreyi vermez; varsayılan "sor" kurulum penceresinde kullanıcıya sorar.
-    [ValidateSet("sor", "tasi", "birak")][string]$GlobalSkills = "sor"
+    [ValidateSet("sor", "tasi", "birak")][string]$GlobalSkills = "sor",
+    # 1.6.0: video üretimi ya da ücretli/yazma sağlayıcısı olan öteki plugin'ler: sor (pencerede sorulur), devre-disi (claude plugin disable;
+    # geri alınabilir), birak (sapma olarak kaydet). Eski kur.ps1 bu parametreyi vermez; varsayılan "sor".
+    [ValidateSet("sor", "devre-disi", "birak")][string]$Plugins = "sor"
 )
 
 $ErrorActionPreference = "Stop"
@@ -213,7 +216,8 @@ if ($have -eq $lockSha -and (Test-Path (Join-Path $nd "node_modules\remotion")))
 # --- 5. Doğrulama -------------------------------------------------------------------------------------------------------
 if ($DogrulamaYok) { Write-Uyari "Doğrulama atlandı (-DogrulamaYok). Kurulum tamamlanmış sayılmaz."; exit 0 }
 Write-Adim "5/5 Bu bilgisayarda doğrulama (yaklaşık 15-20 dk; ilk render tarayıcı bileşenini indirir)"
-$args2 = @((Join-Path $Root "scripts\setup\kurulum_dogrula.py"), "--data-dir", $DataDir, "--etkilesimli", "--global-skills", $GlobalSkills)
+$args2 = @((Join-Path $Root "scripts\setup\kurulum_dogrula.py"), "--data-dir", $DataDir, "--etkilesimli", "--global-skills", $GlobalSkills,
+           "--plugins", $Plugins)
 if ($Claude) { $args2 += @("--claude", $Claude) }
 if ($devFile) { $args2 += @("--deviations-json", $devFile) }
 if ($Guncelleme) { $args2 += "--guncelleme" }
