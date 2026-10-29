@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.6.0
+# Reklam Atölyesi (reklam-atolyesi) · 1.7.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,18 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.7.0** — klipler arası renk eşitleme, CC0 ses efekti çekirdeği
+- Farklı ışıkta çekilmiş klipler sahne ara dosyasında (LUT'tan önce) referans klibe eşitlenir: pozlama ve beyaz dengesi doğrusal ışıkta
+  5 kareden ölçülür (`scripts/analyze/color_match.py`), düzeltme `colorchannelmixer` kazancıdır. Sınır ±0,5 stop ve kanal başına ±%12;
+  aşan klip düzeltilmez, `color_match.json`'da yeniden çekim adayıdır. Referans `grade.match_ref` ya da pozlaması en iyi klip.
+  `grade.match: false` kapatır (giyim, boya, kozmetik gibi renk hassas kategoriler). S08 kapısında önce|sonra kareleri (`compare`).
+  Kurulum ffmpeg'de `colorchannelmixer` süzgecini de arar.
+- Render segment önbelleği artık ara dosyanın içeriğini görür (önceden hash'ler eşleşmeyen anahtarla yazılıyordu; ara dosya değişince
+  segment bayat kalabiliyordu). İlk render'da segmentler bir kez yeniden üretilir.
+- CC0 ses efekti çekirdeği `vendor-skills/sfx-cc0/`: soundcn deposundan yalnız Kenney paketleri (arayüz, dijital, darbe/adım, kısa müzik
+  vuruşları; 377 dosya), dosya başına kaynak URL ve SHA-256. soundcn'in World of Warcraft koleksiyonu (Blizzard, CC0 değil) alınmadı.
+  `sfx_library.py` sözcük bazlı arar, Türkçe sorguyu ("tık", "darbe cam", "onay") İngilizce etiketlere açar; sıra profil → CC0 → Mixkit.
+
 **1.6.0** — kurulum denetimi bütün plugin'ler, ölçülü yazı, sahne kesimi, döküm güveni
 - Kurulum denetimi kurulu **bütün** plugin'lere bakar (`claude plugin list --json`, olmazsa `~/.claude/plugins` kayıtları, claude.ai
   senkronu, skills-dir). Video üretimi skill'i ya da ücretli/yayın sağlayıcısı MCP'si olan etkin plugin doctor'da `plugins` maddesidir;

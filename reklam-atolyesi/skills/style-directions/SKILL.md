@@ -40,6 +40,10 @@ S07 tamam (malzeme haritası). Profil `style.json` iskeleti (S00a, logodan renkl
    Varsayılan efekt bütçesi: 15 sn'de en fazla 1 imza anı, en fazla 2 farklı geçiş türü, sahne boyu süren atmosfer yok.
    - LUT: `PY PR/scripts/render/grade_lut.py make --out DD/profiles/<slug>/styles/luts/<yön>.cube --contrast … --temperature …
      --saturation … --lift … --gain …` (parametreler yön kararından; varsayılanlar nötr).
+   - Klipler arası eşitleme (1.7.0): `grade.match` (varsayılan `true`) farklı ışıkta çekilmiş kliplerin pozlamasını ve beyaz dengesini
+     LUT'tan önce referans klibe çeker (`grade.match_ref`: varlık anahtarı; yoksa pozlaması en iyi klip). Sınır ±0,5 stop ve kanal
+     başına ±%12; aşan klip düzeltilmez, "yeniden çekim adayı" olur. Renk doğruluğu ürünün kendisi olan kategorilerde (giyim, boya,
+     kozmetik, saç boyası, mobilya kumaşı) yön `grade.match: false` yazar: ürün rengi ekranda değişmemeli.
    - Font: yönün fontu `@fontsource/<ad>` ile `DD/.node` altına kurulur (`npm install @fontsource/<ad>` — çalışma dizini `DD/.node`);
      **hem `latin` hem `latin-ext`** CSS'i içe aktarılır (yalnızca latin-ext ile temel harfler yedek fonta düşer); içe aktarma kampanya
      projesinin `src/` dosyasındadır ve kullanılan her ağırlık için ayrıdır. Doğrulama: `PY PR/scripts/qc/font_coverage.py --plan <plan>
@@ -49,6 +53,8 @@ S07 tamam (malzeme haritası). Profil `style.json` iskeleti (S00a, logodan renkl
 5. **Önizleme:** her yön için gerçek çekimden **3 sabit kare** + **5 sn hareket testi**:
    `PY PR/scripts/render/render.py plan --data-dir DD --project <src> --plan <plan_yön.json> --style <yön.json> --out
    analysis/style/<yön>_still_<n>.png --still <kare>` ve aynı komut `--out analysis/style/<yön>_test.mp4 --quality preview` (5 sn plan).
+   Eşitleme açıksa ve bir klip düzeltildiyse önce|sonra kareleri: `PY PR/scripts/analyze/color_match.py compare --report
+   footage/scenes/color_match.json --out-dir analysis/style/color_match` (sahne ara dosyaları `scenes.py` ile üretildikten sonra).
 6. **Öz denetim (5.15)** her render'dan sonra, kullanıcıya göstermeden önce:
    `PY PR/scripts/render/self_review.py --video <test.mp4> --plan <plan> --out-dir analysis/review_<yön> --style <yön.json>
    --project <src> --data-dir DD --round 1` → kontak sayfası, kareler ve yazı şeritleri (`text_bands_<n>.jpg`, küçültmeden) **görülür**;
@@ -65,14 +71,16 @@ S07 tamam (malzeme haritası). Profil `style.json` iskeleti (S00a, logodan renkl
    → `awaiting_gate`.
 
 ## Çıktılar
-Stil yönleri (JSON), LUT'lar, önizleme kareleri ve testleri, öz denetim kayıtları, `styles/v<N>.json` + `style.json`, `style_preview`
+Stil yönleri (JSON), LUT'lar, önizleme kareleri ve testleri, renk eşitleme önce|sonra kareleri, öz denetim kayıtları, `styles/v<N>.json` + `style.json`, `style_preview`
 planları, devam notu.
 
 ## Kontroller
 - Yönler belirgin farklı; en az biri markadan türetilmiş; nötr şablon hiçbir yönün başlangıç noktası değil.
 - Her yön için 3 sabit kare + 5 sn test öz denetimden geçti; efekt bütçesi alanları dolu.
 - Önizleme ücretli ses üretmedi; `audio.mode=none`.
+- `color_match.json` okundu: düzeltilen klipler önce|sonra kareleriyle kapıda gösterildi; yeniden çekim adayları adıyla söylendi.
 
 ## Kapı mesajı
 "Stil yönleri: A — … (renk/tipografi/hareket/ses), B — …, C — …. Öz denetimde kalan not: …. Hangisiyle devam edelim, ya da hangilerini
-karıştıralım?" (onaylı stil varsa: "Aynı stille devam mı, stili yenileyelim mi?") → seçim açık ifadeyle `gate_approve(...)`.
+karıştıralım?" Klip eşitlemesi yapıldıysa: "Farklı ışıktaki <n> klibi referans klibe eşitledim (önce|sonra kareleri ekte);
+<klip> farkı çok büyük olduğu için düzeltilmedi, yeniden çekim adayı." (onaylı stil varsa: "Aynı stille devam mı, stili yenileyelim mi?") → seçim açık ifadeyle `gate_approve(...)`.

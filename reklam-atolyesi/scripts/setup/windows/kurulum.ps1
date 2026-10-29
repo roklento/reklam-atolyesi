@@ -33,7 +33,7 @@ try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 $Version = (Get-Content (Join-Path $Root ".claude-plugin\plugin.json") -Raw -Encoding UTF8 | ConvertFrom-Json).version
 $Allowed = @(".venv", ".node", "db", ".kurulum-statik-tamam", ".sessions", "logs", "backups", "memory", ".selftest")
-$FfmpegFilters = @("vidstabdetect", "vidstabtransform", "zscale", "loudnorm", "lut3d", "sidechaincompress", "tonemap")
+$FfmpegFilters = @("vidstabdetect", "vidstabtransform", "zscale", "loudnorm", "lut3d", "sidechaincompress", "tonemap", "colorchannelmixer")
 
 function Write-Adim([string]$t) { Write-Host ""; Write-Host "== $t" -ForegroundColor Cyan }
 function Write-Tamam([string]$t) { Write-Host "  [tamam] $t" -ForegroundColor Green }

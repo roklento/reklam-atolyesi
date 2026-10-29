@@ -66,7 +66,9 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
    `PY PR/scripts/compose/validate_plan.py <plan.json> --style <style> --beats <beats.json>`.
 4. **Sahne ara dosyaları (proxy):** `PY PR/scripts/ingest/scenes.py --plan <plan> --assets <asset_files.json> --out-dir footage/scenes
    --quality proxy --style <style> --map-out footage/scenes/map_proxy.json` (aralık kesimi + `lut3d` + gerekirse sabit kopya; ham 4K
-   Remotion'a verilmez; çekim sesi kullanılan sahnelerde WAV parçaları).
+   Remotion'a verilmez; çekim sesi kullanılan sahnelerde WAV parçaları). Klipler arası pozlama/beyaz dengesi eşitlemesi aynı adımda
+   (1.7.0; `style.json grade.match`, varsayılan açık): rapor `footage/scenes/color_match.json`; `retake_candidates` doluysa o klip
+   düzeltilmeden kullanılır ve kullanıcıya adıyla söylenir (fark ±0,5 stop ya da ±%12 kanal kazancını aşıyor).
 5. **Taslak render (önizleme 0,5 ölçek):** `PY PR/scripts/render/render.py plan --data-dir DD --project <k>/src --plan <plan> --out
    out/drafts/<ad>_preview.mp4 --style <style> --scene-map footage/scenes/map_proxy.json --captions <words.json> --quality preview`
    (sahne önbelleği değişmeyen sahneyi yeniden render etmez; uzun render arka planda, süre tahminiyle).

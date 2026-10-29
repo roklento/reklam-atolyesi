@@ -20,6 +20,7 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 |---|---|
 | probe / ingest (CFR, HDR→SDR, proxy, sarsıntı, sabitleme, ses, HEIC/EXIF) | `PY PR/scripts/ingest/convert.py probe <dosya>` · `… ingest --campaign-dir <k> [--fps 30|60] [--only …]` |
 | sahne ara dosyaları | `PY PR/scripts/ingest/scenes.py --plan … --assets … --out-dir footage/scenes --quality proxy|final [--style …] [--map-out …]` |
+| klipler arası renk eşitleme (1.7.0) | `PY PR/scripts/analyze/color_match.py plan --plan … --assets … [--style …] --out …` (scenes.py bunu kendisi çağırır); `measure --clip …`; `compare --report footage/scenes/color_match.json --out-dir …` |
 | ölçüm (netlik, pozlama, hareket, ses, kişi) | `PY PR/scripts/analyze/measure.py --clip … [--shake-permille …] [--audio …] --out …` |
 | kontak sayfası | `PY PR/scripts/analyze/contact_sheet.py --video … --out … [--per-second] [--times …]` |
 | yazı şeritleri | `PY PR/scripts/analyze/contact_sheet.py --video … --out bands.jpg --text-bands --plan … [--style] [--captions]` (her yazılı anın yazı bölgesi ≤ 540 px; sayfa ≤ 540×1500, küçültmeden okunur; 1.5.1) |
@@ -29,7 +30,7 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | temizlik / ducking / loudnorm / ölçüm / telefon testi | `PY PR/scripts/audio/loudness.py clean|duck|loudnorm|measure|phone …` |
 | sahne sesi + miks | `PY PR/scripts/audio/mix.py --plan … --scene-audio … [--music …] [--vo …] [--sfx-map …] --out-dir audio/stems` |
 | tasarım sesi sentezi | `PY PR/scripts/audio/sfx_synth.py --kind whoosh|shimmer|riser|impact|pop|tone --dur … --out … [--seed …]` |
-| ses kütüphanesi | `PY PR/scripts/audio/sfx_library.py --query … [--profile-dir …]` |
+| ses kütüphanesi | `PY PR/scripts/audio/sfx_library.py --query … [--profile-dir …]` (profil → CC0 Kenney → Mixkit; Türkçe sorgu açılır) |
 | yerel seslendirme (+ okunuş denetimi) | `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice … --script vo.txt --out … --takes 3` (1–4) |
 | yazıya dökme (yerel Whisper) | `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD --in … [--script vo.txt] --out-dir …` |
 | konuşmalı kurgu kesimi / altyazı birleştirme | `PY PR/scripts/audio/asr_local.py cuts --transcript … --out … --asset … --at …` · `captions --words a@0 --words b` |

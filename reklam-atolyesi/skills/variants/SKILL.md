@@ -38,7 +38,8 @@ S11 taslak kapısı geçilmiş (onaylı `ready` plan ve miks).
 4. **AI'sız eş:** AI klibi içeren her varyasyonun yanında tamamen gerçek çekimli eşi hazırlanır (varsayılan `reserve`; teste alınırsa
    ayrı reklam). Gerekli gerçek malzeme yoksa bu madde **tamamlandı sayılmaz** ve kullanıcıya söylenir.
 5. **Final sahne ara dosyaları:** `PY PR/scripts/ingest/scenes.py --plan <plan> --assets <asset_files.json> --out-dir footage/scenes
-   --quality final --style <style> --map-out footage/scenes/map_final.json` (4K kaynaktan, sahnenin yaklaşma payını taşıyan en küçük çözünürlük).
+   --quality final --style <style> --map-out footage/scenes/map_final.json` (4K kaynaktan, sahnenin yaklaşma payını taşıyan en küçük çözünürlük). Renk eşitlemesi
+   proxy ile aynı ölçümden çıkar (ölçüm her iki kalitede proxy'den yapılır); önizlemede görülen renk finalde değişmez.
 6. **Render (paralel):** workflow `render-variants` — `PR/workflows/render-variants.js`, args: `{profile_id, campaign_id, cycle_id,
    data_dir, plugin_root, py, project, cpu_count, parallel_jobs, now_iso, jobs:[{key, plan_path, format, out, style, scene_map, captions,
    quality:"final"}]}`.

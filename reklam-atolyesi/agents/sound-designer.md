@@ -29,7 +29,7 @@ Whisper kuruluysa her alımın okunuşu metinle karşılaştırılır (`pronunci
 (ton ve doğallık için dinleme kullanıcınındır). Kullanıcı kaydının kelime zamanları: `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD
 --in <kayıt> --script vo.txt --out-dir audio/user_vo` (ücretsiz; Scribe yalnızca Whisper kurulamıyorsa, ücretli protokolle).
 
-**`sfx_local`:** önce kütüphane (`scripts/audio/sfx_library.py`), tasarım sesleri kodla (`scripts/audio/sfx_synth.py`; deterministik tohum);
+**`sfx_local`:** önce kütüphane (`scripts/audio/sfx_library.py`; profil → CC0 Kenney çekirdeği → Mixkit), tasarım sesleri kodla (`scripts/audio/sfx_synth.py`; deterministik tohum);
 organik ses gerekiyorsa `prepare_paid`'e döndür.
 
 **`mix`:** `scripts/audio/beats.py`, `scripts/audio/loudness.py clean` (afftdn), `scripts/audio/mix.py` (stem'ler, ducking 4–5 dB, sidechain,

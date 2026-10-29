@@ -1,6 +1,7 @@
 """Sahne ara dosyaları (spec 5.12): video katmanları Remotion'a ham 4K olarak verilmez.
 
-Her sahnenin kullandığı aralık ffmpeg'de kesilir, renk ayarı (lut3d) ve gerekiyorsa sabitlenmiş kopya uygulanır, sahne başına bir
+Her sahnenin kullandığı aralık ffmpeg'de kesilir, klipler arası pozlama/beyaz dengesi eşitlemesi (1.7.0, analyze/color_match.py;
+LUT'tan önce, style.json grade.match=false ile kapanır), renk ayarı (lut3d) ve gerekiyorsa sabitlenmiş kopya uygulanır, sahne başına bir
 ara dosya üretilir: proxy için 1080 kısa kenar, final için sahnenin dijital yaklaşma payını taşıyan en küçük çözünürlük
 (ör. 1,15× yaklaşma için kısa kenar ~1250 px; yaklaşma yoksa 1080). Çekim sesi kullanılan sahnelerde ses parçası ayrıca WAV olarak çıkar.
 
@@ -16,7 +17,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "compose"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "analyze"))
 from common import emit, even, ffmpeg, read_json, sha256_file, write_json, x264_threads  # noqa: E402
+import color_match as CM  # noqa: E402
 import scene_cache as SC  # noqa: E402
 
 FORMAT_SIZE = {"9x16": (1080, 1920), "4x5": (1080, 1350), "1x1": (1080, 1080)}
@@ -47,6 +50,11 @@ def build(plan: dict, assets: dict, out_dir: Path, quality: str, style: dict | N
         if p and Path(p).exists():
             src_hashes[k] = sha256_file(p)
     result = {"quality": quality, "scenes": {}, "audio_segments": {}, "reused": 0, "built": 0}
+    match = CM.plan_corrections(plan, assets, style)
+    write_json(out_dir / "color_match.json", match)
+    result["color_match"] = {"report": str(out_dir / "color_match.json"), "enabled": match["enabled"], "ref": match["ref"],
+                             "applied": sorted(k for k, v in match["layers"].items() if v.get("applied")),
+                             "retake_candidates": match["retake_candidates"]}
     fps = plan["fps"]
     for i, s in enumerate(plan["scenes"]):
         for li, layer in enumerate(s.get("layers", [])):
@@ -64,13 +72,18 @@ def build(plan: dict, assets: dict, out_dir: Path, quality: str, style: dict | N
             tw, th = target_size(plan["format"], quality, zoom)
             in_s = float(src.get("in_s", 0.0))
             out_s = float(src.get("out_s", in_s + s["dur_s"]))
+            cm = CM.filter_for(match, f"{s['id']}:{li}")
+            # düzeltmesiz zincir 1.6.0 ile aynı kalır (anahtar da); düzeltme kazancı anahtara girer
+            comp = "ffmpeg-intermediate-v1" + (f"+cm-{CM.digest(cm)}" if cm else "")
             key = SC.scene_key(plan, i, source_hashes=src_hashes, style_sha=style_sha, quality=quality, scale=1.0, lut_sha=lut_sha,
-                               component_sha="ffmpeg-intermediate-v1") + f"_{li}"
+                               component_sha=comp) + f"_{li}"
             dst = out_dir / f"{s['id']}_{li}_{quality}_{key[:16]}.mp4"
             if SC.cached(dst):
                 result["reused"] += 1
             else:
                 vf = [f"trim=start={in_s}:end={out_s}", "setpts=PTS-STARTPTS", f"fps={fps}"]
+                if cm:
+                    vf.append(cm)
                 if lut_path:
                     lp = lut_path.as_posix().replace(":", "\\:")
                     vf.append(f"lut3d='{lp}'")
