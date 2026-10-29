@@ -30,7 +30,7 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | temizlik / ducking / loudnorm / ölçüm / telefon testi | `PY PR/scripts/audio/loudness.py clean|duck|loudnorm|measure|phone …` |
 | sahne sesi + miks | `PY PR/scripts/audio/mix.py --plan … --scene-audio … [--music …] [--vo …] [--sfx-map …] --out-dir audio/stems` |
 | tasarım sesi sentezi | `PY PR/scripts/audio/sfx_synth.py --kind whoosh|shimmer|riser|impact|pop|tone --dur … --out … [--seed …]` |
-| ses kütüphanesi | `PY PR/scripts/audio/sfx_library.py --query … [--profile-dir …]` |
+| ses kütüphanesi | `PY PR/scripts/audio/sfx_library.py --query … [--profile-dir …]` (profil → CC0 Kenney → Mixkit; Türkçe sorgu açılır) |
 | yerel seslendirme (+ okunuş denetimi) | `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice … --script vo.txt --out … --takes 3` (1–4) |
 | yazıya dökme (yerel Whisper) | `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD --in … [--script vo.txt] --out-dir …` |
 | konuşmalı kurgu kesimi / altyazı birleştirme | `PY PR/scripts/audio/asr_local.py cuts --transcript … --out … --asset … --at …` · `captions --words a@0 --words b` |

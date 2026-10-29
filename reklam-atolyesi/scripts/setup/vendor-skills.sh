@@ -25,6 +25,7 @@ REPOS=(
   "Kianzzz/xilo-opus-video|f2cd828e2692|MIT|skills/xilo-opus-video=>xilo-opus-video"
   "crimeacs/product-demo-director|a610beee453d|MIT|SKILL.md=>product-demo-director/SKILL.md;criteria=>product-demo-director/criteria;motion=>product-demo-director/motion;engine=>product-demo-director/engine"
   "digitalsamba/claude-code-video-toolkit|2c99460a5d0c|MIT|.claude/skills/ffmpeg=>ffmpeg"
+  "kapishdima/soundcn|7cbfbb3f56e8|MIT|assets/kenney_interface-sounds=>sfx-cc0/interface-sounds;assets/kenney_digital-audio=>sfx-cc0/digital-audio;assets/kenney_impact-sounds=>sfx-cc0/impact-sounds;assets/kenney_music-jingles=>sfx-cc0/music-jingles"
 )
 
 detect_license() { # $1 = repo klasörü → SPDX tahmini ya da NONE

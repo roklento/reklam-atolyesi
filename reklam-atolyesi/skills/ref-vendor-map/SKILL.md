@@ -46,7 +46,9 @@ S01b ve S02 hazır skill kullanmaz.
 | S13 | `product-demo-director/criteria/demo-skill-rubric.md`, `SKILL.md` (QA ilkeleri); `promo-video/SKILL.md` (render doğrulama); `ai-product-video/references/final-review.md` | QC ölçütleri |
 
 Efekt arşivi: `ai-product-video/assets/audio/sfx/` yalnızca `references/shots/ATTRIBUTION.md` (ve OVERRIDES lisans koşulu) ile kaynağı kayıtlı
-dosyalar (`sfx_library.py` bunu uygular). `ad-video-scripts/` yalnızca yöntem referansı. `setup-api-key` tamamen devre dışı (anahtar yok;
+dosyalar (`sfx_library.py` bunu uygular). CC0 çekirdek (1.7.0): `sfx-cc0/` — soundcn deposundan yalnızca Kenney paketleri
+(interface, digital, impact, music-jingles; 377 dosya); `sfx-cc0/ATTRIBUTION.md`'de satırı ve SHA-256'sı olan dosya kullanılır, soundcn
+`wow/` (Blizzard, CC0 değil) alınmadı. Ayrıntı `sfx-cc0/OVERRIDES.md`. `ad-video-scripts/` yalnızca yöntem referansı. `setup-api-key` tamamen devre dışı (anahtar yok;
 OAuth). `elevenlabs-mcp/mcp.json` yalnızca resmi uzak MCP adresinin kaynağı.
 
 ## Remotion — resmi belge yolu (vendor kopyası yok)

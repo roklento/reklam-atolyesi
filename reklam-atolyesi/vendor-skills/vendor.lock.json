@@ -7,5 +7,6 @@
   {"repo": "howseen-ai/claude-motion-design", "pin": "3d90d349ef3f", "commit": "3d90d349ef3fdde9b7e89de4df4a2159c9e8697f", "license": "MIT", "status": "vendored", "parts": "skill/motion-design=>motion-design"},
   {"repo": "Kianzzz/xilo-opus-video", "pin": "f2cd828e2692", "commit": "f2cd828e2692e7186186408ee01a936707c2c38d", "license": "MIT", "status": "vendored", "parts": "skills/xilo-opus-video=>xilo-opus-video"},
   {"repo": "crimeacs/product-demo-director", "pin": "a610beee453d", "commit": "a610beee453dc1dc93d3ac260c64987a1f07a765", "license": "MIT", "status": "vendored", "parts": "SKILL.md=>product-demo-director/SKILL.md;criteria=>product-demo-director/criteria;motion=>product-demo-director/motion;engine=>product-demo-director/engine"},
-  {"repo": "digitalsamba/claude-code-video-toolkit", "pin": "2c99460a5d0c", "commit": "2c99460a5d0cba253f983283fb8d0fb9c4edb4a7", "license": "MIT", "status": "vendored", "parts": ".claude/skills/ffmpeg=>ffmpeg"}
+  {"repo": "digitalsamba/claude-code-video-toolkit", "pin": "2c99460a5d0c", "commit": "2c99460a5d0cba253f983283fb8d0fb9c4edb4a7", "license": "MIT", "status": "vendored", "parts": ".claude/skills/ffmpeg=>ffmpeg"},
+  {"repo": "kapishdima/soundcn", "pin": "7cbfbb3f56e8", "commit": "7cbfbb3f56e8548b81fb26410bdcea657447d087", "license": "MIT", "status": "vendored", "parts": "assets/kenney_interface-sounds=>sfx-cc0/interface-sounds;assets/kenney_digital-audio=>sfx-cc0/digital-audio;assets/kenney_impact-sounds=>sfx-cc0/impact-sounds;assets/kenney_music-jingles=>sfx-cc0/music-jingles"}
 ]

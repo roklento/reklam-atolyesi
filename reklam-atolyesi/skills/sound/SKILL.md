@@ -30,7 +30,8 @@ S10 tamam: `ready` üretim planı ve öz denetimden geçmiş önizleme.
    (`PY PR/scripts/audio/loudness.py clean --in … --out …`), yetmezse voice-isolator (ücretli protokol: tahmin → kayıt → açık onay).
    Kullanıcının seslendirmesi ve tutulan konuşma için gürültü azaltma + yüksek geçiren filtre.
 4. **Yeni efekt ihtiyacı** (S10 yeni `audio_cues` eklediyse; yoğunluk kuralı: 1 saniyede ≤ 2, aynı efekt 2 sn içinde tekrar yok — 1.5.0):
-   önce ses kütüphanesi (`sfx_library.py`) ve kodla sentez (`sfx_synth.py`);
+   önce ses kütüphanesi (`sfx_library.py`; profil kütüphanesi → CC0 çekirdek `vendor-skills/sfx-cc0/` (Kenney: arayüz, dijital,
+   darbe/adım sesleri, kısa müzik vuruşları) → Mixkit arşivi; Türkçe sorgu da olur: "tık", "darbe cam", "onay") ve kodla sentez (`sfx_synth.py`);
    ElevenLabs gerekiyorsa fiyat ve onay **S11 içinde** alınır (S09 kapısı yeniden açılmaz).
 5. **Miks:** `PY PR/scripts/audio/mix.py --plan <plan.json> --scene-audio footage/scenes/map_final.json (ya da map_proxy.json)
    --music <müzik.wav> --vo <vo.wav> --sfx-map audio/sfx/map.json --out-dir audio/stems [--duck-db 4.5]`

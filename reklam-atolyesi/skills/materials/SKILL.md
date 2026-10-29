@@ -116,7 +116,7 @@ protokolle 2–4 aday. Her aday için `PY PR/scripts/audio/beats.py --audio <ada
 
 ### 5. Efekt (5.9)
 Liste konseptlerden ve `sfx_plan`'dan. **Önce kütüphane:** `PY PR/scripts/audio/sfx_library.py --query <etiket> --profile-dir
-DD/profiles/<slug>`. Eksik **tasarım** sesleri (whoosh, shimmer, riser, impact, pop) kodla:
+DD/profiles/<slug>` (1.7.0: önce CC0 Kenney çekirdeği — `source_url` sonuçta; whoosh/riser bu çekirdekte yok). Eksik **tasarım** sesleri (whoosh, shimmer, riser, impact, pop) kodla:
 `PY PR/scripts/audio/sfx_synth.py --kind <tür> --dur <sn> --out audio/sfx/<ad>.wav --seed <n>` (ücretsiz). Eksik **organik** sesler
 (kağıt, kumaş, cam, sıvı, dokunma…) ElevenLabs `sfx` (`eleven_text_to_sound_v2`, süre ve `loop`), protokolle. Seviye eşitleme, kısa
 fade, etiketleme; profil ses kütüphanesine.
