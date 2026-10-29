@@ -6,16 +6,32 @@ import { z } from "zod";
 import { clamp01, easeInOut, Entry } from "./types";
 import { DemoPanel, DemoSubject } from "./demo";
 
+// 1.8.0: focus {x, y} (0–1, kadrajdaki nokta) verilirse kamera o noktaya yaklaşır ve onu merkeze doğru taşır (kenar boşluğu açılmaz);
+// settleFrames: hareket sahne bitmeden bu kadar kare önce durur ("kesimden önce otur"). İkisi de yoksa davranış 1.0.0 ile aynı.
 const kbSchema = z.object({ fromScale: z.number().default(1.0), toScale: z.number().default(1.15), fromX: z.number().default(0), toX: z.number().default(-2),
-  fromY: z.number().default(0), toY: z.number().default(-1.5) });
-export const KenBurns: React.FC<z.infer<typeof kbSchema> & { children?: React.ReactNode }> = (p) => {
+  fromY: z.number().default(0), toY: z.number().default(-1.5), focus: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }).nullable().default(null),
+  settleFrames: z.number().int().min(0).default(0) });
+export const kenBurnsTransform = (p: z.infer<typeof kbSchema>, t: number): string => {
+  const s = p.fromScale + (p.toScale - p.fromScale) * t;
+  if (!p.focus) {
+    const x = p.fromX + (p.toX - p.fromX) * t;
+    const y = p.fromY + (p.toY - p.fromY) * t;
+    return `scale(${s}) translate(${x}%, ${y}%)`;
+  }
+  // ölçek s'de görüntü her yandan (s-1)/2 taşar; odak merkeze en çok bu pay kadar taşınır (çerçeve dışı görünmez)
+  const room = (s - 1) / (2 * s) * 100;
+  const cl = (v: number) => Math.max(-room, Math.min(room, v));
+  const x = cl((0.5 - p.focus.x) * 100 * t);
+  const y = cl((0.5 - p.focus.y) * 100 * t);
+  return `scale(${s}) translate(${x}%, ${y}%)`;
+};
+export const KenBurns: React.FC<z.input<typeof kbSchema> & { children?: React.ReactNode }> = (p) => {
   const f = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
-  const t = easeInOut(f / Math.max(1, durationInFrames - 1));
-  const s = p.fromScale + (p.toScale - p.fromScale) * t;
-  const x = p.fromX + (p.toX - p.fromX) * t;
-  const y = p.fromY + (p.toY - p.fromY) * t;
-  return <AbsoluteFill style={{ transform: `scale(${s}) translate(${x}%, ${y}%)` }}>{p.children ?? <DemoPanel />}</AbsoluteFill>;
+  const p2 = kbSchema.parse(p);
+  const moving = Math.max(1, durationInFrames - 1 - p2.settleFrames);
+  const t = easeInOut(Math.min(1, f / moving));
+  return <AbsoluteFill style={{ transform: kenBurnsTransform(p2, t) }}>{p.children ?? <DemoPanel />}</AbsoluteFill>;
 };
 
 const parallaxSchema = z.object({ background: z.string().nullable().default(null), foreground: z.string().nullable().default(null),
@@ -59,7 +75,7 @@ export const HandheldDrift: React.FC<z.infer<typeof driftSchema> & { children?: 
 };
 
 export const CAMERA: Entry[] = [
-  { name: "KenBurns", category: "camera", version: "1.0.0", schema: kbSchema, Component: KenBurns, demo: kbSchema.parse({}) },
+  { name: "KenBurns", category: "camera", version: "1.1.0", schema: kbSchema, Component: KenBurns, demo: kbSchema.parse({}) },
   { name: "Parallax25D", category: "camera", version: "1.0.0", schema: parallaxSchema, Component: Parallax25D, demo: parallaxSchema.parse({}) },
   { name: "FakeRackFocus", category: "camera", version: "1.0.0", schema: rackSchema, Component: FakeRackFocus, demo: rackSchema.parse({}) },
   { name: "HandheldDrift", category: "camera", version: "1.0.0", schema: driftSchema, Component: HandheldDrift, demo: driftSchema.parse({}) },

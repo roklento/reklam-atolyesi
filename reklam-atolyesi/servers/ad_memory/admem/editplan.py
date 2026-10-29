@@ -18,12 +18,12 @@ SOURCE_KINDS = ["footage", "ai_clip", "ai_image", "still", "graphic"]
 BEAT_LOCKS = ["none", "downbeat", "beat", "onset"]
 
 COMPONENTS = {
-    "text": ["TextReveal", "KineticWords", "SoftType", "LowerThird", "PriceTag", "CaptionTrack"],
+    "text": ["TextReveal", "KineticWords", "SoftType", "LowerThird", "PriceTag", "CaptionTrack", "TextMark"],
     "transition": ["Crossfade", "DipToColor", "LightLeak", "WhipPan", "MaskReveal", "MatchZoom", "SlideBlur", "FilmBurn"],
     "light": ["LightSheen", "SoftGlow", "Bokeh", "Particles", "GradeOverlay", "LensFlareSoft"],
     "camera": ["KenBurns", "Parallax25D", "FakeRackFocus", "HandheldDrift"],
-    "product": ["BehindSubjectText", "Spotlight", "OutlineGlow", "StillTurn"],
-    "proof": ["ReviewCard", "StarRating", "EndCard", "CTAPulse"],
+    "product": ["BehindSubjectText", "Spotlight", "OutlineGlow", "StillTurn", "PictureInPicture", "PhoneScreen"],
+    "proof": ["ReviewCard", "StarRating", "EndCard", "CTAPulse", "BeforeAfter", "NumberRoll"],
     "signature": ["LightRays", "ParticleSwirl", "HeatShimmer"],
     "helper": ["SafeZoneGuide", "BeatMarker"],
 }
@@ -32,6 +32,12 @@ SIGNATURE = set(COMPONENTS["signature"])
 ATMOSPHERE = {"SoftGlow", "Bokeh", "Particles", "LensFlareSoft"}
 PREVIEW_ONLY = set(COMPONENTS["helper"])
 TRANSITION_TYPES = ["cut", "crossfade"] + [c[0].lower() + c[1:] for c in COMPONENTS["transition"] if c != "Crossfade"]
+# Kaynak alan prop'lar (1.8.0): planda kaynak nesnesi ({kind, asset|path, in_s, out_s, audio?, speaking_person?}); scenes.py ara dosyayı
+# "<katman>.<prop>" anahtarıyla üretir. Şablondaki components/index.ts SOURCE_PROPS ile aynı tablo.
+SOURCE_PROPS = {"BeforeAfter": ["before", "after"], "PictureInPicture": ["inset"], "PhoneScreen": ["screen"]}
+# Önce/sonra ürün kategorisi (ref-legal-tr-meta §8d)
+BEFORE_AFTER_CATEGORIES = ["general", "cosmetic", "weight", "health_claim", "skin_whitening"]
+TEXT_MARK_MAX_PER_15S = 2
 # Rakip analizi ve referans video klasörleri üretime girmez (4.5, 5.2; referans videolar 1.4.6): yalnızca fikir/ritim girdisidir.
 FORBIDDEN_PATH_PARTS = ("/competitors/", "/competitive/", "/references/")
 
@@ -165,10 +171,115 @@ def _layer_span(scene: dict, layer: dict) -> tuple[float, float]:
     return st, du
 
 
+def source_props(layer: dict) -> list[tuple[str, Any]]:
+    """Bileşen katmanının kaynak alan prop'ları: [(prop, değer)] (değer kaynak nesnesi olmalı)."""
+    props = layer.get("props") or {}
+    return [(k, props.get(k)) for k in SOURCE_PROPS.get(layer.get("component") or "", []) if props.get(k) is not None]
+
+
+def _component_rules(plan: dict, s: dict, li: int, layer: dict, context: dict | None, errors: list[str], warnings: list[str]) -> None:
+    """1.8.0 bileşen kuralları: önce/sonra (gerçek çekim, konsept, kategori, sektör), kanıtlı sayı, kişisel veri, vurgu metni."""
+    comp = layer.get("component")
+    props = layer.get("props") or {}
+    where = f"sahne {s['id']} katman {li}"
+    ready = plan["status"] == "ready"
+    for k, v in source_props(layer):
+        if not isinstance(v, dict) or v.get("kind") not in SOURCE_KINDS:
+            errors.append(f"{where}: {comp}.{k} kaynak nesnesi olmalı ({{kind, asset|path, in_s, out_s}})")
+            continue
+        if v["kind"] in ("ai_clip", "ai_image"):
+            errors.append(f"{where}: {comp}.{k} AI kaynak olamaz (bileşen kaynakları gerçek çekim ya da görseldir; AI payı katmanlardan hesaplanır)")
+        for key in ("path", "asset"):
+            if any(part in _norm_path(str(v.get(key) or "")) for part in FORBIDDEN_PATH_PARTS):
+                errors.append(f"{where}: {comp}.{k} rakip ya da referans klasörünü gösteriyor ({v.get(key)})")
+        if v["kind"] == "footage" and "in_s" in v and "out_s" in v and v["out_s"] <= v["in_s"]:
+            errors.append(f"{where}: {comp}.{k} out_s ≤ in_s")
+        if ready and not (v.get("asset") or v.get("path")):
+            errors.append(f"{where}: {comp}.{k} hazır planda varlık bağlı değil")
+    if comp == "BeforeAfter":
+        for k in ("before", "after"):
+            v = props.get(k)
+            if not isinstance(v, dict) or v.get("kind") != "footage":
+                errors.append(f"{where}: BeforeAfter.{k} gerçek çekim olmalı (kind: footage); önce/sonra sahnesi gerçekten çekilir (ref-legal-tr-meta §3)")
+        cat = props.get("category")
+        if cat not in BEFORE_AFTER_CATEGORIES:
+            errors.append(f"{where}: BeforeAfter.category ürün kategorisini işaretlemeli ({' | '.join(BEFORE_AFTER_CATEGORIES)}; ref-legal-tr-meta §8d)")
+        elif cat == "skin_whitening":
+            errors.append(f"{where}: kalıcı cilt beyazlatma önce/sonra ile tanıtılamaz (Meta, ref-legal-tr-meta §8d)")
+        elif cat in ("cosmetic", "weight"):
+            warnings.append(f"{where}: önce/sonra {cat} kategorisinde yalnızca 18+ hedeflemeyle; not S14 yayın paketine taşınır (§8d)")
+        elif cat == "health_claim":
+            warnings.append(f"{where}: sağlık iddialı üründe önce/sonra: hastalık ve tıklama tuzağı kuralları (§8c), sağlık beyanı belgesi (§3)")
+        if context is None:
+            warnings.append(f"{where}: konseptin kanıt türü ve işletme sektörü bu yolda denetlenmedi (edit_plan_validate denetler)")
+        else:
+            if context.get("concept_proof") != "before_after":
+                errors.append(f"{where}: BeforeAfter yalnızca kanıt türü before_after seçilmiş konseptte kullanılır "
+                              f"(konsept: {context.get('concept_proof') or 'belirtilmemiş'})")
+            if context.get("regulated_sector") == "health":
+                errors.append(f"{where}: sağlık hizmetinde önce/sonra görseli kullanılmaz (ref-legal-tr-meta, sağlık hizmetleri güvenli varsayılanı)")
+    elif comp == "NumberRoll":
+        kind = props.get("kind")
+        val = props.get("value")
+        if not isinstance(val, (int, float)) or isinstance(val, bool):
+            errors.append(f"{where}: NumberRoll.value sayı olmalı")
+        if kind == "price":
+            if not props.get("currency"):
+                errors.append(f"{where}: NumberRoll fiyat gösteriyorsa para birimi zorunlu (PriceTag kuralı, bölüm 10)")
+            price = (context or {}).get("product_price")
+            if price is not None and isinstance(val, (int, float)) and abs(float(val) - float(price)) > 0.005:
+                warnings.append(f"{where}: NumberRoll fiyatı ({val}) ürün kaydındaki fiyattan ({price}) farklı; satış sayfasıyla aynı olmalı")
+        elif kind == "claim":
+            ci, ref = props.get("claimIndex"), props.get("claimRef")
+            if not ((isinstance(ci, int) and not isinstance(ci, bool)) or (isinstance(ref, str) and ref.strip())):
+                errors.append(f"{where}: NumberRoll iddia sayısı claimIndex (provable_claims_json sırası) ya da claimRef (iddianın code'u) ister")
+            elif context is None:
+                warnings.append(f"{where}: NumberRoll iddiası kanıtlanabilir iddia listesiyle bu yolda denetlenmedi (edit_plan_validate denetler)")
+            else:
+                claims = [c if isinstance(c, dict) else {"claim": str(c)} for c in context.get("claims") or []]
+                if isinstance(ci, int) and not isinstance(ci, bool):
+                    c = claims[ci] if 0 <= ci < len(claims) else None
+                else:
+                    c = next((x for x in claims if ref in (x.get("code"), x.get("claim"), x.get("text"))), None)
+                text = str((c or {}).get("claim") or (c or {}).get("text") or "")
+                if c is None:
+                    errors.append(f"{where}: NumberRoll iddiası ({ci if ref is None else ref}) kanıtlanabilir iddia listesinde yok ({len(claims)} iddia)")
+                elif c.get("documented") is False or (c.get("needs_document") and not (c.get("verified") or c.get("document_path"))):
+                    errors.append(f"{where}: NumberRoll iddiası belge istiyor ama belge/doğrulama yok: «{text[:80]}»")
+                else:
+                    digits = re.sub(r"\D", "", f"{val:g}" if isinstance(val, (int, float)) else "")
+                    if digits and digits not in re.sub(r"\D", "", text):
+                        warnings.append(f"{where}: NumberRoll değeri ({val}) iddia metninde geçmiyor: «{text[:80]}»")
+        else:
+            errors.append(f"{where}: NumberRoll değeri ya fiyat (kind: price + currency) ya da kanıtlı iddia (kind: claim + claimIndex/claimRef) olmalı")
+    elif comp == "PhoneScreen":
+        pdm = props.get("personalData", "unknown")
+        if pdm == "blurred" and not props.get("blurRegions"):
+            errors.append(f"{where}: PhoneScreen kişisel veri bulanıklaştırılacak ama blurRegions boş")
+        elif pdm not in ("none", "blurred"):
+            (errors if ready else warnings).append(
+                f"{where}: PhoneScreen kaydında başka kişinin adı/numarası/fotoğrafı var mı kapıda sorulmadı (personalData: none | blurred)")
+    elif comp == "PictureInPicture":
+        if not isinstance(props.get("inset"), dict):
+            errors.append(f"{where}: PictureInPicture.inset kaynağı yok")
+    elif comp == "TextMark":
+        if not str(props.get("text") or "").strip() or not str(props.get("mark") or "").strip():
+            errors.append(f"{where}: TextMark text ve mark ister")
+        elif _fold(str(props["mark"])) not in _fold(str(props["text"])) and not all(
+                w in _fold(str(props["text"])) for w in _fold(str(props["mark"])).split()):
+            errors.append(f"{where}: TextMark vurgusu («{props['mark']}») metinde yok")
+
+
+def _fold(s: str) -> str:
+    from .util import tr_fold
+    return tr_fold(s)
+
+
 def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None = None,
-             asset_index: dict[str, dict] | None = None) -> dict[str, Any]:
+             asset_index: dict[str, dict] | None = None, context: dict | None = None) -> dict[str, Any]:
     """Planı doğrular. style: planın bağlandığı stil kopyası (efekt bütçesi için); beats: vuruş zamanları (sn);
-    asset_index: asset anahtarı → {kind, speaking_person, path}. Dönüş: {valid, errors, warnings, computed}."""
+    asset_index: asset anahtarı → {kind, speaking_person, path}; context (1.8.0, edit_plan_validate verir): {concept_proof,
+    regulated_sector, claims, product_price} — yoksa konsept/sektör/iddia denetimleri uyarıya düşer. Dönüş: {valid, errors, warnings, computed}."""
     errors: list[str] = []
     warnings: list[str] = []
     v = jsonschema.Draft202012Validator(SCHEMA)
@@ -236,13 +347,15 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
                     if src.get("kind") == "ai_clip" and not src.get("real_twin") and plan["status"] == "ready":
                         warnings.append(f"sahne {s['id']} katman {li}: AI klibin gerçek çekimli eşi (real_twin) belirtilmemiş (5.3, 5.16)")
             comp = layer.get("component")
+            if comp in ("BeforeAfter", "NumberRoll", "PhoneScreen", "PictureInPicture", "TextMark"):
+                _component_rules(plan, s, li, layer, context, errors, warnings)
             if comp == "ReviewCard" and not layer.get("review_id"):
                 errors.append(f"sahne {s['id']} katman {li}: ReviewCard izin kaydı (review_id) olmadan kullanılamaz (bölüm 10)")
             if comp in PREVIEW_ONLY and plan["purpose"] == "production" and plan["status"] == "ready":
                 errors.append(f"sahne {s['id']}: {comp} yalnızca önizleme bileşenidir; hazır üretim planında olamaz")
             if comp in SIGNATURE and s["role"] not in ("reveal", "endcard"):
                 errors.append(f"sahne {s['id']}: imza anı bileşeni {comp} yalnızca reveal ve son kartta kullanılabilir (5.12)")
-            if layer["type"] == "text" or comp in ("TextReveal", "KineticWords", "SoftType", "LowerThird", "PriceTag"):
+            if layer["type"] == "text" or comp in ("TextReveal", "KineticWords", "SoftType", "LowerThird", "PriceTag", "TextMark"):
                 st, du = _layer_span(s, layer)
                 if du < 1.5:
                     warnings.append(f"sahne {s['id']} katman {li}: yazı {du:.2f} sn ekranda; okunurluk için ≥ 1,5 sn önerilir (bölüm 10)")
@@ -251,10 +364,12 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
     for s in scenes:
         mode = s["audio"]["mode"]
         speaking = bool(s.get("speaking_person")) or any(bool(l.get("speaking_person")) for l in s["layers"])
+        # 1.8.0: köşedeki konuşan kişi (PictureInPicture.inset) de konuşmalı sahne sayılır
+        speaking = speaking or any(isinstance(v, dict) and v.get("speaking_person") for l in s["layers"] for _, v in source_props(l))
         if asset_index:
             for l in s["layers"]:
-                a = (l.get("source") or {}).get("asset")
-                if a and asset_index.get(a, {}).get("speaking_person"):
+                srcs = [l.get("source") or {}] + [v for _, v in source_props(l) if isinstance(v, dict)]
+                if any(src.get("asset") and asset_index.get(src["asset"], {}).get("speaking_person") for src in srcs):
                     speaking = True
         if speaking and mode not in ("original", "original_clean"):
             errors.append(f"sahne {s['id']}: kamerada konuşan kişi var; ses yalnızca 'original' ya da 'original_clean' olabilir (dudak senkronu, 5.2)")
@@ -288,6 +403,10 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
                 ttypes.add(l["component"][0].lower() + l["component"][1:])
             elif l.get("component") == "Crossfade":
                 ttypes.add("crossfade")
+    marks = sum(1 for s in scenes for l in s["layers"] if l.get("component") == "TextMark")
+    marks_allowed = TEXT_MARK_MAX_PER_15S * max(1, math.ceil(plan["duration_s"] / 15.0 - 1e-9))
+    if marks > marks_allowed:
+        errors.append(f"efekt bütçesi: {marks} sözcük vurgusu (TextMark) var, izin verilen {marks_allowed} (15 sn'de en fazla {TEXT_MARK_MAX_PER_15S})")
     if len(ttypes) > int(effects.get("transitionTypesMax", 2)):
         errors.append(f"efekt bütçesi: {len(ttypes)} farklı geçiş türü ({', '.join(sorted(ttypes))}), izin verilen {effects.get('transitionTypesMax')}")
     if not effects.get("persistentAtmosphere", False):

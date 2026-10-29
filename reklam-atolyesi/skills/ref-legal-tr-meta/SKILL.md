@@ -228,6 +228,9 @@ resmi metin kategoriye göre kısıt koyar.
 - **S03 konsept:** hook ve metin 8a–8c'ye göre yazılır; `PY PR/scripts/qc/checks.py meta-text --text <taslak.txt>` ön taraması.
   `proof=before_after` seçilirse ürün kategorisi 8d'ye göre işaretlenir; 18+ gerekiyorsa not S14'e taşınır.
 - **S04 çekim planı:** önce/sonra çekimi 8d'ye göre; kozmetik ve kilo kategorisinde yakın plan ve kadraj kuralı karta yazılır.
+- **S10 kurgu (1.8.0):** `BeforeAfter` bileşeninde kategori `category` prop'una yazılır (general · cosmetic · weight · health_claim ·
+  skin_whitening); plan doğrulaması cilt beyazlatmayı, AI kaynağı, konseptte before_after seçilmemesini ve sağlık hizmeti sektörünü
+  reddeder; kozmetik/kilo için 18+ notu verir. Önce/sonra kaynaklarına renk eşitleme uygulanmaz (fark kanıtın kendisidir).
 - **S13 QC:** `checks.py meta-text --plan <plan.json>` ekrandaki her yazıyı tarar. Tarama kelime/kalıp tabanlı bir **uyarıdır, karar
   değildir**: her uyarı gözle incelenip "sorun yok" ya da "düzelt" diye kayda geçer. Görüntüdeki sansasyonel öğe (8b) ve önce/sonra
   kategorisi (8d) kontak sayfasından gözle denetlenir.

@@ -18,3 +18,5 @@ Upstream `SKILL.md` dosyaları değiştirilmemiştir. Lisansı belirsiz repo kop
 | [kapishdima/soundcn](https://github.com/kapishdima/soundcn) | `7cbfbb3f56e8548b81fb26410bdcea657447d087` | MIT | assets/kenney_interface-sounds assets/kenney_digital-audio assets/kenney_impact-sounds assets/kenney_music-jingles | vendored |
 
 sfx-cc0: ses dosyaları Kenney (www.kenney.nl) paketleridir, lisansları CC0 1.0 (kamu malı adanması); soundcn deposunun MIT lisanslı kodu kullanılmaz, yalnız `assets/kenney_*` klasörleri alındı. Dosya başına kaynak: `sfx-cc0/ATTRIBUTION.md`.
+
+Şablon npm bağımlılıkları (1.8.0; `templates/remotion/package-lock.json`, kod kopyalanmaz, npm ile kurulur): `@remotion/rough-notation` 4.0.532 (MIT) ve alt bağımlılıkları `roughjs` 4.6.6, `hachure-fill`, `path-data-parser`, `points-on-curve`, `points-on-path` (hepsi MIT). Yalnız fikir alınan, kodu ya da metni kopyalanmayan kaynaklar: RemotionUI (counter, split-screen), snapcn (telefon çerçevesi), RVE (Image Comparison Slider), Remotion Agent Skills (lisanssız; yukarıdaki satır). 1.8.0 bileşenleri (`compare.tsx`, `counter.tsx`, `mark.tsx`, `media.tsx`) sıfırdan yazıldı.
