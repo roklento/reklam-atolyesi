@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.8.0",
+ "plugin_version": "1.8.1",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -299,7 +299,7 @@
    "name": "ref-vendor-map",
    "kind": "reference",
    "description": "reklam-atolyesi hazır skill eşlemesi — hangi aşamada hangi vendor dosyasının hangi bölümü okunur, önce OVERRIDES kuralı, devre dışı kısımlar ve Remotion için resmi belge yolu.",
-   "sha256": "06547c6979be4e7e0ec2485cce636ff5ad5823836a569869ba4a802638e8970f"
+   "sha256": "d1fc9d2011b439f2d569f65fe26227b11bfd087b9427c3887a41db51af245d24"
   },
   {
    "name": "shoot-feedback",
@@ -311,13 +311,13 @@
    "name": "shoot-guide",
    "kind": "stage",
    "description": "reklam-atolyesi S04 çekim planı — hiç video çekmemiş biri için ürün tarifini uygulayan kartlar, numaralı çekim menüsü (her hook ayrı satır), fotoğraf listesi, ses talimatı, sfx_plan. Kapılı.",
-   "sha256": "ead58fb1b61464a3208ee2080d28cb26ec351dd7a123d446c6e0e5957b5d4fe4"
+   "sha256": "5eafe5c17034b630e43bfc8b66ec4047e8c09f9fce6250193993b862811679c3"
   },
   {
    "name": "sound",
    "kind": "stage",
    "description": "reklam-atolyesi S11 ses — sahne ses kararlarını uygular, vuruş haritası, temizlik, ducking, -14 LUFS/≤-1 dBTP miks, telefon testi, altyazı; taslağı kullanıcıyla izletir. Kapılı (taslak).",
-   "sha256": "569bd0d1fbb4995dba29e4e1f63ec21b361784d7de85a53c176282a74beeeb13"
+   "sha256": "e86c21f2fa00f4901efb063254c5cc9ec9606b0a68ef6985f2b952b84f7570cc"
   },
   {
    "name": "strategy",
@@ -897,11 +897,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 371,
+   "passed": 376,
    "failed": 3,
    "skipped": 5,
    "returncode": 1,
-   "summary": "371 passed, 3 failed, 5 skipped (1.8.0, Linux bulut ortamı; yeni testler tests/test_v180_components.py: 42 bileşen kaydı ile doğrulayıcı eşliği, BeforeAfter/NumberRoll/PhoneScreen/PictureInPicture/TextMark kuralları, kaynak alanların ara dosyası ve render anahtarı, sunucu bağlamı (konsept kanıtı, sektör, iddialar, fiyat), eski proje yedekleri). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.8.0 Windows'ta çalıştırılmadı.",
+   "summary": "376 passed, 3 failed, 5 skipped (1.8.1, Linux bulut ortamı; yeni testler tests/test_v181_sfx.py: eksik Türkçe efekt etiketleri, ekli sorgu, kategori sıralaması, profil göreli puanı, kaynaksız arşiv dosyaları). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.8.1 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
@@ -1532,6 +1532,14 @@
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yalnızca dağıtım deposu adı); fark satır satır okundu; demo ve test metinleri nötr yer tutucu (Ürün A, Örnek, Konsept A)",
     "fixed": "—",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "1.8.1: scripts/audio/sfx_library.py, sfx_synth.py, sound, shoot-guide ve ref-vendor-map skill'leri, ai-product-video OVERRIDES.md, 5 arşiv dosyasının silinmesi, test_v181_sfx.py, README, sürüm dizgileri",
+    "files_reviewed": 14,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); eklenen satırlar yalnızca genel ses etiketleri ve arşiv dosya adları içerir; test profil adı nötr",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1542,17 +1550,17 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "e8d78a5aece171c059384f6ef74ad8b37ccae7dbfc58a73f46fd849c06f73271",
+   "plugin_json": "c2fca022851858f625f84c7fff51879393bf6f36d3293140b70372889ab82e3d",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "abc0c615d31b09140e0142b0273b86d4cd4babaf3e0de21b638907b5912c2d9c",
+   "skills": "0e9c0dbde5065d82f5f0cd8000208241a1a97d23f20b40f89f7e5d6e11f2e10f",
    "agents": "6e9b32f0d0039428c857d9546dd856f68eadab7bba8a72f6d845abe195afa2fd",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-   "ad_memory": "ca0111296e2b06796606e35a034f816fea887485fabe430dd0f1aaa641f6c606",
-   "scripts": "167cda3d0bda0f7ce69232c8e5522f9b9ee31ab76ef3f653cf70c2a0b0e17bf8",
+   "ad_memory": "7bb0b878186836c511670685274f5c80351338a1578523d9bc62a7d9309655e5",
+   "scripts": "937d7eb392d0c511ab276892d64a7295de4144e02f00ad31426fb81484046b1b",
    "templates": "e03b192602e3fc32f4db1ec8f483861fda49e10ca37db8c36f264d490acff058",
-   "vendor_skills": "c523048fc8dff626157e30dfd4981b7f6296487927121730471f9a4f169f4d67"
+   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
   "checked_at": "2026-10-29"
  },
@@ -1711,17 +1719,17 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "e8d78a5aece171c059384f6ef74ad8b37ccae7dbfc58a73f46fd849c06f73271",
+  "plugin_json": "c2fca022851858f625f84c7fff51879393bf6f36d3293140b70372889ab82e3d",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "abc0c615d31b09140e0142b0273b86d4cd4babaf3e0de21b638907b5912c2d9c",
+  "skills": "0e9c0dbde5065d82f5f0cd8000208241a1a97d23f20b40f89f7e5d6e11f2e10f",
   "agents": "6e9b32f0d0039428c857d9546dd856f68eadab7bba8a72f6d845abe195afa2fd",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-  "ad_memory": "ca0111296e2b06796606e35a034f816fea887485fabe430dd0f1aaa641f6c606",
-  "scripts": "167cda3d0bda0f7ce69232c8e5522f9b9ee31ab76ef3f653cf70c2a0b0e17bf8",
+  "ad_memory": "7bb0b878186836c511670685274f5c80351338a1578523d9bc62a7d9309655e5",
+  "scripts": "937d7eb392d0c511ab276892d64a7295de4144e02f00ad31426fb81484046b1b",
   "templates": "e03b192602e3fc32f4db1ec8f483861fda49e10ca37db8c36f264d490acff058",
-  "vendor_skills": "c523048fc8dff626157e30dfd4981b7f6296487927121730471f9a4f169f4d67"
+  "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }

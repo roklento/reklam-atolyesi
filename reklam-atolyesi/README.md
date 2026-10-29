@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.8.0
+# Reklam Atölyesi (reklam-atolyesi) · 1.8.1
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,15 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.8.1** — ses efekti aramasında kalan boşluklar
+- `sfx_library.py`: "alkış", "kalp", "ışıltı", "sayaç", "daktilo", "kalem", "damla" gibi arşivdeki organik sesler için Türkçe etiketler
+  (önceden "alkış" ve "kalp" sonuç vermiyordu, "ışıltı" önce cam kırılma seslerini getiriyordu). Ekli sorgu kökle açılır ("geçişi" →
+  geçiş). Eşit puanda ve aynı kaynakta eşleşen karşılık sayısı sıralar ("geçiş" → önce transition/); CC0 önceliği değişmedi. Profil
+  dosyaları kütüphaneye göre göreli puanlanır (mutlak yoldaki klasör adları artık eşleşmiyor).
+- Kaynağı doğrulanamayan 5 Mixkit arşiv dosyası silindi (`sparkle`, `riser-cine`, `keyboard`, `whoosh-big`, `pop`; zaten
+  listelenmiyordu). "riser → impact → sparkle" cümlesi sentez riser ve kayıtlı dosyalarla kurulur; karşılıklar ai-product-video `OVERRIDES.md`.
+- S04 `sfx_plan` organik sesleri önce kütüphaneye yönlendirir (doğrudan ElevenLabs değil); `ref-vendor-map` ATTRIBUTION yolu düzeltildi.
+
 **1.8.0** — beş yeni bileşen ve KenBurns odak (37 → 42)
 - `BeforeAfter` (önce/sonra; wipe, split, cut): iki kaynak da gerçek çekim olmalı; plan doğrulaması AI kaynağını, konseptte
   `before_after` seçilmemesini, sağlık hizmeti sektörünü ve cilt beyazlatma kategorisini reddeder; kozmetik/kilo için 18+ uyarısı verir.

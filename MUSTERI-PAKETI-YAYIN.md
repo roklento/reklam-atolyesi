@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.8.0
+# Müşteri paketi — 1.8.1
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,12 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.8.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.8.1**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.8.1 migration içermez, yeni bağımlılık yok. Efekt aramasına Türkçe etiketler eklendi; kaynağı kayıtsız 5 efekt dosyası paketten
+çıktı (kullanılmıyorlardı). Yalnızca `sfx_library.py`, skill metinleri ve ses arşivi değişti.
 1.8.0 migration içermez. Yeni bağımlılık: npm `@remotion/rough-notation` 4.0.532 (MIT; + roughjs ve dört küçük MIT paketi);
 güncelleyici kilit dosyası değiştiği için `npm ci`'yi kendisi çalıştırır. Mevcut kampanya projelerinin `components/` klasörü
 `render.py init` ile kopyalandığı için yeni beş bileşen yalnız yeni projelerde tam çalışır. Eski projede bu bileşenler "bilinmeyen bileşen"
@@ -69,6 +71,8 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.8.1** (Linux bulut ortamı): tam paket 376 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v181_sfx.py` (5).
 
 **1.6.0** (Linux bulut ortamı): tam paket 351 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v160_plugins.py` (8),
 `test_v160_fit.py` (5), referans ve döküm (birer). Gerçek Remotion render'ında (headless Chromium) 8 yazı bileşeni demo ve uzun metinle
