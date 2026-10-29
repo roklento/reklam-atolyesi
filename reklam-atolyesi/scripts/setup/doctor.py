@@ -55,7 +55,7 @@ playbook_activate playbook_revalidate playbook_retire playbook_round_tick memory
 memory_update memory_forget memory_consolidate consolidation_due journal_log journal_summary checkpoint_save checkpoint_get checkpoint_close
 export_markdown backup system_manifest_get""".split()
 DATA_ALLOWED = {".venv", ".node", "db", ".kurulum-statik-tamam", ".sessions", "logs", "backups", "memory", ".selftest", ".tts"}
-FFMPEG_FILTERS = ["vidstabdetect", "vidstabtransform", "zscale", "loudnorm", "lut3d", "sidechaincompress", "tonemap"]
+FFMPEG_FILTERS = ["vidstabdetect", "vidstabtransform", "zscale", "loudnorm", "lut3d", "sidechaincompress", "tonemap", "colorchannelmixer"]
 VERSION_RE = re.compile(r"(\d+)\.(\d+)(?:\.(\d+))?")
 
 
@@ -120,7 +120,7 @@ def check_tools(r: Report, data_dir: Path) -> None:
     ff = shutil.which("ffmpeg")
     filt = _run([ff, "-hide_banner", "-filters"]).stdout.decode("utf-8", "replace") if ff else ""
     missing = [f for f in FFMPEG_FILTERS if not re.search(rf"\s{f}\s", filt)]
-    r.add("ffmpeg_filters", "FFmpeg: vidstab, zscale, loudnorm, lut3d, sidechaincompress", bool(ff) and not missing, {"path": ff, "missing": missing})
+    r.add("ffmpeg_filters", "FFmpeg: vidstab, zscale, loudnorm, lut3d, sidechaincompress, colorchannelmixer", bool(ff) and not missing, {"path": ff, "missing": missing})
 
 
 def check_voice_engines(r: Report, data_dir: Path) -> None:

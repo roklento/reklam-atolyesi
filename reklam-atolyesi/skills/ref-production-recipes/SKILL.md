@@ -20,6 +20,7 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 |---|---|
 | probe / ingest (CFR, HDR→SDR, proxy, sarsıntı, sabitleme, ses, HEIC/EXIF) | `PY PR/scripts/ingest/convert.py probe <dosya>` · `… ingest --campaign-dir <k> [--fps 30|60] [--only …]` |
 | sahne ara dosyaları | `PY PR/scripts/ingest/scenes.py --plan … --assets … --out-dir footage/scenes --quality proxy|final [--style …] [--map-out …]` |
+| klipler arası renk eşitleme (1.7.0) | `PY PR/scripts/analyze/color_match.py plan --plan … --assets … [--style …] --out …` (scenes.py bunu kendisi çağırır); `measure --clip …`; `compare --report footage/scenes/color_match.json --out-dir …` |
 | ölçüm (netlik, pozlama, hareket, ses, kişi) | `PY PR/scripts/analyze/measure.py --clip … [--shake-permille …] [--audio …] --out …` |
 | kontak sayfası | `PY PR/scripts/analyze/contact_sheet.py --video … --out … [--per-second] [--times …]` |
 | yazı şeritleri | `PY PR/scripts/analyze/contact_sheet.py --video … --out bands.jpg --text-bands --plan … [--style] [--captions]` (her yazılı anın yazı bölgesi ≤ 540 px; sayfa ≤ 540×1500, küçültmeden okunur; 1.5.1) |

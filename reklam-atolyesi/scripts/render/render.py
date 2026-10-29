@@ -135,6 +135,31 @@ def merge_layout(paths: list[Path]) -> dict:
     return {"records": records, "unmeasured_segments": missing}
 
 
+def intermediate_hashes(plan: dict, scene_map: dict | None) -> dict[str, dict[str, str]]:
+    """Sahne başına {varlık: ara dosya hash'i}. scene_key kaynakları varlık anahtarıyla arar; 1.7.0 öncesi hash'ler '<sahne>:<katman>'
+    anahtarıyla yazıldığı için hiç eşleşmiyordu ve ara dosya değişince (aralık, renk eşitleme) segment önbelleği bayat kalabiliyordu."""
+    by_id = {s["id"]: s for s in plan.get("scenes", [])}
+    out: dict[str, dict[str, str]] = {}
+    for sid, layers in (scene_map or {}).get("scenes", {}).items():
+        for li, info in layers.items():
+            try:
+                akey = (by_id[sid]["layers"][int(li)].get("source") or {}).get("asset")
+            except (KeyError, IndexError, ValueError):
+                akey = None
+            h = sha256_file(info["path"])
+            cur = out.setdefault(sid, {})
+            k = akey or f"{sid}:{li}"
+            cur[k] = "+".join(sorted({*cur[k].split("+"), h})) if k in cur else h
+    return out
+
+
+def _merge_hashes(a: dict | None, b: dict | None) -> dict[str, str]:
+    m = dict(b or {})
+    for k, v in (a or {}).items():
+        m[k] = "+".join(sorted({*m[k].split("+"), *v.split("+")})) if k in m else v
+    return m
+
+
 def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dict | None, style_path: str | None, scene_map: dict | None,
                 captions: list | None, quality: str, parallel_jobs: int, still: int | None, use_cache: bool, beats: list | None) -> dict:
     if quality == "final" and plan.get("status") != "ready":
@@ -153,17 +178,15 @@ def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dic
     fps = plan["fps"]
     seg_dir = project / ".segments"
     seg_dir.mkdir(exist_ok=True)
-    src_hashes = {}
-    for sid, layers in (scene_map or {}).get("scenes", {}).items():
-        for li, info in layers.items():
-            src_hashes[f"{sid}:{li}"] = sha256_file(info["path"])
+    per_scene = intermediate_hashes(plan, scene_map)
     style_sha = sha256_file(style_path) if style_path else None
     lock = SC.lock_versions(data_dir / ".node")
     segments, jobs = [], []
     for i, s in enumerate(plan["scenes"]):
         a = round(s["start_s"] * fps)
         b = round((s["start_s"] + s["dur_s"]) * fps) - 1
-        key = SC.scene_key(plan, i, source_hashes=src_hashes, style_sha=style_sha, quality=quality, scale=scale, render_versions=lock,
+        nxt = plan["scenes"][i + 1]["id"] if i + 1 < len(plan["scenes"]) else None
+        key = SC.scene_key(plan, i, source_hashes=_merge_hashes(per_scene.get(s["id"]), per_scene.get(nxt)), style_sha=style_sha, quality=quality, scale=scale, render_versions=lock,
                            audio_sha=None, beats_sha=None)
         seg = seg_dir / f"{s['id']}_{quality}_{key[:20]}.mp4"
         segments.append(seg)
