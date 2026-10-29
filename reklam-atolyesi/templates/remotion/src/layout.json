@@ -12,8 +12,14 @@
   "1x1": {"safe_bottom": 0.72, "center": 0.42}
  },
  "component_y": {
-  "9x16": {"LowerThird": 0.5, "PriceTag": 0.53, "CTAPulse": 0.55, "CaptionTrack": 0.52},
-  "4x5": {"LowerThird": 0.62, "PriceTag": 0.7, "CTAPulse": 0.74, "CaptionTrack": 0.7},
-  "1x1": {"LowerThird": 0.62, "PriceTag": 0.7, "CTAPulse": 0.8, "CaptionTrack": 0.7}
+  "9x16": {"LowerThird": 0.5, "PriceTag": 0.53, "CTAPulse": 0.55, "CaptionTrack": 0.52, "TextMark": 0.16, "NumberRoll": 0.4},
+  "4x5": {"LowerThird": 0.62, "PriceTag": 0.7, "CTAPulse": 0.74, "CaptionTrack": 0.7, "TextMark": 0.21, "NumberRoll": 0.45},
+  "1x1": {"LowerThird": 0.62, "PriceTag": 0.7, "CTAPulse": 0.8, "CaptionTrack": 0.7, "TextMark": 0.12, "NumberRoll": 0.45}
+ },
+ "_pip_doc": "PictureInPicture köşe kutusu sınırları (1.8.0): top = kutunun en üst kenarı, bottom = en alt kenarı, side = yan pay (oran). Güvenli alanın içinde; checks.py safe kutunun yazıyla/altyazıyla çakışmasını denetler.",
+ "pip_box": {
+  "9x16": {"top": 0.15, "bottom": 0.64, "side": 0.06},
+  "4x5": {"top": 0.19, "bottom": 0.81, "side": 0.093},
+  "1x1": {"top": 0.08, "bottom": 0.92, "side": 0.08}
  }
 }

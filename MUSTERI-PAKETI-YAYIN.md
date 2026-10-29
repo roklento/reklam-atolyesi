@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.7.0
+# Müşteri paketi — 1.8.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,17 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.7.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.8.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.8.0 migration içermez. Yeni bağımlılık: npm `@remotion/rough-notation` 4.0.532 (MIT; + roughjs ve dört küçük MIT paketi);
+güncelleyici kilit dosyası değiştiği için `npm ci`'yi kendisi çalıştırır. Mevcut kampanya projelerinin `components/` klasörü
+`render.py init` ile kopyalandığı için yeni beş bileşen yalnız yeni projelerde tam çalışır. Eski projede bu bileşenler "bilinmeyen bileşen"
+paneli olarak çizilir; `render.py init --force-library` bileşenleri getirir ama sahne şablonu (`scenes/index.tsx`) eski kaldığı için
+kaynak alanları (önce/sonra, köşe video, telefon ekranı) kırmızı değil gri "KAYNAK ÇÖZÜLEMEDİ: projeyi yeniden kurun" yer tutucusu
+gösterir ve KenBurns odak yok sayılır; çökme olmaz. Bu bileşenleri kullanacak kampanya için yeni proje klasörü kurun. Galeri referansı
+yenilendi (yeni beş bileşen eklendi; eski bileşen kareleri aynı).
 1.7.0 migration içermez, yeni bağımlılık yok (ffmpeg'in standart `colorchannelmixer` süzgeci kullanılır; doctor bunu da arar).
 Renk eşitleme varsayılan açıktır: düzeltme gereken klibin sahne ara dosyası ve tüm render segmentleri ilk render'da bir kez yeniden
 üretilir (segment anahtarı artık ara dosya içeriğini görüyor). Düzeltilmeyen klipte ara dosya anahtarı 1.6.0 ile aynıdır. Kapatmak için

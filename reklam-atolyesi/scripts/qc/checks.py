@@ -100,6 +100,19 @@ def safe_zone(plan: dict, style: dict | None = None, captions: list | None = Non
     if cap:
         checked += 1
         place(cap, "altyazı", None)
+    # 1.8.0: PictureInPicture köşe kutusu aynı sahnedeki yazı bloklarıyla ve altyazıyla çakışmamalı (yazılar yatayda tam genişlik sayılır)
+    for s in plan["scenes"]:
+        texts = [(i, TL.layer_extent(l, s["role"], fmt, style)) for i, l in enumerate(s["layers"])]
+        texts = [(i, e) for i, e in texts if e and e["mode"] != "full"] + ([("altyazı", cap)] if cap else [])
+        for i, l in enumerate(s["layers"]):
+            box = TL.pip_extent(l, fmt)
+            if not box:
+                continue
+            for j, e in texts:
+                if box["y0"] < e["y1"] - 1e-6 and e["y0"] < box["y1"] - 1e-6:
+                    issues.append({"scene": s["id"], "layer": i, "component": "PictureInPicture",
+                                   "issue": f"köşe kutusu (%{box['y0']*100:.0f}–%{box['y1']*100:.0f}) {e['component']} yazısıyla çakışıyor "
+                                            f"(%{e['y0']*100:.0f}–%{e['y1']*100:.0f}); köşeyi ya da yazının yerini değiştir"})
     for r in records:  # katmana eşlenemeyen ölçülmüş taşma da gizlenmez
         key = (r.get("component"), r.get("part"), r.get("text"))
         if r.get("fits") is False and key not in reported:

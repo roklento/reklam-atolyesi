@@ -118,6 +118,14 @@ def layer_extent(layer: dict, role: str, fmt: str, style: dict | None = None) ->
         mode = "top"
         fs = _num(props.get("fontSize"), 58)
         px = fs * 1.15 * 2
+    elif comp == "TextMark":  # 1.8.0
+        mode = "top"
+        fs = _num(props.get("fontSize"), 96)
+        px = fs * 1.2 * lines(text, fs, 0.88 * w)
+    elif comp == "NumberRoll":  # 1.8.0: sayı tek satır (fit.tsx) + isteğe bağlı açıklama
+        mode = "center"
+        fs = _num(props.get("fontSize"), 160)
+        px = fs * 1.1 + ((10 + 44 * 1.2 * lines(props["label"], 44, 0.88 * w)) if props.get("label") else 0)
     else:  # TextReveal, KineticWords, SoftType ve yazılı bilinmeyen bileşen
         mode = "top"
         fs = _num(props.get("fontSize"), 88)
@@ -125,6 +133,22 @@ def layer_extent(layer: dict, role: str, fmt: str, style: dict | None = None) ->
     hh = px / h
     y0, y1 = (y - hh / 2, y + hh / 2) if mode == "center" else (y, y + hh)
     return {"component": comp, "mode": mode, "y": round(y, 4), "y0": round(y0, 4), "y1": round(y1, 4)}
+
+
+def pip_extent(layer: dict, fmt: str) -> dict | None:
+    """PictureInPicture köşe kutusu (oran; components/media.tsx pipRect ile aynı hesap): {x0, x1, y0, y1}."""
+    if layer.get("component") != "PictureInPicture":
+        return None
+    f = fmt_of(fmt)
+    w, h = size(f)
+    props = layer.get("props") or {}
+    b = LAYOUT["pip_box"][f]
+    sz = min(0.45, max(0.18, _num(props.get("size"), 0.34)))
+    corner = props.get("corner") or "top_right"
+    bh = sz * w / h
+    x0 = b["side"] if str(corner).endswith("left") else 1 - b["side"] - sz
+    y0 = b["top"] if str(corner).startswith("top") else b["bottom"] - bh
+    return {"component": "PictureInPicture", "x0": round(x0, 4), "x1": round(x0 + sz, 4), "y0": round(y0, 4), "y1": round(y0 + bh, 4)}
 
 
 def captions_extent(plan: dict, captions: list | None = None) -> dict | None:
@@ -140,7 +164,7 @@ def captions_extent(plan: dict, captions: list | None = None) -> dict | None:
     return {"component": "CaptionTrack", "mode": "top", "y": y, "y0": y, "y1": round(y + 58 * 1.15 * n / h, 4), "lines": n}
 
 
-MEASURED = {"TextReveal", "KineticWords", "SoftType", "BehindSubjectText", "LowerThird", "CTAPulse"}  # blok boyu ölçümden alınabilenler
+MEASURED = {"TextReveal", "KineticWords", "SoftType", "BehindSubjectText", "LowerThird", "CTAPulse", "TextMark"}  # blok boyu ölçümden alınabilenler
 
 
 def _layer_texts(layer: dict) -> set[str]:

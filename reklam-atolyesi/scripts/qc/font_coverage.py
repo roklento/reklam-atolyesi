@@ -33,8 +33,10 @@ GENERIC = {"serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui"
            "math", "fangsong", "inherit", "initial"}
 # Bileşen → yazı ağırlıkları (templates/remotion/src/components; bileşen props.fontWeight verirse o da eklenir)
 COMPONENT_WEIGHTS = {"LowerThird": (700, 400), "PriceTag": (400, 700), "ReviewCard": (400, 700), "EndCard": (700,), "CTAPulse": (700,),
-                     "CaptionTrack": (700,), "TextReveal": (700,), "KineticWords": (700,), "SoftType": (700,), "BehindSubjectText": (700,)}
-TEXT_KEYS = ("text", "title", "subtitle", "label", "quote", "displayName", "brand", "cta", "url")  # profil bileşenleri için de yazı alanları
+                     "CaptionTrack": (700,), "TextReveal": (700,), "KineticWords": (700,), "SoftType": (700,), "BehindSubjectText": (700,),
+                     "TextMark": (700,), "NumberRoll": (700, 400), "BeforeAfter": (700,)}  # 1.8.0
+TEXT_KEYS = ("text", "title", "subtitle", "label", "quote", "displayName", "brand", "cta", "url", "labelBefore", "labelAfter", "prefix",
+             "suffix")  # profil bileşenleri için de yazı alanları
 _NOT_TEXT = re.compile(r"^\s*(#[0-9a-fA-F]{3,8}|rgba?\(.*\)|hsla?\(.*\)|-?[\d.]+(em|px|%)?|[\w.-]+\.(png|jpe?g|webp|svg|mp4|mov|wav))\s*$")
 _IMPORT = re.compile(r"""(?:\bimport\s+|\bfrom\s+|@import\s+(?:url\()?\s*)["'](@fontsource(?:-variable)?/[^"']+)["']""")
 _FACE = re.compile(r"@font-face\s*\{([^}]*)\}", re.S)

@@ -142,8 +142,11 @@ def intermediate_hashes(plan: dict, scene_map: dict | None) -> dict[str, dict[st
     out: dict[str, dict[str, str]] = {}
     for sid, layers in (scene_map or {}).get("scenes", {}).items():
         for li, info in layers.items():
+            idx, _, prop = str(li).partition(".")  # 1.8.0: bileşen kaynağı "<katman>.<prop>"
             try:
-                akey = (by_id[sid]["layers"][int(li)].get("source") or {}).get("asset")
+                layer = by_id[sid]["layers"][int(idx)]
+                src = (layer.get("props") or {}).get(prop) if prop else layer.get("source")
+                akey = src.get("asset") if isinstance(src, dict) else None
             except (KeyError, IndexError, ValueError):
                 akey = None
             h = sha256_file(info["path"])

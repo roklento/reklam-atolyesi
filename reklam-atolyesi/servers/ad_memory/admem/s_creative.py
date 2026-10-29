@@ -332,8 +332,10 @@ class CreativeMixin:
         index: dict[str, dict] = {}
         for s in plan.get("scenes", []):
             for l in s.get("layers", []):
-                a = (l.get("source") or {}).get("asset")
-                if a and a not in index:
+                srcs = [l.get("source") or {}] + [v for _, v in editplan.source_props(l) if isinstance(v, dict)]  # 1.8.0
+                for a in [x.get("asset") for x in srcs]:
+                    if not a or a in index:
+                        continue
                     aid = a[1:] if a.startswith("a") and a[1:].isdigit() else (a if a.isdigit() else None)
                     row = self.q1("SELECT * FROM assets WHERE id=? AND profile_id=?", (int(aid), profile_id)) if aid else \
                         self.q1("SELECT * FROM assets WHERE profile_id=? AND (shot_no=? OR path LIKE ?)", (profile_id, a, f"%{a}%"))
@@ -345,6 +347,25 @@ class CreativeMixin:
                         index[a] = {"missing": True}
         return style, index
 
+    def _plan_rules_context(self, profile_id: int, campaign_id: int, plan: dict) -> dict:
+        """1.8.0 bileşen kuralları için bağlam: konseptin kanıt türü, kampanya ürününün sektörü, kanıtlanabilir iddiaları ve fiyatı."""
+        c = self._campaign(profile_id, campaign_id)
+        ctx: dict[str, Any] = {"concept_proof": None, "regulated_sector": None, "claims": [], "product_price": None}
+        k = self.q1("SELECT features_json FROM concepts WHERE campaign_id=? AND code=? ORDER BY id DESC LIMIT 1", (c["id"], plan.get("concept")))
+        if k:
+            feats = k["features_json"] if isinstance(k["features_json"], dict) else jload(k["features_json"], {}) or {}
+            ctx["concept_proof"] = feats.get("proof")
+        if c.get("product_id"):
+            pr = self.q1("SELECT * FROM products WHERE id=?", (c["product_id"],))
+            if pr:
+                sj = pr.get("service_json")
+                sj = sj if isinstance(sj, dict) else jload(sj, {}) or {}
+                ctx["regulated_sector"] = sj.get("regulated_sector")
+                cl = pr.get("provable_claims_json")
+                ctx["claims"] = cl if isinstance(cl, list) else jload(cl, []) or []
+                ctx["product_price"] = pr.get("price")
+        return ctx
+
     def edit_plan_validate(self, profile_id: int, campaign_id: int, plan: dict | None = None, plan_id: int | None = None,
                            beats: list[float] | None = None) -> dict:
         self._campaign(profile_id, campaign_id)
@@ -354,7 +375,8 @@ class CreativeMixin:
             row = self._plan_row(profile_id, plan_id)
             plan = jload(row["plan_json"], {}) if isinstance(row["plan_json"], str) else row["plan_json"]
         style, index = self._plan_context(profile_id, campaign_id, plan)
-        rep = editplan.validate(plan, style=style, beats=beats, asset_index=index)
+        rep = editplan.validate(plan, style=style, beats=beats, asset_index=index,
+                                context=self._plan_rules_context(profile_id, campaign_id, plan))
         if style is None and plan.get("style"):
             rep["warnings"].append(f"stil dosyası bulunamadı: {plan.get('style')} (efekt bütçesi varsayılanla denetlendi)")
         if plan.get("status") == "ready" and style is not None and plan.get("style_snapshot_sha256") and plan["style_snapshot_sha256"] != style["__sha256"]:

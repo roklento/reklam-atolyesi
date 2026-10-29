@@ -14,6 +14,7 @@
     "@remotion/media-utils": "4.0.532",
     "@remotion/motion-blur": "4.0.532",
     "@remotion/renderer": "4.0.532",
+    "@remotion/rough-notation": "4.0.532",
     "@remotion/three": "4.0.532",
     "@remotion/zod-types": "4.0.532",
     "react": "19.1.0",

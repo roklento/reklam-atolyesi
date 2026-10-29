@@ -39,6 +39,11 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
      ise vuruşa yaslanır; değilse aksiyonda kalır. `beat_lock` işaretli anlar (reveal, hook'tan çıkış, son kart girişi) vuruşa kilitlenir.
    - Bileşenler `ref-remotion-components` kütüphanesinden, stil kitabına ve **efekt bütçesine** göre (imza anı yalnızca reveal ve son
      kartta). Hiçbir bileşen varsayılan değildir.
+   - 1.8.0 bileşen kuralları (doğrulayıcı reddeder): `BeforeAfter` yalnızca konseptte `proof=before_after` seçiliyse, iki kaynak da gerçek
+     çekim, `category` §8d'ye göre işaretli, sağlık hizmeti sektöründe hiç; `NumberRoll` değeri fiyat (+ para birimi) ya da
+     `provable_claims_json`'daki kanıtlı iddia (`claimIndex` ya da `claimRef`); `PhoneScreen` için kayıtta başka kişinin verisi var mı **kullanıcıya
+     sorulur** (`personalData: none | blurred` + `blurRegions`); `TextMark` 15 sn'de en fazla 2; `PictureInPicture`'te konuşan kişinin
+     kaynağına `speaking_person: true` (ses `original*`) ve sesi ondan alınacaksa `audio: true`.
    - **Konuşmalı sahne (kamerada konuşan kişi, kullanıcının kaydı; 1.4.8):** S07 dökümünden kesim önerisi:
      `PY PR/scripts/audio/asr_local.py cuts --transcript analysis/speech/<klip>.transcript.json --out edit/speech/<klip>.cuts.json
      --asset <varlık kimliği> --at <bloğun plandaki başlangıcı> --role <rol> [--script duzeltilmis.txt]`. Önerilenler: dolgu ("eee",
@@ -65,7 +70,8 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
    kamerada konuşan sahne ↔ `original*`, efekt bütçesi, kilitli anlar, rakip kaynağı reddi). Yerel kontrol için aynı kod:
    `PY PR/scripts/compose/validate_plan.py <plan.json> --style <style> --beats <beats.json>`.
 4. **Sahne ara dosyaları (proxy):** `PY PR/scripts/ingest/scenes.py --plan <plan> --assets <asset_files.json> --out-dir footage/scenes
-   --quality proxy --style <style> --map-out footage/scenes/map_proxy.json` (aralık kesimi + `lut3d` + gerekirse sabit kopya; ham 4K
+   --quality proxy --style <style> --map-out footage/scenes/map_proxy.json` (aralık kesimi + `lut3d` + gerekirse sabit kopya; 1.8.0:
+   BeforeAfter/PictureInPicture/PhoneScreen kaynak prop'larının ara dosyaları da; ham 4K
    Remotion'a verilmez; çekim sesi kullanılan sahnelerde WAV parçaları). Klipler arası pozlama/beyaz dengesi eşitlemesi aynı adımda
    (1.7.0; `style.json grade.match`, varsayılan açık): rapor `footage/scenes/color_match.json`; `retake_candidates` doluysa o klip
    düzeltilmeden kullanılır ve kullanıcıya adıyla söylenir (fark ±0,5 stop ya da ±%12 kanal kazancını aşıyor).

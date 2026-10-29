@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.7.0",
+ "plugin_version": "1.8.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -167,7 +167,7 @@
    "name": "compose",
    "kind": "stage",
    "description": "reklam-atolyesi S10 kurgu — kurgu planını kesin zamanlama, katman ve geçişlerle tamamlar, vuruşa yaslar, sahne ara dosyalarından Remotion render eder ve görsel öz denetimden geçirir.",
-   "sha256": "0640d247fc5ea8bbe3355623b2b2aed8fd4169f77d7d88ff69865065928658f7"
+   "sha256": "b13e3b9b48ecfb6c78ba6d0319b7cb84effb4b97c283d27211469a51e8552ea0"
   },
   {
    "name": "concepts",
@@ -263,7 +263,7 @@
    "name": "ref-legal-tr-meta",
    "kind": "reference",
    "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar.",
-   "sha256": "8589e9301d1d4080f035e669edb641d437de13b1126d36a565d5de23f3879f56"
+   "sha256": "c6bb8777452f8a2411c0b54d81bbd67f944bf4cf6f056bbf252af1fcbe4784c0"
   },
   {
    "name": "ref-metrics-math",
@@ -281,7 +281,7 @@
    "name": "ref-remotion-components",
    "kind": "reference",
    "description": "reklam-atolyesi Remotion bileşen kütüphanesi — kompozisyonlar, plan katmanı → bileşen eşlemesi, bileşen prop'ları, geçiş/kamera/yazı presetleri, determinizm, yeni bileşen kuralı.",
-   "sha256": "748276d7ee13e1ac4841315dad9a610e62dc33c6a2308dd1f186db40b8ac795a"
+   "sha256": "8217e82cdcb3b9d1364d0eda7d3db8f922d8b7f93d417d9e8b3414432f88d07d"
   },
   {
    "name": "ref-shooting-basics",
@@ -854,21 +854,25 @@
  },
  "templates": {
   "templates/luts/identity.cube": "aad6c85d7380425879ef465cfec2fddc862dd2a6549541cd7ded4ec15805812f",
-  "templates/remotion/gallery.png": "3300e1a1681ddc9919738b76659781585279d19ea0a647e7a0ca59877773867d",
-  "templates/remotion/package-lock.json": "4556caa9e148ecd63123e9fab44764df87fc0b3d3c06b171338bbb1e45073651",
-  "templates/remotion/package.json": "72594e87a74bd5e7b914615dadfd504e2c77ac4e6fb545a84260d1cb498d25a5",
+  "templates/remotion/gallery.png": "c0e81cdebaf995b781f3a17a01898a3e0612a36b276e5db59201f2052c0935d2",
+  "templates/remotion/package-lock.json": "7012d38481ef7cdac16070cc35f9e14e0024636ff6cd44ed6b1dd6a219cfa4c9",
+  "templates/remotion/package.json": "d6b51c4cb245215dfe9c90f6f4d7b9107f05846514a5084c27f4c3438145c032",
   "templates/remotion/remotion.config.ts": "bbcd2c8f80fcf46db1a0a44c9387cd2329c0277f6da9d2a76d7ceb903d54654c",
   "templates/remotion/src/Gallery.tsx": "c3f31a449cf74c02ef88ea69c51ee3daa86efda2bb72526a455bcf12cc8b6506",
   "templates/remotion/src/Master.tsx": "070b6694d7e27b439c67a9a34d4307a6c6e979b9abf40e39a90c061b609b2a54",
   "templates/remotion/src/Root.tsx": "03c86c8c656f83a811be56ca029b3b02f8b5528e1e9ec4a5ce57c9b8699b6bb9",
   "templates/remotion/src/assets.ts": "435256a06b41fcea07f1651b501083e2d54688bb5bd813e3cb75d53a3cccaa8d",
   "templates/remotion/src/beats.ts": "99e33de15bfd47ead8ce71a58f0566beffcc891d4d030a5f77f15c48746570a6",
-  "templates/remotion/src/components/camera.tsx": "3ea7b78705400995b8ea731fde1409702d65a8d798d6087c536c8e01d4cdf7f3",
+  "templates/remotion/src/components/camera.tsx": "59246b3f182788cd394a2539a0ff89b03be5d0c9169e1280bd14bf369a3dc296",
+  "templates/remotion/src/components/compare.tsx": "fe71bd6bfd50082f3c1c9607d4a4abfb9e59ae464886f86f89f565c8f9b5941f",
+  "templates/remotion/src/components/counter.tsx": "314e196e692afc4397b675769b3017164e47bd8e8f7543438a0f97e28de5f2b7",
   "templates/remotion/src/components/demo.tsx": "f413a93f4f7eb95bf74995a27003b99c20401a3169ef9159013709948fc8d677",
   "templates/remotion/src/components/fit.tsx": "314ab60cdd0a9df9a863c50deaa798b26d8c3c6d5fd11a7a39bf61d17396f472",
   "templates/remotion/src/components/helper.tsx": "85bfcb8677cddc7e16c5e8235883cd3f938c61ef182766b45ce3f89150450f51",
-  "templates/remotion/src/components/index.ts": "d560943156a69e9bf3ad48a02076c000df4e8c4bcafd80ddf1dc44945585558d",
+  "templates/remotion/src/components/index.ts": "dae055a806bdfffb7f2c011d7c78be1f508ef37c3e6a70de1edfa42be1defbe8",
   "templates/remotion/src/components/light.tsx": "c13c4722b3105583a24fef637d2b65c6b75bfbab0197d1484c7225df67663cd6",
+  "templates/remotion/src/components/mark.tsx": "f34d574dcee247ff91c7d5c5d2108e8f872d91abc350f7cf1bc05f6935e7999b",
+  "templates/remotion/src/components/media.tsx": "38bf5acc875016181d8d86279a64e2a948fe3f9f1d01d0588c447b795d541e6a",
   "templates/remotion/src/components/product.tsx": "361b730b4694b7d4c27f0783205d605b1f882b200b307ed0510bab13abc46e9e",
   "templates/remotion/src/components/proof.tsx": "3a555d04814b5474c447ddd03b4f89c06dcdac0279d63a28f4c8ea5524f1b979",
   "templates/remotion/src/components/signature.tsx": "4bfdb1a7e248a6832f9bef52cc9c5e75309fba633ce2a124ea05a3f00ed8ea89",
@@ -876,10 +880,10 @@
   "templates/remotion/src/components/transition.tsx": "9eaaa8aee397ab27f78f526589df8f10da4f7a4bb233e0803eff7ddeca19e812",
   "templates/remotion/src/components/types.ts": "22346ae87c6dd49f38ec7dfa60db7576af95df22ab1b0c597093480854a61f0b",
   "templates/remotion/src/index.ts": "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74",
-  "templates/remotion/src/layout.json": "308c687b1ba2ad3e1e41b14f392e574b7a045ac3f4cab9432431810415a4e9f3",
+  "templates/remotion/src/layout.json": "572392c2f3fbe5c73c2e9b05e3e583488bbcdbe5f62c2401f53631213d9d3a21",
   "templates/remotion/src/layout.ts": "58976962a8ce27d4cdb755d4adaa092636fa6dc74826cb56f663cc31dea08ab1",
-  "templates/remotion/src/plan.ts": "ed0962d6c3ccd42559d95f8c6da487a8d69e1703f8213f229df4c6f16025dfa3",
-  "templates/remotion/src/scenes/index.tsx": "f1797335418f0cd69bc03341d21e305e203eb27472340ef77580f2cee9a0d69a",
+  "templates/remotion/src/plan.ts": "d60c879cd66f42d07f25bcb28a7334308164a9a64f39d201274731f12fb0db82",
+  "templates/remotion/src/scenes/index.tsx": "bc5dff899993c6c9f3e81e71d50da873cd8eb37fd19c042ca97639053b8ee1b9",
   "templates/remotion/src/style.ts": "6476d4210ce03e0e6d89aec69b4b67edbee5d81749426d179c6b5f2437d22abb",
   "templates/remotion/tsconfig.json": "105c802b11212454bf22365ad1766e6e4c2b986c110606a7e0d9338b63dbd93a",
   "templates/reports/brief.md": "35110aad099eb9b067e567c43bf3c0df908a9b1d5100cc549e0e8cfe42c68875",
@@ -893,11 +897,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 361,
+   "passed": 371,
    "failed": 3,
    "skipped": 5,
    "returncode": 1,
-   "summary": "361 passed, 3 failed, 5 skipped (1.7.0, Linux bulut ortamı; yeni testler tests/test_v170_color.py: klipler arası pozlama/beyaz dengesi eşitleme, sınırlar, ara dosya ve render segment anahtarı; tests/test_v170_sfx.py: CC0 Kenney çekirdeği, kaynak/hash kaydı, Türkçe sorgu). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.7.0 Windows'ta çalıştırılmadı.",
+   "summary": "371 passed, 3 failed, 5 skipped (1.8.0, Linux bulut ortamı; yeni testler tests/test_v180_components.py: 42 bileşen kaydı ile doğrulayıcı eşliği, BeforeAfter/NumberRoll/PhoneScreen/PictureInPicture/TextMark kuralları, kaynak alanların ara dosyası ve render anahtarı, sunucu bağlamı (konsept kanıtı, sektör, iddialar, fiyat), eski proje yedekleri). Üç başarısızlık 1.5.1 değişikliğinden önce de vardı ve ortamdan geliyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.8.0 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
@@ -1186,16 +1190,16 @@
   },
   "gallery": {
    "gallery": "templates/remotion/gallery.png",
-   "sha256": "3300e1a1681ddc9919738b76659781585279d19ea0a647e7a0ca59877773867d",
-   "components": 37,
+   "sha256": "c0e81cdebaf995b781f3a17a01898a3e0612a36b276e5db59201f2052c0935d2",
+   "components": 42,
    "failed": [],
    "frames_all_black": [],
-   "render_ms": 378257,
+   "render_ms": 647669,
    "visual_review": {
     "ok": true,
-    "by": "değişikliği yapan oturum (Claude) + plugin sahibinin görsel onayı (PR #4)",
+    "by": "değişikliği yapan oturum (Claude); plugin sahibinin onayı PR'da",
     "at": "2026-10-29",
-    "notes": "1.6.0: yazı bileşenleri ölçülü sığdırmaya geçti; galeri Linux headless Chromium'da yeniden üretildi. Değişmeyen 34 bileşen eski referansla eşleşti (blok PSNR ortalaması 46 dB); yalnızca TextReveal, KineticWords ve SoftType blokları değişti: yazı en çok 3 satır ve kenar payında. Tamamen siyah kare yok; yer tutucular nötr."
+    "notes": "1.8.0: BeforeAfter, NumberRoll, TextMark, PictureInPicture, PhoneScreen eklendi; galeri Linux headless Chromium'da yeniden üretildi. Eski 37 bloğun 31'i birebir aynı (PSNR sonsuz), KenBurns, FakeRackFocus, StillTurn, WhipPan, SlideBlur 51–68 dB (render gürültüsü; KenBurns hareketi son kareye kadar). Tamamen siyah kare yok; yer tutucular nötr."
    },
    "carried_from_release": "1.4.3"
   },
@@ -1362,7 +1366,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1519,6 +1523,15 @@
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yalnızca dağıtım deposu adı ve üçüncü taraf kaynak URL'leri); fark satır satır okundu; ses dosyaları üçüncü taraf CC0 içerik, marka içermiyor",
     "fixed": "—",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "1.8.0: beş yeni bileşen (compare.tsx, counter.tsx, mark.tsx, media.tsx) ve KenBurns odak (camera.tsx), bileşen kaydı/sahne şablonu/plan şeması/layout.json, package.json/lock (@remotion/rough-notation), plan doğrulaması (editplan.py, s_creative.py bağlam), scenes.py kaynak alanları, render.py anahtar, text_layout.py/checks.py/font_coverage.py, skill metinleri (ref-remotion-components, compose, ref-legal-tr-meta), THIRD_PARTY_NOTICES, testler, README, galeri",
+    "files_reviewed": 29,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yalnızca dağıtım deposu adı); fark satır satır okundu; demo ve test metinleri nötr yer tutucu (Ürün A, Örnek, Konsept A)",
+    "fixed": "—",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1529,17 +1542,17 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "f7e25198076515c96dd738415d1f205ed076c0915dfbdd02ceac7ccc4ec4e3cf",
+   "plugin_json": "e8d78a5aece171c059384f6ef74ad8b37ccae7dbfc58a73f46fd849c06f73271",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "0035cc9f051f45c20b157e09e69bf694fe0d3be9ac088722bd716208255e34e1",
+   "skills": "abc0c615d31b09140e0142b0273b86d4cd4babaf3e0de21b638907b5912c2d9c",
    "agents": "6e9b32f0d0039428c857d9546dd856f68eadab7bba8a72f6d845abe195afa2fd",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-   "ad_memory": "8345816dbf1262a42999d2067a8b880d632413eab5b1367299c92b5857efaea3",
-   "scripts": "98c3c5235fc832389a71f8da78f3ed763e2297c0692e963b1b7c2b629c8e81eb",
-   "templates": "9e8e4af7fb3368c6931c508475f2450ed7816dc80d5a69a2fe6b0e20ca179536",
-   "vendor_skills": "4a77a509a853e5ff1b3e84b591e3b5be295899bf528f51ba52bf2648238a2741"
+   "ad_memory": "ca0111296e2b06796606e35a034f816fea887485fabe430dd0f1aaa641f6c606",
+   "scripts": "167cda3d0bda0f7ce69232c8e5522f9b9ee31ab76ef3f653cf70c2a0b0e17bf8",
+   "templates": "e03b192602e3fc32f4db1ec8f483861fda49e10ca37db8c36f264d490acff058",
+   "vendor_skills": "c523048fc8dff626157e30dfd4981b7f6296487927121730471f9a4f169f4d67"
   },
   "checked_at": "2026-10-29"
  },
@@ -1698,17 +1711,17 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "f7e25198076515c96dd738415d1f205ed076c0915dfbdd02ceac7ccc4ec4e3cf",
+  "plugin_json": "e8d78a5aece171c059384f6ef74ad8b37ccae7dbfc58a73f46fd849c06f73271",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "0035cc9f051f45c20b157e09e69bf694fe0d3be9ac088722bd716208255e34e1",
+  "skills": "abc0c615d31b09140e0142b0273b86d4cd4babaf3e0de21b638907b5912c2d9c",
   "agents": "6e9b32f0d0039428c857d9546dd856f68eadab7bba8a72f6d845abe195afa2fd",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-  "ad_memory": "8345816dbf1262a42999d2067a8b880d632413eab5b1367299c92b5857efaea3",
-  "scripts": "98c3c5235fc832389a71f8da78f3ed763e2297c0692e963b1b7c2b629c8e81eb",
-  "templates": "9e8e4af7fb3368c6931c508475f2450ed7816dc80d5a69a2fe6b0e20ca179536",
-  "vendor_skills": "4a77a509a853e5ff1b3e84b591e3b5be295899bf528f51ba52bf2648238a2741"
+  "ad_memory": "ca0111296e2b06796606e35a034f816fea887485fabe430dd0f1aaa641f6c606",
+  "scripts": "167cda3d0bda0f7ce69232c8e5522f9b9ee31ab76ef3f653cf70c2a0b0e17bf8",
+  "templates": "e03b192602e3fc32f4db1ec8f483861fda49e10ca37db8c36f264d490acff058",
+  "vendor_skills": "c523048fc8dff626157e30dfd4981b7f6296487927121730471f9a4f169f4d67"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }

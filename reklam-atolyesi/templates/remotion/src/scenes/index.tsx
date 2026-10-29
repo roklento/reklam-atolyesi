@@ -4,7 +4,7 @@
 import React from "react";
 import { AbsoluteFill, Img, OffthreadVideo, Sequence, useVideoConfig } from "remotion";
 import { layerAsset, assetUrl } from "../assets";
-import { BY_NAME, WRAPPERS } from "../components";
+import { BY_NAME, SOURCE_PROPS, WRAPPERS } from "../components";
 import { FakeRackFocus, HandheldDrift, KenBurns } from "../components/camera";
 import { DemoPanel } from "../components/demo";
 import type { Layer, Scene } from "../plan";
@@ -23,14 +23,15 @@ const TEXT_PRESETS: Record<string, string> = {
   text_reveal: "TextReveal", kinetic: "KineticWords", kinetic_words: "KineticWords", soft_type: "SoftType", lower_third: "LowerThird",
 };
 
-const withCamera = (node: React.ReactNode, cam: Layer["camera"]): React.ReactNode => {
+const withCamera = (node: React.ReactNode, cam: Layer["camera"], fps: number): React.ReactNode => {
   const preset = cam?.preset;
   const z = cam?.zoom ?? 1.0;
+  const aim = { focus: cam?.focus ?? null, settleFrames: Math.round((cam?.settle_s ?? 0) * fps) };  // 1.8.0
   if (!preset || preset === "none" || preset === "static") return node;
   // konuşmalı kurguda kesik gizleme: aynı çekimin ardışık parçaları dönüşümlü sabit yakınlaştırma (asr_local.py cuts; 1.4.8)
   if (preset === "punch_in") return <KenBurns fromScale={Math.min(1.2, Math.max(1.0, z))} toScale={Math.min(1.2, Math.max(1.0, z))} fromX={0} toX={0} fromY={0} toY={0}>{node}</KenBurns>;
-  if (preset === "kenburns_in") return <KenBurns fromScale={1} toScale={Math.max(1.0, z)} fromX={0} toX={-1.5} fromY={0} toY={-1}>{node}</KenBurns>;
-  if (preset === "kenburns_out") return <KenBurns fromScale={Math.max(1.0, z)} toScale={1} fromX={-1.5} toX={0} fromY={-1} toY={0}>{node}</KenBurns>;
+  if (preset === "kenburns_in") return <KenBurns fromScale={1} toScale={Math.max(1.0, z)} fromX={0} toX={-1.5} fromY={0} toY={-1} {...aim}>{node}</KenBurns>;
+  if (preset === "kenburns_out") return <KenBurns fromScale={Math.max(1.0, z)} toScale={1} fromX={-1.5} toX={0} fromY={-1} toY={0} {...aim}>{node}</KenBurns>;
   if (preset === "handheld") return <HandheldDrift amplitude={0.5} rotation={0.15} seed={3}>{node}</HandheldDrift>;
   if (preset === "rack_focus") return <FakeRackFocus fromBlur={8} toBlur={0} startFrame={2} durationFrames={20}>{node}</FakeRackFocus>;
   return node;
@@ -52,11 +53,11 @@ export const LayerStack: React.FC<SceneProps> = ({ scene, style, format, assets,
       const src = layerAsset(assets, scene.id, i) ?? assetUrl(l.source?.path);
       node = src ? <OffthreadVideo src={src} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         : <DemoPanel label={preview ? "eksik varlık" : "Ürün A"} />;
-      node = withCamera(node, l.camera);
+      node = withCamera(node, l.camera, fps);
     } else if (l.type === "image" || l.type === "graphic") {
       const src = layerAsset(assets, scene.id, i) ?? assetUrl(l.source?.path);
       node = src ? <Img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <DemoPanel label="eksik görsel" />;
-      node = withCamera(node, l.camera);
+      node = withCamera(node, l.camera, fps);
     } else if (l.type === "text") {
       const name = TEXT_PRESETS[l.preset ?? "text_reveal"] ?? "TextReveal";
       const e = BY_NAME[name];
@@ -70,7 +71,13 @@ export const LayerStack: React.FC<SceneProps> = ({ scene, style, format, assets,
         node = <DemoPanel label={`bilinmeyen bileşen: ${l.component}`} />;
       } else {
         const dy = componentY(l.component, format);  // format başına güvenli konum (layout.json); props.y önceliklidir
-        const props = e.schema.parse({ ...(dy !== undefined ? { y: dy } : {}), ...(l.props ?? {}) }) as Record<string, unknown>;
+        // kaynak alan prop'lar (1.8.0): ara dosya "<katman>.<prop>" anahtarıyla; yoksa kaynağın path'i; ikisi de yoksa null (yer tutucu)
+        const raw: Record<string, unknown> = { ...(l.props ?? {}) };
+        for (const k of SOURCE_PROPS[l.component] ?? []) {
+          const v = raw[k] as { path?: string } | string | null | undefined;
+          if (v && typeof v === "object") raw[k] = assetUrl(assets?.[scene.id]?.[`${i}.${k}`] ?? null) ?? assetUrl(v.path);
+        }
+        const props = e.schema.parse({ ...(dy !== undefined ? { y: dy } : {}), ...raw }) as Record<string, unknown>;
         if (WRAPPERS.has(l.component)) {
           content = timed(l, fps, <e.Component {...props}>{content}</e.Component>, `w${i}`);
           return;

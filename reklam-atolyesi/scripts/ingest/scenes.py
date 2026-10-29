@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "compose"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "analyze"))
 from common import emit, even, ffmpeg, read_json, sha256_file, write_json, x264_threads  # noqa: E402
 import color_match as CM  # noqa: E402
+from admem import editplan as EP  # noqa: E402
 import scene_cache as SC  # noqa: E402
 
 FORMAT_SIZE = {"9x16": (1080, 1920), "4x5": (1080, 1350), "1x1": (1080, 1080)}
@@ -57,10 +58,18 @@ def build(plan: dict, assets: dict, out_dir: Path, quality: str, style: dict | N
                              "retake_candidates": match["retake_candidates"]}
     fps = plan["fps"]
     for i, s in enumerate(plan["scenes"]):
+        # iş listesi: video katmanları ("<katman>") ve bileşenlerin kaynak alan prop'ları ("<katman>.<prop>", 1.8.0: BeforeAfter,
+        # PictureInPicture, PhoneScreen). Bileşen kaynaklarına renk eşitleme uygulanmaz (önce/sonrada fark kanıtın kendisidir).
+        jobs = []
         for li, layer in enumerate(s.get("layers", [])):
             src = layer.get("source") or {}
-            if layer.get("type") != "video" or src.get("kind") != "footage":
-                continue
+            if layer.get("type") == "video" and src.get("kind") == "footage":
+                jobs.append((str(li), src, float((layer.get("camera") or {}).get("zoom", 1.0)), CM.filter_for(match, f"{s['id']}:{li}"), False))
+            for prop, v in EP.source_props(layer):
+                if isinstance(v, dict) and v.get("kind") == "footage":
+                    jobs.append((f"{li}.{prop}", v, 1.0, None, bool(v.get("audio"))))
+        voice = any(j[4] for j in jobs)  # konuşan kişi kaynağı işaretliyse sahne sesi ondan
+        for lkey, src, zoom, cm, is_voice in jobs:
             akey = src.get("asset")
             a = assets.get(akey)
             if not a:
@@ -68,16 +77,14 @@ def build(plan: dict, assets: dict, out_dir: Path, quality: str, style: dict | N
             path = a.get("stabilized") if a.get("use_stabilized") and a.get("stabilized") else a["cfr_sdr"]
             if quality == "proxy" and a.get("proxy"):
                 path = a["proxy"]
-            zoom = float((layer.get("camera") or {}).get("zoom", 1.0))
             tw, th = target_size(plan["format"], quality, zoom)
             in_s = float(src.get("in_s", 0.0))
             out_s = float(src.get("out_s", in_s + s["dur_s"]))
-            cm = CM.filter_for(match, f"{s['id']}:{li}")
             # düzeltmesiz zincir 1.6.0 ile aynı kalır (anahtar da); düzeltme kazancı anahtara girer
             comp = "ffmpeg-intermediate-v1" + (f"+cm-{CM.digest(cm)}" if cm else "")
             key = SC.scene_key(plan, i, source_hashes=src_hashes, style_sha=style_sha, quality=quality, scale=1.0, lut_sha=lut_sha,
-                               component_sha=comp) + f"_{li}"
-            dst = out_dir / f"{s['id']}_{li}_{quality}_{key[:16]}.mp4"
+                               component_sha=comp) + f"_{lkey}"
+            dst = out_dir / f"{s['id']}_{lkey}_{quality}_{key[:16]}.mp4"
             if SC.cached(dst):
                 result["reused"] += 1
             else:
@@ -92,10 +99,11 @@ def build(plan: dict, assets: dict, out_dir: Path, quality: str, style: dict | N
                         "-preset", "fast" if not fast else "veryfast", "-g", str(fps), "-threads", str(x264_threads()), str(dst)])
                 SC.mark_done(dst)
                 result["built"] += 1
-            result["scenes"].setdefault(s["id"], {})[str(li)] = {"path": str(dst), "width": tw, "height": th, "zoom": zoom,
-                                                                 "frames": round((out_s - in_s) * fps)}
-            if s.get("audio", {}).get("mode") in ("original", "original_clean"):
-                wav = out_dir / f"{s['id']}_{li}_audio_{key[:16]}.wav"
+            result["scenes"].setdefault(s["id"], {})[lkey] = {"path": str(dst), "width": tw, "height": th, "zoom": zoom,
+                                                               "frames": round((out_s - in_s) * fps)}
+            original = s.get("audio", {}).get("mode") in ("original", "original_clean")
+            if original and (is_voice if voice else "." not in lkey):
+                wav = out_dir / f"{s['id']}_{lkey}_audio_{key[:16]}.wav"
                 if not wav.exists():
                     ffmpeg(["-ss", str(in_s), "-to", str(out_s), "-i", str(a["cfr_sdr"]), "-vn", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s16le", str(wav)],
                            check=False)

@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.7.0
+# Reklam Atölyesi (reklam-atolyesi) · 1.8.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -59,7 +59,7 @@ Kapılarda sistem durur ve **açık onayınızı** bekler. Yaratıcı kararlar b
 | `hooks/` | plugin modu ve navigator bağlamı, Meta izin listesi + Kütüphane sorgu bütçesi, ElevenLabs maliyet koruması, render mini-QC, Stop uyarısı |
 | `servers/ad_memory/` | `ad-memory` MCP sunucusu (Python, SQLite WAL, FTS5 trigram, numaralı migration'lar) |
 | `scripts/` | ingest, analiz, ses, kurgu planı, render, export, QC, Meta CSV, rekabet, analitik, hafıza, kurulum, duman testi |
-| `templates/` | Remotion projesi ve 37 bileşenli kütüphane, nötr stil kitabı, LUT, rapor şablonları |
+| `templates/` | Remotion projesi ve 42 bileşenli kütüphane, nötr stil kitabı, LUT, rapor şablonları |
 | `vendor-skills/` | pinlenmiş, lisanslı hazır skill'ler (skill olarak kaydedilmez; `OVERRIDES.md` önce okunur) |
 | `system_manifest.json` | sistemin kendi haritası, test sonuçları, sapmalar, canlı kontrol tanımları |
 
@@ -94,6 +94,17 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.8.0** — beş yeni bileşen ve KenBurns odak (37 → 42)
+- `BeforeAfter` (önce/sonra; wipe, split, cut): iki kaynak da gerçek çekim olmalı; plan doğrulaması AI kaynağını, konseptte
+  `before_after` seçilmemesini, sağlık hizmeti sektörünü ve cilt beyazlatma kategorisini reddeder; kozmetik/kilo için 18+ uyarısı verir.
+  Renk eşitleme bu kaynaklara uygulanmaz (fark kanıtın kendisidir).
+- `NumberRoll` (rakam sayacı, isteğe bağlı hane dönmesi): değer ya fiyattır (para birimi zorunlu) ya da kanıtlanabilir iddia
+  listesindeki bir sayıdır (`claimIndex`/`claimRef`); belgesiz iddia reddedilir. `TextMark` (el çizimi vurgu, `@remotion/rough-notation`;
+  Türkçe katlamalı eşleşme, 15 sn'de en fazla 2). `PictureInPicture` (köşe video; yazıyla çakışırsa güvenli alan uyarısı).
+  `PhoneScreen` (telefon çerçevesinde ekran kaydı; kişisel veri durumu `none`/`blurred` beyan edilmeden hazır plan geçmez).
+- Kamera: `kenburns_in/out` için `focus {x,y}` (yakınlaşma o noktaya kayar) ve `settle_s` (sonda duruş). KenBurns 1.1.0.
+- Bileşen kaynak alanları (`before`, `after`, `inset`, `screen`) sahne ara dosyası olarak kesilir; konuşan kişi tespiti bunları da görür.
+
 **1.7.0** — klipler arası renk eşitleme, CC0 ses efekti çekirdeği
 - Farklı ışıkta çekilmiş klipler sahne ara dosyasında (LUT'tan önce) referans klibe eşitlenir: pozlama ve beyaz dengesi doğrusal ışıkta
   5 kareden ölçülür (`scripts/analyze/color_match.py`), düzeltme `colorchannelmixer` kazancıdır. Sınır ±0,5 stop ve kanal başına ±%12;

@@ -20,7 +20,9 @@ export const zLayer = z.object({
   anchor: z.string().optional(),
   start_s: z.number().optional(),
   dur_s: z.number().optional(),
-  camera: z.object({ preset: z.string().optional(), zoom: z.number().optional() }).partial().optional(),
+  // 1.8.0: focus {x, y} (0–1) kenburns_in/out'u o noktaya yöneltir; settle_s hareketi sahne bitmeden bu kadar önce durdurur
+  camera: z.object({ preset: z.string().optional(), zoom: z.number().optional(), focus: z.object({ x: z.number(), y: z.number() }).optional(),
+    settle_s: z.number().optional() }).partial().optional(),
   review_id: z.number().optional(),
 });
 
