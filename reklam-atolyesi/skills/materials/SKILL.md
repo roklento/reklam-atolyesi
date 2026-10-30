@@ -71,14 +71,30 @@ planda `audio.decision_id`. Tercih gözlemi `memory_add(layer="preference", kind
 - **Kullanıcının kaydı:** `audio/user_vo/` → temizlik (`PY PR/scripts/audio/loudness.py clean --in … --out …`; yetmezse voice-isolator,
   ücretli protokol) → kelime zamanları (aşağıda) → ses kütüphanesi. **Gerçek bir kişinin sesi klonlanmaz** (kullanıcınınki dahil).
   Kayıtta duraksama, "eee" ya da yeniden başlanan cümle varsa aynı konuşmalı kurgu yolu kullanılır (`asr_local.py cuts`, `compose` 2b).
-- **Üretilmiş (yerel, varsayılan; 1.4.8):** metin konsept ve hook'tan; 15 sn ≈ 30–35 kelime; yalnızca izinli iddialar; emoji, #etiket,
-  @kullanıcı adı ve bağlantı yok (yüksek sesle okunur; araç reddeder). Sayı ve para yazıldığı gibi kalabilir ("850 TL"): okunuşa
-  normalizer-tr çevirir, altyazı VO metniyle birebir kalır. Üretim:
+- **Üretilmiş (yerel, varsayılan; 1.4.8):** metin konsept ve hook'tan; 15 sn ≈ 28–32 kelime (cümle arası duraklamalar dahil);
+  yalnızca izinli iddialar; emoji, #etiket, @kullanıcı adı ve bağlantı yok (yüksek sesle okunur; araç reddeder).
+  **VO yazım kuralları (2.1.0):** ses harf düzeyinde Türkçe okur. Sayı, para, yüzde, birim ve saat **rakamla** kalır ("850 TL",
+  "%12,5", "500 ml", "14:30"): normalleştirici doğru okur ve altyazı okunaklı kalır; yazıyla yazılmaz. Kısa cümleler (≤ 12 kelime);
+  her cümle ayrı okunur ve araya duraklama girer. Telaffuzu zor, ardışık ünsüzlü ya da uzun yabancı kökenli sözcük yerine kolay
+  eşanlamlısı seçilir. "x2", "X5", "№" gibi kısaltmalar ya açık yazılır ("2 kat") ya da sözlüğe girer.
+  **Okunuş raporu (sentezden önce, ücretsiz, ses üretmez):** `PY PR/scripts/audio/tts_local.py check --data-dir DD --script vo.txt
+  --profile-dir DD/profiles/<slug>` → `reading.say` satırları kullanıcıya gösterilir: normalleştiricinin emin olmadığı ifadeler
+  (`fallbacks`: "10x" → "bir sıfır iks") ve Türkçe harflerle okunacak yabancı görünen sözcükler (`foreign`: "Fresh"). "3. kat" ve
+  "1-3 gün" gibi ifadeler ipucuyla kendiliğinden düzelir (`hinted`). Her satır için ya metin değiştirilir ya da okunuş **marka
+  sözlüğüne** eklenir: `tts_local.py lexicon --profile-dir DD/profiles/<slug> --add "Fresh=freş"` (okunuş yalnızca küçük Türkçe
+  harf ve boşluk). Sözlük yalnızca okunuşu değiştirir; altyazı özgün yazımla kalır, Whisper denetimi iki yazımı da kabul eder. Genel
+  liste (`templates/voices/okunus-genel.json`: Wi-Fi, Bluetooth, USB-C, Black Friday, Hz, vs. …) her profilde geçerlidir;
+  profil girdisi önce gelir. Kullanıcı bir sözcüğün yanlış okunduğunu dinleyerek söylerse düzeltme sözlüğe yazılır (sonraki
+  kampanyalarda da doğru okunur). Rapor temizse ya da kalan satırları kullanıcı bilerek kabul ettiyse üretim:
   `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice <stil kitabı sound.voice | ema-varsayilan> --script vo.txt
-  --out audio/vo/<ad>.wav --takes 3` → `<ad>.wav`, `<ad>_alim2.wav` …; her alım için `.words.json` (kelime zamanları; Scribe gerekmez)
-  ve `.tts.json` (kaynak, `ai_generated: true`).
-  Ücretsiz ve bilgisayardan çıkmaz: ücretli üretim protokolü gerekmez. Motor kurulu değilse kullanıcıya boyutu söylenip onayla
-  `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine ema --yes` (≈ 0,6 GB, CPU yeterli).
+  --out audio/vo/<ad>.wav --takes 3 --profile-dir DD/profiles/<slug>` → `<ad>.wav`, `<ad>_alim2.wav` …; her alım için `.words.json`
+  (kelime zamanları; Scribe gerekmez) ve `.tts.json` (kaynak, `ai_generated: true`). EMA'da her cümle ayrı okunur ve araya `--pause`
+  kadar sessizlik konur (varsayılan 0,25 sn; tempo için 0,15–0,4; `0` = metin tek seferde, eski davranış). Kullanıcı tercihi
+  (`--pause`) stil kitabının `sound` alanına yazılır.
+  Ücretsiz ve bilgisayardan çıkmaz: ücretli üretim protokolü gerekmez. Motorlar kurulu değilse `tts_local.py capability --data-dir DD`
+  çıktısındaki `install.say` önerisi kullanıcıya **bir kez** sunulur: EMA (≈ 0,6 GB) ve Whisper (≈ 1,9 GB) **birlikte** önerilir
+  (Whisper'sız okunuş denetimi yapılmaz, yanlış okunan sözcük sessizce geçer); onayla `install.how` komutları. Kullanıcı yalnızca
+  EMA'yı isterse Whisper kurulmaz ve sonuçta okunuş denetiminin yapılmadığı söylenir.
   **Ses seçimi (1.4.9):** varsayılan ses **EMA**'dır (`ema-varsayilan`, her bilgisayarda). Önce
   `PY PR/scripts/audio/tts_local.py capability --data-dir DD`:
   - `library.use` (kütüphane kurulu ve ekran kartı uygun): `tts_local.py voices --data-dir DD` listesi (cinsiyet, yaş, ton, tempo, uygun

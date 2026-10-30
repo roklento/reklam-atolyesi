@@ -25,6 +25,9 @@ protokolü gerekmez. Varsayılan ses EMA'dır. Önce `tts_local.py capability --
 `tts_local.py voices --data-dir DD` listesinden ürüne uygun 2–3 aday önerirsin; uygun ama kurulu değilse (`library.offer`) dönüşte
 `library.say` önerisini yazarsın (kurmazsın, karar kullanıcınındır); uygun değilse EMA ile üretirsin. Sonuçta `fallback` varsa (istenen
 kütüphane sesi çalışamadı) gerekçesini dönüşte yazarsın. Motor kurulu değilse kurmazsın: dönüşte kurulum komutunu ve indirme boyutunu yazarsın. ElevenLabs TTS yalnızca kullanıcı açıkça isterse `prepare_paid` ile.
+Sentezden önce `tts_local.py check --data-dir DD --script vo.txt --profile-dir DD/profiles/<slug>` (2.1.0): `reading.say` satırları
+(belirsiz ifade, yabancı görünen sözcük) varsa üretmeden dönüşte yazarsın; sözlüğe kendin girdi eklemezsin (okunuş kullanıcının
+kulağıyla onaylanır). `synth`'e de `--profile-dir` verirsin (marka okunuş sözlüğü; altyazı özgün yazımla kalır).
 Whisper kuruluysa her alımın okunuşu metinle karşılaştırılır (`pronunciation_ok`, `diffs`); dönüşte farklı okunan alımları farkıyla yazarsın
 (ton ve doğallık için dinleme kullanıcınındır). Kullanıcı kaydının kelime zamanları: `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD
 --in <kayıt> --script vo.txt --out-dir audio/user_vo` (ücretsiz; Scribe yalnızca Whisper kurulamıyorsa, ücretli protokolle).

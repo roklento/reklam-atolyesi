@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "note": "Genel okunuş sözlüğü (2.1.0). EMA harf düzeyinde Türkçe okur; normalleştiricinin dokunmadığı yaygın yabancı sözcük ve işaretler. Yazım altyazıda aynen kalır, yalnızca okunuş değişir. Marka profilindeki okunus.json aynı yazımda bunun önüne geçer. Girdiler dinlenerek doğrulanmalıdır: yanlış duyulan girdi profil sözlüğüyle düzeltilir.",
+  "entries": [
+    {"written": "24/7", "spoken": "yirmi dört yedi"},
+    {"written": "Black Friday", "spoken": "blek fraydey"},
+    {"written": "Bluetooth", "spoken": "blutut"},
+    {"written": "Cyber Monday", "spoken": "sayber mandey"},
+    {"written": "Hz", "spoken": "hertz"},
+    {"written": "online", "spoken": "onlayn"},
+    {"written": "örn.", "spoken": "örneğin"},
+    {"written": "USB", "spoken": "yu es bi"},
+    {"written": "USB-C", "spoken": "yu es bi si"},
+    {"written": "vs.", "spoken": "vesaire"},
+    {"written": "Wi-Fi", "spoken": "vay fay"},
+    {"written": "WiFi", "spoken": "vay fay"}
+  ]
+}

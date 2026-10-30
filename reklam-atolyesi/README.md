@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.0.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.1.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,23 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.1.0** — yerel seslendirme (EMA): cümle duraklaması, okunuş raporu ve okunuş sözlüğü
+- Gerekçe EMA'nın kaynak kodundan (ema-lightning 1.1.2, `chunker.py`): ~10 sn'ye (≈ 180 harf) kadar metin tek parça okunur, cümle
+  arasına duraklama yalnızca motorun böldüğü yerde girer; 15 sn'lik VO'da cümleler birbirine bitişiyordu. Artık metin cümlelere
+  bölünür, her cümle ayrı okunur (model cümle sonuyla biten parçalarla eğitilmiş), baş/son sessizliği kırpılır ve araya `--pause`
+  kadar sessizlik konur (varsayılan 0,25 sn, motorun kendi cümle duraklaması; `0` = eski davranış). Kelime zamanları kaydırılır.
+- **Okunuş raporu:** `tts_local.py check` sentezden önce, ses üretmeden normalleştiricinin emin olmadığı ifadeleri ("10x" → "bir sıfır
+  iks", "24/7", "4,8/5") ve Türkçe harflerle okunacak yabancı görünen sözcükleri listeler. "3. kat" (sıra sayısı), "1-3 gün" (aralık) ve
+  telefon numarası normalleştiriciye ipucuyla verilir ("üçüncü kat", "bir ila üç gün"). Rapor `synth` çıktısında da (`reading`).
+- **Okunuş sözlüğü:** genel liste (`templates/voices/okunus-genel.json`: Wi-Fi, Bluetooth, USB-C, Hz, Black Friday, vs., örn. …) +
+  marka profilinde `okunus.json` (`tts_local.py lexicon --profile-dir … --add "Yazım=okunuş"`). Yalnızca okunuş değişir: altyazı özgün
+  yazımla kalır, Whisper okunuş denetimi iki yazımı da kabul eder. Sayılar metinde rakamla kalır (normalleştirici 850 TL, 2.499,90 TL,
+  %12,5, 5.3, 500 ml, 14:30'u doğru okuyor; bulut ortamında 30 cümleyle denendi).
+- **Kurulum önerisi:** `capability` çıktısında `install`: EMA ve Whisper eksikse birlikte önerilir (Whisper'sız okunuş denetimi yapılmaz).
+- Bulut ortamında EMA ve Whisper modelleri indirilemediği için gerçek ses üretilip dinlenmedi: kod ve testler sentetik sesle ve gerçek
+  normalleştiriciyle sınandı; ilk kullanımda duraklama süresi ve sözlük girdileri dinlenerek doğrulanmalıdır.
+- Veritabanı migration'ı yok, yeni bağımlılık yok.
+
 **2.0.0** — deneme kullanıcısına hazırlık: uçtan uca denetim ve düzeltmeler
 - Son güncellemeler (1.6.0–1.9.0: ölçülü yazı, renk eşitleme, CC0 ses efektleri, beş yeni bileşen, ses araması, huni planlaması)
   birlikte denetlendi: kurulum, doctor, manifest, migration zinciri 001–007, testler, duman testi (9/9 adım, gerçek Remotion

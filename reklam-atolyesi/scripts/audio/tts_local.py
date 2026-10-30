@@ -8,13 +8,18 @@ Altyazı metni VO metniyle birebir: okunuş "sekiz yüz elli Türk lirası" olsa
 
 Kullanım:
   tts_local.py synth --data-dir DD --voice <ses> --script vo.txt --out audio/vo/<ad>.wav [--takes 1-4] [--speed 1.0] [--seed 1729]
-     [--no-verify]
+     [--pause 0.25] [--profile-dir DD/profiles/<slug>] [--no-verify]
+     (--pause: EMA'da cümleler ayrı okunur, aralarına bu kadar sessizlik konur; 0 = metin tek seferde (EMA'nın kendi bölmesi))
      (--takes N: model bir kez yüklenir; 1. alım <ad>.wav, sonrakiler <ad>_alim2.wav …; tohumlar seed, seed+1, …)
      Okunuş denetimi: Whisper motoru kuruluysa her alım dökülür ve VO metniyle karşılaştırılır (`pronunciation_ok`, `diffs`);
      metinle birebir alımlar listede öne gelir. Denetim dinlemenin yerine geçmez (ton, vurgu kullanıcının kulağıyla).
   tts_local.py voices [--data-dir DD]       ses kütüphanesi (DD verilirse her sesin bu bilgisayarda kullanılabilirliği)
   tts_local.py capability --data-dir DD     varsayılan ses ve ses kütüphanesi önerisi (ekran kartı, bellek, sürücü, disk)
   tts_local.py status --data-dir DD         kurulu motorlar
+  tts_local.py check --data-dir DD --script vo.txt [--profile-dir P]   okunuş raporu (sentezden önce, ses üretmez; 2.1.0)
+  tts_local.py lexicon [--profile-dir P] [--add "Wireless=vayırlıs" …] [--remove Wireless …]   okunuş sözlüğü
+Okunuş sözlüğü (2.1.0): genel liste templates/voices/okunus-genel.json + marka profili <profil>/okunus.json (profil önce gelir).
+Sözlükteki yazım yalnızca okunuşta değişir; altyazı özgün yazımla kalır ("Wireless" yazar, "vayırlıs" okunur).
 Varsayılan ses her zaman EMA'dır. Kütüphane sesi (VoxCPM2) yalnızca uygun ekran kartında kullanılır; seçilmiş kütüphane sesi bu
 bilgisayarda (ya da şu an) çalışamıyorsa üretim EMA sesiyle yapılır ve sonuçta `fallback` gerekçesiyle yazılır.
 Çıktılar: <ad>.wav, <ad>.words.json (words_align biçimi: words, captions, matches_script), <ad>.tts.json (kaynak bilgisi).
@@ -39,6 +44,11 @@ import tts_setup as TS  # noqa: E402
 
 PR = Path(__file__).resolve().parents[2]
 VOICES = PR / "templates" / "voices" / "voices.json"
+LEXICON_GENERAL = PR / "templates" / "voices" / "okunus-genel.json"
+LEXICON_FILE = "okunus.json"
+DEFAULT_PAUSE = 0.25  # EMA'nın kendi bölme noktasında koyduğu cümle duraklamasıyla aynı (ema_lightning/chunker.py SENTENCE_PAUSE)
+MAX_PAUSE = 1.0
+SPOKEN_OK = re.compile(r"^[a-zçğıöşüâîû' ]+$")
 WORKER = Path(__file__).resolve().parent / "tts_worker.py"
 MAX_CHARS = 900
 WORKER_TIMEOUT = 3600
@@ -66,6 +76,72 @@ def check_script(text: str) -> str:
 
 def load_voices() -> dict:
     return json.loads(VOICES.read_text(encoding="utf-8"))
+
+
+def _lexicon_entries(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    try:
+        return list(json.loads(path.read_text(encoding="utf-8")).get("entries") or [])
+    except (OSError, ValueError) as e:
+        raise TTSError(f"okunuş sözlüğü okunamadı ({path}): {e}")
+
+
+def check_entry(written: str, spoken: str) -> dict:
+    """Okunuş yalnızca küçük Türkçe harf ve boşluk: rakam ya da işaret okunuşta yeniden normalleştirilir, amaç kaybolur."""
+    w, sp = (written or "").strip(), " ".join((spoken or "").split())
+    if not w or not sp:
+        raise TTSError("sözlük girdisi 'yazım=okunuş' biçiminde olmalı")
+    if not SPOKEN_OK.match(sp):
+        raise TTSError(f"okunuş yalnızca küçük Türkçe harf ve boşluk olmalı: '{sp}' (ör. 'vayırlıs', 'yu es bi si')")
+    return {"written": w, "spoken": sp}
+
+
+def load_lexicon(profile_dir: Path | None = None) -> list[dict]:
+    """Genel liste + profil sözlüğü; aynı yazımda profil kazanır."""
+    merged: dict[str, dict] = {}
+    for src, path in (("genel", LEXICON_GENERAL), ("profil", profile_dir / LEXICON_FILE if profile_dir else None)):
+        for e in _lexicon_entries(path) if path else []:
+            merged[e["written"].lower()] = {**check_entry(e["written"], e["spoken"]), "source": src}
+    return list(merged.values())
+
+
+def lexicon_edit(profile_dir: Path, add: list[str], remove: list[str]) -> dict:
+    path = profile_dir / LEXICON_FILE
+    entries = {e["written"].lower(): e for e in _lexicon_entries(path)}
+    for item in add:
+        if "=" not in item:
+            raise TTSError(f"sözlük girdisi 'yazım=okunuş' biçiminde olmalı: {item}")
+        e = check_entry(*item.split("=", 1))
+        entries[e["written"].lower()] = e
+    for w in remove:
+        entries.pop(w.strip().lower(), None)
+    if add or remove:
+        write_json(path, {"version": 1, "entries": sorted(entries.values(), key=lambda e: e["written"].lower())})
+    return {"path": str(path), "entries": load_lexicon(profile_dir)}
+
+
+def split_sentences(spoken_text: str) -> list[str]:
+    """Okunuş metnini cümlelere böler (normalleştirmeden sonra: "Dr." ya da "5.3" artık sözcüktür, yanlış bölme yapmaz)."""
+    return [x for x in re.split(r"(?<=[.!?…])[\"')]*\s+", spoken_text.strip()) if re.search(r"[^\W\d_]", x)]
+
+
+def reading_summary(reading: dict) -> dict:
+    """Okunuş raporu: belirsiz ifadeler ve yabancı görünen sözcükler kullanıcıya gösterilir; sözlükle ya da metinle düzeltilir."""
+    fb, fr = reading.get("fallbacks") or [], reading.get("foreign") or []
+    lines = [f"'{x['text']}' → \"{x['read_as']}\" okunacak (emin değil)" for x in fb]
+    lines += [f"'{w}' Türkçe harflerle okunacak (yabancı görünüyor)" for w in fr]
+    return {**reading, "ok": not fb and not fr, "say": lines,
+            "fix": None if not lines else ("yazımı değiştir (ör. '10x' → '10 kat') ya da okunuşu sözlüğe ekle: "
+                                           "tts_local.py lexicon --profile-dir <profil> --add \"Wireless=vayırlıs\"")}
+
+
+def check_reading(data_dir: Path, script: str, profile_dir: Path | None = None) -> dict:
+    text = check_script(script)
+    spoken = run_worker(data_dir, "ema", {"op": "normalize", "engine": "ema", "text": text, "lexicon": load_lexicon(profile_dir)},
+                        offline=True)
+    return {"spoken_text": spoken["spoken_text"], "sentences": len(split_sentences(spoken["spoken_text"])),
+            "reading": reading_summary(spoken.get("reading") or {})}
 
 
 def engine_python(data_dir: Path, engine: str) -> Path:
@@ -183,10 +259,12 @@ def take_paths(out: Path, n: int) -> list[Path]:
 
 
 def synth(data_dir: Path, voice_id: str, script: str, out: Path, speed: float = 1.0, seed: int = 1729, takes: int = 1,
-          verify: bool = True) -> dict:
+          verify: bool = True, pause: float = DEFAULT_PAUSE, profile_dir: Path | None = None) -> dict:
     text = check_script(script)
     if not 1 <= takes <= MAX_TAKES:
         raise TTSError(f"alım sayısı 1–{MAX_TAKES} olmalı")
+    if not 0 <= pause <= MAX_PAUSE:
+        raise TTSError(f"cümle arası duraklama 0–{MAX_PAUSE} sn olmalı")
     voices = load_voices()["voices"]
     v = next((x for x in voices if x["id"] == voice_id), None)
     if not v:
@@ -200,9 +278,16 @@ def synth(data_dir: Path, voice_id: str, script: str, out: Path, speed: float = 
             v = next(x for x in voices if x["id"] == DEFAULT_VOICE)
     out.parent.mkdir(parents=True, exist_ok=True)
     plan = [{"out_wav": str(p), "seed": seed + k} for k, p in enumerate(take_paths(out, takes))]
-    spoken = run_worker(data_dir, "ema", {"op": "normalize", "engine": "ema", "text": text}, offline=True)
+    spoken = run_worker(data_dir, "ema", {"op": "normalize", "engine": "ema", "text": text, "lexicon": load_lexicon(profile_dir)},
+                        offline=True)
+    # motorlara okunuş metni verilir: sözlük ve ipuçları uygulanmış, sayılar okunmuş (EMA yeniden normalleştirir; değişmez)
+    say_text = spoken.get("spoken_text") or text
+    sentences = split_sentences(say_text) if pause > 0 else []
     if v["engine"] == "ema":
-        res = run_worker(data_dir, "ema", {"op": "synth", "engine": "ema", "text": text, "takes": plan, "speed": speed}, offline=True)
+        req = {"op": "synth", "engine": "ema", "text": say_text, "takes": plan, "speed": speed}
+        if len(sentences) > 1:
+            req.update(sentences=sentences, pause_s=pause)
+        res = run_worker(data_dir, "ema", req, offline=True)
         timings = [(tk["words"], "model") for tk in res["takes"]]
     else:
         ref = PR / "templates" / "voices" / v["reference"]
@@ -213,12 +298,12 @@ def synth(data_dir: Path, voice_id: str, script: str, out: Path, speed: float = 
                          offline=True)
         with tempfile.TemporaryDirectory() as td:  # kelime zamanı rehberi: aynı metnin EMA okunuşu (tek rehber tüm alımlara yeter)
             guide = Path(td) / "ema_guide.wav"
-            g = run_worker(data_dir, "ema", {"op": "synth", "engine": "ema", "text": text, "takes": [{"out_wav": str(guide), "seed": seed}]},
-                           offline=True)
+            g = run_worker(data_dir, "ema", {"op": "synth", "engine": "ema", "text": say_text,
+                                             "takes": [{"out_wav": str(guide), "seed": seed}]}, offline=True)
             gw = g["takes"][0]["words"]
             timings = [(dtw_transfer(str(guide), gw, tk["wav"]), "dtw_from_ema") for tk in res["takes"]]
     import asr_local as AL  # döngüsel içe aktarma olmasın diye burada
-    checks = AL.verify_takes(data_dir, [tk["wav"] for tk in res["takes"]], text) if verify else [{"checked": False, "how": "--no-verify"}] * len(res["takes"])
+    checks = AL.verify_takes(data_dir, [tk["wav"] for tk in res["takes"]], text, alt_script=spoken.get("speak_text")) if verify else [{"checked": False, "how": "--no-verify"}] * len(res["takes"])
     results = []
     for tk, (engine_words, timing), chk in zip(res["takes"], timings, checks):
         wav = Path(tk["wav"])
@@ -231,6 +316,8 @@ def synth(data_dir: Path, voice_id: str, script: str, out: Path, speed: float = 
                 "wav_sha256": sha256(wav), "duration_s": tk["duration_s"], "sample_rate": res["sample_rate"], "gen_s": tk.get("gen_s"),
                 "load_s": res.get("load_s"), "peak_scaled": tk.get("peak_scaled"), "timing": timing, "ai_generated": True,
                 "license": v["license"], "pronunciation": chk, "voice_requested": requested, "fallback": fallback,
+                "pause_s": pause if len(sentences) > 1 and v["engine"] == "ema" else None,
+                "lexicon_applied": (spoken.get("reading") or {}).get("lexicon_applied") or [],
                 "note": "Yapay zekâ ile üretilmiş ses: Meta AI açıklaması gerekir (ref-legal-tr-meta). Gerçek bir kişinin sesi değildir."}
         write_json(wav.with_suffix(".tts.json"), prov)
         results.append({"wav": str(wav), "words": str(wj), "matches_script": complete, "seed": prov["seed"], "duration_s": prov["duration_s"],
@@ -239,6 +326,8 @@ def synth(data_dir: Path, voice_id: str, script: str, out: Path, speed: float = 
     results.sort(key=lambda r: 0 if r["pronunciation_ok"] else (1 if r["pronunciation_ok"] is None else 2))
     return {"engine": v["engine"], "voice": voice_id, "voice_requested": requested, "fallback": fallback, "timing": timings[0][1],
             "load_s": res.get("load_s"), "takes": results, "pronunciation_check": checks[0].get("checked", False),
+            "sentences": len(sentences) or 1, "pause_s": pause if len(sentences) > 1 and v["engine"] == "ema" else None,
+            "reading": reading_summary(spoken.get("reading") or {}),
             **({"note": f"İstenen ses ({requested}) kullanılamadı: {fallback}. Varsayılan EMA sesiyle üretildi."} if fallback else {})}
 
 
@@ -266,7 +355,7 @@ def capability(data_dir: Path) -> dict:
     chk = TS.library_check(data_dir, need_disk=not installed)
     lib = [x for x in load_voices()["voices"] if x["engine"] == LIBRARY_ENGINE]
     pin = TS.PINS[LIBRARY_ENGINE]
-    out = {"default_voice": DEFAULT_VOICE, "library": {
+    out = {"default_voice": DEFAULT_VOICE, "install": install_offer(data_dir), "library": {
         "eligible": chk["eligible"], "reasons": chk["reasons"], "installed": installed, "gpu": chk["gpu"], "disk_free_gb": chk["disk_free_gb"],
         "requirements": chk["requirements"], "voices": [{"id": x["id"], "label": x["label"], "gender": x["gender"]} for x in lib],
         "offer": chk["eligible"] and not installed, "use": chk["eligible"] and installed}}
@@ -279,6 +368,26 @@ def capability(data_dir: Path) -> dict:
     elif not chk["eligible"]:
         out["library"]["say"] = "Bu bilgisayarda varsayılan ses (EMA) kullanılır; ses kütüphanesi için: " + "; ".join(chk["reasons"]) + "."
     return out
+
+
+def install_offer(data_dir: Path) -> dict:
+    """Varsayılan yol iki motordur: EMA (seslendirme) + Whisper (okunuş denetimi, kelime zamanları). Eksikler tek öneride (2.1.0):
+    Whisper'sız EMA'nın yanlış okuduğu sözcükler sessizce geçer."""
+    missing = []
+    for e in ("ema", "whisper"):
+        try:
+            engine_python(data_dir, e)
+        except TTSError:
+            missing.append(e)
+    if not missing:
+        return {"missing": [], "say": None}
+    gb = {e: round(TS.PINS[e]["env_gb"] + TS.PINS[e]["model_gb"], 1) for e in missing}
+    what = {"ema": "seslendirme (EMA", "whisper": "okunuş denetimi ve kelime zamanları (Whisper"}
+    parts = [f"{what[e]}, ≈ {str(gb[e]).replace('.', ',')} GB)" for e in missing]
+    return {"missing": missing, "download_gb": round(sum(gb.values()), 1),
+            "how": [f"PY PR/scripts/setup/tts_setup.py --data-dir <DD> --engine {e} --yes" for e in missing],
+            "say": ("Ücretsiz ve bilgisayarınızdan çıkmayan seslendirme için " + " ve ".join(parts) + " kurulsun mu? "
+                    "İkisi birlikte önerilir: okunuş denetimi, sesin metni doğru okuyup okumadığını her alımda kontrol eder.")}
 
 
 def status(data_dir: Path) -> dict:
@@ -303,6 +412,16 @@ def main() -> None:
     p.add_argument("--seed", type=int, default=1729)
     p.add_argument("--takes", type=int, default=1)
     p.add_argument("--no-verify", action="store_true", help="Whisper okunuş denetimini atla")
+    p.add_argument("--pause", type=float, default=DEFAULT_PAUSE, help="cümle arası duraklama (sn); 0 = tek seferde")
+    p.add_argument("--profile-dir", help="marka profili klasörü (okunus.json)")
+    p = sp.add_parser("check")
+    p.add_argument("--data-dir", required=True)
+    p.add_argument("--script", required=True)
+    p.add_argument("--profile-dir")
+    p = sp.add_parser("lexicon")
+    p.add_argument("--profile-dir")
+    p.add_argument("--add", action="append", default=[])
+    p.add_argument("--remove", action="append", default=[])
     p = sp.add_parser("voices")
     p.add_argument("--data-dir")
     p = sp.add_parser("capability")
@@ -312,7 +431,13 @@ def main() -> None:
     a = ap.parse_args()
     if a.cmd == "synth":
         emit(synth(Path(a.data_dir), a.voice, Path(a.script).read_text(encoding="utf-8"), Path(a.out), a.speed, a.seed, a.takes,
-                   verify=not a.no_verify))
+                   verify=not a.no_verify, pause=a.pause, profile_dir=Path(a.profile_dir) if a.profile_dir else None))
+    elif a.cmd == "check":
+        emit(check_reading(Path(a.data_dir), Path(a.script).read_text(encoding="utf-8"), Path(a.profile_dir) if a.profile_dir else None))
+    elif a.cmd == "lexicon":
+        if (a.add or a.remove) and not a.profile_dir:
+            raise TTSError("sözlüğe ekleme/çıkarma marka profiline yapılır: --profile-dir")
+        emit(lexicon_edit(Path(a.profile_dir), a.add, a.remove) if a.profile_dir else {"entries": load_lexicon()})
     elif a.cmd == "voices":
         cat = load_voices()
         if a.data_dir:

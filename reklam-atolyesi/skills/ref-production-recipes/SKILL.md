@@ -31,7 +31,9 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | sahne sesi + miks | `PY PR/scripts/audio/mix.py --plan … --scene-audio … [--music …] [--vo …] [--sfx-map …] --out-dir audio/stems` |
 | tasarım sesi sentezi | `PY PR/scripts/audio/sfx_synth.py --kind whoosh|shimmer|riser|impact|pop|tone --dur … --out … [--seed …]` |
 | ses kütüphanesi | `PY PR/scripts/audio/sfx_library.py --query … [--profile-dir …]` (profil → CC0 Kenney → Mixkit; Türkçe sorgu açılır) |
-| yerel seslendirme (+ okunuş denetimi) | `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice … --script vo.txt --out … --takes 3` (1–4) |
+| VO okunuş raporu (sentez öncesi) | `PY PR/scripts/audio/tts_local.py check --data-dir DD --script vo.txt --profile-dir DD/profiles/<slug>` |
+| okunuş sözlüğü | `PY PR/scripts/audio/tts_local.py lexicon --profile-dir DD/profiles/<slug> [--add "Yazım=okunuş"] [--remove Yazım]` |
+| yerel seslendirme (+ okunuş denetimi) | `PY PR/scripts/audio/tts_local.py synth --data-dir DD --voice … --script vo.txt --out … --takes 3 --profile-dir … [--pause 0.25]` (1–4) |
 | yazıya dökme (yerel Whisper) | `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD --in … [--script vo.txt] --out-dir …` |
 | konuşmalı kurgu kesimi / altyazı birleştirme | `PY PR/scripts/audio/asr_local.py cuts --transcript … --out … --asset … --at …` · `captions --words a@0 --words b` |
 | ses motoru kurulumu | `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine ema|voxcpm|whisper [--yes]` (boyut önce gösterilir; voxcpm yalnızca uygun ekran kartında) |

@@ -247,3 +247,119 @@ def test_setup_refuses_library_on_unsuitable_hardware(tmp_path, monkeypatch, cap
         S.main()
     out = json.loads(capsys.readouterr().out)
     assert e.value.code == 4 and "EMA" in out["error"] and not (tmp_path / ".tts").exists()
+
+
+# --- 2.1.0: okunuş sözlüğü, belirsiz ifade raporu, cümle cümle sentez ----------------------------------------------------------
+import tts_worker as W  # noqa: E402
+
+
+def test_lexicon_keeps_caption_spelling_and_suffix():
+    speak, cmap, applied = W.apply_lexicon("Wireless'ı Wi-Fi ile 24/7 kullan.", [{"written": "Wireless", "spoken": "vayırlıs"},
+                                                                               {"written": "Wi-Fi", "spoken": "vay fay"},
+                                                                               {"written": "24/7", "spoken": "yirmi dört yedi"}])
+    assert speak == "vayırlısı vay fay ile yirmi dört yedi kullan."
+    assert [a["written"] for a in applied] == ["Wireless'ı", "Wi-Fi", "24/7"]
+    assert len(cmap) == len(speak) and cmap[0] == (0, len("Wireless'ı"))  # okunuşun her harfi özgün sözcüğe bağlı
+
+
+def test_lexicon_longest_entry_wins_and_whole_words_only():
+    lex = [{"written": "USB", "spoken": "yu es bi"}, {"written": "USB-C", "spoken": "yu es bi si"}, {"written": "Hz", "spoken": "hertz"}]
+    assert W.apply_lexicon("USB-C ve USB", lex)[0] == "yu es bi si ve yu es bi"
+    assert W.apply_lexicon("Hzler değil, 120 Hz.", lex)[0] == "Hzler değil, 120 hertz."
+
+
+@pytest.mark.parametrize("frag, after, kind", [("3.", " kat", "ordinal"), ("3.", " Hemen", None), ("1-3", " gün", "range"),
+                                               ("0850 123 45 67", " ara", "telephone"), ("24/7", " destek", None)])
+def test_hint_kind(frag, after, kind):
+    assert W.hint_kind(frag, after) == kind
+
+
+def test_lexicon_entry_validation(tmp_path):
+    with pytest.raises(SystemExit, match="küçük Türkçe harf"):
+        T.check_entry("X5", "iks 5")
+    r = T.lexicon_edit(tmp_path, ["wireless=Vayırlıs  Kulaklık".lower(), "Marka X=marka iks"], [])
+    prof = {e["written"]: e for e in r["entries"] if e["source"] == "profil"}
+    assert prof["wireless"]["spoken"] == "vayırlıs kulaklık" and "Marka X".lower() in {k.lower() for k in prof}
+    assert {e["written"] for e in r["entries"] if e["source"] == "genel"} >= {"Wi-Fi", "Bluetooth"}
+    r = T.lexicon_edit(tmp_path, [], ["Marka X"])
+    assert not any(e["written"].lower() == "marka x" for e in r["entries"])
+
+
+def test_general_lexicon_is_valid():
+    entries = T.load_lexicon()
+    assert entries and all(T.SPOKEN_OK.match(e["spoken"]) for e in entries)
+    assert len({e["written"].lower() for e in entries}) == len(entries)
+
+
+def test_split_sentences():
+    assert T.split_sentences("sekiz yüz elli Türk lirası. Hemen al! Neden bekliyorsun? ") == [
+        "sekiz yüz elli Türk lirası.", "Hemen al!", "Neden bekliyorsun?"]
+    assert T.split_sentences("tek cümle") == ["tek cümle"]
+
+
+def test_join_sentences_trims_pauses_and_shifts_words():
+    sr = 1000
+    a = np.concatenate([np.zeros(200), 0.5 * np.ones(300), np.zeros(200)]).astype("float32")  # 0,2 sn sessizlik + 0,3 sn ses + 0,2 sn
+    b = np.concatenate([np.zeros(100), 0.5 * np.ones(400)]).astype("float32")
+    audio, words = W.join_sentences([(a, [("bir", 0.2, 0.5)]), (b, [("iki", 0.1, 0.5)])], sr, 0.25)
+    # a: 0,18–0,56 kalır (0,02 önce, 0,06 sonra pay) = 0,38 sn; ardından 0,25 sn duraklama; b: 0,08–0,50 = 0,42 sn
+    assert len(audio) == 380 + 250 + 420
+    assert words[0] == {"text": "bir", "start": 0.02, "end": 0.32}
+    assert words[1]["start"] == pytest.approx(0.38 + 0.25 + 0.02) and words[1]["end"] == pytest.approx(0.38 + 0.25 + 0.42)
+
+
+def test_synth_sends_sentences_and_lexicon(tmp_path, monkeypatch):
+    seen = {}
+
+    def fake_worker(data_dir, engine, req, **kw):
+        seen[req["op"]] = req
+        if req["op"] == "normalize":
+            return {"spoken_text": "vay fay. Hemen al.", "speak_text": "vay fay. Hemen al.", "source_tokens": ["Wi-Fi.", "Hemen", "al."],
+                    "spoken_words": [{"text": "vay", "src": [0, 0]}, {"text": "fay.", "src": [0, 0]}, {"text": "Hemen", "src": [1, 1]},
+                                     {"text": "al.", "src": [2, 2]}],
+                    "reading": {"fallbacks": [], "hinted": [], "foreign": [], "lexicon_applied": [{"written": "Wi-Fi", "spoken": "vay fay"}]}}
+        for tk in req["takes"]:
+            sf.write(tk["out_wav"], np.zeros(1600, dtype="float32"), 16000)
+        ws = [{"text": t, "start": i * 0.2, "end": i * 0.2 + 0.2} for i, t in enumerate(["vay", "fay", "hemen", "al"])]
+        return {"sample_rate": 16000, "engine_version": "t", "load_s": 0.1,
+                "takes": [{"wav": tk["out_wav"], "seed": tk["seed"], "duration_s": 0.1, "words": ws} for tk in req["takes"]]}
+    monkeypatch.setattr(T, "run_worker", fake_worker)
+    r = T.synth(tmp_path, "ema-varsayilan", "Wi-Fi. Hemen al.", tmp_path / "vo.wav", verify=False)
+    assert seen["normalize"]["lexicon"] and seen["synth"]["sentences"] == ["vay fay.", "Hemen al."]
+    assert seen["synth"]["pause_s"] == T.DEFAULT_PAUSE and r["sentences"] == 2 and r["reading"]["ok"]
+    words = json.loads((tmp_path / "vo.words.json").read_text(encoding="utf-8"))["words"]
+    assert [w["text"] for w in words] == ["Wi-Fi.", "Hemen", "al."]  # altyazı özgün yazımla
+    T.synth(tmp_path, "ema-varsayilan", "Wi-Fi. Hemen al.", tmp_path / "vo2.wav", verify=False, pause=0)
+    assert "sentences" not in seen["synth"]  # 0 = eski yol: metin tek seferde
+
+
+def test_reading_summary_lists_what_to_fix():
+    r = T.reading_summary({"fallbacks": [{"text": "10x", "read_as": "bir sıfır iks", "reason": "protected_identifier"}], "foreign": ["Fresh"]})
+    assert not r["ok"] and len(r["say"]) == 2 and "lexicon" in r["fix"]
+    assert T.reading_summary({})["ok"]
+
+
+def test_install_offer_pairs_ema_with_whisper(tmp_path):
+    o = T.install_offer(tmp_path)
+    assert o["missing"] == ["ema", "whisper"] and "Whisper" in o["say"] and len(o["how"]) == 2
+
+
+def test_spoken_map_real_normalizer():
+    pytest.importorskip("normalizer_tr")
+    lex = T.load_lexicon()
+    r = W.spoken_map("Wi-Fi'ı 3. katta, 1-3 günde teslim. Fresh paket alana 10x hediye!", lex)
+    assert r["spoken_text"].startswith("vay fayı üçüncü katta, bir ila üç günde teslim.")
+    assert {h["kind"] for h in r["reading"]["hinted"]} == {"ordinal", "range"}
+    assert {f["text"] for f in r["reading"]["fallbacks"]} == {"10x"} and r["reading"]["foreign"] == ["Fresh"]
+    toks = r["source_tokens"]
+    assert {toks[w["src"][0]] for w in r["spoken_words"] if w["text"] in ("vay", "fayı")} == {"Wi-Fi'ı"}
+
+
+def test_verify_accepts_lexicon_spelling(monkeypatch, tmp_path):
+    import asr_local as AL
+    monkeypatch.setattr(AL, "installed", lambda d: True)
+    heard = [{"text": t, "start": i * 0.3, "end": i * 0.3 + 0.3} for i, t in enumerate(["vayırlıs", "geldi"])]
+    monkeypatch.setattr(AL, "transcribe_files", lambda d, wavs: {"model": "t", "files": [{"in": str(Path(w).resolve()), "words": heard} for w in wavs]})
+    w = str(tmp_path / "a.wav")
+    assert not AL.verify_takes(tmp_path, [w], "Wireless geldi")[0]["matches"]
+    assert AL.verify_takes(tmp_path, [w], "Wireless geldi", alt_script="vayırlıs geldi")[0]["matches"]

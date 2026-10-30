@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.0.0",
+ "plugin_version": "2.1.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -209,7 +209,7 @@
    "name": "materials",
    "kind": "stage",
    "description": "reklam-atolyesi S09 malzeme — sahne başına ses kararı (kullanıcıyla), seslendirme, müzik, efekt, AI görsel/klip; her ücretli üretim tahmin → kayıt → açık onay → rezervasyon yolundan. Kapılı.",
-   "sha256": "33863bdb8b90d6655134ee6e4a75e5dd220dd47096b58f9f4f0578b08e154f7a"
+   "sha256": "56e092171eedb66e43e4b8b95d29c47bf2e65621fc7a40ee59f0ba9310c5c5bc"
   },
   {
    "name": "memory",
@@ -275,7 +275,7 @@
    "name": "ref-production-recipes",
    "kind": "reference",
    "description": "reklam-atolyesi üretim tarifleri — script haritası, ffmpeg komutları, ses hedefleri, AI model yönlendirme, çekim kurtarma, render altyapısı, export/adlandırma, maliyet kuralları.",
-   "sha256": "a6dbb4fd789d89742f34209de1ab7f0a7b0af49e9cfd2ba35e32445e7ed76e6f"
+   "sha256": "eb0bc9500442c60811f4e81d18d1219bd7409fc1d9c699cf3152e9e5774a24d0"
   },
   {
    "name": "ref-remotion-components",
@@ -398,7 +398,7 @@
   {
    "name": "sound-designer",
    "description": "reklam-atolyesi ses tasarımcısı. Sahne ses kararlarını önerir, seslendirme/müzik/efekt hatlarını (ücretli üretim yalnızca tahmin → onay → rezervasyonla) hazırlar, miksi -14 LUFS / ≤ -1 dBTP'ye getirir, ses imzasını korur. S09 ve S11.",
-   "sha256": "22a0181f7833fe3125db857571b6a6cb5815042b75e2e0531065de067462ee08"
+   "sha256": "73789648ed3c33fc95b87712d6b2eb586d773d9e3ece90a7dd5cc0b3efcbffb8"
   }
  ],
  "commands": [
@@ -896,15 +896,16 @@
   "templates/reports/strategy.md": "7762017f3efb4132fa7d2eb2fcc57f6ae65945fd3275010191f9c7249ed5cd03",
   "templates/reports/yayin-paketi.md": "1c0a1198862d347c42338e551a300596e0f958700b662844c5da2b199903d308",
   "templates/style.json": "3916baa82f3f8d5e57d5ee0c2ec1dd0d370bcc3c76f4c2bcda801d512087bb8a",
+  "templates/voices/okunus-genel.json": "ac33f767afe406c8a25b96d8dbd0524c4fd299d25948248426150bff022af288",
   "templates/voices/voices.json": "33f8a3c58480511df1b7d7f0ad15bcecc84d673125e245d112d2bc85a543ab11"
  },
  "tests": {
   "pytest": {
-   "passed": 427,
+   "passed": 443,
    "failed": 0,
    "skipped": 5,
    "returncode": 0,
-   "summary": "427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
+   "summary": "443 passed, 0 failed, 5 skipped (2.1.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. Yeni testler tests/test_tts_local.py (16): okunuş sözlüğü (altyazı yazımı, kesme eki, en uzun girdi, girdi doğrulama, genel liste), normalleştirici ipuçları (sıra sayısı, aralık, telefon), gerçek normalizer-tr ile okunuş haritası ve rapor (normalizer-tr yoksa atlanır), cümle birleştirme (kırpma, duraklama, sözcük zamanı kaydırma), synth'in cümleleri ve sözlüğü motora iletmesi, --pause 0 eski yol, Whisper denetiminin sözlük yazımını kabul etmesi, EMA+Whisper kurulum önerisi. EMA/Whisper modelleri bu ortamda indirilemedi: gerçek ses üretimi sınanmadı. Önceki özet: 427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-30",
@@ -1369,7 +1370,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1575,6 +1576,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('Marka A', 'Önce', 'Sonra', 'Ürün B')",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "2.1.0: yerel seslendirme (tts_worker.py okunuş sözlüğü/ipucu/cümle birleştirme, tts_local.py check/lexicon/install, asr_local.py verify_takes alt_script, templates/voices/okunus-genel.json, skill/ajan metinleri materials/sound-designer/ref-production-recipes, testler, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 12,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; genel okunuş sözlüğünden ürün/şirket adları çıkarıldı (yalnızca genel teknik terimler ve alışveriş günleri); test örnekleri nötr ('Wireless', 'Fresh', 'Marka X')",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1585,16 +1594,16 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
+   "plugin_json": "7e2a0a6360f9783e9c13105e1ac56ea10db9f0522d2d27660626067e2eca9ca8",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "94dbe5bee0a89e2c90e18a35fc6cadd9b6a252d11098f2489ba5c9edacbb14df",
-   "agents": "559c979bd941658dc0b67e02f90f1286ed9180eab9d7f69c24284d9ad8416b4c",
+   "skills": "6e7993bda9eae101ab3a044c88a45f60ec89c25c313306e1dfd700deb6ea5d07",
+   "agents": "5d16ba494c1e8a232368dea6f774e4fd2297274d0dd9082078be68fde7bf69b6",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
-   "ad_memory": "7e8b7c875e3620bdab4ad564c9fe3bdf42d3af1a6b3786f36694a6f87cc01844",
-   "scripts": "340867d6407c3235970fa70655b3bfc9527e01142059af4c9ec01def52670c69",
-   "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
+   "ad_memory": "cdac207843da50f66db7e27c2a53b52679f7754d344d8eddf8ade2516b5b5b56",
+   "scripts": "cbe20ae9cbaa6a4c821ff57d151d92a4c1420741d321da8c2ff72eed92c35b46",
+   "templates": "46256a5d60b56d7b6a6d83b8a5b597824bf59319f21864ffbe77dcc76e02759b",
    "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
   "checked_at": "2026-10-30"
@@ -1754,16 +1763,16 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
+  "plugin_json": "7e2a0a6360f9783e9c13105e1ac56ea10db9f0522d2d27660626067e2eca9ca8",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "94dbe5bee0a89e2c90e18a35fc6cadd9b6a252d11098f2489ba5c9edacbb14df",
-  "agents": "559c979bd941658dc0b67e02f90f1286ed9180eab9d7f69c24284d9ad8416b4c",
+  "skills": "6e7993bda9eae101ab3a044c88a45f60ec89c25c313306e1dfd700deb6ea5d07",
+  "agents": "5d16ba494c1e8a232368dea6f774e4fd2297274d0dd9082078be68fde7bf69b6",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
-  "ad_memory": "7e8b7c875e3620bdab4ad564c9fe3bdf42d3af1a6b3786f36694a6f87cc01844",
-  "scripts": "340867d6407c3235970fa70655b3bfc9527e01142059af4c9ec01def52670c69",
-  "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
+  "ad_memory": "cdac207843da50f66db7e27c2a53b52679f7754d344d8eddf8ade2516b5b5b56",
+  "scripts": "cbe20ae9cbaa6a4c821ff57d151d92a4c1420741d321da8c2ff72eed92c35b46",
+  "templates": "46256a5d60b56d7b6a6d83b8a5b597824bf59319f21864ffbe77dcc76e02759b",
   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."

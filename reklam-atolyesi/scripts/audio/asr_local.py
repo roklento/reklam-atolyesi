@@ -398,8 +398,10 @@ def transcribe_files(data_dir: Path, files: list[str], prompt: str | None = None
     return {**meta, "files": out, "errors": errors}
 
 
-def verify_takes(data_dir: Path, wavs: list[str], script: str) -> list[dict]:
-    """Yerel seslendirme alımlarının okunuş denetimi: alım dökülür, VO metniyle karşılaştırılır. Motor yoksa denetim yapılmadı der."""
+def verify_takes(data_dir: Path, wavs: list[str], script: str, alt_script: str | None = None) -> list[dict]:
+    """Yerel seslendirme alımlarının okunuş denetimi: alım dökülür, VO metniyle karşılaştırılır. Motor yoksa denetim yapılmadı der.
+    `alt_script` (2.1.0): okunuş sözlüğü uygulanmış metin. Whisper "Wireless"ı da "vayırlıs"ı da yazabilir; hangisiyle daha az fark
+    varsa o sayılır."""
     if not installed(data_dir):
         return [{"checked": False, "how": "Okunuş denetimi için Whisper motoru: PY PR/scripts/setup/tts_setup.py --data-dir DD --engine whisper"}
                 for _ in wavs]
@@ -415,6 +417,10 @@ def verify_takes(data_dir: Path, wavs: list[str], script: str) -> list[dict]:
             out.append({"checked": False, "how": "bu alım dökülemedi"})
             continue
         al = align(script, f["words"])
+        if alt_script and alt_script != script and not al["matches_script"]:
+            alt = align(alt_script, f["words"])
+            if alt["matches_script"] or len(alt["diffs"]) < len(al["diffs"]):
+                al = alt
         out.append({"checked": True, "matches": al["matches_script"], "diffs": al["diffs"],
                     "heard": " ".join(x["text"] for x in f["words"]), "model": res["model"]})
     return out
