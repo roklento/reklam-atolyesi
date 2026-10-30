@@ -82,6 +82,43 @@ def sha256_file(path: str | os.PathLike) -> str:
     return h.hexdigest()
 
 
+def file_lock(path: str | os.PathLike, timeout: float = 3.0, stale: float = 10.0):
+    """Süreçler arası kısa kilit (oturum dosyası oku-değiştir-yaz için; hook ve MCP sunucusu aynı dosyayı yazar). O_EXCL kilit dosyası
+    her işletim sisteminde aynı davranır. 10 sn'den eski kilit ölü sayılır; 3 sn içinde alınamazsa kilitsiz devam edilir (hook süresi
+    sınırlı; en kötü durum 2.0.0 öncesi davranıştır)."""
+    import contextlib
+    import time
+
+    @contextlib.contextmanager
+    def _cm():
+        lock = Path(str(path) + ".lock")
+        lock.parent.mkdir(parents=True, exist_ok=True)
+        fd, t0 = None, time.monotonic()
+        while fd is None:
+            try:
+                fd = os.open(str(lock), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                try:
+                    if time.time() - lock.stat().st_mtime > stale:
+                        lock.unlink(missing_ok=True)
+                        continue
+                except OSError:
+                    continue
+                if time.monotonic() - t0 > timeout:
+                    break
+                time.sleep(0.02)
+        try:
+            yield fd is not None
+        finally:
+            if fd is not None:
+                os.close(fd)
+                try:
+                    lock.unlink(missing_ok=True)
+                except OSError:
+                    pass
+    return _cm()
+
+
 def atomic_write(path: str | os.PathLike, data: bytes | str, *, overwrite: bool = True) -> str:
     """Geçici ada yaz → fsync → doğrula → atomik yeniden adlandır (4.2). SHA-256 döner."""
     p = Path(path)

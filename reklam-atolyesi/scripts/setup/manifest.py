@@ -194,7 +194,7 @@ SCRIPT_MAP = {
     "organic: organik paylaşım adayları ve takvim": "scripts/organic/candidates.py",
     "audio: sahne sesi ve miks": "scripts/audio/mix.py",
     "audio: ses kütüphanesi": "scripts/audio/sfx_library.py",
-    "render: render, still, galeri, Türkçe final": "scripts/render/render.py",
+    "render: render, still, galeri, Türkçe final, eski kampanya projesinin güvenli güncellenmesi (upgrade)": "scripts/render/render.py",
     "render: Remotion programatik render": "scripts/render/render.mjs",
     "render: export ve adlandırma": "scripts/render/export.py",
     "render: grade_lut": "scripts/render/grade_lut.py",
@@ -218,6 +218,8 @@ SCRIPT_MAP = {
     "setup: update-vendor": "scripts/setup/update-vendor.sh",
     "setup: doctor": "scripts/setup/doctor.py",
     "setup: manifest": "scripts/setup/manifest.py",
+    "setup: şablon sürüm geçmişi (render.py upgrade için yayımlanmış dosya hash'leri)": "scripts/setup/template_history.py",
+    "setup: veritabanı ve yedek bütünlüğü, yedekten geri dönüş": "scripts/setup/db_restore.py",
     "setup: hooks.json ve .mcp.json üretimi": "scripts/setup/gen_config.py",
     "setup: MCP stdio sondası": "scripts/setup/mcp_probe.py",
     "setup: dağıtılan kurulumun makinede doğrulaması (duman testi, render ve galeri karşılaştırması, doctor)": "scripts/setup/kurulum_dogrula.py",
@@ -315,8 +317,10 @@ def build(root: Path, results_dir: Path | None) -> dict:
                       "ve rakip markasına doğrudan yer verme hükmünün güncel durumu konsolide resmi metinden okunamadı: skill'de "
                       "'resmi metinle teyit edilmedi' işaretli. Plugin varsayılanı zaten 'rakip anılmaz'.", "decided_by": "kurulum", "status": "recorded"},
         {"id": "meta_ai_label_policy_unverified", "spec": "10, 12.10",
-         "deviation": "Meta AI açıklama politikasının resmi metni kurulumda okunamadı; ikincil kaynaklar 'resmi metinle teyit edilmedi' işaretiyle "
-                      "skill'de. S14 talimatı Ads Manager'ın güncel seçeneklerine dayanır.", "decided_by": "kurulum", "status": "recorded"},
+         "deviation": "Meta AI açıklama politikasının resmi metni kurulumda okunamamıştı; 2.0.0'da ads_get_help_article ile okundu "
+                      "(About AI info on ads created or edited with generative AI tools, 2026-10-30): otomatik 'AI info' etiketi, Türkiye'de "
+                      "reklamveren beyanı seçeneği yok. ref-legal-tr-meta §4 resmi metinle güncellendi; S14 talimatı yine Ads Manager'ın "
+                      "güncel ekranına dayanır.", "decided_by": "2.0.0 denetimi", "status": "resolved"},
         {"id": "generation_call_hash", "spec": "9.1, 7.4",
          "deviation": "params_hash girdi dosyası hash'lerini içerir; hook bunları göremediği için rezervasyon eşleşmesi aynı kanonik koddan dosya "
                       "hash'leri hariç hesaplanan call_hash ile yapılır (migration 002). Onay ve tekrar koruması params_hash'e bağlı kalır.",

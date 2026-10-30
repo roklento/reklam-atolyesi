@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .util import AdMemoryError, jload
+from .util import AdMemoryError, jload, tr_lower
 
 STAGES = ("tofu", "mofu", "bofu")
 STAGE_BASIS = ("data", "user", "assumption")
@@ -98,10 +98,13 @@ def bofu_evidence_ok(msg: dict, kinds: list[str]) -> bool:
 def claim_usable(claim_text: str, provable_claims: list[dict]) -> bool:
     """İddia ürün kartında kayıtlı (S00c biçimi {claim, needs_document, verified} ya da {code, text, documented}) ve belgesi gerekmiyor
     ya da belgesi doğrulanmış olmalı."""
-    t = _text(claim_text).casefold()
+    def norm(v: Any) -> str:  # Türkçe küçük harf (2.0.0: casefold "İ"yi "i̇" yapıyordu; "İADE" ile kayıtlı "iade" eşleşmiyordu)
+        return " ".join(tr_lower(_text(v)).split())
+
+    t = norm(claim_text)
     for c in provable_claims or []:
         if not isinstance(c, dict):
             continue
-        if t in {_text(c.get("claim")).casefold(), _text(c.get("text")).casefold(), _text(c.get("code")).casefold()} - {""}:
+        if t in {norm(c.get("claim")), norm(c.get("text")), norm(c.get("code"))} - {""}:
             return bool(c.get("verified") or c.get("documented")) or not c.get("needs_document", False)
     return False

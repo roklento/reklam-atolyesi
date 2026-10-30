@@ -44,7 +44,9 @@ def _read(path: str | None, dur: float | None = None) -> np.ndarray | None:
 
 def _place(track: np.ndarray, clip: np.ndarray, at_s: float, fade_s: float = XFADE) -> None:
     i = int(round(at_s * SR))
-    if i >= len(track):
+    if i < 0:  # negatif konum (ör. music.offset_s < 0): parçanın başı videodan önce kalır, kesilir (2.0.0: önceden dizi hatası)
+        clip, i = clip[-i:], 0
+    if i >= len(track) or not len(clip):
         return
     c = clip[: len(track) - i].copy()
     f = min(int(fade_s * SR), len(c) // 2)
@@ -55,11 +57,26 @@ def _place(track: np.ndarray, clip: np.ndarray, at_s: float, fade_s: float = XFA
     track[i:i + len(c)] += c
 
 
-def _write(path: Path, y: np.ndarray) -> str:
+def _write(path: Path, y: np.ndarray, subtype: str = "PCM_16") -> str:
     import soundfile as sf
     path.parent.mkdir(parents=True, exist_ok=True)
-    sf.write(str(path), np.clip(y, -1, 1), SR, subtype="PCM_16")
+    sf.write(str(path), y if subtype == "FLOAT" else np.clip(y, -1, 1), SR, subtype=subtype)
     return str(path)
+
+
+def speech_activity(y: np.ndarray, frame_s: float = 0.02, thresh: float = 0.005, hold_s: float = 0.12) -> np.ndarray:
+    """Konuşma maskesi 20 ms pencerelerin RMS'inden (≈ -46 dBFS eşik) + 120 ms tutma. 2.0.0: önceden örnek başına |x| > 0,01
+    bakılıyordu; konuşmanın sıfır geçişleri maskeyi delik deşik ediyor, 150 ms yumuşatmadan sonra müzik 4,5 dB yerine ~2–3 dB kısılıyordu."""
+    n = len(y)
+    f = max(1, int(frame_s * SR))
+    m = int(np.ceil(n / f))
+    mono = np.abs(y).max(axis=1) if y.ndim == 2 else np.abs(y)
+    pad = np.pad(mono.astype(np.float64), (0, m * f - n))
+    active = np.sqrt((pad.reshape(m, f) ** 2).mean(axis=1)) > thresh
+    h = int(np.ceil(hold_s / frame_s))
+    if h and active.any():
+        active = np.convolve(active.astype(int), np.ones(2 * h + 1, int), mode="same") > 0
+    return np.repeat(active, f)[:n]
 
 
 def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: dict[str, str], out_dir: Path,
@@ -98,7 +115,7 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
             if s["audio"]["mode"] in ("generated", "user_vo"):
                 a, b = int(s["start_s"] * SR), int((s["start_s"] + s["dur_s"]) * SR)
                 vo_track[a:b] = vo_clip[a:b]
-                speech_mask[a:b] |= np.abs(vo_clip[a:b]).max(axis=1) > 0.01
+                speech_mask[a:b] |= speech_activity(vo_clip[a:b])
     if speech_mask.any() and np.abs(effects).max() > 0:  # konuşma üstüne gelen efekt kısılır, konuşma değil
         k = int(0.08 * SR)
         senv = np.convolve(np.where(speech_mask, 10 ** (-sfx_duck_db / 20), 1.0), np.ones(k) / k, mode="same").astype(np.float32)
@@ -116,7 +133,9 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
     stems = {"dialog": _write(out_dir / "stem_dialog.wav", dialog), "vo": _write(out_dir / "stem_vo.wav", vo_track),
              "music": _write(out_dir / "stem_music.wav", music_track), "sfx": _write(out_dir / "stem_sfx.wav", effects)}
     pre = dialog + vo_track + music_track + effects
-    pre_path = _write(out_dir / "mix_pre.wav", pre * 0.8)
+    # 2.0.0: ara miks kayan noktada ve kırpılmadan yazılır; loudnorm seviyeyi ve tepeyi ayarlar. Önceden PCM16'ya ±1'de kırpılıyordu:
+    # yüksek müzik + VO + efekt toplamı 1,25'i aşınca bozulma kalıcı oluyordu.
+    pre_path = _write(out_dir / "mix_pre.wav", pre, "FLOAT")
     ln = LN.loudnorm(pre_path, str(out_dir / "mix_final.wav"))
     rep = {"stems": stems, "pre": pre_path, "final": ln["out"], "loudness": ln["verify"], "loudness_ok": ln["ok"], "applied_modes": applied,
            "duck_db": duck_db, "sfx_duck_db": sfx_duck_db}

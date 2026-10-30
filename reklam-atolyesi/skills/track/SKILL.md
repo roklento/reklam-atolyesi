@@ -65,9 +65,13 @@ Yok.
    neden olarak sunulmaz. `ads_insights_anomaly_signal` bağlam olarak okunabilir.
 7b. **Kıyas (bağlam; ilk harcamadan sonra, günde en fazla bir kez):** test reklam setleri için
    `ads_insights_industry_benchmark(ad_account_id, entity_ids=[reklam seti], date_preset="last_7d")` ve
-   `ads_insights_auction_ranking_benchmarks` (salt okuma, izin listesinde). Dönen değerler
-   `benchmarks_upsert(profile_id, items=[{kind: "industry"|"auction_ranking", metric, value, context: {source_tool, date_range,
-   peer_group, entity_id}}])`. Maliyet metriğinde "kıyasın üstü" daha iyi demektir (aracın kendi tanımı); kullanıcıya bu yönle söylenir.
+   `ads_insights_auction_ranking_benchmarks`; benzer reklamverenlere göre yüzdelik için
+   `ads_insights_performance_vs_peers(ad_account_id, entity_ids=[reklam seti], date_preset="last_7d")` (çağrı başına en fazla 5 reklam
+   seti; hepsi salt okuma, izin listesinde). Dönen değerler `benchmarks_upsert(profile_id, items=[{kind: "industry"|"auction_ranking"|
+   "peers", metric, value, context: {source_tool, date_range, peer_group, entity_id}}])`; `peers` için `metric` = `<METRİK>_pct`
+   (ör. `CPR_pct`), `value` = 0–100 yüzdelik. Yüzdelikte yüksek her zaman daha iyidir, maliyet metriklerinde de (aracın kendi tanımı);
+   yüzdelikler yalnızca aynı reklam seti içinde karşılaştırılır (her reklam setinin kendi kohortu var) ve CPM tahmini olarak
+   kullanılmaz. Maliyet metriğinde "kıyasın üstü" daha iyi demektir (aracın kendi tanımı); kullanıcıya bu yönle söylenir.
    "Veri yok" dönerse hiçbir şey yazılmaz ve "kıyas yok" denir; değer uydurulmaz, başka hesaptan taşınmaz. Kıyas **önsel değildir**
    (önsel yalnızca aynı profilin geçmişinden, 6.6) ve hüküm vermez; yalnızca koçluk raporunda bağlam satırıdır.
 8. **Bütçe ve zarar-risk (6.3, 6.10):** her aktif reklamın (eski turlarınkiler dahil) ilk yayından biriken harcaması kendi onaylı sınırıyla;

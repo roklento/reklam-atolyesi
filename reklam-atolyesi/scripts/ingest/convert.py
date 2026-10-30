@@ -75,10 +75,27 @@ def make_proxy(src: Path, dst: Path, fast: bool = False) -> None:
             "-threads", str(x264_threads()), "-c:a", "aac", "-b:a", "192k", "-ar", "48000", str(dst)])
 
 
+_VIDSTAB_FILEFORMAT: bool | None = None
+
+
+def _vidstab_has_fileformat() -> bool:
+    """libvidstab 1.1.1+ varsayılan olarak ikili TRF yazar ve `fileformat` seçeneğini getirir; eski sürümlerde seçenek yoktur
+    (verilirse FFmpeg 8 koduyla çıkar) ve TRF zaten metindir."""
+    global _VIDSTAB_FILEFORMAT
+    if _VIDSTAB_FILEFORMAT is None:
+        try:
+            out = ffmpeg(["-h", "filter=vidstabdetect"], check=False)
+            _VIDSTAB_FILEFORMAT = "fileformat" in (out.stdout or "")
+        except Exception:
+            _VIDSTAB_FILEFORMAT = True
+    return _VIDSTAB_FILEFORMAT
+
+
 def detect_shake(src: Path, trf: Path) -> dict:
     """vidstabdetect (1. geçiş); S07'nin sarsıntı puanı bu ölçümdür. Yerel hareket vektörlerinden kare başına RMS, genişliğe göre ‰."""
     tr = trf.as_posix().replace(":", "\\:")
-    ffmpeg(["-i", str(src), "-vf", f"vidstabdetect=shakiness=6:accuracy=15:fileformat=ascii:result='{tr}'", "-f", "null", "-"])
+    fmt = "fileformat=ascii:" if _vidstab_has_fileformat() else ""
+    ffmpeg(["-i", str(src), "-vf", f"vidstabdetect=shakiness=6:accuracy=15:{fmt}result='{tr}'", "-f", "null", "-"])
     width = probe(src).get("width") or 1080
     per_frame = []
     vec = re.compile(r"\(LM\s+(-?\d+)\s+(-?\d+)")
@@ -175,6 +192,17 @@ def ingest(campaign_dir: Path, fps: int = 30, fast: bool = False, only: list[str
             except Exception as e:
                 out["errors"].append({"source": str(src), "error": str(e)[:500]})
     mpath = campaign_dir / "analysis" / "ingest_manifest.json"
+    if only and mpath.exists():
+        # 2.0.0: --only (yarıda kalan ingest'in yalnızca eksiklerini işleme) önceki kayıtları korur; önceden manifest yalnızca bu
+        # çalıştırmanın kliplerini içeriyordu ve önceden işlenmiş klipler S07–S10'da görünmez oluyordu
+        try:
+            prev = json.loads(mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            prev = {}
+        done = {Path(x["source"]).name for x in out["footage"] + out["photos"]} | {Path(e["source"]).name for e in out["errors"]}
+        keep = lambda xs: [x for x in xs or [] if Path(x.get("source", "")).name not in done]
+        out = {"footage": keep(prev.get("footage")) + out["footage"], "photos": keep(prev.get("photos")) + out["photos"],
+               "errors": keep(prev.get("errors")) + out["errors"]}
     sha = write_json(mpath, out)
     return {"manifest": str(mpath), "sha256": sha, "footage": len(out["footage"]), "photos": len(out["photos"]), "errors": out["errors"]}
 

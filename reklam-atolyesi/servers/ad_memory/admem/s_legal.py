@@ -182,10 +182,10 @@ class LegalMixin:
                   "fallback": None if allowed else "Kişisel veri dışarı aktarılmaz; yerelde kimliksizleştirilmiş malzeme ya da kişisel veri içermeyen ürün çekimi kullanılır.",
                   "note": "Bu kayıt yalnızca izin/kanıt takibi yapar; plugin hukuki uygunluğu kendiliğinden belgeleyemez."}
         if session_id and allowed:
-            s = self.session_get(session_id)
-            ups = s.get("upload_permissions") or []
-            ups.append({"profile_id": profile_id, "provider": provider, "purpose": purpose, "personal": contains_personal_data, "at": now_iso()})
-            s["upload_permissions"] = ups[-20:]
-            self._session_write(session_id, s)
+            def grant(s: dict) -> None:
+                ups = s.get("upload_permissions") or []
+                ups.append({"profile_id": profile_id, "provider": provider, "purpose": purpose, "personal": contains_personal_data, "at": now_iso()})
+                s["upload_permissions"] = ups[-20:]
+            self._session_update(session_id, grant)
             result["session_recorded"] = True
         return result

@@ -20,6 +20,9 @@ METRIC_COLS = ("impressions", "reach", "frequency", "spend", "cpm", "video_3s", 
 INT_COLS = {"impressions", "reach", "thruplay", "p25", "p50", "p75", "p95", "p100", "link_clicks", "results",
             "add_to_cart", "purchases", "landing_page_views", "view_content", "initiate_checkout"}
 SERVER_DIR = Path(__file__).resolve().parents[1]
+# oran: (pay, payda); ölçülmemiş pay 0 sayılmaz — ThruPlay sütunu olmayan dışa aktarımda tutma oranı %0 değil, yoktur (2.0.0)
+RATE_PAIRS = {"hook_rate": ("video_3s", "impressions"), "hold_rate": ("thruplay", "video_3s"),
+              "ctr_link": ("link_clicks", "impressions"), "cvr": ("purchases", "link_clicks")}
 
 
 def measurement_fingerprint(ctx: dict) -> str:
@@ -74,6 +77,36 @@ def _date(v: Any) -> str:
             except ValueError:
                 continue
     raise AdMemoryError(f"tarih okunamadı: {v!r}")
+
+
+def detect_date_order(values: list[str]) -> str | None:
+    """Dosya için gün/ay sırası: 'dmy', 'mdy' ya da belirsizse None. Ayın 12'den büyük günü sırayı belli eder; noktalı tarih (1.10.2026)
+    Türkçe/Avrupa dışa aktarımıdır (gün önce). 2.0.0: önceden 03/10/2026 her dosyada 3 Ekim okunuyordu; İngilizce dışa aktarımda 10 Mart
+    olan satırlar sessizce yanlış güne yazılıyordu."""
+    first = second = slash = False
+    for v in values:
+        m = re.match(r"\s*(\d{1,2})([./])(\d{1,2})[./]\d{4}", str(v or ""))
+        if m:
+            first |= int(m.group(1)) > 12
+            second |= int(m.group(3)) > 12
+            slash |= m.group(2) == "/"
+    if first != second:
+        return "dmy" if first else "mdy"
+    if first and second:
+        raise AdMemoryError("CSV'de tarih sırası karışık (hem gün hem ay önce yazılmış satırlar var)")
+    return None if slash else "dmy"
+
+
+def _date_ordered(v: Any, order: str) -> str:
+    m = re.match(r"\s*(\d{1,2})[./](\d{1,2})[./](\d{4})", str(v or ""))
+    if not m:
+        return _date(v)
+    a, b, y = (int(x) for x in m.groups())
+    d, mo = (a, b) if order == "dmy" else (b, a)
+    try:
+        return dt.date(y, mo, d).isoformat()
+    except ValueError:
+        raise AdMemoryError(f"tarih okunamadı: {v!r}") from None
 
 
 SALES_CHANNELS = ("shopier", "site", "pazaryeri", "instagram_dm", "messenger", "whatsapp", "telefon", "kurumsal", "magaza", "diger")
@@ -282,7 +315,11 @@ class MetaMixin:
                     ctx_store["completion_evidence"] = completion_evidence
                 cols = ["ad_id", "date", *METRIC_COLS, "video_3s_derived", "source", "fetched_at", "measurement_context_json", "measurement_fingerprint"]
                 args = [ad["id"], day, *[vals[k] for k in METRIC_COLS], derived, source, fetched, jdump(ctx_store), fp]
-                upd = ", ".join(f"{c}=excluded.{c}" for c in cols[2:])
+                # 2.0.0: daha az alanla yapılan yeniden çekim (ör. video sütunsuz CSV) önceki ölçümü NULL'la silmez; gelen değer varsa o yazılır
+                upd = ", ".join(f"{c}=COALESCE(excluded.{c}, metrics_daily.{c})" if c in METRIC_COLS else
+                                 ("video_3s_derived=CASE WHEN excluded.video_3s IS NULL THEN metrics_daily.video_3s_derived "
+                                  "ELSE excluded.video_3s_derived END") if c == "video_3s_derived" else f"{c}=excluded.{c}"
+                                 for c in cols[2:])
                 self.ex(f"INSERT INTO metrics_daily({', '.join(cols)}) VALUES({', '.join('?' * len(cols))}) "
                         f"ON CONFLICT(ad_id, date) DO UPDATE SET {upd}", tuple(args))
                 if ex:
@@ -343,8 +380,20 @@ class MetaMixin:
                 row[k] = r.get(real)
             rows.append(row)
         dec = (measurement_context or {}).get("csv_decimal") or detect_decimal([r.get("spend") for r in rows][:200])
+        order = (measurement_context or {}).get("csv_date_order")
+        if order not in (None, "dmy", "mdy"):
+            raise AdMemoryError("csv_date_order: dmy | mdy")
+        if not order:
+            order = detect_date_order([r["date"] for r in rows])
+        if not order:
+            raise AdMemoryError("CSV tarihleri gün/ay sırası belirsiz (ör. 03/10/2026: 3 Ekim mi 10 Mart mı?). Hiçbir satır yazılmadı. "
+                                "Ads Manager'daki rapor aralığına bakıp measurement_context.csv_date_order='dmy' (gün önce) ya da 'mdy' "
+                                "(ay önce) ile yeniden çağırın")
+        for r in rows:
+            r["date"] = _date_ordered(r["date"], order)
         res = self.metrics_ingest(profile_id, rows, "csv", measurement_context, completion_evidence, dec)
         res["decimal"] = dec
+        res["date_order"] = order
         res.update({"rows": len(rows), "columns": cmap, "file": str(p)})
         return res
 
@@ -430,6 +479,12 @@ class MetaMixin:
                                         **{k: 0.0 for k in ("impressions", "spend", "video_3s", "thruplay", "link_clicks", "results",
                                                             "purchases", "revenue", "add_to_cart", "p25", "p50", "p75", "p95", "p100",
                                                             "landing_page_views", "view_content", "initiate_checkout")}})
+            pairs = g.setdefault("_pairs", {m: [0.0, 0.0, 0] for m in RATE_PAIRS})
+            for m, (num, den) in RATE_PAIRS.items():  # oran yalnızca payı ve paydası birlikte ölçülmüş satırlardan (2.0.0)
+                if r.get(num) is not None and r.get(den) is not None:
+                    pairs[m][0] += float(r[num])
+                    pairs[m][1] += float(r[den])
+                    pairs[m][2] += 1
             g["days"].add(r["date"])
             g["ads"].add(r["meta_ad_id"])
             g["fingerprints"].add(r["measurement_fingerprint"])
@@ -440,12 +495,11 @@ class MetaMixin:
         out = []
         for g in groups.values():
             imp = g["impressions"]
+            pairs = g.pop("_pairs")
+            rate = {m: (n / d if d else None) for m, (n, d, _) in pairs.items()}
             out.append({**{k: v for k, v in g.items() if k not in ("days", "ads", "fingerprints")},
                         "n_days": len(g["days"]), "n_ads": len(g["ads"]), "mixed_definitions": len(g["fingerprints"]) > 1,
-                        "hook_rate": (g["video_3s"] / imp) if imp else None,
-                        "hold_rate": (g["thruplay"] / g["video_3s"]) if g["video_3s"] else None,
-                        "ctr_link": (g["link_clicks"] / imp) if imp else None,
-                        "cvr": (g["purchases"] / g["link_clicks"]) if g["link_clicks"] else None,
+                        **rate,
                         "cpm": (g["spend"] / imp * 1000) if imp else None,
                         "cost_per_result": (g["spend"] / g["results"]) if g["results"] else None,
                         "roas": (g["revenue"] / g["spend"]) if g["spend"] else None,
@@ -458,6 +512,10 @@ class MetaMixin:
         p = Path(path)
         if not p.is_absolute():
             p = self.data_dir / p
+        try:  # 2.0.0: dışa aktarım yalnızca profilin klasörüne; araç parametresiyle diskte rastgele dosyanın üzerine yazılmaz
+            p.resolve().relative_to(self.profile_dir(profile_id).resolve())
+        except ValueError:
+            raise AdMemoryError(f"dışa aktarım yolu profilin klasöründe olmalı ({self.profile_dir(profile_id)}): {p}") from None
         buf = io.StringIO()
         cols = ["meta_ad_id", "meta_ad_name", "creative_key", "date", *METRIC_COLS, "video_3s_derived", "source", "fetched_at",
                 "measurement_fingerprint", "measurement_context_json"]

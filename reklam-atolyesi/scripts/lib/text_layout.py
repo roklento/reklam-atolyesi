@@ -167,11 +167,17 @@ def captions_extent(plan: dict, captions: list | None = None) -> dict | None:
 MEASURED = {"TextReveal", "KineticWords", "SoftType", "BehindSubjectText", "LowerThird", "CTAPulse", "TextMark"}  # blok boyu ölçümden alınabilenler
 
 
+def _js_head(t: str, n: int = 160) -> str:
+    """fit.tsx'teki text.slice(0, 160) ile aynı kesim: JavaScript UTF-16 birimi sayar; emoji gibi karakterler iki birimdir (2.0.0: Python
+    kod noktası saydığı için 160 birimden uzun, emojili metnin ölçümü eşleşmiyor, taşma kaydı kaçıyordu)."""
+    return t.encode("utf-16-le", "surrogatepass")[:2 * n].decode("utf-16-le", "surrogatepass")
+
+
 def _layer_texts(layer: dict) -> set[str]:
     props = layer.get("props") or {}
     out = {str(layer.get("text") or "")}
     out |= {props[k] for k in TEXT_KEYS if isinstance(props.get(k), str)}
-    return {t[:160] for t in out if t}
+    return {_js_head(t) for t in out if t}
 
 
 def measured_extent(ext: dict, layer: dict, records: list[dict]) -> dict:

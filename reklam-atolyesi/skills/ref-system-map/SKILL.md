@@ -33,6 +33,11 @@ kayıtla cevaplamak.
 4. **"Sistem ve hesap durumu" ekranı:** bağlantılar (ElevenLabs, Meta MCP ya da CSV yolu), OAuth durumu, disk (`data_dir` sürücüsü ve
    sistem sürücüsü), son yedek (`settings.last_backup_at`), hata kayıtları (`DD/logs/`), `cost_summary`, render süreleri (sistem
    hafızası), `calibration_get` (koçluk isabeti), kullanım raporu (`memory_tools.py usage-report`).
+5. **Veritabanı yedekleri ve geri dönüş (2.0.0):** `PY PR/scripts/setup/db_restore.py check --data-dir DD` veritabanının ve her yedeğin
+   bütünlüğünü ve tarihini listeler (salt okuma). Geri dönüş yalnızca kullanıcının seçtiği yedekle ve açık onayıyla: yedekten sonraki
+   kayıtların kaybolacağı söylenir; Claude Code açıkken veritabanı kullanımdadır, bu yüzden kullanıcıya bütün Claude Code pencerelerini
+   kapattıktan sonra bir terminalde çalıştıracağı tek komut verilir: `<py> PR/scripts/setup/db_restore.py restore --data-dir DD
+   --backup <dosya> --confirm`. Önceki veritabanı `DD/db/onceki-<zaman>/` altında kalır.
 
 ## Yetenek özeti (manifestle doğrulanarak söylenir)
 - Faz 2 tanışma: marka (S00a), Meta geçmişi (S00b), ürün (S00c).

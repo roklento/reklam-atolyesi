@@ -7,7 +7,7 @@ description: "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (20
 
 **Sınır:** Bu skill izin/kanıt takibini ve kontrol listesini sağlar; hukuki görüş değildir. Otomatik kontrol (uzaklık, eşleşme) hukuki
 uygunluk kanıtı sayılmaz; şüphede insan kararı ve gerekirse hukukçu görüşü gerekir. Her madde kaynağı ve kontrol tarihiyle verilir;
-**"resmi metinle teyit edilmedi"** işaretli madde kesin zorunluluk diye sunulmaz. Kaynakların kontrol tarihi: **2026-10-15** (kurulum).
+**"resmi metinle teyit edilmedi"** işaretli madde kesin zorunluluk diye sunulmaz. Kaynakların kontrol tarihi maddelerin yanında yazılıdır (en eskisi **2026-10-15**; son gözden geçirme 2026-10-30, 2.0.0).
 
 ## 1. Türkiye — Ticari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği
 Esas metin: RG 10.01.2015, sayı 29232 (6502 sayılı Kanun m. 61–63, 84'e dayanır).
@@ -83,9 +83,14 @@ TÜRMOB RG arşivi kopyası: https://www.turmob.org.tr/arsiv/mbs/resmigazete/299
 - Kural: AI kullanımı kanıt zincirinde (`provenance.ai_share`, `generations`) tutulur; S14, güncel reklam türünde **Ads Manager'ın
   sunduğu** açıklama/etiket seçeneğine göre insanın uygulayacağı talimatı verir. Otomatik platform etiketi ile reklamverenin beyanı aynı
   sayılmaz; "bütün açıklanmamış AI reklamları otomatik reddedilir" iddiası yapılmaz.
-- Resmi kaynak: https://about.fb.com/news/2025/02/gen-ai-transparency-metas-ads-products/ — **bu kurulumda resmi metin ayrıca
-  okunamadı; politika ayrıntıları yalnızca ikincil kaynaklardan derlendi ve "resmi metinle teyit edilmedi"** (ör.
-  [contentgrip](https://www.contentgrip.com/meta-ai-ad-labels/) ve benzeri sektör yazıları).
+- **Resmi** ([About AI info on ads created or edited with generative AI tools](https://www.facebook.com/business/help/1010479435004531);
+  `ads_get_help_article` ile okundu 2026-10-30): Meta, kendi üretken AI araçlarıyla (arka plan/görüntü üretme, animasyon ekleme) ya da
+  C2PA gibi meta verilerle algıladığı üçüncü taraf AI araçlarıyla oluşturulan/belirgin biçimde düzenlenen reklama **otomatik** "AI info"
+  etiketi koyar; etiket çoğunlukla üç nokta → "Bu reklam hakkında" altındadır. Yayından önce reklam oluşturma akışında etiket
+  çıkacağı mesajla bildirilir. Bazı bölgelerde (Avrupa bölgesi, Kaliforniya, New York, Hindistan, Tayvan) reklamveren kendisi beyan
+  edebilir; Türkiye bu listede **yok**. Sosyal konu/seçim/siyaset reklamında gerçekçi AI medyası beyanı zorunludur
+  ([About media created or edited with AI](https://www.facebook.com/business/help/1486382031937045)); plugin bu kategoride reklam
+  hazırlamaz. Türkiye'de görünür açıklama yükümlülüğü Meta'dan değil Ticari Reklam Yönetmeliği'nden gelir (§1a, 18/8).
   İlk gerçek AI içerikli yayında Ads Manager ekranındaki güncel seçenek esas alınır ve kontrol tarihiyle buraya değil sistem hafızasına
   (`memory_add(profile_id=None, kind="policy_check")`) yazılır.
 
@@ -144,7 +149,7 @@ Uygulama:
 4. Resmi bilgi aşağıdaki tablodaki yerel değerle çelişirse resmi olan uygulanır ve tablo bir sonraki sürümde düzeltilmek üzere
    kullanıcıya bildirilir.
 
-| Kural (plugin'deki kullanımı) | Durum (kontrol: 2026-10-17) |
+| Kural (plugin'deki kullanımı) | Durum (kontrol tarihi her satırda; tarihsiz satır 2026-10-17) |
 |---|---|
 | 9:16 yazı güvenli alanı üst %14, alt %35, yanlar %6 (qc, compose, `checks.py safe`) | Yerel değer. Resmi sayfa yüzde vermiyor; kenarların boş bırakılmasını ve Ads Manager'daki güvenli alan kılavuzunun kullanılmasını öneriyor ([About text overlays and the safe zone](https://www.facebook.com/business/help/980593475366490)) |
 | Açıklama metni (disclaimer) içeren 9:16 reklamda alttaki %40 boş (`checks.py safe`: `disclaimer.on` ya da `ai_share > 0`) | **Resmi** (aynı makale) |
@@ -154,9 +159,10 @@ Uygulama:
 | Günlük bütçe artışı ≤ %20, aynı sette aynı gün tek büyük değişiklik (coach) | Yerel koruma kuralı (öğrenmeyi bozmamak için temkin; Meta'nın yayımladığı bir sınır değildir) |
 | 3 sn izlenme reklam düzeyinde sayı olarak gelmez, `amount_spent / cost_per_video_view` ile türetilir (track) | **Resmi** (canlı `ads_get_field_context`) |
 | Meta alan adları (`meta_fields.json`) | **Resmi** (canlı `ads_get_field_context`) |
-| AI açıklama/etiket politikası (launch-pack) | Teyit edilmedi (bölüm 4) |
+| AI açıklama/etiket politikası (launch-pack) | **Resmi** (bölüm 4; yardım merkezi, okundu 2026-10-30) |
 | Meta reklam standartları: kişisel özellikler, sansasyonel içerik, sağlık ve görünüm, önce/sonra (§8) | **Resmi** (yardım merkezi, bağlantılar §8'de) |
 | Sektör kıyası (`ads_insights_industry_benchmark`) | **Resmi araç**; harcaması olmayan hesapta "veri yok" döner. Kıyas önsel değildir (bkz. track) |
+| Benzer reklamverenlere göre yüzdelik (`ads_insights_performance_vs_peers`): reklam seti başına kendi kohortu, yüksek her zaman daha iyi (maliyet metriklerinde de), çağrı başına en fazla 5 reklam seti | **Resmi araç** (araç tanımı okundu 2026-10-30). Önsel ve CPM tahmini değildir (bkz. track) |
 | Advantage+ kitlede reklamı kimin göreceğini Meta'nın yapay zekası seçer (geçmiş dönüşümler, piksel verisi, önceki reklam etkileşimleri) (concepts, ref-creative-taxonomy) | **Resmi** ([About Advantage+ audience](https://www.facebook.com/business/help/273363992030035)) |
 | Satış kampanyası raporu kitle segmentlerine dökülebilir: yeni kitle, etkileşime geçmiş kitle (reklam hesabı ayarlarında tanımlanır), mevcut müşteri; segmentler önce Reklam ayarları → Kitle segmentleri'nde tanımlanır; özellik her hesapta açık olmayabilir (huni aşaması teşhisi: coach, track, launch-pack) | **Resmi** ([Use audience segments to enable breakdown reporting](https://www.facebook.com/business/help/424052537147870), [Create audience segments](https://www.facebook.com/business/help/1212227546879178); okundu 2026-10-29). Bağlantıda döküm adı `user_segment_key` (kabul edildi, harcamalı hesapta değerle henüz sınanmadı) |
 | Web sitesi özel hedef kitlesi: piksel ziyaretçileri en fazla 180 gün geriye (satın alma olayında 2 yıl); Meta birkaç yüz kişi olmadan kullanmamayı önerir (segment tanımı için; plugin kitleyi hedeflemeye eklemez) | **Resmi** ([Options to create a website custom audience](https://www.facebook.com/business/help/2539962959620307), [Troubleshoot website custom audience size](https://www.facebook.com/business/help/1523083297982009); okundu 2026-10-29) |

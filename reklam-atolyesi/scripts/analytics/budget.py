@@ -212,7 +212,10 @@ def plan(inp: dict) -> dict:
         out.update({"allowed_test_ads": by_days[14]["allowed_test_ads"], "test_days": None, "production_blocked": True,
                     "required_daily_adset_budget": round(need_daily_adset, 2),
                     "shortfall_daily": round(max(0.0, need_daily_adset - adset_daily), 2),
-                    "reason": "14 günlük testte bile iki ayrı reklam eşiğe ulaşamıyor: S03–S14 bekler; bütçe değişikliği uygulanmaz"})
+                    "reason": (f"onaylı reklam başı risk sınırı ({risk}) kreatif başına gereken harcamanın ({pc:.2f}) altında: hiçbir reklam "
+                               "eşiğe ulaşamaz; risk sınırı ya da karar metriği yeniden konuşulmalı, S03–S14 bekler"
+                               if risk is not None and float(risk) < pc else
+                               "14 günlük testte bile iki ayrı reklam eşiğe ulaşamıyor: S03–S14 bekler; bütçe değişikliği uygulanmaz")})
         out["warnings"] = warnings
         return out
     n_allowed = by_days[chosen]["allowed_test_ads"]

@@ -1,0 +1,103 @@
+{
+ "_comment": "Yayımlanmış şablon dosyası sürümlerinin SHA-256'sı; render.py upgrade değiştirilmemiş dosyayı bununla tanır. Üretici: scripts/setup/template_history.py (şablon her değiştiğinde yeniden çalıştırılır).",
+ "files": {
+  "Gallery.tsx": [
+   "c3f31a449cf74c02ef88ea69c51ee3daa86efda2bb72526a455bcf12cc8b6506"
+  ],
+  "Master.tsx": [
+   "070b6694d7e27b439c67a9a34d4307a6c6e979b9abf40e39a90c061b609b2a54",
+   "2f072001b0bc857c9ba3d5235af41f0a64b01aab9e615c5d999d3eb6287a81ed",
+   "9faa8c8bd726cebfaa579b1a932cda06742fbf7a39dafbdb7854d8ade9f290fd",
+   "d4db3d3270c74d6faf1968eb646fe9161c1bc96602415a2526743b0c40e0ad95"
+  ],
+  "Root.tsx": [
+   "03c86c8c656f83a811be56ca029b3b02f8b5528e1e9ec4a5ce57c9b8699b6bb9"
+  ],
+  "assets.ts": [
+   "435256a06b41fcea07f1651b501083e2d54688bb5bd813e3cb75d53a3cccaa8d"
+  ],
+  "beats.ts": [
+   "99e33de15bfd47ead8ce71a58f0566beffcc891d4d030a5f77f15c48746570a6"
+  ],
+  "components/camera.tsx": [
+   "3ea7b78705400995b8ea731fde1409702d65a8d798d6087c536c8e01d4cdf7f3",
+   "59246b3f182788cd394a2539a0ff89b03be5d0c9169e1280bd14bf369a3dc296"
+  ],
+  "components/compare.tsx": [
+   "fe71bd6bfd50082f3c1c9607d4a4abfb9e59ae464886f86f89f565c8f9b5941f"
+  ],
+  "components/counter.tsx": [
+   "314e196e692afc4397b675769b3017164e47bd8e8f7543438a0f97e28de5f2b7"
+  ],
+  "components/demo.tsx": [
+   "f413a93f4f7eb95bf74995a27003b99c20401a3169ef9159013709948fc8d677"
+  ],
+  "components/fit.tsx": [
+   "314ab60cdd0a9df9a863c50deaa798b26d8c3c6d5fd11a7a39bf61d17396f472"
+  ],
+  "components/helper.tsx": [
+   "85bfcb8677cddc7e16c5e8235883cd3f938c61ef182766b45ce3f89150450f51"
+  ],
+  "components/index.ts": [
+   "d560943156a69e9bf3ad48a02076c000df4e8c4bcafd80ddf1dc44945585558d",
+   "dae055a806bdfffb7f2c011d7c78be1f508ef37c3e6a70de1edfa42be1defbe8"
+  ],
+  "components/light.tsx": [
+   "c13c4722b3105583a24fef637d2b65c6b75bfbab0197d1484c7225df67663cd6"
+  ],
+  "components/mark.tsx": [
+   "f34d574dcee247ff91c7d5c5d2108e8f872d91abc350f7cf1bc05f6935e7999b"
+  ],
+  "components/media.tsx": [
+   "38bf5acc875016181d8d86279a64e2a948fe3f9f1d01d0588c447b795d541e6a"
+  ],
+  "components/product.tsx": [
+   "361b730b4694b7d4c27f0783205d605b1f882b200b307ed0510bab13abc46e9e",
+   "dd79426451ba6d48c52ada3e9da88b4db817a34f92cab1bf24b6982c11466fc4"
+  ],
+  "components/proof.tsx": [
+   "2145ff84abb8a6bd3cde8dd3a165ebd37146d6f1c5da5d4d7b43f4af1fc6a68e",
+   "3a555d04814b5474c447ddd03b4f89c06dcdac0279d63a28f4c8ea5524f1b979"
+  ],
+  "components/signature.tsx": [
+   "4bfdb1a7e248a6832f9bef52cc9c5e75309fba633ce2a124ea05a3f00ed8ea89"
+  ],
+  "components/text.tsx": [
+   "2423c93e99ca6220818a02f621a44f4a7d3379c62c8e2fcfaeb9e8d9f9a726a3",
+   "e7150f2b48274f2628cceb66f0f5b65b0e40a051f5be89cec69d25d95a6d212e",
+   "f38f6c85d241919f6b266a489182d827a68a0398e206bab169eb1d9a79fb2b07"
+  ],
+  "components/transition.tsx": [
+   "9eaaa8aee397ab27f78f526589df8f10da4f7a4bb233e0803eff7ddeca19e812"
+  ],
+  "components/types.ts": [
+   "22346ae87c6dd49f38ec7dfa60db7576af95df22ab1b0c597093480854a61f0b"
+  ],
+  "index.ts": [
+   "957e481dd33a29b4a55ae0e95dbf763b7e48c37c427ca4bd1275faf34bc07a74"
+  ],
+  "layout.json": [
+   "308c687b1ba2ad3e1e41b14f392e574b7a045ac3f4cab9432431810415a4e9f3",
+   "572392c2f3fbe5c73c2e9b05e3e583488bbcdbe5f62c2401f53631213d9d3a21"
+  ],
+  "layout.ts": [
+   "58976962a8ce27d4cdb755d4adaa092636fa6dc74826cb56f663cc31dea08ab1"
+  ],
+  "plan.ts": [
+   "d60c879cd66f42d07f25bcb28a7334308164a9a64f39d201274731f12fb0db82",
+   "ed0962d6c3ccd42559d95f8c6da487a8d69e1703f8213f229df4c6f16025dfa3",
+   "f2ff966f3292ed38db201051e6365dbf2980cdf4cebe1f2de418f20ed743b0d4"
+  ],
+  "scenes/index.tsx": [
+   "249ddf725ef130b433a1a3bde2519038b7ca551d1c5db6d418e3f05972ac4a70",
+   "9fdba4ea97e5fbc5c9a64f5950b75a2801fe92b661711b12086bd1a37ca42e46",
+   "bc5dff899993c6c9f3e81e71d50da873cd8eb37fd19c042ca97639053b8ee1b9",
+   "f1797335418f0cd69bc03341d21e305e203eb27472340ef77580f2cee9a0d69a"
+  ],
+  "style.ts": [
+   "6476d4210ce03e0e6d89aec69b4b67edbee5d81749426d179c6b5f2437d22abb",
+   "64a68d2da6213f6beb3c67132dd6ee698e57e9e8fabc9ab431a0e6297fa4daf8",
+   "eee980a69203c98eddad90d6a7a68f7958eb6d49bb73a63f39ac309c83321e6a"
+  ]
+ }
+}

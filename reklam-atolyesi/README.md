@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.9.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.0.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -14,14 +14,16 @@ Doğrulama sırası:
 2. Türkçe render ve galeri; referans karelerle karşılaştırılır.
 3. `doctor --write-ok`.
 
-Aynı betik güncellemeyi de yapar: yedek alır ve `doctor --update` çalıştırır.
+Müşteri paketinde (`musteri-paketi/`) `kur.cmd` yalnızca ilk kurulumu yapar (yarıda kalan kurulumu kaldığı yerden sürdürür);
+tamamlanmış kurulumun güncellemesi `guncelle.cmd` ile testsiz yapılır (yedek, plugin, değişen bağımlılıklar, migration). Depo kökündeki
+eski `kur.cmd` hem kurulum hem güncelleme yapar: yedek alır ve `doctor --update` çalıştırır.
 
-**Yerel marketplace (geliştirme):** Plugin'in üst klasöründeki `.claude-plugin/marketplace.json` (`reklam-atolyesi-local`) kullanılır.
-Plugin bu klasörden yerinde okunur. Kurulumda `data_dir` sorulur:
+**Yerel marketplace (geliştirme):** Plugin'in üst klasöründeki `.claude-plugin/marketplace.json` (adı `reklam-atolyesi`) kullanılır.
+Plugin bu klasörden yerinde okunur. `data_dir` kurulumda verilir (verilmezse sorulur):
 
 ```
 claude plugin marketplace add <plugin-üst-klasörü>
-claude plugin install reklam-atolyesi@reklam-atolyesi-local --scope user
+claude plugin install reklam-atolyesi@reklam-atolyesi --scope user --config data_dir=<veri-klasörü>
 ```
 
 ## Başlatma
@@ -52,7 +54,7 @@ Kapılarda sistem durur ve **açık onayınızı** bekler. Yaratıcı kararlar b
 ## Bileşenler
 | Klasör | İçerik |
 |---|---|
-| `skills/` | navigator, 21 aşama skill'i (S00a–S17), `memory`, `ref-system-map`, 7 referans skill'i |
+| `skills/` | navigator, 21 aşama skill'i (S00a–S17), 4 destek skill'i (`data-connection`, `dm-sales`, `organic`, `profile-check`), `memory`, `ref-system-map`, 7 referans skill'i (toplam 35) |
 | `agents/` | meta-historian, competitor-analyst, creative-strategist, cinematographer, footage-analyst, art-director, editor, sound-designer, qc-reviewer, media-analyst, coach |
 | `commands/` | `/reklam-atolyesi:basla`, `kurulum-kontrol`, `profiller`, `profil-ekle`, `profil-sec`, `tanis-marka`, `tanis-urun`, `meta-gecmis`, `yeni-kampanya`, `durum`, `sonraki`, `onayla`, `geri`, `rapor`, `rakip-analizi`, `takip`, `karar-hazirla`, `gece-uretim`, `bakim` |
 | `workflows/` | `analyze-footage`, `analyze-competitors`, `render-variants`, `qc-review` (kapısız paralel işler; yedek yol: alt ajanlar) |
@@ -66,7 +68,8 @@ Kapılarda sistem durur ve **açık onayınızı** bekler. Yaratıcı kararlar b
 ## Veri
 Bütün durum `data_dir` altındadır (userConfig; plugin klasörüne durum yazılmaz): `db/ad-memory.sqlite`, `.venv`, `.node`,
 `profiles/<profil>/…`, `memory/system/`, `logs/`, `backups/`, `.sessions/` (geçici oturum durumu). Yedekler haftalık ve her
-migration öncesi alınır; son 8 yedek tutulur.
+migration öncesi alınır; son 8 yedek tutulur. Denetim ve geri dönüş: `<py> scripts/setup/db_restore.py check --data-dir <dd>`,
+`restore --data-dir <dd> --backup <dosya> [--confirm]` (Claude Code kapalıyken; mevcut veritabanı `db/onceki-<zaman>/` altında kalır).
 
 ## Geliştirici notları
 - Kurulumu Claude'un yürüttüğü (etkileşimsiz) durumda: `kurulum.ps1 -DataDir <data_dir> -GlobalSkills tasi|birak` (çakışan genel skill
@@ -94,6 +97,58 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.0.0** — deneme kullanıcısına hazırlık: uçtan uca denetim ve düzeltmeler
+- Son güncellemeler (1.6.0–1.9.0: ölçülü yazı, renk eşitleme, CC0 ses efektleri, beş yeni bileşen, ses araması, huni planlaması)
+  birlikte denetlendi: kurulum, doctor, manifest, migration zinciri 001–007, testler, duman testi (9/9 adım, gerçek Remotion
+  render'ı dahil), komut/skill/script/araç adı çapraz kontrolü ve belgeler. Ardından algoritma, mimari, güvenlik, dayanıklılık, yasal
+  içerik, ilk kullanım ve performans ayrı ayrı denetlendi (aşağıda). Veritabanı migration'ı yok; yeni bağımlılık yok; tek yeni araç
+  `scripts/setup/db_restore.py`.
+- **Eski kampanya projeleri:** `render.py upgrade --project <k>/src [--dry-run]` önceki bir sürümle kurulmuş kampanya projesini güncel
+  şablona getirir. Yalnızca yayımlanmış bir şablon sürümüyle bayt bayt aynı (elle değiştirilmemiş) dosyalar güncellenir; değiştirilmiş
+  dosyalar `kept_customized` listesinde kalır (`templates/remotion/template_history.json`, üretici `scripts/setup/template_history.py`).
+  Plan projenin çizemediği bir özelliği (ör. 1.8.0 bileşenleri, KenBurns odak) kullanıyorsa render başlamadan açık bir mesajla durur;
+  önceden finalde gri "bilinmeyen bileşen" paneli çiziliyordu. S10 kullanıcıya sade dille sorar, onayla günceller ve taslakları yeniden çizer.
+- **Sahne önbelleği:** segment anahtarı artık plugin şablonunu değil kampanya projesinin kendi kod dosyalarını içerir. Önceden projeye
+  bileşen eklenince ya da proje tazelenince eski segmentler yeniden kullanılabiliyordu; plugin güncellemesi de değişmemiş projenin bütün
+  segmentlerini boşuna yeniden render ettiriyordu.
+- **Kurulum:** müşteri paketindeki `kur.cmd`, doğrulaması tamamlanmamış (yarıda kalmış) kurulumu artık kaldığı yerden sürdürür. Önceden
+  "zaten kurulu, guncelle.cmd kullanın" diyordu; `guncelle.cmd` ise veritabanı olmadığı için "ilk kurulum için kur.cmd kullanın" diyerek
+  kullanıcıyı döngüde bırakıyordu. Kurulumun veri klasörü denetimi isteğe bağlı ses motoru klasörünü (`.tts`) de tanır.
+- **Ingest:** sarsıntı ölçümü `fileformat` seçeneğini yalnızca FFmpeg'in libvidstab'ı destekliyorsa verir (libvidstab 1.1.1+). Eski
+  sürümde FFmpeg seçeneği tanımayıp çıkıyor, klibin ingest'i bütünüyle başarısız oluyordu.
+- **Testler:** önceki sürümlerde "ortamdan" sayılan başarısızlıklar giderildi: ingest testleri yukarıdaki gerçek uyumluluk hatasıydı;
+  doctor testi depodaki Windows `.mcp.json`'ını makinenin işletim sistemine göre denetliyordu (artık dosyanın üretildiği sisteme göre).
+  Linux'ta tam paket 427 geçti, 0 başarısız, 5 atlandı (Windows'a özgü); 2.0.0 düzeltmelerinin her biri için test var
+  (`tests/test_v200_*.py`).
+- **Koçluk ve istatistik:** önseller kampanyanın Meta amacından dondurulur (önceden markanın bütün amaçlarının önselleri karışıyor,
+  metrik başına rastgele bir amacınki kullanılıyordu; amaç okunamazsa ve birden çok amaç varsa Beta(1,1)). Ölçülmemiş metrik sıfır
+  sayılmaz: ThruPlay sütunu olmayan dışa aktarımda tutma oranı "%0 · kanıt" değil, yoktur (koç ve `metrics_query`). Kalibrasyon kutuları
+  tamsayı yüzdeyle (etiket "%70–79" çıkıyordu) ve "kaybeder" diyen tahminin isabeti doğru yönde sayılır. Yorgunluk penceresi baz
+  günleriyle örtüşmez; tutma eğrisi beklentisi aynı format/süredeki kreatiflerden. Eşlenmemiş reklamlar konsept kıyasına, tahmin
+  kaydına ve "kapat" kararına girmez. Aday kampanyasında büyütme aday ekonomisine bakar. Risk sınırı kreatif başı harcamanın altındaysa
+  S02 gerekçesi bunu söyler.
+- **Metrik alımı:** daha az alanla yapılan yeniden çekim önceki ölçümü silmez. CSV tarih sırası (gün/ay) dosyadan belirlenir; belirsizse
+  (03/04/2026) hiçbir satır yazılmadan `csv_date_order` istenir (önceden İngilizce dışa aktarım sessizce yanlış güne yazılıyordu).
+- **Ses ve görüntü:** ara miks kırpılmadan kayan noktada yazılır (yüksek müzik + VO toplamı kalıcı bozuluyordu); müzik konuşma altında
+  gerçekten 4,5 dB kısılır (konuşma maskesi örnek yerine 20 ms pencereyle); negatif müzik konumu hata vermez. Renk eşitleme, gri/beyaz
+  alanı olmayan klipte beyaz dengesine dokunmaz, yalnız pozlamayı eşitler (kırmızı ürün yakın çekimi "sıcak ışık" sanılıp ürün rengi
+  kayıyordu). Emojili uzun yazının render ölçümü artık eşleşir; köşe kutusu çakışması ölçülmüş yazı bloğuyla denetlenir.
+- **İki oturum ve yarıda kalan işler:** kapı onayı, aşama tamamlama, çekim tamam ve yayın kaydı işlem içinde yeniden denetlenir (iki
+  pencerede aynı anda onay S17'de iki tur açabiliyordu). Oturum dosyası kilitle yazılır: paralel Reklam Kütüphanesi sorguları sorgu
+  bütçesini, hook yazımı oturum bağlamasını ve yükleme iznini silmez. `ingest --only` önceki klipleri manifestten silmez. Yarıda kalan
+  sahne sesi ve final birleştirme bitmiş dosya adıyla kalmaz.
+- **Yedek ve geri dönüş:** yedek geçici ada yazılıp bütünlüğü denetlenerek yerine konur; yeni kurulumda boş veritabanının migration
+  yedekleri alınmaz. `db_restore.py check|restore` veritabanını ve yedekleri denetler, seçilen yedeği önceki veritabanını
+  `db/onceki-<zaman>/` altında saklayarak geri koyar (Claude Code kapalıyken).
+- **Güvenlik:** aşama çıktısı yalnızca kendi profilinin klasöründen kabul edilir; `metrics_export_csv` profil klasörü dışına yazmaz;
+  kurgu planı dosya adına plandaki serbest metin yol olarak giremez. İddia eşleştirmesi Türkçe büyük/küçük harfi doğru tanır.
+- **Yasal:** Meta AI etiketi resmi metinden okundu (otomatik "AI info" etiketi; Türkiye'de reklamveren beyanı seçeneği yok; Türkiye'deki
+  görünür açıklama yükümlülüğü Ticari Reklam Yönetmeliği'nden). İlk açılışta profil yokken kurulum eksiği marka tanışmasından önce gelir.
+- **Meta kıyas:** `ads_insights_performance_vs_peers` (salt okuma) izin listesine eklendi: takip, reklam setini benzer reklamverenlere
+  göre metrik başına yüzdelikle gösterir (`kind: "peers"`). Yüzdelik bağlamdır; önsel, hüküm ya da CPM tahmini değildir.
+- **Belgeler:** kurulum/güncelleme yönergesi müşteri paketine göre düzeltildi (`kur.cmd` ilk kurulum, `guncelle.cmd` güncelleme, yarıda
+  kalan kurulum, eski kampanyalar); yerel marketplace adı (`reklam-atolyesi`), skill sayısı (35) ve `.gitignore` (`*.egg-info/`).
+
 **1.9.0** — huni aşamasına göre içerik planlama (TOFU/MOFU/BOFU)
 - Aşama bir kitle değil, mesajın seslendiği karar anıdır. Plugin yine tek geniş set kurar, yeniden hedefleme kitlesi kurmaz; reklamı kimin
   gördüğünü Meta seçer. Taksonomiye sabit `stage` ekseni (tofu, mofu, bofu) eklendi.
@@ -329,7 +384,8 @@ Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı 
 - Güvenli alan: açıklama metni (`disclaimer.on`) ya da AI (`ai_share > 0`) içeren 9:16 planda alttaki %40 boş (Meta resmi kılavuzu).
 - Kreatif test payı ~%20 artık "Meta sınırı" diye değil, plugin'in yerel üst sınırı ve teyit edilmemiş Meta önerisi diye yazılır;
   günlük bütçe artışı ≤ %20 yerel koruma kuralıdır.
-- Takip: ilk harcamadan sonra Meta kıyas araçları (`ads_insights_industry_benchmark`, `ads_insights_auction_ranking_benchmarks`)
+- Takip: ilk harcamadan sonra Meta kıyas araçları (`ads_insights_industry_benchmark`, `ads_insights_auction_ranking_benchmarks`;
+  2.0.0'dan itibaren `ads_insights_performance_vs_peers`)
   bağlam olarak; veri yoksa "kıyas yok". Kıyas önsel değildir.
 - Geçmiş ve kıyas yokken "sektör ortalaması" vaadi engellendi.
 

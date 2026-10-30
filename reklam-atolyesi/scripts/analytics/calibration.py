@@ -32,10 +32,11 @@ def calibrate(pairs: list[dict], min_resolved: int = MIN_RESOLVED) -> dict:
         out["note"] = f"en az {min_resolved} çözülmüş tahmin gerekir; eşik önerilmez"
         return out
     bins = []
-    for lo in (0.5, 0.6, 0.7, 0.8, 0.9):
-        sel = [w if p >= 0.5 else (not w) for p, w in rows if lo <= max(p, 1 - p) < lo + 0.1 or (lo == 0.9 and max(p, 1 - p) >= 0.9)]
+    for i in range(5):  # tamsayı yüzdeyle: kayan noktada 0.7 + 0.1 = 0.7999… sınırdaki tahmini yanlış kutuya koyuyordu (2.0.0)
+        lo, hi = 50 + 10 * i, 60 + 10 * i
+        sel = [w if p >= 0.5 else (not w) for p, w in rows if lo <= round(max(p, 1 - p) * 100, 9) < hi or (hi == 100 and max(p, 1 - p) >= 1.0)]
         if sel:
-            bins.append({"claimed": f"%{int(lo*100)}–{int(lo*100)+10}", "n": len(sel), "realized": round(sum(sel) / len(sel), 3)})
+            bins.append({"claimed": f"%{lo}–{hi}", "n": len(sel), "realized": round(sum(sel) / len(sel), 3)})
     out["bins"] = bins
     claimed = sum(max(p, 1 - p) for p, _ in rows) / n
     realized = hits / n

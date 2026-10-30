@@ -9,7 +9,11 @@ Kütüphane bir **araç kutusudur**: hiçbir bileşen varsayılan olarak kurgu p
 yapılır. Bütün demo/örnek prop'lar nötr yer tutucudur ("Marka A", "Örnek başlık"); içerik varsayılanı değildir.
 
 ## Proje ve kompozisyonlar
-Şablon `PR/templates/remotion/` → kampanyaya `render.py init --project <k>/src` ile kopyalanır; bağımlılıklar `DD/.node/node_modules`
+Şablon `PR/templates/remotion/` → kampanyaya `render.py init --project <k>/src` ile kopyalanır (kopya kampanyayla sabit kalır; plugin
+güncellemesi eski projeyi değiştirmez). Eski projeyi güncel şablona getirmek: `render.py upgrade --project <k>/src [--dry-run]`
+(2.0.0; yalnızca yayımlanmış bir şablon sürümüyle bayt bayt aynı dosyalar güncellenir, elle değiştirilenler `kept_customized`
+listesinde kalır; `templates/remotion/template_history.json`). Plan projenin çizemediği bir özelliği kullanıyorsa render başlamadan
+durur (gri "bilinmeyen bileşen" paneli finalde görünmez). Sahne önbelleği anahtarı projenin kendi kod dosyalarını içerir. Bağımlılıklar `DD/.node/node_modules`
 (Remotion 4.0.532, zod 4.5.4, three 0.178.0, react 19.1.0).
 - `src/Root.tsx`: `Master-916` (1080×1920), `Master-45` (1080×1350), `Master-11` (1080×1080; isteğe bağlı), `Gallery`. Remotion
   kimliklerinde alt çizgi geçersizdir. Sabit kareler aynı kompozisyondan `--still <kare>`.

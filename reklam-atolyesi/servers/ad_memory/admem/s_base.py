@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from . import db
-from .util import (AdMemoryError, atomic_write, canonical_json, jdump, jload, now_iso, parse_iso, sha256_file,
+from .util import (AdMemoryError, atomic_write, canonical_json, file_lock, jdump, jload, now_iso, parse_iso, sha256_file,
                    sha256_text, slugify, utcnow)
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[3]
@@ -467,6 +467,13 @@ class BaseStore:
         except Exception:
             return {"session_id": session_id, "plugin_mode": False, "corrupt": True}
 
+    def _session_update(self, session_id: str, fn) -> dict:
+        """Kilit altında oku → fn → yaz; hook'lar (meta_guard) aynı kilidi kullanır (2.0.0: paralel çağrıda bağlama/izin kaybolmasın)."""
+        with file_lock(self._session_path(session_id)):
+            s = self.session_get(session_id)
+            out = fn(s)
+            return self._session_write(session_id, s if out is None else out)
+
     def _session_write(self, session_id: str, data: dict) -> dict:
         data["session_id"] = session_id
         data["updated_at"] = now_iso()
@@ -476,17 +483,18 @@ class BaseStore:
     def session_bind(self, session_id: str, profile_id: int | None = None, campaign_id: int | None = None,
                      cycle_id: int | None = None, stage: str | None = None) -> dict:
         """Oturuma profil/kampanya/tur bağlar (2.3). Başka oturumu ve görevleri etkilemez."""
-        s = self.session_get(session_id)
         if profile_id is not None:
             self._profile(profile_id)
             if campaign_id is not None:
                 self._campaign(profile_id, campaign_id)
             if cycle_id is not None:
                 self._cycle(profile_id, cycle_id, campaign_id)
-        s.update({"profile_id": profile_id, "campaign_id": campaign_id, "cycle_id": cycle_id})
-        if stage is not None:
-            s["stage"] = stage
-        return self._session_write(session_id, s)
+
+        def bind(s: dict) -> None:
+            s.update({"profile_id": profile_id, "campaign_id": campaign_id, "cycle_id": cycle_id})
+            if stage is not None:
+                s["stage"] = stage
+        return self._session_update(session_id, bind)
 
     def menu_render(self, session_id: str) -> dict:
         """Sabit ana menünün metni (17.1; hooks/menu.py ile hook'la aynı kod). Gösterildiği oturuma 'son ekran: menü' yazılır;
@@ -496,21 +504,17 @@ class BaseStore:
         if hooks_dir not in sys.path:
             sys.path.insert(0, hooks_dir)
         import menu as MN  # noqa: E402  (yalnızca standart kütüphane)
-        s = self.session_get(session_id)
-        r = MN.render(self.data_dir, s)
+        r = MN.render(self.data_dir, self.session_get(session_id))
         if r["kind"] == "menu":
-            self._session_write(session_id, MN.mark_shown(s, r, now_iso()))
+            self._session_update(session_id, lambda s: MN.mark_shown(s, r, now_iso()))
             r["rule"] = "Bu metni olduğu gibi göster; madde ekleme, çıkarma ya da yeniden adlandırma."
         return r
 
     def session_menu_set(self, session_id: str, items: list[str], header: str | None = None) -> dict:
         if not isinstance(items, list) or len(items) > 12:
             raise AdMemoryError("menü en fazla 12 madde olmalı (navigator en fazla 8 gösterir)")
-        s = self.session_get(session_id)
-        s["last_menu"] = [str(i) for i in items]
-        s["menu_header"] = header
-        s["menu_at"] = now_iso()
-        return self._session_write(session_id, s)
+        return self._session_update(session_id, lambda s: s.update({"last_menu": [str(i) for i in items], "menu_header": header,
+                                                                    "menu_at": now_iso()}))
 
     # --- zamanlanmış işler (4.4) ---------------------------------------------
     def job_upsert(self, profile_id: int, job_type: str, campaign_id: int | None = None, cycle_id: int | None = None,
@@ -608,11 +612,20 @@ class BaseStore:
         bdir.mkdir(parents=True, exist_ok=True)
         ts = utcnow().strftime("%Y%m%dT%H%M%SZ")
         target = bdir / f"ad-memory-{ts}-{slugify(reason, 24)}.sqlite"
-        dst = sqlite3.connect(str(target))
+        # 2.0.0: geçici ada yazılır, bütünlüğü denetlenir, sonra yerine konur. Yarıda kalan yedek (kapanan bilgisayar, dolu disk) önceden
+        # sağlam yedek gibi görünüyor ve 8'lik sırada iyi yedeği siliyordu.
+        part = target.with_name(target.name + ".part")
+        part.unlink(missing_ok=True)
+        dst = sqlite3.connect(str(part))
         try:
             self.conn.backup(dst)
+            ok = dst.execute("PRAGMA quick_check").fetchone()[0]
         finally:
             dst.close()
+        if ok != "ok":
+            part.unlink(missing_ok=True)
+            raise AdMemoryError(f"yedek bütünlük denetiminden geçmedi ({ok}); eski yedekler silinmedi")
+        os.replace(part, target)
         files = sorted(bdir.glob("ad-memory-*.sqlite"))
         removed = []
         for old in files[:-keep]:

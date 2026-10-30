@@ -2,6 +2,7 @@
 
 Alt komutlar:
   init     --project <campaign>/src                        şablonu kampanyaya kopyalar (var olan özelleştirilmiş dosyalar korunur)
+  upgrade  --project <campaign>/src [--dry-run]            eski projeyi güncel şablona getirir (yalnızca elle değiştirilmemiş dosyalar; 2.0.0)
   plan     --data-dir D --project P --plan plan.json --out x.mp4 [--style s.json] [--scene-map m.json] [--captions w.json]
            [--quality preview|final] [--parallel-jobs J] [--still N] [--no-cache]
   gallery  --data-dir D --work W --out gallery.png [--components A,B]   (bileşen başına 1 sabit kare + 2 sn test, galeride 4 kare)
@@ -13,7 +14,9 @@ Sahne önbelleği: sahne başına segment (frameRange) anahtarla saklanır; değ
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -45,6 +48,98 @@ def init_project(project: Path, force_library: bool = False) -> dict:
         copied.append(str(dst.relative_to(project)))
     (project / "public").mkdir(exist_ok=True)
     return {"project": str(project), "copied": len(copied)}
+
+
+PROJECT_SKIP = {"public", ".bundle", ".segments", "node_modules"}
+HISTORY = TEMPLATE / "template_history.json"
+
+
+def _project_files(project: Path):
+    for p in sorted(project.rglob("*")):
+        if p.is_file() and not (set(p.relative_to(project).parts) & PROJECT_SKIP):
+            yield p
+
+
+def project_code_hash(project: Path) -> str:
+    """Kampanya projesinin kendi kod/yerleşim dosyalarının hash'i (sahne önbelleği anahtarı). Render bu dosyalarla yapılır; plugin
+    şablonu değil. Proje güncellenir ya da özel bileşen eklenirse eski segmentler yeniden kullanılmaz (2.0.0)."""
+    h = hashlib.sha256()
+    for p in _project_files(project):
+        if p.suffix in (".ts", ".tsx", ".json"):
+            h.update(p.relative_to(project).as_posix().encode())
+            h.update(p.read_bytes())
+    return h.hexdigest()
+
+
+def project_template_state(project: Path) -> dict:
+    """Projedeki şablon dosyalarının durumu: current (güncel şablonla aynı), stale (yayımlanmış eski bir şablon sürümü, elle
+    değiştirilmemiş), customized (hiçbir yayımlanmış sürümle aynı değil), missing (projede yok)."""
+    hist = json.loads(HISTORY.read_text(encoding="utf-8")).get("files", {}) if HISTORY.exists() else {}
+    out: dict[str, list[str]] = {"current": [], "stale": [], "customized": [], "missing": []}
+    for f in sorted((TEMPLATE / "src").rglob("*")):
+        if not f.is_file():
+            continue
+        rel = f.relative_to(TEMPLATE / "src").as_posix()
+        dst = project / rel
+        if not dst.exists():
+            out["missing"].append(rel)
+            continue
+        h = sha256_file(dst)
+        if h == sha256_file(f):
+            out["current"].append(rel)
+        elif h in hist.get(rel, []):
+            out["stale"].append(rel)
+        else:
+            out["customized"].append(rel)
+    return out
+
+
+def upgrade_project(project: Path, dry_run: bool = False) -> dict:
+    """Eski bir kampanya projesini güncel şablona getirir (2.0.0). Yalnızca elle değiştirilmemiş (yayımlanmış bir şablon sürümüyle bayt
+    bayt aynı) dosyalar ve eksik dosyalar güncellenir; özelleştirilmiş dosyalara ve şablonda olmayan dosyalara (profil bileşenleri,
+    public/) dokunulmaz, listelenir. Yerleşim ve bileşen kodu değişebileceği için onaylı taslaklar güncellemeden sonra yeniden render edilir."""
+    if not (project / "index.ts").exists():
+        raise SystemExit(f"kampanya projesi değil (index.ts yok): {project}; yeni proje için render.py init")
+    st = project_template_state(project)
+    if not dry_run:
+        for rel in st["stale"] + st["missing"]:
+            dst = project / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(TEMPLATE / "src" / rel, dst)
+    return {"project": str(project), "dry_run": dry_run, "updated": st["stale"], "added": st["missing"], "kept_customized": st["customized"],
+            "already_current": len(st["current"]),
+            "note": ("Özelleştirilmiş dosyalar güncellenmedi; yeni özellikler bu dosyalara bağlıysa yeni proje klasörü kurun."
+                     if st["customized"] else "Proje güncel şablonla aynı.")}
+
+
+def _project_registry(project: Path) -> set[str]:
+    """Projenin components/index.ts kaydının içe aktardığı dosyalardaki bileşen adları. Dosyanın klasörde olması yetmez: init eksik
+    dosyaları kopyalar ama eski index.ts onları kayda almaz (sahne şablonu "bilinmeyen bileşen" çizer)."""
+    idx = project / "components" / "index.ts"
+    if not idx.exists():
+        return set()
+    names: set[str] = set()
+    for mod in re.findall(r'from\s+"\./([\w\-]+)"', idx.read_text(encoding="utf-8", errors="replace")):
+        f = project / "components" / f"{mod}.tsx"
+        if f.exists():
+            names |= set(re.findall(r'name:\s*"([A-Z][A-Za-z0-9]+)"', f.read_text(encoding="utf-8", errors="replace")))
+    return names
+
+
+SOURCE_COMPONENTS = {"BeforeAfter", "PictureInPicture", "PhoneScreen"}  # kaynak alanlı bileşenler (1.8.0; components/index.ts SOURCE_PROPS)
+
+
+def project_gaps(project: Path, plan: dict) -> list[str]:
+    """Planın kullandığı ama kampanya projesinin (eski şablonla kurulmuşsa) çizemediği özellikler. Boşsa proje planı çizebilir."""
+    layers = [l for s in plan.get("scenes", []) for l in s.get("layers", []) or []]
+    used = {l["component"] for l in layers if l.get("type") == "component" and l.get("component")}
+    gaps = [f"bileşen yok: {n}" for n in sorted(used - _project_registry(project))]
+    scenes_src = (project / "scenes" / "index.tsx").read_text(encoding="utf-8", errors="replace") if (project / "scenes" / "index.tsx").exists() else ""
+    if used & SOURCE_COMPONENTS and "SOURCE_PROPS" not in scenes_src:
+        gaps.append("sahne şablonu kaynak alanlarını (önce/sonra, köşe video, telefon ekranı) çözemiyor")
+    if any((l.get("camera") or {}).get("focus") or (l.get("camera") or {}).get("settle_s") for l in layers) and "settle_s" not in scenes_src:
+        gaps.append("sahne şablonu KenBurns odak/duruş (camera.focus, settle_s) desteklemiyor")
+    return gaps
 
 
 def node_dirs(data_dir: Path) -> tuple[Path, Path]:
@@ -168,6 +263,11 @@ def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dic
     if quality == "final" and plan.get("status") != "ready":
         raise SystemExit("taslak (draft) plan final render edilemez (5.2)")
     init_project(project)
+    gaps = project_gaps(project, plan)
+    if gaps:
+        raise SystemExit("kampanya projesi eski şablonla kurulmuş, bu plan çizilemez: " + "; ".join(gaps) +
+                         f". Çözüm: render.py upgrade --project {project} (elle değiştirilmemiş şablon dosyalarını günceller; yerleşim "
+                         "değişebileceği için onaylı taslaklar yeniden render edilir) ya da yeni proje klasörüyle render.py init.")
     assets = stage_public(project, scene_map)
     scale = 1.0 if quality == "final" else _even_scale(plan["format"], 0.5)
     props = {"plan": plan, "style": style, "assets": assets, "captions": captions or [], "preview": quality != "final", "beats": beats or []}
@@ -184,13 +284,14 @@ def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dic
     per_scene = intermediate_hashes(plan, scene_map)
     style_sha = sha256_file(style_path) if style_path else None
     lock = SC.lock_versions(data_dir / ".node")
+    code_sha = project_code_hash(project)
     segments, jobs = [], []
     for i, s in enumerate(plan["scenes"]):
         a = round(s["start_s"] * fps)
         b = round((s["start_s"] + s["dur_s"]) * fps) - 1
         nxt = plan["scenes"][i + 1]["id"] if i + 1 < len(plan["scenes"]) else None
         key = SC.scene_key(plan, i, source_hashes=_merge_hashes(per_scene.get(s["id"]), per_scene.get(nxt)), style_sha=style_sha, quality=quality, scale=scale, render_versions=lock,
-                           audio_sha=None, beats_sha=None)
+                           component_sha=code_sha, audio_sha=None, beats_sha=None)
         seg = seg_dir / f"{s['id']}_{quality}_{key[:20]}.mp4"
         segments.append(seg)
         if use_cache and SC.cached(seg):
@@ -203,7 +304,9 @@ def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dic
     listfile = seg_dir / f"concat_{out.stem}.txt"
     listfile.write_text("".join(f"file '{p.as_posix()}'\n" for p in segments), encoding="utf-8")
     out.parent.mkdir(parents=True, exist_ok=True)
-    ffmpeg(["-f", "concat", "-safe", "0", "-i", str(listfile), "-c", "copy", "-movflags", "+faststart", str(out)])
+    part = out.with_name(out.stem + ".part" + out.suffix)  # 2.0.0: kesintide yarım dosya bitmiş video adıyla kalmaz
+    ffmpeg(["-f", "concat", "-safe", "0", "-i", str(listfile), "-c", "copy", "-movflags", "+faststart", str(part)])
+    part.replace(out)
     layout = merge_layout(segments)
     layout_path = out.with_name(out.name + ".layout.json")
     write_json(layout_path, layout)
@@ -293,6 +396,9 @@ def main() -> None:
     p = sp.add_parser("init")
     p.add_argument("--project", required=True)
     p.add_argument("--force-library", action="store_true")
+    p = sp.add_parser("upgrade")
+    p.add_argument("--project", required=True)
+    p.add_argument("--dry-run", action="store_true")
     p = sp.add_parser("plan")
     for k in ("--data-dir", "--project", "--plan", "--out"):
         p.add_argument(k, required=True)
@@ -316,6 +422,8 @@ def main() -> None:
     a = ap.parse_args()
     if a.cmd == "init":
         emit(init_project(Path(a.project), a.force_library))
+    elif a.cmd == "upgrade":
+        emit(upgrade_project(Path(a.project), a.dry_run))
     elif a.cmd == "plan":
         cap = read_json(a.captions) if a.captions else None
         if isinstance(cap, dict):

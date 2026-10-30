@@ -30,7 +30,8 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    (açık ölçekleme katmanı varsa `scale_layer_get` → `scale_layer_daily`; katman ayrı kampanya olduğundan toplam plana ayrıca girer.
    `cycle_set` ile yazılan yeni plan katman kaydını silmez.)
    Alanlar: `cycle_no, adset_daily, exploration_share` (userConfig, varsayılan 0,2; yalnızca kreatif test payı anlamında), `cpm` +
-   `cpm_source` (`benchmarks | history | assumption` — ikisi de yoksa "VARSAYIM"), `decision_metric` (`hook` → 1.000 gösterim eşiği,
+   `cpm_source` (`benchmarks | history | assumption` — ikisi de yoksa "VARSAYIM"; `benchmarks` yalnızca tutar olan CPM kıyası, `peers`
+   yüzdeliği CPM değildir), `decision_metric` (`hook` → 1.000 gösterim eşiği,
    `ctr` → 3.000), `budget_total`, `spend_to_date` (aynı veri kesimine kadar kampanyanın bütün eski/yeni reklamları, her reklam/gün
    bir kez; eşleme eksikse `null` → kalan tutar doğrulanmamış), `data_cutoff`, `launch_at`, `other_daily_budgets`, `planned_changes`,
    `risk_per_ad`, `target_cpa`, `result_type`, `test_start_hour` (gece yarısı önerilir; günlük veride sınır günleri dışlanır, 6.4),

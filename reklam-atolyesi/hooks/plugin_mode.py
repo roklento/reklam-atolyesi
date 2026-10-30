@@ -115,6 +115,52 @@ def save_session(data_dir: Path, sid: str, data: dict) -> None:
     os.replace(tmp, p)
 
 
+def file_lock(path: str | os.PathLike, timeout: float = 3.0, stale: float = 10.0):
+    """Süreçler arası kısa kilit (oturum dosyası oku-değiştir-yaz için; hook ve MCP sunucusu aynı dosyayı yazar). O_EXCL kilit dosyası
+    her işletim sisteminde aynı davranır. 10 sn'den eski kilit ölü sayılır; 3 sn içinde alınamazsa kilitsiz devam edilir (hook süresi
+    sınırlı; en kötü durum 2.0.0 öncesi davranıştır)."""
+    import contextlib
+    import time
+
+    @contextlib.contextmanager
+    def _cm():
+        lock = Path(str(path) + ".lock")
+        lock.parent.mkdir(parents=True, exist_ok=True)
+        fd, t0 = None, time.monotonic()
+        while fd is None:
+            try:
+                fd = os.open(str(lock), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                try:
+                    if time.time() - lock.stat().st_mtime > stale:
+                        lock.unlink(missing_ok=True)
+                        continue
+                except OSError:
+                    continue
+                if time.monotonic() - t0 > timeout:
+                    break
+                time.sleep(0.02)
+        try:
+            yield fd is not None
+        finally:
+            if fd is not None:
+                os.close(fd)
+                try:
+                    lock.unlink(missing_ok=True)
+                except OSError:
+                    pass
+    return _cm()
+
+
+def update_session(data_dir: Path, sid: str, fn) -> dict:
+    """Kilit altında oku → fn(oturum) → yaz (2.0.0: paralel araç çağrılarında hook ile MCP sunucusu birbirinin yazdığını silmesin)."""
+    with file_lock(session_path(data_dir, sid)):
+        sess = load_session(data_dir, sid) or {}
+        fn(sess)
+        save_session(data_dir, sid, sess)
+        return sess
+
+
 def plugin_mode(data_dir: Path, sid: str) -> bool:
     s = load_session(data_dir, sid)
     return bool(s and s.get("plugin_mode"))

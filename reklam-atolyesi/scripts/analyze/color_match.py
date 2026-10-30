@@ -3,7 +3,8 @@
 Farklı ışıkta çekilmiş klipler yan yana gelince biri koyu ya da sarı kalır; LUT hepsine aynı uygulandığı için farkı kapatmaz. Her video
 katmanının kullanılan aralığından 5 kare örneklenir, doğrusal ışıkta ölçülür:
 - pozlama: ortanca parlaklık (Rec.709 ağırlıkları, doğrusal) → stop farkı,
-- beyaz dengesi: düşük doygunluklu, orta parlaklıktaki piksellerin (yoksa kırpılmamış tüm piksellerin) R/G ve B/G oranı (gri dünya).
+- beyaz dengesi: düşük doygunluklu, orta parlaklıktaki piksellerin R/G ve B/G oranı (gri dünya). Böyle piksel yoksa ölçü kırpılmamış
+  tüm piksellerden yazılır ama beyaz dengesi eşitlenmez, yalnız pozlama (2.0.0: sahnenin rengi ışığın rengi sanılmasın).
 Referans klip `grade.match_ref` (varlık anahtarı) ya da pozlaması en iyi olan klip (ortanca orta griye en yakın, kırpılması en az).
 Düzeltme LUT'tan ÖNCE `colorchannelmixer` ile kanal kazancıdır; ffmpeg gama kodlu değerle çarptığı için kazanç g^(1/2,2) yazılır.
 Sınırlar: pozlama ±0,5 stop, kanal kazancı ±%12 (~±600 K renk sıcaklığı). Sınırı aşan klip düzeltilmez, "yeniden çekim adayı" olur:
@@ -106,7 +107,7 @@ def exposure_badness(st: dict) -> float:
     return abs(st["stops"]) + 6 * st["clip_hi"] + 3 * st["clip_lo"]
 
 
-def _refine(lin: list[float], ref: dict, frames: list[np.ndarray], rounds: int = 3) -> list[float]:
+def _refine(lin: list[float], ref: dict, frames: list[np.ndarray], rounds: int = 3, wb: bool = True) -> list[float]:
     """Kazanç örnek karelere uygulanıp yeniden ölçülür ve düzeltilir: nötr piksel havuzu renk kaymasıyla değişir (kayma pikseli
     doygunluk eşiğinin öte yanına iter), tek adımlık oran o yüzden ~%1–3 eksik kalır."""
     for _ in range(rounds):
@@ -115,16 +116,24 @@ def _refine(lin: list[float], ref: dict, frames: list[np.ndarray], rounds: int =
         if not st:
             break
         e = ref["median_lin"] / st["median_lin"]
-        lin = [lin[0] * e * ref["r_g"] / st["r_g"], lin[1] * e, lin[2] * e * ref["b_g"] / st["b_g"]]
+        if wb:
+            lin = [lin[0] * e * ref["r_g"] / st["r_g"], lin[1] * e, lin[2] * e * ref["b_g"] / st["b_g"]]
+        else:
+            lin = [v * e for v in lin]
     return lin
 
 
 def correction(st: dict, ref: dict, frames: list[np.ndarray] | None = None) -> dict:
-    """Doğrusal kazanç → sınır kontrolü (ham fark üzerinden) → örnek karelerde inceltme → gama alanı colorchannelmixer katsayıları."""
+    """Doğrusal kazanç → sınır kontrolü (ham fark üzerinden) → örnek karelerde inceltme → gama alanı colorchannelmixer katsayıları.
+    Beyaz dengesi yalnızca iki klipte de nötr (gri/beyaz) piksel havuzu varsa eşitlenir: havuzlardan biri "tüm pikseller"se oran sahnenin
+    rengini ölçer (kırmızı ürün yakın çekimi "sıcak ışık" sanılır, ürün rengi değişirdi; 2.0.0) — o zaman yalnız pozlama eşitlenir."""
     stops = math.log2(ref["median_lin"] / st["median_lin"])
-    gr = ref["r_g"] / st["r_g"] if st["r_g"] > 0 else 1.0
-    gb = ref["b_g"] / st["b_g"] if st["b_g"] > 0 else 1.0
+    wb = st.get("wb_pool", "neutral") == "neutral" and ref.get("wb_pool", "neutral") == "neutral"
+    gr = ref["r_g"] / st["r_g"] if wb and st["r_g"] > 0 else 1.0
+    gb = ref["b_g"] / st["b_g"] if wb and st["b_g"] > 0 else 1.0
     out = {"stops": round(stops, 3), "wb_gain_r": round(gr, 4), "wb_gain_b": round(gb, 4)}
+    if not wb:
+        out["wb_note"] = "nötr (gri/beyaz) alan bulunamadı: beyaz dengesi ölçülemedi, yalnız pozlama eşitlendi"
     over = []
     if abs(stops) > MAX_STOPS:
         over.append(f"pozlama farkı {stops:+.2f} stop (sınır ±{MAX_STOPS})")
@@ -137,7 +146,7 @@ def correction(st: dict, ref: dict, frames: list[np.ndarray] | None = None) -> d
     e = 2.0 ** stops
     lin = [e * gr, e, e * gb]
     if frames:
-        lin = _refine(lin, ref, frames)
+        lin = _refine(lin, ref, frames, wb=wb)
     coef = tuple(round(v ** (1 / GAMMA), 4) for v in lin)
     return {**out, "applied": True, "retake": False, "gain_gamma": list(coef),
             "filter": f"colorchannelmixer=rr={coef[0]}:gg={coef[1]}:bb={coef[2]}"}
@@ -201,6 +210,7 @@ def plan_corrections(plan: dict, assets: dict, style: dict | None) -> dict:
     ref = {"median_lin": float(np.exp(np.mean([math.log(x["median_lin"]) for x in sts]))),
            "r_g": float(np.mean([x["r_g"] for x in sts])), "b_g": float(np.mean([x["b_g"] for x in sts]))}
     rep["ref"] = {"asset": ref_key, **{k: round(v, 5) for k, v in ref.items()}}
+    ref["wb_pool"] = rep["ref"]["wb_pool"] = "neutral" if all(x.get("wb_pool", "neutral") == "neutral" for x in sts) else "all"
     for lid, akey, st in rows:
         if not st:
             rep["layers"][lid] = {"asset": akey, "measure": None, "applied": False, "reason": "ölçülemedi (kaynak yok ya da okunamadı)"}

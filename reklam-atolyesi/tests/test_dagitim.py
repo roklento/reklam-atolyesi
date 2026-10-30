@@ -41,8 +41,13 @@ def test_mcp_json_exec_form_without_uv():
 
 
 def test_doctor_resolves_mcp_command_with_spaces(data_dir):
-    argv, probs = DR.mcp_server_command(data_dir)
+    # depodaki .mcp.json Windows içindir; kurulum hedef işletim sistemi için yeniden üretir. Denetim, dosyanın üretildiği sisteme göre yapılır.
+    on_disk = json.loads((ROOT / ".mcp.json").read_text(encoding="utf-8"))
+    os_name = "nt" if on_disk == GC.mcp_json("windows") else "posix"
+    argv, probs = DR.mcp_server_command(data_dir, os_name)
     assert not probs
+    _, wrong = DR.mcp_server_command(data_dir, "posix" if os_name == "nt" else "nt")
+    assert wrong and "gen_config.py" in wrong[0]  # başka sistem için üretilmiş komut yakalanır
     assert Path(argv[0]).parent.parent == data_dir / ".venv"
     assert Path(argv[1]) == ROOT / "servers" / "ad_memory" / "server.py"
 

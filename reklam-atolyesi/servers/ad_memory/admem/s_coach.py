@@ -21,6 +21,28 @@ LOWER_FUNNEL = {"ctr_link", "link_clicks", "profile_visit", "messaging", "lead",
 
 
 class CoachMixin:
+    def _campaign_objective(self, rows: list[dict], pri: list[dict]) -> tuple[str | None, str]:
+        """Turun reklamlarının bağlı olduğu Meta kampanyalarının amacı. Tek amaç okunursa o; okunamazsa ve markada tek amaçlı önsel
+        varsa o; birden çok amaç varsa ya da hiç bilgi yoksa None (Beta(1,1), rastgele bir amacın önseli kullanılmaz)."""
+        ids = sorted({str(r["meta_ad_id"]) for r in rows if r.get("meta_ad_id")})
+        objs: set[str] = set()
+        for i in range(0, len(ids), 500):
+            chunk = ids[i:i + 500]
+            got = self.qa(f"""SELECT DISTINCT cmp.objective FROM meta_entities e
+                               JOIN meta_entities s ON s.level='adset' AND s.meta_id=e.parent_meta_id
+                               JOIN meta_entities cmp ON cmp.level='campaign' AND cmp.meta_id=s.parent_meta_id
+                               WHERE e.level='ad' AND e.meta_id IN ({','.join('?' * len(chunk))}) AND cmp.objective IS NOT NULL""", chunk)
+            objs |= {g["objective"] for g in got}
+        have = sorted({p["objective"] for p in pri})
+        if len(objs) == 1:
+            return next(iter(objs)), "turun reklamlarının Meta kampanya amacı"
+        if len(objs) > 1:
+            return None, f"turun reklamları birden çok amaçta ({', '.join(sorted(objs))}): önsel kullanılmadı, Beta(1,1)"
+        if len(have) == 1:
+            return have[0], "reklamların amacı okunamadı; markada tek amaçlı önsel var"
+        return None, ("reklamların amacı okunamadı ve markada birden çok amaçlı önsel var: önsel kullanılmadı, Beta(1,1)" if have
+                      else "önsel yok: Beta(1,1)")
+
     # --- değişmez karar girdisi (6.4) ----------------------------------------------
     def decision_input_snapshot(self, profile_id: int, campaign_id: int, cycle_id: int, kind: str = "coach_report",
                                 extra: dict | None = None) -> dict:
@@ -41,7 +63,13 @@ class CoachMixin:
             if cy["test_start"]:
                 ts = cy["test_start"][:10]
                 pri = [p for p in pri if not p["source_cutoff_at"] or p["source_cutoff_at"] < ts or p["source"] == "uniform"]
-            priors = {"frozen_at": now_iso(), "priors": pri}
+            # 2.0.0: önsel yalnızca kampanyanın Meta amacından (6.6 "aynı profil + objective"). Önceden markanın bütün amaçlarının
+            # önselleri birlikte alınıyor, koçluk metrik başına sıradaki son satırı (rastgele bir amacı) kullanıyordu.
+            objective, why = self._campaign_objective(rows, pri)
+            pri = [p for p in pri if p["objective"] == objective] if objective else []
+            if objective and not pri:
+                why += "; bu amaç için önsel yok: Beta(1,1)"
+            priors = {"frozen_at": now_iso(), "objective": objective, "objective_basis": why, "priors": pri}
             with self.tx():
                 self.ex("UPDATE cycles SET priors_snapshot_json=? WHERE id=? AND priors_snapshot_json IS NULL", (jdump(priors), cy["id"]))
         comp = self.q1("SELECT id, sha256, fetched_at FROM competitor_snapshots WHERE profile_id=? ORDER BY fetched_at DESC, id DESC LIMIT 1", (profile_id,))
@@ -393,11 +421,13 @@ class CoachMixin:
             out["note"] = f"Kalibrasyon için en az {min_resolved} çözülmüş tahmin gerekir; eşik önerilmez (6.13)."
             return out
         bins = []
-        for lo in (0.5, 0.6, 0.7, 0.8, 0.9):
-            hi = lo + 0.1
-            sel = [w for p, w in resolved if lo <= max(p, 1 - p) < hi + (1e-9 if hi >= 1 else 0)]
+        for i in range(5):  # tamsayı yüzdeyle: 0.7 + 0.1 kayan noktada 0.7999… olup etiketi "%70–79" yapıyordu
+            lo, hi = 50 + 10 * i, 60 + 10 * i
+            # 2.0.0: isabet = tahminin söylediği taraf gerçekleşti mi; p < 0.5 "kaybeder" demektir (önceden ham 'won' sayılıyordu)
+            sel = [(w if p >= 0.5 else not w) for p, w in resolved
+                   if lo <= round(max(p, 1 - p) * 100, 9) < hi or (hi == 100 and max(p, 1 - p) >= 1.0)]
             if sel:
-                bins.append({"claimed": f"%{int(lo*100)}–{int(hi*100)}", "n": len(sel), "realized": round(sum(sel) / len(sel), 3)})
+                bins.append({"claimed": f"%{lo}–{hi}", "n": len(sel), "realized": round(sum(sel) / len(sel), 3)})
         out["bins"] = bins
         out["note"] = "Eşik ve n_cap önerileri kullanıcı onayıyla değişir (6.13)."
         return out

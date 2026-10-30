@@ -68,6 +68,7 @@ def safe_zone(plan: dict, style: dict | None = None, captions: list | None = Non
     zone = f"{fmt}: üst %{z['top']*100:.0f}, alt %{z['bottom']*100:.0f}" + (f"; {z['reason']}" if z.get("reason") else "")
     issues, checked, measured = [], 0, 0
     reported: set = set()
+    extents: dict = {}  # (sahne, katman) → blok; köşe kutusu çakışması da ölçülmüş bloğu kullanır (2.0.0)
 
     def place(ext: dict, scene: str, layer) -> None:
         if ext["y0"] < lo - 1e-6 or ext["y1"] > hi + 1e-6:
@@ -89,6 +90,7 @@ def safe_zone(plan: dict, style: dict | None = None, captions: list | None = Non
                         issues.append({"scene": s["id"], "layer": i, "component": ext["component"], "part": o["part"],
                                        "issue": f"yazı sığmıyor: {o['lines']} satır (en çok {o['maxLines']}), en küçük boyda ({o['fontSize']} px) bile; "
                                                 "metni kısalt ya da bileşeni değiştir"})
+            extents[(s["id"], i)] = ext
             if ext["mode"] == "full":
                 continue
             checked += 1
@@ -102,7 +104,7 @@ def safe_zone(plan: dict, style: dict | None = None, captions: list | None = Non
         place(cap, "altyazı", None)
     # 1.8.0: PictureInPicture köşe kutusu aynı sahnedeki yazı bloklarıyla ve altyazıyla çakışmamalı (yazılar yatayda tam genişlik sayılır)
     for s in plan["scenes"]:
-        texts = [(i, TL.layer_extent(l, s["role"], fmt, style)) for i, l in enumerate(s["layers"])]
+        texts = [(i, extents.get((s["id"], i))) for i in range(len(s["layers"]))]
         texts = [(i, e) for i, e in texts if e and e["mode"] != "full"] + ([("altyazı", cap)] if cap else [])
         for i, l in enumerate(s["layers"]):
             box = TL.pip_extent(l, fmt)

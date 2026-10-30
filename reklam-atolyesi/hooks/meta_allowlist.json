@@ -1,7 +1,8 @@
 {
   "_comment": "Meta yazma koruması İZİN LİSTESİDİR (spec 9.3): listede tam adıyla olmayan Meta aracı reddedilir; joker kullanılmaz. Listeye ekleme insan onayıyla ve araç tanımı okunarak yapılır. ads_library_search için plugin modunda görüntü başına sorgu bütçesi uygulanır (9.2, 13.6).",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "_added_1_5_0": "ads_experiment_check_eligibility: araç tanımı okundu (21.10.2026) — hesabın/varlıkların A/B testi ve Lift uygunluğunu bildirir, yazma yapmaz; kullanıcı (sistem yöneticisi) 1.5.0 yol haritasında A/B testi maddesini istedi. Çalışma oluşturma araçları (ads_experiment_abtest_create_test, ads_experiment_lift_create_test) listede DEĞİL: test kullanıcı tarafından Ads Manager'da kurulur.",
+  "_added_2_0_0": "ads_insights_performance_vs_peers: araç tanımı okundu (30.10.2026) — reklam setinin maliyet/CPM/CTR ve huni metriklerini benzer reklamverenlerin reklam setleriyle kıyaslayıp her metrik için yüzdelik döndürür (yüksek her zaman daha iyi, maliyet metriklerinde de); yazma yapmaz, çağrı başına en fazla 5 reklam seti. Kullanıcı (sistem yöneticisi) 2.0.0 denetiminde ekletti. Sonuç kıyas bağlamıdır; önsel ve hüküm değildir, CPM tahmini olarak kullanılmaz (yüzdeliktir, tutar değil).",
   "allow": [
     "ads_get_ad_accounts", "ads_get_ad_account_pages", "ads_get_pages_for_business",
     "ads_get_user_pages", "ads_get_ig_accounts", "ads_get_ig_media",
@@ -12,7 +13,7 @@
     "ads_get_dataset_quality", "ads_get_dataset_stats", "ads_get_customconversions",
     "ads_get_help_article", "ads_account_get_activity_logs",
     "ads_insights_performance_trend", "ads_insights_anomaly_signal", "ads_insights_industry_benchmark",
-    "ads_insights_auction_ranking_benchmarks", "ads_insights_advertiser_context",
+    "ads_insights_auction_ranking_benchmarks", "ads_insights_advertiser_context", "ads_insights_performance_vs_peers",
     "ads_catalog_list_catalogs", "ads_catalog_list_products", "ads_catalog_list_product_sets",
     "ads_catalog_get_diagnostics", "ads_library_search",
     "ads_experiment_list_tests", "ads_experiment_abtest_get_test", "ads_experiment_check_eligibility"

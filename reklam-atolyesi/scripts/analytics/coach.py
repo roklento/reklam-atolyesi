@@ -23,6 +23,7 @@ import budget as BU  # noqa: E402
 UPPER = ("hook_rate", "hold_rate")
 STAGE_METRICS = ("tofu", "mofu", "bofu")
 METRICS = ("hook_rate", "hold_rate", "ctr_link", "cvr")
+UNMAPPED = "(konseptsiz)"
 
 
 def _sum(rows, k):
@@ -165,8 +166,13 @@ def posteriors(groups: dict, priors: dict) -> dict:
         d = {"totals": tot, "rates": {}}
         for m in METRICS:
             num, den = B.RATE_DEF[m]
-            basis = tot["impressions"] if m in ("hook_rate", "ctr_link") else tot[den]
-            post = B.rate_posterior(m, tot[num], tot[den], priors.get(m), basis)
+            # 2.0.0: oran yalnızca payı ve paydası birlikte ölçülmüş günlerden. Önceden ölçülmemiş pay (ör. ThruPlay sütunu olmayan CSV,
+            # pikselsiz hesapta satın alma) 0 sayılıyor, "tutma %0 · kanıt" gibi yanlış ve kesin görünen bir oran çıkıyordu.
+            ok = [r for r in rows if r.get(num) is not None and r.get(den) is not None]
+            if not ok:
+                d["rates"][m] = None
+                continue
+            post = B.rate_posterior(m, _sum(ok, num), _sum(ok, den), priors.get(m), _sum(ok, den))
             d["rates"][m] = post.as_dict() if post else None
         out[k] = d
     return out
@@ -190,8 +196,9 @@ def fatigue(rows_by_creative: dict) -> list[dict]:
         if len(rows) < 6:
             continue
         base = rows[:3]
-        last7 = rows[-7:]
-        def rate(rs, n, d):
+        last7 = rows[3:][-7:]  # baz günleriyle örtüşmez (2.0.0: 6–9 günde son 7 gün bazı da içeriyor, düşüşü sulandırıyordu)
+        def rate(rs, n, d):  # ölçülmemiş gün 0 sayılmaz (2.0.0)
+            rs = [r for r in rs if r.get(n) is not None and r.get(d) is not None]
             den = _sum(rs, d)
             return _sum(rs, n) / den if den else None
         hb, h7 = rate(base, "video_3s", "impressions"), rate(last7, "video_3s", "impressions")
@@ -227,9 +234,16 @@ def retention(snap: dict, rows_by_creative: dict) -> list[dict]:
         curves[k] = pts
     if len(curves) < 2:
         return []
-    expected = [statistics.median(c[i] for c in curves.values()) for i in range(5)]
+    campaign_expected = [statistics.median(c[i] for c in curves.values()) for i in range(5)]
+
+    def group(k):  # aynı format ve süre (saniyeye yuvarlanmış); süre yüzdelik noktaların saniyesini değiştirir
+        c = cr[k]
+        return (c.get("format"), round(float(c.get("duration_s") or 0)))
     out = []
     for k, pts in curves.items():
+        peers = [v for o, v in curves.items() if group(o) == group(k)]
+        # 2.0.0: beklenen eğri belgede yazdığı gibi önce aynı format/süredeki kreatiflerin ortancası (kendisi dahil en az 2); yoksa kampanya
+        expected = [statistics.median(c[i] for c in peers) for i in range(5)] if len(peers) >= 2 else campaign_expected
         dev = [pts[i] - expected[i] for i in range(5)]
         i = min(range(5), key=lambda j: dev[j])
         if dev[i] > -0.05:
@@ -456,7 +470,7 @@ def ab_section(snap: dict, kpost: dict, structure: str | None) -> dict | None:
         except ValueError:
             ev = {}
     study_cells = set(((ev or {}).get("study_read") or {}).get("cells") or [])
-    cells = {k: v["totals"] for k, v in kpost.items() if v["totals"].get("spend") and k != "(konseptsiz)"
+    cells = {k: v["totals"] for k, v in kpost.items() if v["totals"].get("spend") and k != UNMAPPED
              and (not study_cells or k in study_cells)}
     out = {"cells": {}, "meta_read": (snap.get("extra") or {}).get("ab_test"),
            "rule": "Hücre başına ≥ 30 sonuç yerel eşiktir; altında yön olarak okunur."}
@@ -589,6 +603,8 @@ def store_vs_meta(snap: dict, test_rows: list, chan: dict) -> dict | None:
 def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
     """"Reklam mı zayıftı, teklif mi, sayfa mı?" (1.4.7). Konseptler arası göreli karşılaştırma + kampanya düzeyinde tıklama→satış.
     Çıktı hipotezdir, kesin neden değildir; eşik altı veri değerlendirilmez."""
+    kpost = {k: v for k, v in kpost.items() if k != UNMAPPED}  # eşlenmemiş reklamlar konsept kıyasına girmez (2.0.0)
+
     def mean(k, m):
         r = kpost[k]["rates"].get(m)
         return r["mean"] if r and r.get("threshold_met") else None
@@ -651,9 +667,15 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
     """tut / büyüt / kapat / yenile — gerekçeli; eşik altı → yön; aç kalan konsept kaybeden sayılmaz; 'kapat' performans gerekçesiyle
     yalnızca eşik geçilmiş ve Meta harcama veriyorsa; büyütme için yeterli sonuç ve doğrulanmış ekonomi gerekir."""
     out = []
-    eco = snap.get("economics") or {}
-    eco_ok = eco.get("status") == "exact"
+    from admem.s_lead import target_for
+    # 2.0.0: doğrulanmış ekonomi sonuç türüne göre (satış: hedef CPA, aday: hedef aday maliyeti). Önceden aday kampanyası da satış
+    # ekonomisinin durumuna bakıyordu: aday ekonomisi doğrulanmış olsa da büyütme engelleniyor ya da tersine açılıyordu.
+    eco_ok = target_for(snap["campaign"].get("result_type"), snap.get("economics"))[1]
     for k, c in concepts.items():
+        if k == UNMAPPED:
+            out.append({"concept": k, "decision": "tut", "label": "eşlenmemiş", "carry_over": False,
+                        "why": "reklam adı kreatif kaydıyla eşleşmedi; konsept bilinmediği için hüküm verilmez (veri kalitesi bölümüne bakın)"})
+            continue
         hook = c["rates"].get("hook_rate")
         ctr = c["rates"].get("ctr_link")
         d = dist.get(k, {})
@@ -706,12 +728,13 @@ def analyze(snap_path: str) -> dict:
     structure = cyc.get("structure_detected")
     test_rows = parts["test"]
     by_creative = aggregate(test_rows, lambda r: r.get("creative_key") or f"(eşlenmemiş) {r['meta_ad_id']}")
-    by_concept = aggregate(test_rows, lambda r: cmap.get(r.get("creative_key")) or "(konseptsiz)")
+    by_concept = aggregate(test_rows, lambda r: cmap.get(r.get("creative_key")) or UNMAPPED)
     by_role = aggregate(test_rows, lambda r: rmap.get(r.get("creative_key")) or "(rolsüz)")
     cpost = posteriors(by_creative, priors)
     kpost = posteriors(by_concept, priors)
     rpost = posteriors(by_role, priors)
-    hook_posts = {k: B.RatePosterior(**v["rates"]["hook_rate"]) for k, v in kpost.items() if v["rates"].get("hook_rate")}
+    # eşlenmemiş reklamlar bir konsept değildir: üstünlük karşılaştırmasına ve tahmin kaydına girmez (2.0.0)
+    hook_posts = {k: B.RatePosterior(**v["rates"]["hook_rate"]) for k, v in kpost.items() if v["rates"].get("hook_rate") and k != UNMAPPED}
     hist_mean = None
     if "hook_rate" in priors:
         a, b = priors["hook_rate"]

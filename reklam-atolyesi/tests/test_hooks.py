@@ -132,6 +132,8 @@ OTHER = "mcp__f2f76932__"
 
 def test_meta_own_server_always_allowlist(ddir):
     assert run_hook("meta_guard.py", {"session_id": SID, "tool_name": OWN + "ads_get_ad_accounts", "tool_input": {}}, ddir) is None
+    # 2.0.0: benzer reklamverenlere göre yüzdelik (salt okuma) kullanıcı onayıyla listede
+    assert run_hook("meta_guard.py", {"session_id": SID, "tool_name": OWN + "ads_insights_performance_vs_peers", "tool_input": {}}, ddir) is None
     out = run_hook("meta_guard.py", {"session_id": SID, "tool_name": OWN + "ads_update_entity", "tool_input": {}}, ddir)
     assert deny_of(out)
     out = run_hook("meta_guard.py", {"session_id": SID, "tool_name": OWN + "ads_get_ad_account_custom_audiences", "tool_input": {}}, ddir)

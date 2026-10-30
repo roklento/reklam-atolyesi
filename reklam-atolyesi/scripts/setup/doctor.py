@@ -436,11 +436,12 @@ def check_render(r: Report, results: dict, skip: bool, data_dir: Path) -> None:
           {"components": g.get("components"), "failed": g.get("failed"), "all_black": g.get("frames_all_black"), "visual_review": g.get("visual_review")})
 
 
-def mcp_server_command(data_dir: Path) -> tuple[list[str], list[str]]:
-    """.mcp.json'daki ad-memory tanımını Claude Code'un yapacağı gibi çözer; (komut + argümanlar, sorunlar)."""
+def mcp_server_command(data_dir: Path, os_name: str | None = None) -> tuple[list[str], list[str]]:
+    """.mcp.json'daki ad-memory tanımını Claude Code'un yapacağı gibi çözer; (komut + argümanlar, sorunlar).
+    os_name verilmezse bu makinenin işletim sistemine göre denetlenir ("nt" ya da "posix")."""
     srv = (json.loads((ROOT / ".mcp.json").read_text(encoding="utf-8")).get("mcpServers") or {}).get("ad-memory") or {}
     probs = []
-    want = "/.venv/Scripts/python.exe" if os.name == "nt" else "/.venv/bin/python"
+    want = "/.venv/Scripts/python.exe" if (os_name or os.name) == "nt" else "/.venv/bin/python"
     cmd = str(srv.get("command", ""))
     if not cmd.startswith("${user_config.data_dir}/") or not cmd.endswith(want):
         probs.append(f"ad-memory komutu data_dir sanal ortamının bu işletim sistemine uygun Python'u değil ({cmd}); gen_config.py yeniden çalıştırılmalı")
