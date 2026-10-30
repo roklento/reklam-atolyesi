@@ -166,8 +166,13 @@ def posteriors(groups: dict, priors: dict) -> dict:
         d = {"totals": tot, "rates": {}}
         for m in METRICS:
             num, den = B.RATE_DEF[m]
-            basis = tot["impressions"] if m in ("hook_rate", "ctr_link") else tot[den]
-            post = B.rate_posterior(m, tot[num], tot[den], priors.get(m), basis)
+            # 2.0.0: oran yalnızca payı ve paydası birlikte ölçülmüş günlerden. Önceden ölçülmemiş pay (ör. ThruPlay sütunu olmayan CSV,
+            # pikselsiz hesapta satın alma) 0 sayılıyor, "tutma %0 · kanıt" gibi yanlış ve kesin görünen bir oran çıkıyordu.
+            ok = [r for r in rows if r.get(num) is not None and r.get(den) is not None]
+            if not ok:
+                d["rates"][m] = None
+                continue
+            post = B.rate_posterior(m, _sum(ok, num), _sum(ok, den), priors.get(m), _sum(ok, den))
             d["rates"][m] = post.as_dict() if post else None
         out[k] = d
     return out
@@ -192,7 +197,8 @@ def fatigue(rows_by_creative: dict) -> list[dict]:
             continue
         base = rows[:3]
         last7 = rows[3:][-7:]  # baz günleriyle örtüşmez (2.0.0: 6–9 günde son 7 gün bazı da içeriyor, düşüşü sulandırıyordu)
-        def rate(rs, n, d):
+        def rate(rs, n, d):  # ölçülmemiş gün 0 sayılmaz (2.0.0)
+            rs = [r for r in rs if r.get(n) is not None and r.get(d) is not None]
             den = _sum(rs, d)
             return _sum(rs, n) / den if den else None
         hb, h7 = rate(base, "video_3s", "impressions"), rate(last7, "video_3s", "impressions")

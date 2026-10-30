@@ -21,7 +21,8 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from common import PLUGIN_ROOT, atomic_write, emit, read_json  # noqa: E402
 from admem import naming  # noqa: E402
-from admem.s_meta import detect_decimal  # noqa: E402
+from admem.s_meta import _date_ordered, detect_date_order, detect_decimal  # noqa: E402
+from admem.util import AdMemoryError  # noqa: E402
 
 FIELDS = json.loads((PLUGIN_ROOT / "servers" / "ad_memory" / "meta_fields.json").read_text(encoding="utf-8"))["fields"]
 
@@ -46,10 +47,16 @@ def csv_check(path: str) -> dict:
     rows = list(rd)
     need = ["date", "ad_id", "impressions", "spend"]
     video = ["thruplay", "p25", "p50", "p75", "p95", "p100"]
-    dates = sorted({r.get(cmap.get("date", ""), "") for r in rows if r.get(cmap.get("date", ""))})
+    raw = [r.get(cmap.get("date", ""), "") for r in rows if r.get(cmap.get("date", ""))]
+    try:  # 2.0.0: tarih sırası (gün/ay) ve ISO aralık; ham metin sıralaması "10.03"ü "02.04"ten önce koyuyordu
+        order = detect_date_order(raw)
+        dates = sorted({_date_ordered(v, order) for v in raw}) if order else sorted(set(raw))
+    except AdMemoryError as e:
+        order, dates = f"hata: {e}", sorted(set(raw))
     return {"columns": cmap, "missing_required": [k for k in need if k not in cmap], "missing_video": [k for k in video if k not in cmap],
             "has_3s_or_cost_per_view": ("video_3s" in cmap) or ("cost_per_video_view" in cmap), "rows": len(rows),
             "decimal": detect_decimal([r.get(cmap.get("spend", ""), "") for r in rows][:200]), "date_range": [dates[0], dates[-1]] if dates else None,
+            "date_order": order or "belirsiz: kullanıcıya rapor aralığı sorulur, measurement_context.csv_date_order ile verilir",
             "note": "Reklam düzeyi, günlük (time increment 1 gün), video sütunlu dışa aktarım gerekir; ölçüm bağlamı (hesap, saat dilimi, para birimi, sonuç tanımı, atıf penceresi, action_report_time) ayrıca verilir."}
 
 

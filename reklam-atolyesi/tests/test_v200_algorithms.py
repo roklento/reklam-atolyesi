@@ -133,3 +133,115 @@ def test_budget_reason_names_risk_limit():
     assert r["production_blocked"] and "risk sınırı" in r["reason"]
     r = BU.plan({"cycle_no": 1, "adset_daily": 5, "cpm": 50, "launch_at": "2026-03-10"})
     assert r["production_blocked"] and "14 günlük" in r["reason"]
+
+
+def test_color_match_skips_white_balance_without_neutral_pixels():
+    import color_match as CM
+    ref = {"median_lin": 0.18, "r_g": 1.0, "b_g": 1.0, "wb_pool": "neutral"}
+    red = {"median_lin": 0.18 * 2 ** -0.3, "r_g": 1.10, "b_g": 0.92, "wb_pool": "all"}  # kırmızı ürün yakın çekimi: oran sahnenin rengi
+    c = CM.correction(red, ref)
+    assert c["applied"] and c["wb_gain_r"] == 1.0 and c["wb_gain_b"] == 1.0 and "wb_note" in c
+    gr, gg, gb = c["gain_gamma"]
+    assert gr == gg == gb  # yalnız pozlama: ürün rengi kaymaz
+    assert not CM.correction({**red, "r_g": 1.3}, ref)["retake"]  # ölçülemeyen beyaz dengesi yeniden çekim gerekçesi olmaz
+    assert CM.correction({**red, "wb_pool": "neutral"}, ref)["wb_gain_r"] != 1.0
+
+
+def test_measured_text_matches_js_slice_with_emoji():
+    import text_layout as TL
+    text = "😀" * 100 + " son"  # 200 UTF-16 birimi; JavaScript slice(0,160) = 80 emoji
+    assert TL._js_head(text) == "😀" * 80 and TL._js_head("kısa") == "kısa"
+    layer = {"type": "text", "text": text}
+    ext = TL.layer_extent(layer, "hook", "9x16")
+    rec = {"component": "TextReveal", "part": "text", "text": "😀" * 80, "heightPx": 400, "height": 1920, "fits": False, "lines": 4, "maxLines": 3}
+    m = TL.measured_extent(ext, layer, [rec])
+    assert m["measured"] and m["overflow"] and m["y1"] == round(m["y"] + 400 / 1920, 4)
+
+
+def _tone(path, dur, amp, f=220.0):
+    import numpy as np
+    import soundfile as sf
+    t = np.arange(int(dur * 48000)) / 48000
+    sf.write(str(path), np.stack([amp * np.sin(2 * np.pi * f * t)] * 2, axis=1), 48000, subtype="FLOAT")
+    return str(path)
+
+
+def test_speech_mask_is_continuous_and_music_ducked_fully():
+    import numpy as np
+    import mix as MX
+    t = np.arange(48000) / 48000
+    y = np.stack([0.3 * np.sin(2 * np.pi * 200 * t)] * 2, axis=1)  # sürekli ses: örneklerin ~%2'si sıfır geçişinde 0,01'in altında
+    y[24000:] = 0
+    m = MX.speech_activity(y)
+    assert m[:23000].all() and not m[30500:].any()  # 120 ms tutmadan sonra sessizlik konuşma sayılmaz
+
+
+def test_mix_pre_not_clipped_and_negative_music_offset(tmp_path):
+    import numpy as np
+    import soundfile as sf
+    import mix as MX
+    music = _tone(tmp_path / "m.wav", 4, 0.9, 110)
+    vo = _tone(tmp_path / "vo.wav", 3, 0.9, 330)
+    plan = {"duration_s": 3, "fps": 30, "music": {"offset_s": -1.0, "gain_db": 0},
+            "scenes": [{"id": "s1", "start_s": 0, "dur_s": 3, "audio": {"mode": "generated"}, "layers": []}]}
+    r = MX.mix(plan, {}, music, vo, {}, tmp_path / "stems")
+    pre, _ = sf.read(r["pre"], always_2d=True)
+    assert np.abs(pre).max() > 1.0  # toplam ±1'i aşıyor ve kırpılmadan saklanıyor
+    assert r["loudness_ok"] and r["loudness"]["true_peak_dbtp"] <= -0.95
+
+
+# --- metrik alımı ----------------------------------------------------------------------------------------------------
+from conftest import make_active_profile  # noqa: E402
+from test_metrics import CTX as MCTX  # noqa: E402
+
+
+def _csv(tmp_path, dates):
+    p = tmp_path / "d.csv"
+    lines = ["Reklam Kimliği;Reklam adı;Gün;Gösterimler;Harcanan Tutar (TRY)"]
+    lines += [f"9001;R;{d};1000;50,00" for d in dates]
+    p.write_text("\n".join(lines), encoding="utf-8")
+    return str(p)
+
+
+def test_csv_date_order_detected_or_refused(store, tmp_path):
+    from admem.util import AdMemoryError
+    import meta_tools
+    pid = make_active_profile(store)["profile"]["id"]
+    us = _csv(tmp_path, ["03/10/2026", "03/13/2026"])  # ay önce: 13 ay olamaz
+    assert meta_tools.csv_check(us)["date_order"] == "mdy" and meta_tools.csv_check(us)["date_range"] == ["2026-03-10", "2026-03-13"]
+    r = store.metrics_import_csv(pid, us, MCTX)
+    assert r["date_order"] == "mdy" and {m["date"] for m in store.metrics_daily_rows(pid)["rows"]} == {"2026-03-10", "2026-03-13"}
+    amb = _csv(tmp_path, ["03/04/2026", "04/04/2026"])
+    with pytest.raises(AdMemoryError, match="csv_date_order"):
+        store.metrics_import_csv(pid, amb, MCTX)
+    assert len(store.metrics_daily_rows(pid)["rows"]) == 2  # hiçbir satır yazılmadı
+    r = store.metrics_import_csv(pid, amb, {**MCTX, "csv_date_order": "dmy"})
+    assert {m["date"] for m in store.metrics_daily_rows(pid)["rows"]} >= {"2026-04-03", "2026-04-04"}
+    assert store.metrics_import_csv(pid, _csv(tmp_path, ["02.04.2026"]), MCTX)["date_order"] == "dmy"  # noktalı: gün önce
+
+
+def test_unmeasured_metric_is_not_zero_and_not_erased(store):
+    pid = make_active_profile(store)["profile"]["id"]
+    full = [{"meta_ad_id": "9001", "ad_name": "R", "date": "2026-03-01", "impressions": 1000, "spend": 50, "video_3s": 300, "thruplay": 90}]
+    store.metrics_ingest(pid, full, "meta_mcp", MCTX)
+    store.metrics_ingest(pid, [{"meta_ad_id": "9001", "ad_name": "R", "date": "2026-03-01", "impressions": 1000, "spend": 55}], "csv", MCTX)
+    m = store.metrics_daily_rows(pid)["rows"][0]
+    assert m["spend"] == 55 and m["video_3s"] == 300 and m["thruplay"] == 90  # yeni değer yazılır, gelmeyen alan silinmez
+    store.metrics_ingest(pid, [{"meta_ad_id": "9001", "ad_name": "R", "date": "2026-03-02", "impressions": 1000, "spend": 50, "video_3s": 300}],
+                         "meta_mcp", MCTX)
+    g = store.metrics_query(pid, level="ad")["groups"][0]
+    assert g["hold_rate"] == pytest.approx(90 / 300)  # ThruPlay'i ölçülmemiş gün paydaya girmez
+    assert g["cvr"] is None  # satın alma hiç ölçülmedi: %0 değil
+
+
+def test_coach_rate_none_when_numerator_unmeasured():
+    rows = [{"impressions": 5000, "video_3s": 1500, "thruplay": None, "link_clicks": 50, "purchases": None, "spend": 100}]
+    post = CO.posteriors({"A": rows}, {})["A"]["rates"]
+    assert post["hold_rate"] is None and post["cvr"] is None and post["hook_rate"]["trials"] == 5000
+
+
+def test_claim_match_turkish_case():
+    from admem.funnel import claim_usable
+    claims = [{"claim": "14 gün içinde iade", "needs_document": False}]
+    assert claim_usable("14 GÜN İÇİNDE İADE", claims) and claim_usable("14 gün  içinde iade", claims)
+    assert not claim_usable("ıade", claims)  # noktasız ı ayrı harftir

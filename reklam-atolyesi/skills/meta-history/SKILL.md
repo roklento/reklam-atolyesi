@@ -30,6 +30,8 @@ Yok.
    sağlık raporu yolu, hipotez adayları.
 3. **CSV yolu (yedek, 9.2):** kullanıcıdan Ads Manager dışa aktarımı istenir (reklam düzeyi, günlük, video sütunları). Önce
    `PY PR/scripts/meta/meta_tools.py csv-check --csv <dosya>` (sütun eşlemesi, zorunlu sütunlar, ondalık ayırıcı, tarih aralığı).
+   `date_order` belirsizse (ör. 03/10/2026) kullanıcıya Ads Manager'daki rapor aralığı sorulur ve `measurement_context.csv_date_order`
+   (`dmy` gün önce, `mdy` ay önce) verilir; verilmezse içe alma hiçbir satır yazmadan durur (2.0.0).
    Ölçüm bağlamı (`account_id, timezone, currency, result_definition, metric_definitions, attribution_window, action_report_time`)
    Ads Manager rapor ayarlarından kullanıcıyla doğrulanır; doğrulanamayan alan `null` + `null_reasons` ile yazılır, tahmin edilmez.
    → `metrics_import_csv(profile_id, path, measurement_context)`. Uyumsuz tanım tüm içe almayı reddeder; hangi dışa aktarım ayarının
