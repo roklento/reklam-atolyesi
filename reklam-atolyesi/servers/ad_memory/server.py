@@ -247,7 +247,8 @@ def priors_get(profile_id: int, objective: str | None = None) -> dict:
 
 @mcp.tool()
 def priors_from_history(profile_id: int, objective: str, cutoff_at: str, n_cap: float = 30, min_impressions: int = 1000) -> dict:
-    """Aynı profil+objective, test öncesi geçmişten önsel: n_eff=min(n,n_cap), a=m·n_eff, b=(1−m)·n_eff (6.6)."""
+    """Aynı profil+objective, test öncesi geçmişten önsel: n_eff=min(n,n_cap), a=m·n_eff, b=(1−m)·n_eff (6.6).
+    objective="*": amacı bilinmeyen geçmiş (CSV yolu, Meta varlıkları okunmamış)."""
     return call(lambda s: s.priors_from_history(profile_id, objective, cutoff_at, n_cap, min_impressions))
 
 

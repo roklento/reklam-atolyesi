@@ -36,7 +36,10 @@ Yok.
    gerektiği kullanıcıya gösterilir. Dışa aktarım yoksa kullanıcı onayıyla `profile_update(history_status="no_history")` — profil
    soğuk başlangıçla ilerler; bu durum eksik canlı veriyi yeterli saydırmaz.
 4. **Önseller (6.6):** amaç (`objective`) başına `priors_from_history(profile_id, objective, cutoff_at)` — yalnızca aynı profil ve
-   amaç, kesim tarihinden önceki uygun geçmiş, `n_eff=min(n_source, 30)`. Geçmiş yoksa Beta(1,1) ve bu açıkça söylenir. Başka
+   amaç, kesim tarihinden önceki uygun geçmiş, `n_eff=min(n_source, 30)`. Geçmiş yoksa Beta(1,1) ve bu açıkça söylenir.
+   Amaç Meta varlıklarından (`meta_entities_upsert`) okunur; CSV yolunda amaç bilinmediği için `objective="*"` verilir (yalnızca
+   amacı bilinmeyen geçmişi kapsar). Koçluk kopyası kampanyanın amacının önselini dondurur; amaç okunamazsa markada tek amaçlı
+   önsel varsa onu, yoksa Beta(1,1) kullanır (2.0.0). Başka
    hesabın verisi bu profilin önseline katılmaz; kullanıcı isterse kaynağı belirtilmiş "genel bilgi" olarak gösterilir.
 5. **Kreatif envanteri:** adlandırma kuralına uyan reklam adları `PY PR/scripts/meta/meta_tools.py naming --names names.json` ile
    `creative_key`'e eşlenir; uymayanlar "eski" kalır.
