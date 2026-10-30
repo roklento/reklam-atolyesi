@@ -20,8 +20,9 @@ remotion.pro adresinden şirket lisansı alması gerekir. Lisans sorumluluğu ku
 
 ## Kurulum
 
-1. Sağlayıcınızın gönderdiği **`reklam-atolyesi-kurulum.zip`** dosyasını bir klasöre çıkarın (ör. `Belgeler\ReklamAtolyesi-kurulum`).
-   Klasörde `kur.cmd` ve `kur.ps1` yan yana olmalıdır.
+1. Sağlayıcınızın gönderdiği kurulum paketini (ZIP) bir klasöre çıkarın (ör. `Belgeler\ReklamAtolyesi-kurulum`). Klasörde
+   `kur.cmd`, `kur.ps1`, `guncelle.cmd`, `guncelle.ps1`, `guncelle.py` ve `KULLANIM.txt` yan yana olmalıdır (paketin kaynağı bu
+   deponun `musteri-paketi/` klasörüdür).
 2. **`kur.cmd`** dosyasına çift tıklayın.
    - Windows "Bilgisayarınız korundu" derse **Ek bilgi → Yine de çalıştır**'ı seçin.
 3. Betik sırayla şunları yapar ve gerektiğinde size sorar:
@@ -45,21 +46,29 @@ remotion.pro adresinden şirket lisansı alması gerekir. Lisans sorumluluğu ku
 
 Kurulum bütünüyle ilk seferde ortalama 20-40 dakika sürer.
 
+**Kurulum yarıda kaldıysa** (doğrulama geçmedi, pencere kapandı, internet kesildi): sorunu giderip **`kur.cmd`**'yi yeniden çalıştırın.
+Betik kayıtlı veri klasörünü bulur ve kaldığı yerden sürdürür. Kurulum tamamlanmışsa `kur.cmd` sizi `guncelle.cmd`'ye yönlendirir.
+
 ## Güncelleme
 
 Sağlayıcınız yeni sürüm duyurduğunda:
 
-1. Açık Claude oturumlarını kapatın.
-2. Aynı **`kur.cmd`** dosyasını yeniden çalıştırın.
+1. Claude masaüstü uygulamasını sistem tepsisinden tamamen kapatın; açık Claude Code oturumlarını da kapatın.
+2. **`guncelle.cmd`** dosyasına çift tıklayın.
 
-Betik mevcut kurulumu tanır ve şunları yapar:
+Betik kayıtlı veri klasörünü kullanır ve şunları yapar:
 
-- Plugin'i günceller.
-- Değişen bağımlılıkları kurar.
-- Veritabanınızın yedeğini alır.
-- Doğrulamayı yeniden çalıştırır.
+- Veritabanınızın yedeğini alır (`<veri klasörü>\backups`).
+- Plugin'i yayımlanan sürüme günceller.
+- Yalnızca değişen bağımlılıkları kurar ve gereken veritabanı geçişlerini uygular.
 
-Profil, kampanya ve hafıza verilerinize dokunulmaz. Güncellemeden sonraki ilk açılışta canlı kontroller yeniden yapılır.
+Test ve örnek render çalıştırmaz. Profil, kampanya ve hafıza verilerinize dokunulmaz. Bitince Claude'u yeniden açıp yeni oturumda
+`reklam-atolyesi` yazın.
+
+**Güncellemeden önce başlamış kampanyalar:** Her kampanyanın video projesi, kurulduğu sürümün şablonuyla sabit kalır; güncelleme bu
+projeleri kendiliğinden değiştirmez (onayladığınız taslakların görünümü bozulmasın diye). Böyle bir kampanyada yeni bir bileşen
+(ör. önce/sonra, rakam sayacı, telefon ekranı) istenirse Reklam Atölyesi bunu söyler ve projeyi güncellemek için onayınızı ister;
+onaydan sonra taslakları yeniden çizip gösterir. Yeni kampanyalar her zaman güncel şablonla kurulur.
 
 ## Sorun giderme
 
@@ -68,7 +77,8 @@ Profil, kampanya ve hafıza verilerinize dokunulmaz. Güncellemeden sonraki ilk 
 | "Depoya erişilemedi" | GitHub davetini kabul ettiğinizden emin olun. Yanlış hesapla giriş yaptıysanız Windows **Kimlik Bilgileri Yöneticisi → Windows Kimlik Bilgileri**'nden `git:https://github.com` kaydını silip tekrar çalıştırın |
 | "winget yok" | Microsoft Store'dan **Uygulama Yükleyicisi** (App Installer) uygulamasını kurun |
 | Disk alanı uyarısı | Yer açın ya da boş alanı fazla olan bir sürücüde veri klasörü seçin. Yine de devam ederseniz bu durum kayda geçer |
-| Doğrulama geçmedi | Ayrıntılar `<veri klasörü>\logs\kurulum-dogrulama-*.json` dosyasındadır. Bu dosyayı ve pencerede yazan kurulum günlüğünü sağlayıcınıza gönderin |
+| Doğrulama geçmedi | Ayrıntılar `<veri klasörü>\logs\kurulum-dogrulama-*.json` dosyasındadır. Bu dosyayı ve pencerede yazan kurulum günlüğünü sağlayıcınıza gönderin. Sorun giderilince `kur.cmd` kaldığı yerden sürer |
+| Güncelleme tamamlanamadı | Ekrandaki mesajı ve `<veri klasörü>\logs\reklam-atolyesi-guncelleme-*.log` dosyasını sağlayıcınıza gönderin. Yedek `backups` klasöründedir; sorun giderilince `guncelle.cmd` yeniden çalıştırılabilir |
 
 ## Kaldırma
 

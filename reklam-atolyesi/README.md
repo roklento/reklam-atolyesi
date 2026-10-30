@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.9.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.0.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -14,14 +14,16 @@ Doğrulama sırası:
 2. Türkçe render ve galeri; referans karelerle karşılaştırılır.
 3. `doctor --write-ok`.
 
-Aynı betik güncellemeyi de yapar: yedek alır ve `doctor --update` çalıştırır.
+Müşteri paketinde (`musteri-paketi/`) `kur.cmd` yalnızca ilk kurulumu yapar (yarıda kalan kurulumu kaldığı yerden sürdürür);
+tamamlanmış kurulumun güncellemesi `guncelle.cmd` ile testsiz yapılır (yedek, plugin, değişen bağımlılıklar, migration). Depo kökündeki
+eski `kur.cmd` hem kurulum hem güncelleme yapar: yedek alır ve `doctor --update` çalıştırır.
 
-**Yerel marketplace (geliştirme):** Plugin'in üst klasöründeki `.claude-plugin/marketplace.json` (`reklam-atolyesi-local`) kullanılır.
-Plugin bu klasörden yerinde okunur. Kurulumda `data_dir` sorulur:
+**Yerel marketplace (geliştirme):** Plugin'in üst klasöründeki `.claude-plugin/marketplace.json` (adı `reklam-atolyesi`) kullanılır.
+Plugin bu klasörden yerinde okunur. `data_dir` kurulumda verilir (verilmezse sorulur):
 
 ```
 claude plugin marketplace add <plugin-üst-klasörü>
-claude plugin install reklam-atolyesi@reklam-atolyesi-local --scope user
+claude plugin install reklam-atolyesi@reklam-atolyesi --scope user --config data_dir=<veri-klasörü>
 ```
 
 ## Başlatma
@@ -52,7 +54,7 @@ Kapılarda sistem durur ve **açık onayınızı** bekler. Yaratıcı kararlar b
 ## Bileşenler
 | Klasör | İçerik |
 |---|---|
-| `skills/` | navigator, 21 aşama skill'i (S00a–S17), `memory`, `ref-system-map`, 7 referans skill'i |
+| `skills/` | navigator, 21 aşama skill'i (S00a–S17), 4 destek skill'i (`data-connection`, `dm-sales`, `organic`, `profile-check`), `memory`, `ref-system-map`, 7 referans skill'i (toplam 35) |
 | `agents/` | meta-historian, competitor-analyst, creative-strategist, cinematographer, footage-analyst, art-director, editor, sound-designer, qc-reviewer, media-analyst, coach |
 | `commands/` | `/reklam-atolyesi:basla`, `kurulum-kontrol`, `profiller`, `profil-ekle`, `profil-sec`, `tanis-marka`, `tanis-urun`, `meta-gecmis`, `yeni-kampanya`, `durum`, `sonraki`, `onayla`, `geri`, `rapor`, `rakip-analizi`, `takip`, `karar-hazirla`, `gece-uretim`, `bakim` |
 | `workflows/` | `analyze-footage`, `analyze-competitors`, `render-variants`, `qc-review` (kapısız paralel işler; yedek yol: alt ajanlar) |
@@ -94,6 +96,29 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.0.0** — deneme kullanıcısına hazırlık: uçtan uca denetim ve düzeltmeler
+- Son güncellemeler (1.6.0–1.9.0: ölçülü yazı, renk eşitleme, CC0 ses efektleri, beş yeni bileşen, ses araması, huni planlaması)
+  birlikte denetlendi: kurulum, doctor, manifest, migration zinciri 001–007, testler, duman testi (9/9 adım, gerçek Remotion
+  render'ı dahil), komut/skill/script/araç adı çapraz kontrolü ve belgeler. Yeni özellik yok; veritabanı migration'ı yok; yeni bağımlılık yok.
+- **Eski kampanya projeleri:** `render.py upgrade --project <k>/src [--dry-run]` önceki bir sürümle kurulmuş kampanya projesini güncel
+  şablona getirir. Yalnızca yayımlanmış bir şablon sürümüyle bayt bayt aynı (elle değiştirilmemiş) dosyalar güncellenir; değiştirilmiş
+  dosyalar `kept_customized` listesinde kalır (`templates/remotion/template_history.json`, üretici `scripts/setup/template_history.py`).
+  Plan projenin çizemediği bir özelliği (ör. 1.8.0 bileşenleri, KenBurns odak) kullanıyorsa render başlamadan açık bir mesajla durur;
+  önceden finalde gri "bilinmeyen bileşen" paneli çiziliyordu. S10 kullanıcıya sade dille sorar, onayla günceller ve taslakları yeniden çizer.
+- **Sahne önbelleği:** segment anahtarı artık plugin şablonunu değil kampanya projesinin kendi kod dosyalarını içerir. Önceden projeye
+  bileşen eklenince ya da proje tazelenince eski segmentler yeniden kullanılabiliyordu; plugin güncellemesi de değişmemiş projenin bütün
+  segmentlerini boşuna yeniden render ettiriyordu.
+- **Kurulum:** müşteri paketindeki `kur.cmd`, doğrulaması tamamlanmamış (yarıda kalmış) kurulumu artık kaldığı yerden sürdürür. Önceden
+  "zaten kurulu, guncelle.cmd kullanın" diyordu; `guncelle.cmd` ise veritabanı olmadığı için "ilk kurulum için kur.cmd kullanın" diyerek
+  kullanıcıyı döngüde bırakıyordu. Kurulumun veri klasörü denetimi isteğe bağlı ses motoru klasörünü (`.tts`) de tanır.
+- **Ingest:** sarsıntı ölçümü `fileformat` seçeneğini yalnızca FFmpeg'in libvidstab'ı destekliyorsa verir (libvidstab 1.1.1+). Eski
+  sürümde FFmpeg seçeneği tanımayıp çıkıyor, klibin ingest'i bütünüyle başarısız oluyordu.
+- **Testler:** önceki sürümlerde "ortamdan" sayılan başarısızlıklar giderildi: ingest testleri yukarıdaki gerçek uyumluluk hatasıydı;
+  doctor testi depodaki Windows `.mcp.json`'ını makinenin işletim sistemine göre denetliyordu (artık dosyanın üretildiği sisteme göre).
+  Linux'ta tam paket 402 geçti, 0 başarısız, 5 atlandı (Windows'a özgü).
+- **Belgeler:** kurulum/güncelleme yönergesi müşteri paketine göre düzeltildi (`kur.cmd` ilk kurulum, `guncelle.cmd` güncelleme, yarıda
+  kalan kurulum, eski kampanyalar); yerel marketplace adı (`reklam-atolyesi`), skill sayısı (35) ve `.gitignore` (`*.egg-info/`).
+
 **1.9.0** — huni aşamasına göre içerik planlama (TOFU/MOFU/BOFU)
 - Aşama bir kitle değil, mesajın seslendiği karar anıdır. Plugin yine tek geniş set kurar, yeniden hedefleme kitlesi kurmaz; reklamı kimin
   gördüğünü Meta seçer. Taksonomiye sabit `stage` ekseni (tofu, mofu, bofu) eklendi.

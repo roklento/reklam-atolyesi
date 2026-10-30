@@ -1,11 +1,12 @@
 ﻿<#
-Reklam Atölyesi — Windows kurulum ve güncelleme betiği.
+Reklam Atölyesi — Windows ilk kurulum betiği (müşteri paketi).
 
-Çift tıklama için kur.cmd kullanın. Aynı betik hem ilk kurulumu hem güncellemeyi yapar:
+Çift tıklama için kur.cmd kullanın. Tamamlanmış bir kurulumun güncellemesi guncelle.cmd ile yapılır. Yarıda kalmış bir ilk kurulum
+(ör. doğrulama geçmedi, pencere kapandı) bu betikle kaldığı yerden sürdürülür:
   1. git ve Claude Code'u denetler (eksikse kurar)
   2. GitHub erişimini doğrular (ilk seferde tarayıcıda GitHub girişi açılır)
   3. Reklam Atölyesi marketplace'ini ekler ya da günceller
-  4. Plugin'i kurar (veri klasörü sorulur) ya da günceller
+  4. Plugin'i kurar (veri klasörü sorulur); yarım kurulumda kayıtlı veri klasörüyle plugin'i günceller
   5. Plugin'in kendi kurulum adımlarını çalıştırır: araçlar, Python ve Remotion bağımlılıkları, bu bilgisayarda doğrulama
 #>
 param(
@@ -177,9 +178,15 @@ if ($cv -lt $EnDusukClaude) {
 Write-Tamam "Claude Code $cv ($script:ClaudeExe)"
 
 if (Get-KuruluPlugin) {
-    Write-Host 'Reklam Atölyesi zaten kurulu. Güncelleme için guncelle.cmd dosyasını kullanın.' -ForegroundColor Yellow
-    try { Stop-Transcript | Out-Null } catch { }
-    exit 0
+    # Yalnızca doğrulaması tamamlanmış kurulum guncelle.cmd'ye yönlendirilir. Doğrulama geçmeden kalan kurulumda veritabanı olmayabilir;
+    # guncelle.cmd ise veritabanı ister. Yönlendirme iki betik arasında döngü kurmasın diye yarım kurulum burada sürdürülür.
+    $kayitli = Get-KayitliVeriKlasoru
+    if ($kayitli -and (Test-Path -LiteralPath (Join-Path $kayitli ".kurulum-statik-tamam"))) {
+        Write-Host 'Reklam Atölyesi zaten kurulu. Güncelleme için guncelle.cmd dosyasını kullanın.' -ForegroundColor Yellow
+        try { Stop-Transcript | Out-Null } catch { }
+        exit 0
+    }
+    Write-Uyari "Önceki ilk kurulum tamamlanmamış; kaldığı yerden sürdürülüyor."
 }
 
 # --- 2. GitHub erişimi ----------------------------------------------------------------------------------------------------
@@ -210,7 +217,7 @@ Write-Adim "4/5 Plugin"
 $kurulu = Get-KuruluPlugin
 $guncelleme = $false
 if ($kurulu) {
-    $guncelleme = $true
+    # Yarım kalmış ilk kurulum: kayıtlı veri klasörüyle sürdürülür. Güncelleme kipini kurulum.ps1 veritabanının varlığına göre kendisi seçer.
     $dd = Get-KayitliVeriKlasoru
     if (-not $dd) { Stop-Kurulum "Plugin kurulu ama kayıtlı veri klasörü okunamadı. Claude'da /plugin → reklam-atolyesi → Configure ile veri klasörünü kontrol edin." }
     Write-Host "  Kurulu sürüm: $($kurulu.version) · veri klasörü: $dd"

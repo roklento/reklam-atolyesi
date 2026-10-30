@@ -31,6 +31,13 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
 
 ## Adımlar
 1. `stage_start(profile_id, "S10", campaign_id, cycle_id)`. Proje yoksa `PY PR/scripts/render/render.py init --project <k>/src`.
+   Proje önceki bir plugin sürümüyle kurulmuşsa ve plan yeni bir özellik kullanıyorsa (ör. 1.8.0 bileşenleri: BeforeAfter, NumberRoll,
+   TextMark, PictureInPicture, PhoneScreen, KenBurns odak) render "kampanya projesi eski şablonla kurulmuş" diye durur. Kullanıcıya sade
+   dille söyle: "Bu kampanyanın video projesi eski sürümle kuruldu; yeni bileşen için projeyi güncellemem gerekiyor. Yazı konumları ve
+   bileşen görünümü değişebilir, onaylı taslakları yeniden çizip göstereceğim." Onay gelirse `render.py upgrade --project <k>/src`
+   (önce `--dry-run` ile listesi; yalnızca elle değiştirilmemiş şablon dosyaları güncellenir). `kept_customized` boş değilse yeni
+   özellik o dosyalara bağlı olabilir: yeni proje klasörü (`render.py init --project <yeni>/src`) öner. Onay yoksa planı eski projenin
+   çizebildiği bileşenlerle kur.
 2. **Planı tamamla** (`purpose="production"`; `status` önce `draft`):
    - Sahne rolleri sabit sözlükten: `hook · context · reveal · product · process · demo · proof · offer · endcard` (açılar rol değildir).
    - Her katmanın kaynağı: `footage` (malzeme haritasındaki klip + saniye aralığı; sabit/ham seçimi) · `ai_clip` · `ai_image` · `still` ·

@@ -1,6 +1,7 @@
-# Müşteri paketi — 1.9.0
+# Müşteri paketi — 2.0.0
 
-`musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
+`musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
+tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
 
 Yeni güncelleyici önce SQLite yedeği alır, marketplace ve plugin'i günceller, yalnızca değişen bağımlılıkları alır,
@@ -16,10 +17,15 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.9.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.0.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.0.0 migration içermez, yeni bağımlılık yok (kilit dosyaları değişmedi; güncelleyici `uv sync`/`npm ci` çalıştırmaz). Müşteri paketinde
+`kur.ps1` ve `KULLANIM.txt` değişti: yeni ZIP gönderin. Eski kampanya projeleri kendiliğinden değişmez; plan projenin çizemediği bir
+özelliği kullanırsa render açık mesajla durur ve S10 kullanıcı onayıyla `render.py upgrade` çalıştırır (yalnızca elle değiştirilmemiş
+şablon dosyaları). Sahne önbelleği anahtarı proje kodunu içerdiği için güncellemeden sonraki ilk render, değişmemiş projede de
+segmentleri bir kez yeniden üretir.
 1.9.0 migration 007 içerir (yalnızca sütun ekler: ürün satın alma engelleri, konsept mesaj kartı, üç günlük metrik); güncelleyici
 uygular, mevcut kayıtlar değişmez. Yeni bağımlılık yok. Mevcut kampanyanın S03 kapısı yeniden açılırsa test konseptleri için mesaj kartı
 ister; geçmiş kapılar etkilenmez. Huni turu isteğe bağlıdır ve yalnızca 2. turdan itibaren seçilebilir.
@@ -74,6 +80,15 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**2.0.0** (Linux bulut ortamı): tam paket 402 geçti, 0 başarısız, 5 atlandı (Windows müşteri güncelleyicisi). Önceki sürümlerde "ortam
+başarısızlığı" sayılan üç test giderildi: iki ingest testi gerçek bir uyumluluk hatasıydı (`vidstabdetect` `fileformat` seçeneği eski
+libvidstab'de yok), doctor testi işletim sistemine bağlıydı. 1.9.0 notundaki dördüncü test (`self_review`, OpenCV CascadeClassifier) bu
+ortamda kilit dosyasındaki OpenCV ile geçti. Duman testi 9/9 adım geçti (gerçek Remotion render'ı, ön yüklü Chromium headless shell ile;
+bu ortam Remotion'ın tarayıcı indirmesine kapalı). Şablon `tsc --noEmit` temiz. `render.py upgrade` gerçek 1.4.0, 1.5.0 ve 1.7.0
+şablonlarıyla kurulmuş projelerde denendi: hiçbir dosya "özelleştirilmiş" sayılmadı; güncellemeden önce 1.7.0 projesi NumberRoll/TextMark
+planında render başlamadan durdu (önceden "bilinmeyen bileşen" paneli çiziyordu), güncellemeden sonra iki bileşen doğru çizildi.
+PowerShell betikleri bu ortamda çalıştırılamadı (pwsh yok): `kur.ps1` değişikliği okunarak denetlendi, Windows'ta denenmedi.
 
 **1.8.1** (Linux bulut ortamı): tam paket 376 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v181_sfx.py` (5).
 

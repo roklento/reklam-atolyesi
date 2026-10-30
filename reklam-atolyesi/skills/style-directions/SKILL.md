@@ -28,7 +28,8 @@ S07 tamam (malzeme haritası). Profil `style.json` iskeleti (S00a, logodan renkl
 
 ## Adımlar
 1. `stage_start(profile_id, "S08", campaign_id, cycle_id)`. Kampanya Remotion projesi yoksa:
-   `PY PR/scripts/render/render.py init --project <kampanya>/src` (şablon kopyalanır; özelleştirilmiş dosyalar korunur).
+   `PY PR/scripts/render/render.py init --project <kampanya>/src` (şablon kopyalanır; özelleştirilmiş dosyalar korunur). Proje önceki
+   bir plugin sürümüyle kurulduysa yeni bileşenler için `render.py upgrade` gerekir (S10 adım 1'deki onaylı yol).
 2. **Onaylı stil kitabı var mı?** (`styles/v<N>.json` onaylı ve `style.json` ona eşit) → yeni malzemeden 3 sabit kare bu stille render
    edilir, uyum kontrol edilir; kapıda "aynı stille devam / stili yenile". "Yenile" seçilirse aşağıdaki akış.
 3. **Sahne taslağı:** S03 konseptleri + S07 malzeme haritasından kurgu planı taslağı (`purpose="style_preview"`, `status="draft"`,

@@ -5,7 +5,9 @@ ZIP dosyasını bir klasöre çıkarın. Dosyalar yan yana kalmalı.
 İLK KURULUM: kur.cmd dosyasına çift tıklayın.
 Araçları, bağımlılıkları ve ilk kurulum doğrulamasını yapar.
 GitHub davetini kabul etmiş hesabınızla giriş yapın. Veri klasörünü seçin.
-Zaten kuruluysa sizi guncelle.cmd dosyasına yönlendirir.
+Kurulum tamamlanmışsa sizi guncelle.cmd dosyasına yönlendirir.
+Kurulum yarıda kaldıysa (doğrulama geçmedi, pencere kapandı) sorunu giderip kur.cmd dosyasını
+yeniden çalıştırın; kayıtlı veri klasörüyle kaldığı yerden sürer.
 
 GÜNCELLEME: Claude masaüstü uygulamasını sistem tepsisinden tamamen kapatın.
 Açık Claude Code oturumlarını da kapatın. Sonra guncelle.cmd dosyasına çift tıklayın.
@@ -14,6 +16,8 @@ Yalnızca değişen bağımlılıklar alınır; gerekli veritabanı geçişleri 
 Test, örnek render, galeri, doctor ve toplu canlı kabul testi çalıştırılmaz.
 İlk kurulumda tamamlanmamış hesap bağlantıları ayrıca tamamlanmalıdır.
 İş bitince Claude'u yeniden açıp yeni oturumda reklam-atolyesi yazın.
+Güncellemeden önce başlamış kampanyaların video projesi değişmez. Böyle bir kampanyada yeni bir
+video bileşeni istenirse Reklam Atölyesi projeyi güncellemek için onayınızı ister.
 
 HATA OLURSA: Ekrandaki mesajı ve belirtilen günlük dosyasını sağlayıcınıza gönderin.
 Güncelleme günlükleri veri klasöründeki logs klasörüne de kopyalanır.

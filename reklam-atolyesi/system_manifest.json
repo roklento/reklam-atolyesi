@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "1.9.0",
+ "plugin_version": "2.0.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -167,7 +167,7 @@
    "name": "compose",
    "kind": "stage",
    "description": "reklam-atolyesi S10 kurgu — kurgu planını kesin zamanlama, katman ve geçişlerle tamamlar, vuruşa yaslar, sahne ara dosyalarından Remotion render eder ve görsel öz denetimden geçirir.",
-   "sha256": "b13e3b9b48ecfb6c78ba6d0319b7cb84effb4b97c283d27211469a51e8552ea0"
+   "sha256": "5d0af580384045e32ebf502a06d922b86d790b8d2d5f7de568ef5859bc3361f0"
   },
   {
    "name": "concepts",
@@ -281,7 +281,7 @@
    "name": "ref-remotion-components",
    "kind": "reference",
    "description": "reklam-atolyesi Remotion bileşen kütüphanesi — kompozisyonlar, plan katmanı → bileşen eşlemesi, bileşen prop'ları, geçiş/kamera/yazı presetleri, determinizm, yeni bileşen kuralı.",
-   "sha256": "8217e82cdcb3b9d1364d0eda7d3db8f922d8b7f93d417d9e8b3414432f88d07d"
+   "sha256": "ac490faeafae83f5301c2b2ed701148fea658eef03697f68e27db342a17eb218"
   },
   {
    "name": "ref-shooting-basics",
@@ -329,7 +329,7 @@
    "name": "style-directions",
    "kind": "stage",
    "description": "reklam-atolyesi S08 stil yönleri — çekimden 2–3 farklı yön (renk/LUT, tipografi, hareket, ses imzası, efekt bütçesi), 3 kare + 5 sn test, öz denetim, sürümlü stil kitabı. Kapılı.",
-   "sha256": "46c941fdef9582afdf7656b7711b6aa56cee639c049555f9d3b0671e51c7a1f7"
+   "sha256": "0692e36f17a8a4494cd754be150901e2df90b43ef92b6615dc7d546689bc9c7a"
   },
   {
    "name": "track",
@@ -823,7 +823,7 @@
   "organic: organik paylaşım adayları ve takvim": "scripts/organic/candidates.py",
   "audio: sahne sesi ve miks": "scripts/audio/mix.py",
   "audio: ses kütüphanesi": "scripts/audio/sfx_library.py",
-  "render: render, still, galeri, Türkçe final": "scripts/render/render.py",
+  "render: render, still, galeri, Türkçe final, eski kampanya projesinin güvenli güncellenmesi (upgrade)": "scripts/render/render.py",
   "render: Remotion programatik render": "scripts/render/render.mjs",
   "render: export ve adlandırma": "scripts/render/export.py",
   "render: grade_lut": "scripts/render/grade_lut.py",
@@ -847,6 +847,7 @@
   "setup: update-vendor": "scripts/setup/update-vendor.sh",
   "setup: doctor": "scripts/setup/doctor.py",
   "setup: manifest": "scripts/setup/manifest.py",
+  "setup: şablon sürüm geçmişi (render.py upgrade için yayımlanmış dosya hash'leri)": "scripts/setup/template_history.py",
   "setup: hooks.json ve .mcp.json üretimi": "scripts/setup/gen_config.py",
   "setup: MCP stdio sondası": "scripts/setup/mcp_probe.py",
   "setup: dağıtılan kurulumun makinede doğrulaması (duman testi, render ve galeri karşılaştırması, doctor)": "scripts/setup/kurulum_dogrula.py",
@@ -885,6 +886,7 @@
   "templates/remotion/src/plan.ts": "d60c879cd66f42d07f25bcb28a7334308164a9a64f39d201274731f12fb0db82",
   "templates/remotion/src/scenes/index.tsx": "bc5dff899993c6c9f3e81e71d50da873cd8eb37fd19c042ca97639053b8ee1b9",
   "templates/remotion/src/style.ts": "6476d4210ce03e0e6d89aec69b4b67edbee5d81749426d179c6b5f2437d22abb",
+  "templates/remotion/template_history.json": "60153a055a479a60d4605a1dc7c83109f1520ca867d2bfdb015e8ffc2d4831f6",
   "templates/remotion/tsconfig.json": "105c802b11212454bf22365ad1766e6e4c2b986c110606a7e0d9338b63dbd93a",
   "templates/reports/brief.md": "35110aad099eb9b067e567c43bf3c0df908a9b1d5100cc549e0e8cfe42c68875",
   "templates/reports/cekim-rehberi.md": "b043cfa545bc4a2070e16d03d100e8a4ab5042c2032f33a51222a45a54114e2a",
@@ -897,17 +899,12 @@
  },
  "tests": {
   "pytest": {
-   "passed": 391,
-   "failed": 4,
+   "passed": 402,
+   "failed": 0,
    "skipped": 5,
-   "returncode": 1,
-   "summary": "391 passed, 4 failed, 5 skipped (1.9.0, 1.8.1 ile birleştirildikten sonra, Linux bulut ortamı; yeni testler tests/test_v190_funnel.py: aşama ekseni ve huni turu taksonomisi, migration 007, satın alma engelleri, mesaj kartı doğrulaması, BOFU kanıtı (iddia, yorum, geri çekilmiş yorum, engel kanıtı), S03 kapısının mesaj kartı istemesi, keşif ve huni turu portföy kuralları, huni turunun ilk turda reddi, yeni metriklerin kaydı ve toplamı, koç aşama bölümü ve huni turu kapatma koruması, yalnız özellik güncellemesinin mesaj kartı aşamasıyla çelişmemesi, QC funnel-diff). Dört başarısızlık ortamdan geliyor (önceki üç ve self_review: bu ortamın opencv derlemesinde CascadeClassifier yok, main'de de aynı hata); 1.9.0 değişikliği bunlara dokunmuyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.9.0 Windows'ta çalıştırılmadı.",
-   "known_environment_failures": [
-    "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
-    "tests/test_media.py::test_ingest_outputs",
-    "tests/test_media.py::test_measure_contact_sheet_material_map",
-    "tests/test_v151_text_qc.py::test_self_review_reports_fonts_and_bands"
-   ],
+   "returncode": 0,
+   "summary": "402 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı.",
+   "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-30",
    "platform": "linux"
@@ -915,13 +912,13 @@
   "smoke": {
    "ok": true,
    "partial": false,
-   "seconds": 135.8,
+   "seconds": 365.0,
    "steps": [
     {
      "step": 1,
      "title": "profiller ve yalıtım",
      "ok": true,
-     "seconds": 1.3,
+     "seconds": 0.8,
      "detail": {
       "profiles_0_to_1": [
        0,
@@ -945,7 +942,7 @@
      "step": 2,
      "title": "aşama makinesi ve takvim",
      "ok": true,
-     "seconds": 1.8,
+     "seconds": 1.0,
      "detail": {
       "calendar_7_14": {
        "G0_launch": "2026-03-07",
@@ -1003,7 +1000,7 @@
      "step": 3,
      "title": "ingest ve analiz (4K dikey)",
      "ok": true,
-     "seconds": 44.1,
+     "seconds": 122.7,
      "detail": {
       "footage": 4,
       "photos": 2,
@@ -1018,7 +1015,7 @@
        "S04_t1.mov": []
       },
       "shake": {
-       "shake_permille": 50.083,
+       "shake_permille": 54.108,
        "frames": 119,
        "threshold_permille": 4.0
       },
@@ -1030,16 +1027,16 @@
      "step": 4,
      "title": "render, ses, öz denetim, varyasyon, QC",
      "ok": true,
-     "seconds": 68.6,
+     "seconds": 229.0,
      "detail": {
       "tempo": 117.45,
       "render_916": {
-       "ms": 18582,
+       "ms": 75193,
        "segments": 5,
        "scale": 0.5
       },
       "render_45": {
-       "ms": 15063,
+       "ms": 45701,
        "segments": 5
       },
       "render_11_still": "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/kare_11.png",
@@ -1065,16 +1062,19 @@
        "frames": [
         "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/review_r1/scene_frames.jpg",
         "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/review_r1/contact_1fps.jpg",
-        "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/review_r1/dense_frames.jpg"
+        "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/review_r1/dense_frames.jpg",
+        "<data_dir>/.selftest/profiles/marka-a/campaigns/kampanya-a/selftest/review_r1/text_bands_1.jpg"
        ],
        "effect_budget_caught": [
         "efekt bütçesi: 2 imza anı var, izin verilen 1 (stil: 1 / 15 sn)",
         "efekt bütçesi: 3 farklı geçiş türü (crossfade, filmBurn, whipPan), izin verilen 2"
-       ]
+       ],
+       "text_bands": 3,
+       "font_coverage_ok": true
       },
       "variant_6s": {
        "version": 2,
-       "ms": 9515
+       "ms": 27406
       },
       "final_scene": {
        "resolution_ok": true,
@@ -1090,7 +1090,7 @@
      "step": 5,
      "title": "metrik CSV ve koçluk",
      "ok": true,
-     "seconds": 3.8,
+     "seconds": 2.8,
      "detail": {
       "csv_check": {
        "rows": 30,
@@ -1121,7 +1121,7 @@
      "step": 6,
      "title": "hafıza",
      "ok": true,
-     "seconds": 2.6,
+     "seconds": 1.5,
      "detail": {
       "unit": {
        "targets": [
@@ -1140,7 +1140,7 @@
      "step": 7,
      "title": "hata senaryoları",
      "ok": true,
-     "seconds": 11.4,
+     "seconds": 5.9,
      "detail": {
       "unit": {
        "targets": [
@@ -1160,7 +1160,7 @@
      "step": 8,
      "title": "rekabet",
      "ok": true,
-     "seconds": 2.2,
+     "seconds": 1.2,
      "detail": {
       "unit": {
        "targets": [
@@ -1187,7 +1187,8 @@
      }
     }
    ],
-   "selftest_dir_removed": true
+   "selftest_dir_removed": false,
+   "note": "2.0.0, Linux bulut ortamı (bu oturum). Bu ortam Remotion'ın tarayıcı indirmesine (remotion.media) kapalı olduğundan render.mjs'ye yalnızca ön yüklü Chromium headless shell yolu verildi; plugin kodu başka değişmedi. Windows'ta çalıştırılmadı."
   },
   "gallery": {
    "gallery": "templates/remotion/gallery.png",
@@ -1367,7 +1368,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1549,6 +1550,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; örnekler markaya özgü değil",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "2.0.0: değişen/yeni dosyalar (render.py upgrade ve proje denetimi, template_history.py/json, sahne önbelleği anahtarı, convert.py vidstab seçeneği, doctor os_name, kurulum.ps1 .tts, skill metinleri compose/style-directions/ref-remotion-components, testler, README; müşteri paketi kur.ps1/KULLANIM.txt)",
+    "files_reviewed": 21,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('MarkaRozeti', 'Örnek başlık')",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1559,19 +1568,19 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "a109d9ac3e59885fca1e27204064e2f1a27b293c0ca75319f7414113f953d62c",
+   "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "db013523d3dc84a63a6e9c75989c66829effc3411f6c7bb2024930ad1dbf0001",
+   "skills": "f17e959b28f691df907816e98c689a8e7da9e03505bdfed0d32731f06125fa8f",
    "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-   "ad_memory": "596c236ae80b4629544fb38422bcd9edc8e619b5b9c7fcf8434f0adb2b78c298",
-   "scripts": "673dd62bae4e8921659c3260baabd14db0908ba1917beec2adf1893dfe24061e",
-   "templates": "b8519b1fb9885a1484ccd7cfb10367b8c2605db442bb2996bd5958da1801f537",
+   "ad_memory": "2944a46063c3e39a11ab79b62718228cceda7b542e131cab87a99989bb3b4b3f",
+   "scripts": "6ab6de2f07046c0e8fee27d0fccf05caaa1807c8c5202af4a3cebf7e57f180e6",
+   "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
    "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
-  "checked_at": "2026-10-29"
+  "checked_at": "2026-10-30"
  },
  "live_checks": [
   {
@@ -1728,16 +1737,16 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "a109d9ac3e59885fca1e27204064e2f1a27b293c0ca75319f7414113f953d62c",
+  "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "db013523d3dc84a63a6e9c75989c66829effc3411f6c7bb2024930ad1dbf0001",
+  "skills": "f17e959b28f691df907816e98c689a8e7da9e03505bdfed0d32731f06125fa8f",
   "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-  "ad_memory": "596c236ae80b4629544fb38422bcd9edc8e619b5b9c7fcf8434f0adb2b78c298",
-  "scripts": "673dd62bae4e8921659c3260baabd14db0908ba1917beec2adf1893dfe24061e",
-  "templates": "b8519b1fb9885a1484ccd7cfb10367b8c2605db442bb2996bd5958da1801f537",
+  "ad_memory": "2944a46063c3e39a11ab79b62718228cceda7b542e131cab87a99989bb3b4b3f",
+  "scripts": "6ab6de2f07046c0e8fee27d0fccf05caaa1807c8c5202af4a3cebf7e57f180e6",
+  "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."

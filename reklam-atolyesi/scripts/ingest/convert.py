@@ -75,10 +75,27 @@ def make_proxy(src: Path, dst: Path, fast: bool = False) -> None:
             "-threads", str(x264_threads()), "-c:a", "aac", "-b:a", "192k", "-ar", "48000", str(dst)])
 
 
+_VIDSTAB_FILEFORMAT: bool | None = None
+
+
+def _vidstab_has_fileformat() -> bool:
+    """libvidstab 1.1.1+ varsayılan olarak ikili TRF yazar ve `fileformat` seçeneğini getirir; eski sürümlerde seçenek yoktur
+    (verilirse FFmpeg 8 koduyla çıkar) ve TRF zaten metindir."""
+    global _VIDSTAB_FILEFORMAT
+    if _VIDSTAB_FILEFORMAT is None:
+        try:
+            out = ffmpeg(["-h", "filter=vidstabdetect"], check=False)
+            _VIDSTAB_FILEFORMAT = "fileformat" in (out.stdout or "")
+        except Exception:
+            _VIDSTAB_FILEFORMAT = True
+    return _VIDSTAB_FILEFORMAT
+
+
 def detect_shake(src: Path, trf: Path) -> dict:
     """vidstabdetect (1. geçiş); S07'nin sarsıntı puanı bu ölçümdür. Yerel hareket vektörlerinden kare başına RMS, genişliğe göre ‰."""
     tr = trf.as_posix().replace(":", "\\:")
-    ffmpeg(["-i", str(src), "-vf", f"vidstabdetect=shakiness=6:accuracy=15:fileformat=ascii:result='{tr}'", "-f", "null", "-"])
+    fmt = "fileformat=ascii:" if _vidstab_has_fileformat() else ""
+    ffmpeg(["-i", str(src), "-vf", f"vidstabdetect=shakiness=6:accuracy=15:{fmt}result='{tr}'", "-f", "null", "-"])
     width = probe(src).get("width") or 1080
     per_frame = []
     vec = re.compile(r"\(LM\s+(-?\d+)\s+(-?\d+)")
