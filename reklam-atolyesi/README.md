@@ -144,6 +144,8 @@ Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı 
   kurgu planı dosya adına plandaki serbest metin yol olarak giremez. İddia eşleştirmesi Türkçe büyük/küçük harfi doğru tanır.
 - **Yasal:** Meta AI etiketi resmi metinden okundu (otomatik "AI info" etiketi; Türkiye'de reklamveren beyanı seçeneği yok; Türkiye'deki
   görünür açıklama yükümlülüğü Ticari Reklam Yönetmeliği'nden). İlk açılışta profil yokken kurulum eksiği marka tanışmasından önce gelir.
+- **Meta kıyas:** `ads_insights_performance_vs_peers` (salt okuma) izin listesine eklendi: takip, reklam setini benzer reklamverenlere
+  göre metrik başına yüzdelikle gösterir (`kind: "peers"`). Yüzdelik bağlamdır; önsel, hüküm ya da CPM tahmini değildir.
 - **Belgeler:** kurulum/güncelleme yönergesi müşteri paketine göre düzeltildi (`kur.cmd` ilk kurulum, `guncelle.cmd` güncelleme, yarıda
   kalan kurulum, eski kampanyalar); yerel marketplace adı (`reklam-atolyesi`), skill sayısı (35) ve `.gitignore` (`*.egg-info/`).
 
@@ -382,7 +384,8 @@ Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı 
 - Güvenli alan: açıklama metni (`disclaimer.on`) ya da AI (`ai_share > 0`) içeren 9:16 planda alttaki %40 boş (Meta resmi kılavuzu).
 - Kreatif test payı ~%20 artık "Meta sınırı" diye değil, plugin'in yerel üst sınırı ve teyit edilmemiş Meta önerisi diye yazılır;
   günlük bütçe artışı ≤ %20 yerel koruma kuralıdır.
-- Takip: ilk harcamadan sonra Meta kıyas araçları (`ads_insights_industry_benchmark`, `ads_insights_auction_ranking_benchmarks`)
+- Takip: ilk harcamadan sonra Meta kıyas araçları (`ads_insights_industry_benchmark`, `ads_insights_auction_ranking_benchmarks`;
+  2.0.0'dan itibaren `ads_insights_performance_vs_peers`)
   bağlam olarak; veri yoksa "kıyas yok". Kıyas önsel değildir.
 - Geçmiş ve kıyas yokken "sektör ortalaması" vaadi engellendi.
 

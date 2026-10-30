@@ -263,7 +263,7 @@
    "name": "ref-legal-tr-meta",
    "kind": "reference",
    "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar.",
-   "sha256": "e21d5e7da5e5f2de570f5420fa8f54a7ca6e19c8bee109da4246418fd9275950"
+   "sha256": "91a8b1a2ca98cfca99fca9bb9d09e28061dd8337dd995529477c2b7100f79f10"
   },
   {
    "name": "ref-metrics-math",
@@ -323,7 +323,7 @@
    "name": "strategy",
    "kind": "stage",
    "description": "reklam-atolyesi S02 strateji — (A) ekonomi, kreatif tavanı, tur takvimi, toplam harcama planı, zarar-risk sınırı; (B) rakibe dayalı konumlandırma, mesaj sırası, açı portföyü. Kapılı.",
-   "sha256": "cc9c30350378d92b22f7409a7415a40527f07c58371c03477d601168cf12f791"
+   "sha256": "66413b0dcf3bbd5fb9db19f20b31ebd00d9ea7b686722986f38f75c31ae16abb"
   },
   {
    "name": "style-directions",
@@ -335,7 +335,7 @@
    "name": "track",
    "kind": "stage",
    "description": "reklam-atolyesi S15 takip — günlük Meta okuması/CSV, ölçüm bağlamı, test yapısı tespiti, veri kalitesi, olgunluk, yorgunluk/anomali, bütçe ve risk uyarıları, uygulandı mı kontrolü.",
-   "sha256": "f400891bbcc62a4d2ed51a864c5eb0e110b2c8211d9ecd4ae443f8f330793d05"
+   "sha256": "aa687f97fda46fcb97e88611cb4da4743fd794f41eb41a57e70e630bba791ff7"
   },
   {
    "name": "variants",
@@ -388,7 +388,7 @@
   {
    "name": "meta-historian",
    "description": "reklam-atolyesi Meta geçmişi uzmanı. Meta'dan YALNIZCA izin listesindeki salt okuma araçlarıyla geçmişi çeker, ad-memory'ye profil bağlı yazar, önsel/kıyas/sağlık raporunu kurar, kısa özet döner. S00b, açılış bakımı, koçluk öncesi.",
-   "sha256": "aaf0df8de61f9bbb2c23eaf97c0947423bcf0512772c9b3b178607a6c981852a"
+   "sha256": "049889bc9a3e53dc4882557b1a738a067f59d32d39deeb6419fc7916f823ea72"
   },
   {
    "name": "qc-reviewer",
@@ -1567,6 +1567,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('Marka A', 'Önce', 'Sonra', 'Ürün B')",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "2.0.0 ek: ads_insights_performance_vs_peers izin listesine eklendi (meta_allowlist.json, track, meta-historian, strategy, ref-legal-tr-meta tablo satırları, README, test_hooks)",
+    "files_reviewed": 7,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('Marka A', 'Önce', 'Sonra', 'Ürün B')",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1579,11 +1587,11 @@
   "component_hashes": {
    "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "0ef8b2a50e6fe2566c874bf59133d4bf646c3b1cf0f88565563fe90c5d8226ad",
-   "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
+   "skills": "94dbe5bee0a89e2c90e18a35fc6cadd9b6a252d11098f2489ba5c9edacbb14df",
+   "agents": "559c979bd941658dc0b67e02f90f1286ed9180eab9d7f69c24284d9ad8416b4c",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
-   "hooks": "86f3c9fae47dabc2678f4b1655b2aed7bdfa42b4ac0aea5b7573b235ec8dcc2b",
+   "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
    "ad_memory": "7e8b7c875e3620bdab4ad564c9fe3bdf42d3af1a6b3786f36694a6f87cc01844",
    "scripts": "340867d6407c3235970fa70655b3bfc9527e01142059af4c9ec01def52670c69",
    "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
@@ -1748,11 +1756,11 @@
  "component_hashes": {
   "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "0ef8b2a50e6fe2566c874bf59133d4bf646c3b1cf0f88565563fe90c5d8226ad",
-  "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
+  "skills": "94dbe5bee0a89e2c90e18a35fc6cadd9b6a252d11098f2489ba5c9edacbb14df",
+  "agents": "559c979bd941658dc0b67e02f90f1286ed9180eab9d7f69c24284d9ad8416b4c",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
-  "hooks": "86f3c9fae47dabc2678f4b1655b2aed7bdfa42b4ac0aea5b7573b235ec8dcc2b",
+  "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
   "ad_memory": "7e8b7c875e3620bdab4ad564c9fe3bdf42d3af1a6b3786f36694a6f87cc01844",
   "scripts": "340867d6407c3235970fa70655b3bfc9527e01142059af4c9ec01def52670c69",
   "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
