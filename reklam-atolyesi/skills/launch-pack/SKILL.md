@@ -71,6 +71,23 @@ Yok.
      (üyeler, günlük bütçe, kalan bütçeye etkisi). Üye ekleme her zaman S16 uygulama listesinden ve **mevcut gönderiyle** yapılır
      ("Mevcut gönderiyi kullan" → gönderi kimliği); yeni reklam olarak kopyalamak beğeni ve yorum birikimini taşımaz (§7).
    - Test başlangıcı mümkünse hesap saat diliminde **gece yarısı** (günlük veride sınır günleri dışlanır, 6.4).
+5a. **Advantage+ kreatif iyileştirmeleri (2.3.0; resmi, §7):** Meta bazı iyileştirmeleri varsayılan açar ve yüklenen medya ile metni
+   ayarlayabilir; bazıları yalnızca gelişmiş önizlemede görünür. Paket her reklam için şu talimatı içerir: reklam kurulumunda
+   "İyileştirmeler" bölümü ve önizlemede **Genişlet → gelişmiş önizleme → Advantage+ kreatif** sekmesi birlikte kontrol edilir; açık
+   olanlar adıyla not edilir. Mevcut gönderiyle kurulan ya da daha önce yayında olan reklamlarda Reklamlar → reklam → Düzenle →
+   Advantage+ kreatif bölümündeki açık iyileştirme sayısına bakılır.
+   - **Kreatif testi ve A/B testi turları (`creative_test`, `ab_test`):** kreatifi ya da tıklama sonrası deneyimi değiştiren
+     iyileştirmeler kapatılır: metin (metin varyasyonları, kişiye göre metin), görsel (görsel düzenleme, genişletme, şablon, animasyon),
+     ses (müzik) ve varış yeri (**ürün gezinme**, site bağlantıları). Gerekçe: test tek değişkenli olmalı ve QC'den geçen metin/görsel
+     yayında aynı kalmalı (yerel koruma kuralı, §7). Kullanıcı bilerek açık bırakırsa kaydedilir; koçluk hükümleri "Meta iyileştirmesi
+     açık" kaydıyla verilir.
+   - **İlk tur (`bootstrap`) ve ölçekleme katmanı:** iyileştirmeler kullanıcının seçimidir; paket listeyi ve etkisini gösterir, metin
+     ve görsel değiştiren iyileştirmelerde QC'nin yalnızca yüklenen sürümü denetlediğini söyler. AI ile üretilen metin/görsel
+     iyileştirmesi açıksa AI açıklaması (adım 7) bu sürümler için de düşünülür.
+   - **Ürün gezinme (28.10.2026'dan beri mevcut reklamlarda varsayılan açık; bildirim kaynaklı, §7):** Ads Manager'daki bildirime ve
+     reklamın Advantage+ kreatif/varış yeri ayarlarına bakılır. Açıkken tıklayan kişi Facebook/Instagram içinde kalabilir; site ziyareti
+     ve sayfa görüntüleme sayıları bundan etkilenebilir (ölçülmedi). Katalog şartı bildirimde yok: her hesapta kontrol edilir.
+   - Meta'nın iyileştirme adları hesaba, formata ve yerleşime göre değişir; paket ad sabitlemez, kullanıcı ekranda gördüğünü yazar.
 6. **Harcama ve bitiş sınırları:** kampanya toplam sınırı, gerçekleşen ve kalan; insanın uygulayacağı, hesabın desteklediği kapsamlı
    **harcama limiti ve/veya bitiş tarihi** talimatı (tarih/günlük bütçe tahmini tek başına kesin parasal tavan değildir); reklam başı risk
    sınırı ve sınıra ulaşınca durdurma önerisi üretileceği.
@@ -87,8 +104,12 @@ Yok.
     saati ve test başlangıcı istenir. MCP yolunda salt okuma karşılaştırma: `ads_get_ad_entities(level="ad", …)` → okunan kimlikler
     `readback={ad_ids:[…]}`. Adlandırma eşlemesi: `PY PR/scripts/meta/meta_tools.py naming --name "<reklam adı>"`.
 12. `launch_confirm(profile_id, campaign_id, cycle_id, s14_stage_run_id, output_version, ads=[{meta_ad_id, creative_key, meta_ad_name,
-    adset_id, campaign_meta_id}], launched_at, user_confirmation, test_start?, readback?)` → `ads` kayıtları, `cycles.launched_at`,
+    adset_id, campaign_meta_id}], launched_at, user_confirmation, test_start?, readback?, enhancements)` → `ads` kayıtları, `cycles.launched_at`,
     S15 geçişi. Yedek anahtar ya da risk eşlemesi olmayan anahtar reddedilir.
+    `enhancements` (2.3.0, adım 5a): `{checked: true, source: "advanced_preview" | "meta_mcp" | "user", on: [{name, kind: text | visual |
+    audio | destination | other, creative_keys?}], off: [ad]}`. Kullanıcıya "Gelişmiş önizlemede açık kalan iyileştirme var mı? Varsa
+    adlarını yaz" diye sorulur; bakılmadıysa alan verilmez ve tur "kontrol edilmedi" diye kaydedilir (dönen `warnings` kullanıcıya
+    okunur, durum ekranında da görünür). Yayından sonra kapatılırsa `cycle_set(profile_id, cycle_id, {enhancements_json: {…}})`.
 13. **Zamanlanmış işler** (masaüstü uygulaması + kullanıcı onayı; navigator §6): günlük takip (kampanya başına tek; yeni turda kopya
     yok) ve plan günü karar hazırlığı kurulur/güncellenir; `job_upsert`. Takvim gerçek yayın tarihiyle kesinleşir (`cycle_set`:
     `test_start`, `test_end`, `plan_day`, `decision_due_at`).
@@ -103,9 +124,12 @@ Yayın paketi, `cycles.risk_limits_json.mapping`, güncel bütçe planı; yayın
 - Yükleme listesinde yalnızca QC'den geçmiş test kreatifleri; her birinin risk sınırı eşlemesi var; tavan aşılmadı.
 - Kurulum talimatı yapıya uygun; insan uygulayacak; plugin hiçbir Meta yazma aracını çağırmadı.
 - Ölçekleme katmanı açıksa harcaması toplam plana girdi ve yeni test reklamı ölçekleme setine yazılmadı.
+- Advantage+ kreatif iyileştirmeleri talimatı (5a) pakette; test turunda kreatifi/varış yerini değiştirenlerin kapatılması yazıldı;
+  `launch_confirm` iyileştirme durumunu (`enhancements`) taşıdı ya da tur "kontrol edilmedi" diye kaydedildi ve uyarı söylendi.
 - `launch_confirm` olmadan S15'e geçilmedi.
 
 ## Kapı mesajı
 "Yayın paketi: N test reklamı (… ), yedekte K. Kurulum: <ilk tur | kreatif test> — adımlar pakette. Sınırlar: kampanya toplam … (kalan …),
-reklam başı risk …; uygulanacak harcama limiti/bitiş: …. AI açıklaması gereken: …. Planlanan yayın: …. Paketi onaylıyor musun?"
+reklam başı risk …; uygulanacak harcama limiti/bitiş: …. AI açıklaması gereken: …. Meta iyileştirmeleri: <test turunda kapatılacaklar |
+ilk turda senin seçimin>. Planlanan yayın: …. Paketi onaylıyor musun?"
 → `gate_approve(...)`. Yayının kendisi ayrıca `launch_confirm` ile kaydedilir.

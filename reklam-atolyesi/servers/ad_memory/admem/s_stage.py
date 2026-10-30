@@ -12,8 +12,56 @@ from .util import AdMemoryError, est_tokens, jdump, jload, now_iso, parse_iso, s
 CYCLE_FIELDS = {"adset_budget_daily", "test_budget", "test_days", "cycle_days", "plan_day", "shoot_start", "launch_at",
                 "test_start", "test_end", "decision_due_at", "decision_at", "meta_test_id", "structure_detected",
                 "structure_evidence_json", "measurement_json", "priors_snapshot_json", "budget_plan_json",
-                "risk_limits_json", "calendar_json", "status"}
+                "risk_limits_json", "calendar_json", "status", "enhancements_json"}
 CHECKPOINT_MAX_TOKENS = 600  # ~400 hedef; yapılandırılmış alanlarla küçük pay (8.3)
+# 2.3.0: Advantage+ kreatif iyileştirmeleri (resmi: bazıları varsayılan açık, medya/metni ayarlayabilir; help/1082295769403815).
+# Meta'nın iyileştirme adları hesaba ve formata göre değişir; ad serbest, tür bu listeden.
+ENHANCEMENT_KINDS = ("text", "visual", "audio", "destination", "other")
+ENHANCEMENT_SOURCES = ("advanced_preview", "meta_mcp", "user")
+
+
+def normalize_enhancements(e: Any, creative_keys: set[str] | None = None) -> dict:
+    """{checked, source, on: [{name, kind, creative_keys?}], off: [name]}; None → kontrol edilmedi."""
+    if e is None:
+        return {"checked": False, "source": None, "on": [], "off": []}
+    if not isinstance(e, dict):
+        raise AdMemoryError("enhancements: {checked, source, on: [{name, kind, creative_keys?}], off: [ad]} biçiminde olmalı")
+    checked = bool(e.get("checked", True))
+    source = e.get("source") or "user"
+    if source not in ENHANCEMENT_SOURCES:
+        raise AdMemoryError("enhancements.source: " + " | ".join(ENHANCEMENT_SOURCES))
+    on = []
+    for it in e.get("on") or []:
+        if not isinstance(it, dict) or not str(it.get("name") or "").strip():
+            raise AdMemoryError("enhancements.on: her öğe {name, kind} taşımalı")
+        kind = it.get("kind") or "other"
+        if kind not in ENHANCEMENT_KINDS:
+            raise AdMemoryError("enhancements.on[].kind: " + " | ".join(ENHANCEMENT_KINDS))
+        item = {"name": str(it["name"]).strip(), "kind": kind}
+        if it.get("creative_keys"):
+            ks = [str(k) for k in it["creative_keys"]]
+            if creative_keys is not None and set(ks) - creative_keys:
+                raise AdMemoryError("enhancements.on[].creative_keys bu turun test kreatiflerinde yok: " + ", ".join(sorted(set(ks) - creative_keys)))
+            item["creative_keys"] = ks
+        on.append(item)
+    if on and not checked:
+        raise AdMemoryError("enhancements: açık iyileştirme listesi verildiyse checked=true olmalı")
+    off = [str(x).strip() for x in (e.get("off") or []) if str(x).strip()]
+    return {"checked": checked, "source": source if checked else None, "on": on, "off": off}
+
+
+def enhancement_warnings(e: dict | None, prefix: str = "") -> list[str]:
+    """Yayın kaydı ve durum için uyarılar; kayıt yoksa (2.3.0 öncesi tur) sessiz."""
+    if not e:
+        return []
+    if not e.get("checked"):
+        return [prefix + "Advantage+ kreatif iyileştirmeleri yayında kontrol edilmedi: Meta bazılarını varsayılan açar ve QC'den geçen "
+                "metni/görseli değiştirebilir. Ads Manager → reklam → Advantage+ kreatif ve gelişmiş önizlemeden bakılıp cycle_set ile kaydedilmeli"]
+    if e.get("on"):
+        names = ", ".join(f"{i['name']} ({i['kind']})" for i in e["on"])
+        return [prefix + f"Açık kalan iyileştirmeler: {names}. Kreatif testi ikinci bir değişkenle karışık; hükümler "
+                "'Meta iyileştirmesi açık' kaydıyla"]
+    return []
 
 
 class StageMixin:
@@ -146,6 +194,10 @@ class StageMixin:
             raise AdMemoryError("turun önselleri dondurulmuş; ölçüm sırasında değiştirilemez (6.6)")
         if "risk_limits_json" in fields and fields["risk_limits_json"] is not None:
             self._validate_risk_limits(fields["risk_limits_json"])
+        if "enhancements_json" in fields:  # 2.3.0: yayından sonra kapatılan/açılan iyileştirmeler
+            keys = {r["creative_key"] for r in self.qa("SELECT DISTINCT creative_key FROM creatives WHERE cycle_id=? AND delivery_role='test'", (cy["id"],))}
+            ev = fields["enhancements_json"]
+            fields["enhancements_json"] = normalize_enhancements(jload(ev, ev) if isinstance(ev, str) else ev, keys)
         if "structure_detected" in fields and fields["structure_detected"] not in (None, "bootstrap", "creative_test", "ab_test", "deviated", "unverified"):
             raise AdMemoryError("structure_detected: bootstrap | creative_test | ab_test | deviated | unverified")
         if fields.get("structure_detected") in ("creative_test", "bootstrap", "ab_test") and not (fields.get("structure_evidence_json") or cy["structure_evidence_json"]):
@@ -678,8 +730,9 @@ class StageMixin:
 
     def launch_confirm(self, profile_id: int, campaign_id: int, cycle_id: int, s14_stage_run_id: int, output_version: int,
                        ads: list[dict], launched_at: str, user_confirmation: str, test_start: str | None = None,
-                       readback: dict | None = None) -> dict:
-        """Gerçek yayın kaydı: onaylı S14 sürümü, reklam kimlikleri, gerçek tarih ve kullanıcı teyidi birlikte (4.2)."""
+                       readback: dict | None = None, enhancements: dict | None = None) -> dict:
+        """Gerçek yayın kaydı: onaylı S14 sürümü, reklam kimlikleri, gerçek tarih ve kullanıcı teyidi birlikte (4.2).
+        2.3.0: enhancements = yayındaki Advantage+ kreatif iyileştirmeleri; verilmezse 'kontrol edilmedi' kaydı ve uyarı."""
         c = self._campaign(profile_id, campaign_id)
         cy = self._cycle(profile_id, cycle_id, campaign_id)
         if not user_confirmation or not user_confirmation.strip():
@@ -701,6 +754,7 @@ class StageMixin:
         keys = {r["creative_key"] for r in self.qa("SELECT DISTINCT creative_key FROM creatives WHERE cycle_id=? AND delivery_role='test'", (cy["id"],))}
         rl = jload(cy["risk_limits_json"], {}) or {}
         mapping = rl.get("mapping") or {}
+        enh = normalize_enhancements(enhancements, keys)
         if readback is not None:
             seen = {str(x) for x in (readback.get("ad_ids") or [])}
             notfound = [a["meta_ad_id"] for a in ads if str(a["meta_ad_id"]) not in seen]
@@ -728,8 +782,8 @@ class StageMixin:
                     if str(a["meta_ad_id"]) not in mapping[ck]["meta_ad_ids"]:
                         mapping[ck]["meta_ad_ids"].append(str(a["meta_ad_id"]))
             rl["mapping"] = mapping
-            if self.ex("UPDATE cycles SET launched_at=?, test_start=COALESCE(?, test_start), risk_limits_json=?, status='measuring' "
-                       "WHERE id=? AND launched_at IS NULL", (launched_at, test_start, jdump(rl), cy["id"])).rowcount != 1:
+            if self.ex("UPDATE cycles SET launched_at=?, test_start=COALESCE(?, test_start), risk_limits_json=?, enhancements_json=?, status='measuring' "
+                       "WHERE id=? AND launched_at IS NULL", (launched_at, test_start, jdump(rl), jdump(enh), cy["id"])).rowcount != 1:
                 raise AdMemoryError("bu tur başka bir oturumda az önce yayın kaydı aldı")  # 2.0.0: işlem içinde yeniden denetim
             self._decision_insert(profile_id, c["id"], cy["id"], run["id"], run["output_version"], "S14", "yayın", "launched",
                                   f"kullanıcı teyidi: «{user_confirmation.strip()}»", "user")
@@ -738,6 +792,7 @@ class StageMixin:
             self.ex("""INSERT INTO stage_runs(profile_id,campaign_id,stage,cycle_id,scope_key,output_version,status,started_at)
                        VALUES(?,?, 'S15', ?,?,?, 'running', ?)""", (profile_id, c["id"], cy["id"], run["scope_key"], v + 1, now_iso()))
         return {"launched": True, "cycle": self.q1("SELECT * FROM cycles WHERE id=?", (cy["id"],)),
+                "enhancements": enh, "warnings": enhancement_warnings(enh),
                 "next": "Günlük takip işi (takip) ve plan günü karar hazırlığı işi gerçek yayın kaydına göre kurulur (4.4)."}
 
     # --- durum ve takvim (4.4, 17.1) --------------------------------------------
@@ -760,6 +815,7 @@ class StageMixin:
             for m in measuring:
                 if m["structure_detected"] in ("deviated", "unverified"):
                     warnings.append(f"Tur {m['cycle']}: test yapısı {m['structure_detected']} — hükümler 'doğrulanmamış yapı' kaydıyla")
+                warnings += enhancement_warnings(m.get("enhancements_json"), f"Tur {m['cycle']}: ")
             if c["result_type"] == "purchase" and self.meta_signal_get(profile_id)["meta_signal"].get("status") != "purchase_seen":
                 warnings.append("Satış sonuçlu kampanya ama Meta'nın satışı gördüğü doğrulanmadı: Meta tıklayanı bulur, alanı değil (piksel/yükleme)")
             if c["result_type"] == "lead":  # 1.5.0

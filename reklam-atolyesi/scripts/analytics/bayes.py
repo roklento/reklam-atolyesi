@@ -111,11 +111,12 @@ def prior_from_mean(m: float, n_source: float, n_cap: float = 30) -> tuple[float
     return a, b
 
 
-def verdict_language(threshold_met: bool, structure: str | None) -> str:
+def verdict_language(threshold_met: bool, structure: str | None, enhanced: bool = False) -> str:
     base = "kanıt" if threshold_met else "yön/yetersiz veri"
+    tail = " · Meta iyileştirmesi açık" if enhanced else ""  # 2.3.0: açık Advantage+ kreatif iyileştirmesi ikinci değişkendir
     if structure in ("bootstrap", "unverified", "deviated", None):
-        return base + " · Meta'nın dağıtımı altında" + (" · doğrulanmamış yapı" if structure in ("unverified", "deviated") else "")
-    return base
+        return base + " · Meta'nın dağıtımı altında" + (" · doğrulanmamış yapı" if structure in ("unverified", "deviated") else "") + tail
+    return base + tail
 
 
 def coverage_simulation(true_p: float, n: int, reps: int = 2000, seed: int = SEED) -> dict:

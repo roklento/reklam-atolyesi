@@ -64,6 +64,7 @@ pozitif başa baş yok. Satış dışı sonuçta hedef kullanıcı hedefidir. Pi
 - **Eşikler:** hook ≥ 1.000 gösterim; CTR ≥ 3.000; maliyet ≥ 10 uygun sonuç; satışta ≥ 2 × başa baş CPA harcama inceleme uyarısıdır.
   Eşik altı → "yön/yetersiz veri": istatistiksel kazanan/büyüt/kaybeden gerekçeli kapat yok (sınır kaynaklı durdurma ayrı).
 - Bootstrap ve doğrulanmamış yapı: "Meta'nın dağıtımı altında"; aç kalan (< %10 harcama payı) kaybeden sayılmaz.
+- Yayında açık kalan Advantage+ kreatif iyileştirmesi (2.3.0): ilgili konseptin hükmüne "Meta iyileştirmesi açık" eklenir.
 - Bunlar model koşullarındaki belirsizlik ölçüleridir; Meta dağıtımının seçim yanlılığını kaldırmaz.
 
 - **Karar metriği raporda yazılır (1.4.7):** üstünlük olasılığı hook oranı üzerindendir ve "tüm konseptlerin en iyisi olma" olasılığıdır

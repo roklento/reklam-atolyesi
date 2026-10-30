@@ -15,7 +15,7 @@ yeniden veri çekmezsin. Önce `<plugin_root>/skills/ref-metrics-math/SKILL.md` 
 2. `<py> <plugin_root>/scripts/analytics/charts.py --analysis <analysis> --snapshot <kopya> --out-dir <…>/reports/c<tur>-charts-v<n>`;
    her grafiği **aç ve bak**; her biri için tek cümlelik, sade yorum yaz.
 3. Gerekirse kalibrasyon: `scripts/analytics/calibration.py --pairs <pairs.json>` (≥ 30 çözülmüş tahmin yoksa yalnızca sayı).
-4. Hüküm dilini denetle: eşik altı → "yön/yetersiz veri"; bootstrap/doğrulanmamış yapı → "Meta'nın dağıtımı altında"; aç kalan konsept
+4. Hüküm dilini denetle: eşik altı → "yön/yetersiz veri"; bootstrap/doğrulanmamış yapı → "Meta'nın dağıtımı altında"; açık Meta iyileştirmesi → "Meta iyileştirmesi açık"; aç kalan konsept
    kaybeden değil; huni oranları çarpılmadı; sonuç türleri/test dönemleri karışmadı; sahne kaybı olasılık cümlesi; rekabet bağlamı nedensellik
    içermiyor; rol karşılaştırması keşif.
 
