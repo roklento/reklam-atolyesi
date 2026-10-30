@@ -360,6 +360,8 @@ class StageMixin:
         sk = self._scope_key(profile_id, campaign_id, cycle_id, scope_key)
         gated = ST.is_gated(stage) and not skipped
         with self.tx():
+            if c and (self.q1("SELECT stage FROM campaigns WHERE id=?", (c["id"],)) or {}).get("stage") != stage:
+                raise AdMemoryError("kampanya bu arada başka aşamaya geçti (başka oturum); aşama tamamlanmadı")  # 2.0.0: işlem içinde yeniden
             run = self.q1("SELECT * FROM stage_runs WHERE scope_key=? AND stage=? AND status='running' AND stale=0 ORDER BY output_version DESC LIMIT 1",
                           (sk, stage))
             outputs_json = {"files": resolved, "summary": summary, "extra": extra or {}}
@@ -519,7 +521,13 @@ class StageMixin:
         c = self.q1("SELECT * FROM campaigns WHERE id=?", (run["campaign_id"],)) if run["campaign_id"] else None
         cy = self.q1("SELECT * FROM cycles WHERE id=?", (run["cycle_id"],)) if run["cycle_id"] else None
         with self.tx():
-            self.ex("UPDATE stage_runs SET status='done', finished_at=COALESCE(finished_at, ?) WHERE id=?", (now_iso(), run["id"]))
+            # 2.0.0: denetim işlem içinde yinelenir; iki oturum aynı kapıyı aynı anda onaylarsa ikincisi aşamayı iki kez ilerletmez
+            # (S17'de iki yeni tur açılırdı)
+            if self.ex("UPDATE stage_runs SET status='done', finished_at=COALESCE(finished_at, ?) WHERE id=? AND status='awaiting_gate' AND stale=0",
+                       (now_iso(), run["id"])).rowcount != 1:
+                raise AdMemoryError("bu kapı az önce başka bir oturumda onaylandı ya da çıktı yenilendi; durum yeniden okunmalı")
+            if c and (self.q1("SELECT stage FROM campaigns WHERE id=?", (c["id"],)) or {}).get("stage") != run["stage"]:
+                raise AdMemoryError("kampanya bu arada başka aşamaya geçti; onay uygulanmadı")
             did = self._decision_insert(profile_id, run["campaign_id"], run["cycle_id"], run["id"], run["output_version"],
                                         run["stage"], ST.GATES.get(run["stage"]), "approved",
                                         (note + " — " if note else "") + f"onay: «{approval_text.strip()}»", "user")
@@ -659,7 +667,8 @@ class StageMixin:
                        VALUES(?,?, 'W', ?,?,?, 'done', ?, ?, ?)""",
                     (profile_id, c["id"], cy["id"], sk, v + 1, now_iso(), now_iso(),
                      jdump({"footage": [p.name for p in files], "photos": [p.name for p in photos], "note": note})))
-            self.ex("UPDATE campaigns SET stage='S06' WHERE id=?", (c["id"],))
+            if self.ex("UPDATE campaigns SET stage='S06' WHERE id=? AND stage IN ('W','S05')", (c["id"],)).rowcount != 1:
+                raise AdMemoryError("çekim başka bir oturumda zaten tamam işaretlendi")  # 2.0.0: işlem içinde yeniden denetim
             self._decision_insert(profile_id, c["id"], cy["id"], None, None, "W", None, "shoot_done", note or "çekim tamam", "user")
         return {"stage": "S06", "footage": len(files), "photos": len(photos)}
 
@@ -715,8 +724,9 @@ class StageMixin:
                     if str(a["meta_ad_id"]) not in mapping[ck]["meta_ad_ids"]:
                         mapping[ck]["meta_ad_ids"].append(str(a["meta_ad_id"]))
             rl["mapping"] = mapping
-            self.ex("UPDATE cycles SET launched_at=?, test_start=COALESCE(?, test_start), risk_limits_json=?, status='measuring' WHERE id=?",
-                    (launched_at, test_start, jdump(rl), cy["id"]))
+            if self.ex("UPDATE cycles SET launched_at=?, test_start=COALESCE(?, test_start), risk_limits_json=?, status='measuring' "
+                       "WHERE id=? AND launched_at IS NULL", (launched_at, test_start, jdump(rl), cy["id"])).rowcount != 1:
+                raise AdMemoryError("bu tur başka bir oturumda az önce yayın kaydı aldı")  # 2.0.0: işlem içinde yeniden denetim
             self._decision_insert(profile_id, c["id"], cy["id"], run["id"], run["output_version"], "S14", "yayın", "launched",
                                   f"kullanıcı teyidi: «{user_confirmation.strip()}»", "user")
             self.ex("UPDATE campaigns SET stage='S15' WHERE id=?", (c["id"],))

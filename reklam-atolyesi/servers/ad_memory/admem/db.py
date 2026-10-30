@@ -38,8 +38,11 @@ def pending_migrations(conn: sqlite3.Connection) -> list[Path]:
 def migrate(conn: sqlite3.Connection, backup_fn=None) -> list[str]:
     """Bekleyen migration'ları sırayla uygular. Her migration öncesi (boş olmayan veritabanında) yedek alınır."""
     applied: list[str] = []
+    # 2.0.0: yedek yalnızca çalıştırmadan önce veri olan veritabanında ve bir kez (ilk bekleyen migration'dan önce). Önceden yeni kurulumda
+    # 001'den sonraki her migration boş veritabanını yedekliyor, 8'lik yedek sırasının çoğunu boş kopyalarla dolduruyordu.
+    had_data = current_version(conn) > 0
     for f in pending_migrations(conn):
-        if backup_fn is not None and current_version(conn) > 0:
+        if backup_fn is not None and had_data and not applied:
             backup_fn(reason=f"migration-{f.stem}")
         sql = f.read_text(encoding="utf-8")
         version = int(f.name.split("_")[0])

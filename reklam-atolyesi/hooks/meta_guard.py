@@ -46,18 +46,23 @@ def decide(data: dict, argv: list[str] | None = None) -> tuple[str, str | None]:
         return "deny", (f"'{bare}' Meta izin listesinde yok. Plugin yalnızca salt okuma araçlarını kullanır (9.3); "
                         "yazma/harcama başlatan araçlar asla çağrılmaz. Listeye ekleme insan onayıyla yapılır.")
     if mode and bare == lst.get("library_tool"):
-        sess = pm.load_session(data_dir, sid) or {}
-        limit = int(sess.get("library_query_limit") or lst.get("library_query_budget_default", 20))
-        key = f"{sess.get('profile_id') or 'p0'}:{dt.date.today().isoformat()}"
-        b = sess.get("library_budget") or {}
-        if b.get("window") != key:
-            b = {"window": key, "used": 0, "limit": limit}
-        if b["used"] >= limit:
-            return "deny", (f"Reklam Kütüphanesi sorgu bütçesi doldu ({b['used']}/{limit}, görüntü başına). Toplu çekim yapılmaz (9.2); "
+        full: dict = {}
+
+        def spend(sess: dict) -> None:  # kilit altında: paralel sorgular sayacı birbirinin üstüne yazmaz (2.0.0)
+            limit = int(sess.get("library_query_limit") or lst.get("library_query_budget_default", 20))
+            key = f"{sess.get('profile_id') or 'p0'}:{dt.date.today().isoformat()}"
+            b = sess.get("library_budget") or {}
+            if b.get("window") != key:
+                b = {"window": key, "used": 0, "limit": limit}
+            if b["used"] >= limit:
+                full.update(used=b["used"], limit=limit)
+            else:
+                b["used"] += 1
+            sess["library_budget"] = b
+        pm.update_session(data_dir, sid, spend)
+        if full:
+            return "deny", (f"Reklam Kütüphanesi sorgu bütçesi doldu ({full['used']}/{full['limit']}, görüntü başına). Toplu çekim yapılmaz (9.2); "
                             "görüntüyü mevcut sonuçlarla kaydedin ya da kullanıcı bütçeyi açıkça değiştirsin.")
-        b["used"] += 1
-        sess["library_budget"] = b
-        pm.save_session(data_dir, sid, sess)
     return "allow", None
 
 

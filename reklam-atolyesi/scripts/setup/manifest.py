@@ -219,6 +219,7 @@ SCRIPT_MAP = {
     "setup: doctor": "scripts/setup/doctor.py",
     "setup: manifest": "scripts/setup/manifest.py",
     "setup: şablon sürüm geçmişi (render.py upgrade için yayımlanmış dosya hash'leri)": "scripts/setup/template_history.py",
+    "setup: veritabanı ve yedek bütünlüğü, yedekten geri dönüş": "scripts/setup/db_restore.py",
     "setup: hooks.json ve .mcp.json üretimi": "scripts/setup/gen_config.py",
     "setup: MCP stdio sondası": "scripts/setup/mcp_probe.py",
     "setup: dağıtılan kurulumun makinede doğrulaması (duman testi, render ve galeri karşılaştırması, doctor)": "scripts/setup/kurulum_dogrula.py",
