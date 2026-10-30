@@ -512,6 +512,10 @@ class MetaMixin:
         p = Path(path)
         if not p.is_absolute():
             p = self.data_dir / p
+        try:  # 2.0.0: dışa aktarım yalnızca profilin klasörüne; araç parametresiyle diskte rastgele dosyanın üzerine yazılmaz
+            p.resolve().relative_to(self.profile_dir(profile_id).resolve())
+        except ValueError:
+            raise AdMemoryError(f"dışa aktarım yolu profilin klasöründe olmalı ({self.profile_dir(profile_id)}): {p}") from None
         buf = io.StringIO()
         cols = ["meta_ad_id", "meta_ad_name", "creative_key", "date", *METRIC_COLS, "video_3s_derived", "source", "fetched_at",
                 "measurement_fingerprint", "measurement_context_json"]

@@ -287,7 +287,7 @@ def metrics_daily_rows(profile_id: int, campaign_id: int | None = None, cycle_id
 
 @mcp.tool()
 def metrics_export_csv(profile_id: int, path: str, campaign_id: int | None = None) -> dict:
-    """Bağlamı koruyan CSV dışa aktarımı."""
+    """Bağlamı koruyan CSV dışa aktarımı; yol profilin klasöründe olmalı (DD/profiles/<slug>/...)."""
     return call(lambda s: s.metrics_export_csv(profile_id, path, campaign_id))
 
 

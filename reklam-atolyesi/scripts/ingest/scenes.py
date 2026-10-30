@@ -104,9 +104,14 @@ def build(plan: dict, assets: dict, out_dir: Path, quality: str, style: dict | N
             original = s.get("audio", {}).get("mode") in ("original", "original_clean")
             if original and (is_voice if voice else "." not in lkey):
                 wav = out_dir / f"{s['id']}_{lkey}_audio_{key[:16]}.wav"
-                if not wav.exists():
-                    ffmpeg(["-ss", str(in_s), "-to", str(out_s), "-i", str(a["cfr_sdr"]), "-vn", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s16le", str(wav)],
-                           check=False)
+                if not wav.exists():  # 2.0.0: geçici ada yazılır; yarıda kalan çıkarım (kesinti) sonraki çalıştırmada tam dosya sanılmaz
+                    part = wav.with_name(wav.stem + ".part.wav")
+                    r = ffmpeg(["-ss", str(in_s), "-to", str(out_s), "-i", str(a["cfr_sdr"]), "-vn", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s16le",
+                                str(part)], check=False)
+                    if r.returncode == 0 and part.exists():
+                        part.replace(wav)
+                    else:
+                        part.unlink(missing_ok=True)
                 if wav.exists():
                     result["audio_segments"][s["id"]] = str(wav)
     return result

@@ -221,7 +221,7 @@
    "name": "meta-history",
    "kind": "stage",
    "description": "reklam-atolyesi S00b Meta geçmişi — meta-historian ajanını salt okumayla çalıştırır; varlıklar, günlük metrikler, önseller, kıyaslar, hesap sağlık raporu; CSV yedek yolu.",
-   "sha256": "7af67a41a7c8e5a0320005812918b7bd524efddb232e793b9af66be5d2db02fc"
+   "sha256": "51f9fbd2ec13793ac4b27d96ac2ff3c13491e7c9b2f2dc810b2fa04a5f16e5d7"
   },
   {
    "name": "navigator",
@@ -245,7 +245,7 @@
    "name": "profile-check",
    "kind": "module",
    "description": "reklam-atolyesi profil kontrolü — reklamın götürdüğü Instagram profilini salt okumayla ölçer (son paylaşım, sıklık, video payı, yönlendirme, etkileşim) ve araçla okunamayanları (biyografi, bağlantı, öne çıkanlar) kullanıcıya kontrol listesi olarak sorar. Yayından önce ve koçlukta.",
-   "sha256": "e60e563a7c90f375a297eab3bc7a5c8f4d00064bdbba21751de53ae4a04a890d"
+   "sha256": "c2535391b8fb0a29936655810fafea58bcb377d34e82a57d67805010ac91790b"
   },
   {
    "name": "qc",
@@ -263,7 +263,7 @@
    "name": "ref-legal-tr-meta",
    "kind": "reference",
    "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar.",
-   "sha256": "6628626c5f491adc58682970e6fe2d27f33f739ff062be9479585b6160c64fe9"
+   "sha256": "e21d5e7da5e5f2de570f5420fa8f54a7ca6e19c8bee109da4246418fd9275950"
   },
   {
    "name": "ref-metrics-math",
@@ -293,7 +293,7 @@
    "name": "ref-system-map",
    "kind": "system",
    "description": "reklam-atolyesi'nin kendi haritası (system_manifest). \"Ne yapabilirsin\", \"sistem durumu\", sürüm, bileşen ve canlı doğrulama sorularında plugin modunda kullanılır.",
-   "sha256": "897fcf998092bf33ca739ed110829a1e296abe5de6aefcc3af47546ad3804863"
+   "sha256": "0fdc02ba5ae7a4eb720d37722b9cf46ff4988a89a995bc44b68c703becfda451"
   },
   {
    "name": "ref-vendor-map",
@@ -542,14 +542,14 @@
    "matcher": null,
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "4c18daba1fb5e6fdfee719499d97718d8cbda82db80858fe8802681d00bf1a54"
+   "sha256": "56231de114b1020d67b9eea6a0bb3284fe9d8cc56794f8c43435f0868108f1e7"
   },
   {
    "event": "UserPromptExpansion",
    "matcher": "^reklam-atolyesi:.*$",
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "4c18daba1fb5e6fdfee719499d97718d8cbda82db80858fe8802681d00bf1a54"
+   "sha256": "56231de114b1020d67b9eea6a0bb3284fe9d8cc56794f8c43435f0868108f1e7"
   },
   {
    "event": "SessionStart",
@@ -563,7 +563,7 @@
    "matcher": "^mcp__.*__ads_[a-z0-9_]+$",
    "script": "meta_guard.py",
    "timeout": 10,
-   "sha256": "aeafe88b4f5d0462d1d2036055fa08052f26b31d7a2064b03ffcccd2a3cca4d8"
+   "sha256": "58038480e1e6159bf82e43df9296c447f0c5e5d4189876175380d209f0e1ac8d"
   },
   {
    "event": "PreToolUse",
@@ -848,6 +848,7 @@
   "setup: doctor": "scripts/setup/doctor.py",
   "setup: manifest": "scripts/setup/manifest.py",
   "setup: şablon sürüm geçmişi (render.py upgrade için yayımlanmış dosya hash'leri)": "scripts/setup/template_history.py",
+  "setup: veritabanı ve yedek bütünlüğü, yedekten geri dönüş": "scripts/setup/db_restore.py",
   "setup: hooks.json ve .mcp.json üretimi": "scripts/setup/gen_config.py",
   "setup: MCP stdio sondası": "scripts/setup/mcp_probe.py",
   "setup: dağıtılan kurulumun makinede doğrulaması (duman testi, render ve galeri karşılaştırması, doctor)": "scripts/setup/kurulum_dogrula.py",
@@ -899,11 +900,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 402,
+   "passed": 427,
    "failed": 0,
    "skipped": 5,
    "returncode": 0,
-   "summary": "402 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı.",
+   "summary": "427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-30",
@@ -1340,9 +1341,9 @@
   {
    "id": "meta_ai_label_policy_unverified",
    "spec": "10, 12.10",
-   "deviation": "Meta AI açıklama politikasının resmi metni kurulumda okunamadı; ikincil kaynaklar 'resmi metinle teyit edilmedi' işaretiyle skill'de. S14 talimatı Ads Manager'ın güncel seçeneklerine dayanır.",
-   "decided_by": "kurulum",
-   "status": "recorded"
+   "deviation": "Meta AI açıklama politikasının resmi metni kurulumda okunamamıştı; 2.0.0'da ads_get_help_article ile okundu (About AI info on ads created or edited with generative AI tools, 2026-10-30): otomatik 'AI info' etiketi, Türkiye'de reklamveren beyanı seçeneği yok. ref-legal-tr-meta §4 resmi metinle güncellendi; S14 talimatı yine Ads Manager'ın güncel ekranına dayanır.",
+   "decided_by": "2.0.0 denetimi",
+   "status": "resolved"
   },
   {
    "id": "generation_call_hash",
@@ -1558,6 +1559,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('MarkaRozeti', 'Örnek başlık')",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "2.0.0 derin denetim: algoritma, mimari, güvenlik, dayanıklılık, yasal, ilk kullanım düzeltmeleri (koç/kalibrasyon/bütçe, metrik alımı, renk eşitleme, miks, yazı ölçümü, aşama makinesi, oturum kilidi, yedek/db_restore.py, ingest, render, skill metinleri ref-legal-tr-meta/ref-system-map/meta-history/profile-check, README, müşteri paketi KULLANIM.txt, testler)",
+    "files_reviewed": 39,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('Marka A', 'Önce', 'Sonra', 'Ürün B')",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1570,13 +1579,13 @@
   "component_hashes": {
    "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "f17e959b28f691df907816e98c689a8e7da9e03505bdfed0d32731f06125fa8f",
+   "skills": "0ef8b2a50e6fe2566c874bf59133d4bf646c3b1cf0f88565563fe90c5d8226ad",
    "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
-   "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-   "ad_memory": "2944a46063c3e39a11ab79b62718228cceda7b542e131cab87a99989bb3b4b3f",
-   "scripts": "6ab6de2f07046c0e8fee27d0fccf05caaa1807c8c5202af4a3cebf7e57f180e6",
+   "hooks": "86f3c9fae47dabc2678f4b1655b2aed7bdfa42b4ac0aea5b7573b235ec8dcc2b",
+   "ad_memory": "7e8b7c875e3620bdab4ad564c9fe3bdf42d3af1a6b3786f36694a6f87cc01844",
+   "scripts": "340867d6407c3235970fa70655b3bfc9527e01142059af4c9ec01def52670c69",
    "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
    "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
@@ -1739,13 +1748,13 @@
  "component_hashes": {
   "plugin_json": "b94c67c5390c65d1eb729183890e3834d222b31fcbddf3d6f5e06632327b1c6b",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "f17e959b28f691df907816e98c689a8e7da9e03505bdfed0d32731f06125fa8f",
+  "skills": "0ef8b2a50e6fe2566c874bf59133d4bf646c3b1cf0f88565563fe90c5d8226ad",
   "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
-  "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-  "ad_memory": "2944a46063c3e39a11ab79b62718228cceda7b542e131cab87a99989bb3b4b3f",
-  "scripts": "6ab6de2f07046c0e8fee27d0fccf05caaa1807c8c5202af4a3cebf7e57f180e6",
+  "hooks": "86f3c9fae47dabc2678f4b1655b2aed7bdfa42b4ac0aea5b7573b235ec8dcc2b",
+  "ad_memory": "7e8b7c875e3620bdab4ad564c9fe3bdf42d3af1a6b3786f36694a6f87cc01844",
+  "scripts": "340867d6407c3235970fa70655b3bfc9527e01142059af4c9ec01def52670c69",
   "templates": "ebeb2bdc7c5ede6b3bf25e0f55caabdc2cbc7a3328e1c4fdc7d6804f002c8df5",
   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },

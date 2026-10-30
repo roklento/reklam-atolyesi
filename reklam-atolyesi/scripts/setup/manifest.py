@@ -317,8 +317,10 @@ def build(root: Path, results_dir: Path | None) -> dict:
                       "ve rakip markasına doğrudan yer verme hükmünün güncel durumu konsolide resmi metinden okunamadı: skill'de "
                       "'resmi metinle teyit edilmedi' işaretli. Plugin varsayılanı zaten 'rakip anılmaz'.", "decided_by": "kurulum", "status": "recorded"},
         {"id": "meta_ai_label_policy_unverified", "spec": "10, 12.10",
-         "deviation": "Meta AI açıklama politikasının resmi metni kurulumda okunamadı; ikincil kaynaklar 'resmi metinle teyit edilmedi' işaretiyle "
-                      "skill'de. S14 talimatı Ads Manager'ın güncel seçeneklerine dayanır.", "decided_by": "kurulum", "status": "recorded"},
+         "deviation": "Meta AI açıklama politikasının resmi metni kurulumda okunamamıştı; 2.0.0'da ads_get_help_article ile okundu "
+                      "(About AI info on ads created or edited with generative AI tools, 2026-10-30): otomatik 'AI info' etiketi, Türkiye'de "
+                      "reklamveren beyanı seçeneği yok. ref-legal-tr-meta §4 resmi metinle güncellendi; S14 talimatı yine Ads Manager'ın "
+                      "güncel ekranına dayanır.", "decided_by": "2.0.0 denetimi", "status": "resolved"},
         {"id": "generation_call_hash", "spec": "9.1, 7.4",
          "deviation": "params_hash girdi dosyası hash'lerini içerir; hook bunları göremediği için rezervasyon eşleşmesi aynı kanonik koddan dosya "
                       "hash'leri hariç hesaplanan call_hash ile yapılır (migration 002). Onay ve tekrar koruması params_hash'e bağlı kalır.",

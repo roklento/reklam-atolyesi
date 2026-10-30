@@ -68,7 +68,8 @@ Kapılarda sistem durur ve **açık onayınızı** bekler. Yaratıcı kararlar b
 ## Veri
 Bütün durum `data_dir` altındadır (userConfig; plugin klasörüne durum yazılmaz): `db/ad-memory.sqlite`, `.venv`, `.node`,
 `profiles/<profil>/…`, `memory/system/`, `logs/`, `backups/`, `.sessions/` (geçici oturum durumu). Yedekler haftalık ve her
-migration öncesi alınır; son 8 yedek tutulur.
+migration öncesi alınır; son 8 yedek tutulur. Denetim ve geri dönüş: `<py> scripts/setup/db_restore.py check --data-dir <dd>`,
+`restore --data-dir <dd> --backup <dosya> [--confirm]` (Claude Code kapalıyken; mevcut veritabanı `db/onceki-<zaman>/` altında kalır).
 
 ## Geliştirici notları
 - Kurulumu Claude'un yürüttüğü (etkileşimsiz) durumda: `kurulum.ps1 -DataDir <data_dir> -GlobalSkills tasi|birak` (çakışan genel skill
@@ -99,7 +100,9 @@ Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı 
 **2.0.0** — deneme kullanıcısına hazırlık: uçtan uca denetim ve düzeltmeler
 - Son güncellemeler (1.6.0–1.9.0: ölçülü yazı, renk eşitleme, CC0 ses efektleri, beş yeni bileşen, ses araması, huni planlaması)
   birlikte denetlendi: kurulum, doctor, manifest, migration zinciri 001–007, testler, duman testi (9/9 adım, gerçek Remotion
-  render'ı dahil), komut/skill/script/araç adı çapraz kontrolü ve belgeler. Yeni özellik yok; veritabanı migration'ı yok; yeni bağımlılık yok.
+  render'ı dahil), komut/skill/script/araç adı çapraz kontrolü ve belgeler. Ardından algoritma, mimari, güvenlik, dayanıklılık, yasal
+  içerik, ilk kullanım ve performans ayrı ayrı denetlendi (aşağıda). Veritabanı migration'ı yok; yeni bağımlılık yok; tek yeni araç
+  `scripts/setup/db_restore.py`.
 - **Eski kampanya projeleri:** `render.py upgrade --project <k>/src [--dry-run]` önceki bir sürümle kurulmuş kampanya projesini güncel
   şablona getirir. Yalnızca yayımlanmış bir şablon sürümüyle bayt bayt aynı (elle değiştirilmemiş) dosyalar güncellenir; değiştirilmiş
   dosyalar `kept_customized` listesinde kalır (`templates/remotion/template_history.json`, üretici `scripts/setup/template_history.py`).
@@ -115,7 +118,32 @@ Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı 
   sürümde FFmpeg seçeneği tanımayıp çıkıyor, klibin ingest'i bütünüyle başarısız oluyordu.
 - **Testler:** önceki sürümlerde "ortamdan" sayılan başarısızlıklar giderildi: ingest testleri yukarıdaki gerçek uyumluluk hatasıydı;
   doctor testi depodaki Windows `.mcp.json`'ını makinenin işletim sistemine göre denetliyordu (artık dosyanın üretildiği sisteme göre).
-  Linux'ta tam paket 402 geçti, 0 başarısız, 5 atlandı (Windows'a özgü).
+  Linux'ta tam paket 427 geçti, 0 başarısız, 5 atlandı (Windows'a özgü); 2.0.0 düzeltmelerinin her biri için test var
+  (`tests/test_v200_*.py`).
+- **Koçluk ve istatistik:** önseller kampanyanın Meta amacından dondurulur (önceden markanın bütün amaçlarının önselleri karışıyor,
+  metrik başına rastgele bir amacınki kullanılıyordu; amaç okunamazsa ve birden çok amaç varsa Beta(1,1)). Ölçülmemiş metrik sıfır
+  sayılmaz: ThruPlay sütunu olmayan dışa aktarımda tutma oranı "%0 · kanıt" değil, yoktur (koç ve `metrics_query`). Kalibrasyon kutuları
+  tamsayı yüzdeyle (etiket "%70–79" çıkıyordu) ve "kaybeder" diyen tahminin isabeti doğru yönde sayılır. Yorgunluk penceresi baz
+  günleriyle örtüşmez; tutma eğrisi beklentisi aynı format/süredeki kreatiflerden. Eşlenmemiş reklamlar konsept kıyasına, tahmin
+  kaydına ve "kapat" kararına girmez. Aday kampanyasında büyütme aday ekonomisine bakar. Risk sınırı kreatif başı harcamanın altındaysa
+  S02 gerekçesi bunu söyler.
+- **Metrik alımı:** daha az alanla yapılan yeniden çekim önceki ölçümü silmez. CSV tarih sırası (gün/ay) dosyadan belirlenir; belirsizse
+  (03/04/2026) hiçbir satır yazılmadan `csv_date_order` istenir (önceden İngilizce dışa aktarım sessizce yanlış güne yazılıyordu).
+- **Ses ve görüntü:** ara miks kırpılmadan kayan noktada yazılır (yüksek müzik + VO toplamı kalıcı bozuluyordu); müzik konuşma altında
+  gerçekten 4,5 dB kısılır (konuşma maskesi örnek yerine 20 ms pencereyle); negatif müzik konumu hata vermez. Renk eşitleme, gri/beyaz
+  alanı olmayan klipte beyaz dengesine dokunmaz, yalnız pozlamayı eşitler (kırmızı ürün yakın çekimi "sıcak ışık" sanılıp ürün rengi
+  kayıyordu). Emojili uzun yazının render ölçümü artık eşleşir; köşe kutusu çakışması ölçülmüş yazı bloğuyla denetlenir.
+- **İki oturum ve yarıda kalan işler:** kapı onayı, aşama tamamlama, çekim tamam ve yayın kaydı işlem içinde yeniden denetlenir (iki
+  pencerede aynı anda onay S17'de iki tur açabiliyordu). Oturum dosyası kilitle yazılır: paralel Reklam Kütüphanesi sorguları sorgu
+  bütçesini, hook yazımı oturum bağlamasını ve yükleme iznini silmez. `ingest --only` önceki klipleri manifestten silmez. Yarıda kalan
+  sahne sesi ve final birleştirme bitmiş dosya adıyla kalmaz.
+- **Yedek ve geri dönüş:** yedek geçici ada yazılıp bütünlüğü denetlenerek yerine konur; yeni kurulumda boş veritabanının migration
+  yedekleri alınmaz. `db_restore.py check|restore` veritabanını ve yedekleri denetler, seçilen yedeği önceki veritabanını
+  `db/onceki-<zaman>/` altında saklayarak geri koyar (Claude Code kapalıyken).
+- **Güvenlik:** aşama çıktısı yalnızca kendi profilinin klasöründen kabul edilir; `metrics_export_csv` profil klasörü dışına yazmaz;
+  kurgu planı dosya adına plandaki serbest metin yol olarak giremez. İddia eşleştirmesi Türkçe büyük/küçük harfi doğru tanır.
+- **Yasal:** Meta AI etiketi resmi metinden okundu (otomatik "AI info" etiketi; Türkiye'de reklamveren beyanı seçeneği yok; Türkiye'deki
+  görünür açıklama yükümlülüğü Ticari Reklam Yönetmeliği'nden). İlk açılışta profil yokken kurulum eksiği marka tanışmasından önce gelir.
 - **Belgeler:** kurulum/güncelleme yönergesi müşteri paketine göre düzeltildi (`kur.cmd` ilk kurulum, `guncelle.cmd` güncelleme, yarıda
   kalan kurulum, eski kampanyalar); yerel marketplace adı (`reklam-atolyesi`), skill sayısı (35) ve `.gitignore` (`*.egg-info/`).
 

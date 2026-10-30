@@ -121,3 +121,21 @@ def test_backup_is_verified_and_restore_keeps_previous(store, data_dir):
     bad.write_bytes(b"SQLite format 3\x00" + b"\x00" * 200)
     r = subprocess.run(tool + ["restore", "--data-dir", str(data_dir), "--backup", str(bad), "--confirm"], capture_output=True)
     assert r.returncode != 0 and "bütünlük" in r.stderr.decode("utf-8")
+
+
+def test_ingest_only_keeps_previous_manifest_entries(tmp_path):
+    import json
+    import shutil
+    import convert as CV
+    import fixtures as FX
+    if not shutil.which("ffmpeg"):
+        pytest.skip("ffmpeg yok")
+    camp = tmp_path / "k"
+    raw = camp / "footage" / "raw"
+    raw.mkdir(parents=True)
+    FX.clip_plain(raw / "a.mp4", 320, 180, dur=1.0)
+    shutil.copy(raw / "a.mp4", raw / "b.mp4")
+    CV.ingest(camp, 30, fast=True, only=["a.mp4"])
+    CV.ingest(camp, 30, fast=True, only=["b.mp4"])  # yarıda kalan ingest'in eksiği
+    man = json.loads((camp / "analysis" / "ingest_manifest.json").read_text(encoding="utf-8"))
+    assert sorted(Path(f["source"]).name for f in man["footage"]) == ["a.mp4", "b.mp4"]

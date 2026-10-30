@@ -77,8 +77,10 @@ def test_csv_import_turkish_export(store, tmp_path):
     assert not chk["missing_required"] and chk["decimal"] == ","
     r = store.metrics_import_csv(pid, str(csvp), CTX)
     assert r["inserted"] == 8 and r["decimal"] == ","
-    exp = store.metrics_export_csv(pid, str(tmp_path / "geri.csv"))
+    exp = store.metrics_export_csv(pid, str(store.profile_dir(pid) / "reports" / "geri.csv"))
     assert exp["rows"] == 8
+    with pytest.raises(AdMemoryError, match="profilin klasöründe"):  # 2.0.0: diskte rastgele yola yazılmaz
+        store.metrics_export_csv(pid, str(tmp_path / "geri.csv"))
 
 
 def test_test_window_boundary_days(store):

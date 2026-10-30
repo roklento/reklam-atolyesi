@@ -101,7 +101,9 @@ def menu_context(data_dir, sess: dict, lead: str) -> list[str]:
     if r["kind"] == "no_db":
         return ["Veritabanı yok: menü gösterilemez; kurulum eksik (reklam-atolyesi:kurulum-kontrol)."]
     if r["kind"] == "no_profile":
-        return ["Henüz profil yok: menü gösterme; kısa karşılama ile doğrudan marka tanışması (reklam-atolyesi:brand-onboarding)."]
+        # 2.0.0: aşağıdaki durum satırı kurulum/canlı doğrulama eksiği söylüyorsa önce o (navigator 1. adım); "doğrudan" onu atlatmasın
+        return ["Henüz profil yok: menü gösterme. Durum satırında kurulum ya da canlı doğrulama eksiği yoksa kısa karşılama ile doğrudan "
+                "marka tanışması (reklam-atolyesi:brand-onboarding); eksik varsa önce o adım (navigator açılış sırası 1)."]
     if r["kind"] == "choose_profile":
         return ["Oturuma profil bağlı değil ve birden çok profil var: önce profile_list ile seçtir (ad, durum, son iş), "
                 "session_bind ile bağla, sonra menu_render(session_id) sonucunu aynen göster."]

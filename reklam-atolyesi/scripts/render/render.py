@@ -304,7 +304,9 @@ def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dic
     listfile = seg_dir / f"concat_{out.stem}.txt"
     listfile.write_text("".join(f"file '{p.as_posix()}'\n" for p in segments), encoding="utf-8")
     out.parent.mkdir(parents=True, exist_ok=True)
-    ffmpeg(["-f", "concat", "-safe", "0", "-i", str(listfile), "-c", "copy", "-movflags", "+faststart", str(out)])
+    part = out.with_name(out.stem + ".part" + out.suffix)  # 2.0.0: kesintide yarım dosya bitmiş video adıyla kalmaz
+    ffmpeg(["-f", "concat", "-safe", "0", "-i", str(listfile), "-c", "copy", "-movflags", "+faststart", str(part)])
+    part.replace(out)
     layout = merge_layout(segments)
     layout_path = out.with_name(out.name + ".layout.json")
     write_json(layout_path, layout)

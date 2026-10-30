@@ -192,6 +192,17 @@ def ingest(campaign_dir: Path, fps: int = 30, fast: bool = False, only: list[str
             except Exception as e:
                 out["errors"].append({"source": str(src), "error": str(e)[:500]})
     mpath = campaign_dir / "analysis" / "ingest_manifest.json"
+    if only and mpath.exists():
+        # 2.0.0: --only (yarıda kalan ingest'in yalnızca eksiklerini işleme) önceki kayıtları korur; önceden manifest yalnızca bu
+        # çalıştırmanın kliplerini içeriyordu ve önceden işlenmiş klipler S07–S10'da görünmez oluyordu
+        try:
+            prev = json.loads(mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            prev = {}
+        done = {Path(x["source"]).name for x in out["footage"] + out["photos"]} | {Path(e["source"]).name for e in out["errors"]}
+        keep = lambda xs: [x for x in xs or [] if Path(x.get("source", "")).name not in done]
+        out = {"footage": keep(prev.get("footage")) + out["footage"], "photos": keep(prev.get("photos")) + out["photos"],
+               "errors": keep(prev.get("errors")) + out["errors"]}
     sha = write_json(mpath, out)
     return {"manifest": str(mpath), "sha256": sha, "footage": len(out["footage"]), "photos": len(out["photos"]), "errors": out["errors"]}
 

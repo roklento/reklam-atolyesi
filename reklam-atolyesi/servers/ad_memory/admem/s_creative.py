@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -511,7 +512,9 @@ class CreativeMixin:
             plan.setdefault("provenance", {})
             plan["provenance"]["ai_share"] = rep["computed"]["ai_share"]
             plan["provenance"]["ai_layers"] = rep["computed"]["ai_layers"]
-        name = f"c{cy['cycle']}_{plan.get('concept')}_{plan.get('hook')}_{plan['format']}_{plan['purpose']}_v{ver}.json"
+        def part(v) -> str:  # 2.0.0: plandaki serbest metin dosya adına yol (../) olarak giremez
+            return re.sub(r"[^0-9A-Za-z_-]", "_", str(v))[:40] or "_"
+        name = f"c{cy['cycle']}_{part(plan.get('concept'))}_{part(plan.get('hook'))}_{part(plan['format'])}_{part(plan['purpose'])}_v{ver}.json"
         path = self.campaign_dir(profile_id, campaign_id) / "edit_plans" / name
         text = json.dumps(plan, ensure_ascii=False, indent=1)
         sha = atomic_write(path, text, overwrite=False)

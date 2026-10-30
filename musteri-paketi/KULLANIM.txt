@@ -27,3 +27,5 @@ Claude veya Python hiç başlayamıyorsa ekrandaki hata mesajını sağlayıcın
 Loglar kendiliğinden gönderilmez. Paylaşmadan önce kişisel bilgi bulunup bulunmadığına bakın.
 Başarısız güncellemede sürüm kısmen değişmiş olabilir; otomatik geri alma yapılmaz.
 Sorun çözüldükten sonra guncelle.cmd yeniden çalıştırılabilir; yedek backups klasöründedir.
+Veritabanını bir yedeğe geri döndürmek gerekirse Claude'a "veritabanı yedeklerini göster" deyin: uygun yedekleri listeler ve
+Claude Code kapatıldıktan sonra çalıştırılacak tek komutu verir. Geri dönüş önceki veritabanını silmez, ayrı klasörde saklar.

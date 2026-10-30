@@ -25,7 +25,9 @@ Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
 `kur.ps1` ve `KULLANIM.txt` değişti: yeni ZIP gönderin. Eski kampanya projeleri kendiliğinden değişmez; plan projenin çizemediği bir
 özelliği kullanırsa render açık mesajla durur ve S10 kullanıcı onayıyla `render.py upgrade` çalıştırır (yalnızca elle değiştirilmemiş
 şablon dosyaları). Sahne önbelleği anahtarı proje kodunu içerdiği için güncellemeden sonraki ilk render, değişmemiş projede de
-segmentleri bir kez yeniden üretir.
+segmentleri bir kez yeniden üretir. Koçluk önseli kampanyanın Meta amacından alınır: güncellemeden sonra yeni açılan tur koçluk kopyası
+farklı (doğru) önsel kullanabilir; dondurulmuş eski kopyalar değişmez. CSV'de gün/ay sırası belirsizse içe alma kullanıcıya sorar.
+Veritabanı geri dönüşü için `scripts/setup/db_restore.py` (Claude Code kapalıyken; önceki veritabanı silinmez).
 1.9.0 migration 007 içerir (yalnızca sütun ekler: ürün satın alma engelleri, konsept mesaj kartı, üç günlük metrik); güncelleyici
 uygular, mevcut kayıtlar değişmez. Yeni bağımlılık yok. Mevcut kampanyanın S03 kapısı yeniden açılırsa test konseptleri için mesaj kartı
 ister; geçmiş kapılar etkilenmez. Huni turu isteğe bağlıdır ve yalnızca 2. turdan itibaren seçilebilir.

@@ -293,6 +293,10 @@ class StageMixin:
             p.resolve().relative_to(self.data_dir.resolve())
         except ValueError:
             raise AdMemoryError(f"çıktı data_dir dışında: {p}")
+        try:  # 2.0.0: başka profilin klasöründeki dosya bu profilin aşama çıktısı olamaz (profil yalıtımı, 2.3)
+            p.resolve().relative_to(self.profile_dir(profile_id).resolve())
+        except ValueError:
+            raise AdMemoryError(f"çıktı bu profilin klasöründe değil: {p}")
         if not p.exists() or not p.is_file():
             raise AdMemoryError(f"çıktı dosyası yok: {p} (eksik dosya tamamlandı sayılmaz)")
         if p.stat().st_size == 0:
