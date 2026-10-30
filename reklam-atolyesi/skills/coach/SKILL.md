@@ -70,7 +70,9 @@ Yok.
    Olgunlaşmış önceki tahminler `prediction_resolve(profile_id, prediction_id, outcome, outcome_snapshot)` (çözüm kopyası ayrı hash).
 6. **Kararlar (6.10):** tut / büyüt / kapat / yenile, gerekçeli ve sonuç türüne göre. Hüküm dili test dönemine göre: bootstrap ve
    doğrulanmamış yapıda "Meta'nın dağıtımı altında"; eşik altı → "yön/yetersiz veri" (istatistiksel kazanan, büyüt ya da kaybeden
-   gerekçeli kapat **yok**). Küçük bütçede hüküm üst huniden geliyorsa açıkça yazılır ("satışa değil, dikkat ve tıklamaya dayanıyor").
+   gerekçeli kapat **yok**). Yayında Advantage+ kreatif iyileştirmesi açık kalan konseptlerin hükmüne "Meta iyileştirmesi açık" eklenir
+   (2.3.0; `analysis.enhancements`): kazanan kreatif mi iyileştirme mi ayrılamaz; rapor sonraki testte kapatılmasını önerir. Tur
+   iyileştirmeler kontrol edilmeden kaydedildiyse rapor bunu uyarı olarak yazar. Küçük bütçede hüküm üst huniden geliyorsa açıkça yazılır ("satışa değil, dikkat ve tıklamaya dayanıyor").
    Hook × CTR × CVR çarpımı yapılmaz; erişim toplamından frekans türetilmez. Konsept önceliği yalnızca sonraki test adaylarını sıralar.
    İlk turda (tek set) Meta'nın aç bıraktığı konsept (`carry_over`) kaybeden değildir; sonraki turun kreatif testine **öncelikli aday**
    olarak rapora ve S17 brief taslağına yazılır (hazır kreatifiyle; yeniden çekim/render yok).

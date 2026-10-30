@@ -92,7 +92,7 @@ class CoachMixin:
             "product_kind": (prod or {}).get("kind") or "product",
             "cycle": {k: cy[k] for k in ("id", "cycle", "adset_budget_daily", "test_budget", "test_days", "cycle_days", "launch_at", "launched_at",
                                           "test_start", "test_end", "structure_detected", "structure_evidence_json", "measurement_json",
-                                          "budget_plan_json", "risk_limits_json", "strategy_json", "meta_test_id")},
+                                          "budget_plan_json", "risk_limits_json", "strategy_json", "meta_test_id", "enhancements_json")},
             "timezone": brand["timezone"], "currency": (prod or {}).get("currency"),
             "economics": self.economics(prod) if prod else None,
             "test_window": window, "rows": rows, "sales_manual": self.qa("SELECT * FROM sales_manual WHERE campaign_id=?", (c["id"],)),

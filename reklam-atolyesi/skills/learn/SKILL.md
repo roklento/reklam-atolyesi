@@ -27,7 +27,8 @@ Yok.
    aynı yönde bulgu ve (c) sonraki turun **tek başına** verisinde aynı yönde üstünlük olasılığı ≥ 0,95 (oranda iki kola Beta(1,1),
    maliyette sabit Gamma önseli; keşif verisi doğrulama önseline girmez). Üst huni bulgusu ayrıca önceden seçilmiş en az bir alt huni
    metriğiyle aynı yönde ve yeterli veriyle desteklenmeli; yoksa "dikkat bulgusu" olarak hipotez defterinde kalır. Bootstrap ve
-   doğrulanmamış yapı turları tek özellik için kontrollü doğrulama sayılmaz. Ölçekleme katmanındaki performans da kontrollü doğrulama
+   doğrulanmamış yapı turları tek özellik için kontrollü doğrulama sayılmaz; "Meta iyileştirmesi açık" kaydı taşıyan konseptler de
+   (2.3.0: kreatif dışı ikinci değişken) o özellik için kontrollü doğrulama sayılmaz. Ölçekleme katmanındaki performans da kontrollü doğrulama
    sayılmaz; bir reklamın ölçeklemeye taşınmış olması tek başına playbook kanıtı değildir. Rol karşılaştırması önceden sabitlenmemişse aday olmaz.
    S16 teşhisi "reklam sonrası şüpheli" (tıklama var, görünür satış yok) olan turda satış ve maliyet bulguları kreatife yazılmaz:
    ilgili hipotezler `inconclusive`, gerekçe "sayfa/teklif ayrıştırılamadı" (1.4.7). Mesajla satışın kayıp nedenleri (1.4.8) brief

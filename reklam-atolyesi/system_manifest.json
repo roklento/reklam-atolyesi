@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.2.0",
+ "plugin_version": "2.3.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -155,7 +155,7 @@
    "name": "coach",
    "kind": "stage",
    "description": "reklam-atolyesi S16 koçluk — değişmez girdi kopyasından Beta-Binom/Gamma analizi, hüküm dili, sahne kaybı, rekabet bağlamı, grafikler, kararlar ve Ads Manager uygulama listesi. Kapılı.",
-   "sha256": "38fb72a0f336bb0f38153dae8ae86d82a07fe1bfe8d882f944d43f96a22f4e88"
+   "sha256": "7130cfb54c7923d29f0b7d52caa8759d3e77403de7ada1764a2726538a767334"
   },
   {
    "name": "competitor-analysis",
@@ -197,13 +197,13 @@
    "name": "launch-pack",
    "kind": "stage",
    "description": "reklam-atolyesi S14 yayın paketi — reklam adları, metinler, Ads Manager kurulum talimatı, harcama/risk sınırları, AI açıklaması, takvim; insan yayınından sonra launch_confirm. Kapılı.",
-   "sha256": "acf8f0e1fa810468ab94572555af4a37a8a94db7952e751908e0352932a2b5f9"
+   "sha256": "841c48760f9c14f02e82f00a86b503bcd781ec4a67933b9f037c6f64eb175b4f"
   },
   {
    "name": "learn",
    "kind": "stage",
    "description": "reklam-atolyesi S17 öğrenme — hipotez sonuçları, bağımsız doğrulamalı playbook önerisi, yeniden doğrulama/emeklilik, hafıza konsolidasyonu, sonraki tur brief taslağı. Kapılı.",
-   "sha256": "ff282e0672f87c1a498c36638efeb9c330974d443f03b4c6fb1747364cd37a3a"
+   "sha256": "d45a429ac4bf9c3e863312847931f1be70e03f536c143730e3f5b00b0d4a2b58"
   },
   {
    "name": "materials",
@@ -263,13 +263,13 @@
    "name": "ref-legal-tr-meta",
    "kind": "reference",
    "description": "reklam-atolyesi yasal başvuru — Ticari Reklam Yönetmeliği (2026 değişikliği, karşılaştırmalı reklam), TTK haksız rekabet, iddia/fiyat/izin kuralları, Meta AI açıklaması, Meta platform kuralları kaynak protokolü (§7), Meta reklam standartları (§8), lisanslar.",
-   "sha256": "dd4938e0429452990497cd5733bd02f6ed0d193314df2d1ec130863ac80245ba"
+   "sha256": "7cbb8d06f72766e17787f22643645c4ee3ea92934edb6dee5301c7eae9aa8c77"
   },
   {
    "name": "ref-metrics-math",
    "kind": "reference",
    "description": "reklam-atolyesi koçluk matematiği — metrikler, ekonomi, bütçe/matris, test penceresi ve olgunluk, Beta-Binom/Gamma, eşikler, hüküm dili, yorgunluk, kalibrasyon, bağımsız doğrulama.",
-   "sha256": "3df1cbc500c3fd9496c3c1b0a9182f044243b8c758d13e139b3ffabd6297a477"
+   "sha256": "9919da637f79de3ab64a6e537e62f8e7eebf1544a694eb783266cffb83701d59"
   },
   {
    "name": "ref-production-recipes",
@@ -383,7 +383,7 @@
   {
    "name": "media-analyst",
    "description": "reklam-atolyesi medya analisti. Değişmez girdi kopyasından Beta-Binom/Gamma hesapları, eşik ve hüküm dili, harcama dağılımı, yorgunluk, sahne düzeyinde kayıp ve grafikler üretir. S16 (ve takipte uyarı hesabı).",
-   "sha256": "7c836bc8c4239915fabcb5212004b3ae8a2c64d557e2223455ba15a8bae3e2f2"
+   "sha256": "d2acc13fa71a7f0f2904d237c6e73fe5597a7459900eb3f00540e66405fba0b9"
   },
   {
    "name": "meta-historian",
@@ -895,18 +895,18 @@
   "templates/reports/hesap-sagligi.md": "324c1f0a0ef2339f465b649bb965d94d27a9b4d98e575d6c3b33ffb39680c805",
   "templates/reports/rakip-analizi.md": "d882f273152c30f0f9a570a1aadc9bc959c42320df5c829c895c7a76cd12a54a",
   "templates/reports/strategy.md": "7762017f3efb4132fa7d2eb2fcc57f6ae65945fd3275010191f9c7249ed5cd03",
-  "templates/reports/yayin-paketi.md": "1c0a1198862d347c42338e551a300596e0f958700b662844c5da2b199903d308",
+  "templates/reports/yayin-paketi.md": "3b3de53c8a722d5ee32e6ad272f2ba9b638a30b3481ee84ffcc91adcce13cd13",
   "templates/style.json": "3916baa82f3f8d5e57d5ee0c2ec1dd0d370bcc3c76f4c2bcda801d512087bb8a",
   "templates/voices/okunus-genel.json": "ac33f767afe406c8a25b96d8dbd0524c4fd299d25948248426150bff022af288",
   "templates/voices/voices.json": "33f8a3c58480511df1b7d7f0ad15bcecc84d673125e245d112d2bc85a543ab11"
  },
  "tests": {
   "pytest": {
-   "passed": 450,
+   "passed": 458,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "450 passed, 0 failed, 6 skipped (2.2.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v220_profile.py (8): 5 etiket sınırı bulgusu ve Türkçe harfli etiket sayımı, kendi ortancasına göre kat (en iyi/en zayıf, türe göre, güven düzeyi), az paylaşımda ve sıfır ortancada atlama, son 30 paylaşım penceresi, alansız profil puanı (yalnız ölçülenler), tam/zayıf profilde puan ve düzeltme sırası, İstatistikler teşhisi (profil/açılış), organik açıklama denetimi (görünen 125, etiket, tek kanal, görünmez karakter, arama sözcüğü). Önceki özet: 443 passed, 0 failed, 5 skipped (2.1.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. Yeni testler tests/test_tts_local.py (16): okunuş sözlüğü (altyazı yazımı, kesme eki, en uzun girdi, girdi doğrulama, genel liste), normalleştirici ipuçları (sıra sayısı, aralık, telefon), gerçek normalizer-tr ile okunuş haritası ve rapor (normalizer-tr yoksa atlanır), cümle birleştirme (kırpma, duraklama, sözcük zamanı kaydırma), synth'in cümleleri ve sözlüğü motora iletmesi, --pause 0 eski yol, Whisper denetiminin sözlük yazımını kabul etmesi, EMA+Whisper kurulum önerisi. EMA/Whisper modelleri bu ortamda indirilemedi: gerçek ses üretimi sınanmadı. Önceki özet: 427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
+   "summary": "458 passed, 0 failed, 6 skipped (2.3.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v230_enhancements.py (8): migration 008 sütunu, iyileştirme kaydı doğrulaması (tür, kaynak, kreatif anahtarı, checked), kontrol edilmeden yayın kaydı ve durum uyarısı, hepsi kapalıyken sessizlik ve sonradan açık kaydında uyarı, bilinmeyen anahtarda yayın kaydının yarım kalmaması, hüküm dilinde 'Meta iyileştirmesi açık', koçlukta yalnız etkilenen konseptin işaretlenmesi ve rapor uyarı satırı, §7/yayın paketi/koç metinleri. Önceki özet: 450 passed, 0 failed, 6 skipped (2.2.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v220_profile.py (8): 5 etiket sınırı bulgusu ve Türkçe harfli etiket sayımı, kendi ortancasına göre kat (en iyi/en zayıf, türe göre, güven düzeyi), az paylaşımda ve sıfır ortancada atlama, son 30 paylaşım penceresi, alansız profil puanı (yalnız ölçülenler), tam/zayıf profilde puan ve düzeltme sırası, İstatistikler teşhisi (profil/açılış), organik açıklama denetimi (görünen 125, etiket, tek kanal, görünmez karakter, arama sözcüğü). Önceki özet: 443 passed, 0 failed, 5 skipped (2.1.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. Yeni testler tests/test_tts_local.py (16): okunuş sözlüğü (altyazı yazımı, kesme eki, en uzun girdi, girdi doğrulama, genel liste), normalleştirici ipuçları (sıra sayısı, aralık, telefon), gerçek normalizer-tr ile okunuş haritası ve rapor (normalizer-tr yoksa atlanır), cümle birleştirme (kırpma, duraklama, sözcük zamanı kaydırma), synth'in cümleleri ve sözlüğü motora iletmesi, --pause 0 eski yol, Whisper denetiminin sözlük yazımını kabul etmesi, EMA+Whisper kurulum önerisi. EMA/Whisper modelleri bu ortamda indirilemedi: gerçek ses üretimi sınanmadı. Önceki özet: 427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-30",
@@ -1371,7 +1371,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.3.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1593,6 +1593,14 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('marka', 'Marka | El yapımı mum', 'ornek.com', '#e1')",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "2.3.0: Advantage+ kreatif iyileştirmeleri (migration 008, s_stage normalize_enhancements/launch_confirm/cycle_set/campaign_status, server.py, s_coach yük alanı, coach.py enhancement_scope, bayes.verdict_language, report.py uyarı satırı; launch-pack/coach/learn/ref-metrics-math/ref-legal-tr-meta SKILL, media-analyst ajanı, yayin-paketi şablonu, test_v230_enhancements.py, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 20,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok; dağıtım hedefi satırındaki depo adı önceden vardı); fark satır satır okundu; iyileştirme adları Meta ekranına göre serbest metin, kodda marka ya da hesap sabiti yok; test örnekleri nötr ('Müzik', 'Metin varyasyonları', 'MRK_K1_A_…')",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1603,16 +1611,16 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "3001591f84cf4c8769e800725ffe7150f2386e84ba2913fc1a4aa81f784e9bbe",
+   "plugin_json": "3d21610c56b6efd81806ea22ae4a5df241a5c89c71f3fb92046255d31d43f126",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "802de99fc9ca37e37b3f6ac14df6481b060cdabd31b6da115f28b27203ac0828",
-   "agents": "5d16ba494c1e8a232368dea6f774e4fd2297274d0dd9082078be68fde7bf69b6",
+   "skills": "da3757a60fa72c5b4d91f1f018b3d86436172c279efc067ce3dc72ae896d4983",
+   "agents": "517c4ac267d655764c5239bf3f4a3158579ad40f49ce6f62af5da582c543cb8f",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
-   "ad_memory": "d4ff80a900520a991b35a651db7f8aaed8c57e91c862217e8f70876606267101",
-   "scripts": "d37ebfb9cee3f1df8f8609921cf4394199d803d3da30af778f0ef01a1e765e20",
-   "templates": "46256a5d60b56d7b6a6d83b8a5b597824bf59319f21864ffbe77dcc76e02759b",
+   "ad_memory": "54f9be7b5f982b8ede47b883af7b63e4cb9c60dab639c3c3b3de9029c79610ef",
+   "scripts": "e58f7accc60492f1080b9ca4560a22669461ac94319f6eb8d6774fb0b166a435",
+   "templates": "91c23eb379668aa8835308e796eef35b719a616ca9b7db5595e40e8b39b2ab93",
    "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
   "checked_at": "2026-10-30"
@@ -1772,16 +1780,16 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "3001591f84cf4c8769e800725ffe7150f2386e84ba2913fc1a4aa81f784e9bbe",
+  "plugin_json": "3d21610c56b6efd81806ea22ae4a5df241a5c89c71f3fb92046255d31d43f126",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "802de99fc9ca37e37b3f6ac14df6481b060cdabd31b6da115f28b27203ac0828",
-  "agents": "5d16ba494c1e8a232368dea6f774e4fd2297274d0dd9082078be68fde7bf69b6",
+  "skills": "da3757a60fa72c5b4d91f1f018b3d86436172c279efc067ce3dc72ae896d4983",
+  "agents": "517c4ac267d655764c5239bf3f4a3158579ad40f49ce6f62af5da582c543cb8f",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
-  "ad_memory": "d4ff80a900520a991b35a651db7f8aaed8c57e91c862217e8f70876606267101",
-  "scripts": "d37ebfb9cee3f1df8f8609921cf4394199d803d3da30af778f0ef01a1e765e20",
-  "templates": "46256a5d60b56d7b6a6d83b8a5b597824bf59319f21864ffbe77dcc76e02759b",
+  "ad_memory": "54f9be7b5f982b8ede47b883af7b63e4cb9c60dab639c3c3b3de9029c79610ef",
+  "scripts": "e58f7accc60492f1080b9ca4560a22669461ac94319f6eb8d6774fb0b166a435",
+  "templates": "91c23eb379668aa8835308e796eef35b719a616ca9b7db5595e40e8b39b2ab93",
   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."

@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.2.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.3.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,24 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.3.0** — Andromeda 28 Ekim 2026 değerlendirmesi: Advantage+ kreatif iyileştirmeleri yayın paketinde ve koçlukta
+- Meta'nın Andromeda ikinci nesil yazısı (2026-10-28) birincil kaynaktan doğrulandı: reklam seçiminin ilk aşaması yeniden yazıldı,
+  reklamverenin açıp kapatacağı ayar yok. Plugin'in kreatif çeşitliliği, tek set yapısı ve koçluk kuralları **değişmedi**; "benzer
+  kreatifler gruplanır" ve "%60 benzerlik" yeni yazıda da yok (yerel koruma kuralı olarak kalır). %2,4 / %18,9 gibi Meta toplu
+  rakamları eşik ya da vaade çevrilmez (ref-legal-tr-meta §7).
+- **Yayın paketi (S14) adım 5a:** her reklamda "İyileştirmeler" ve gelişmiş önizleme → Advantage+ kreatif sekmesi kontrol edilir
+  (resmi: bazıları varsayılan açık, metin ve medyayı ayarlayabilir). Kreatif testi/A/B testi turunda metin, görsel, müzik ve varış yeri
+  (ürün gezinme dahil) iyileştirmeleri kapatılır: test tek değişkenli, QC'den geçen sürüm yayında aynı kalır (yerel koruma kuralı).
+  İlk tur ve ölçeklemede seçim kullanıcının.
+- **Ürün gezinme** (product browsing) 28.10.2026'dan beri mevcut reklamlarda varsayılan açık olabilir: kaynak Meta'nın Ads Manager
+  bildirimi, Yardım Merkezi makalesi yok (§7'de "teyit edilmedi"). Bildirim katalog şartı koymuyor; her hesapta kontrol edilir.
+- **Yayın kaydı:** `launch_confirm(..., enhancements)` açık kalan iyileştirmeleri kaydeder (`cycles.enhancements_json`); verilmezse
+  tur "kontrol edilmedi" diye kaydedilir ve uyarı döner. Sonradan değişirse `cycle_set(enhancements_json=…)`. Durum ekranı ölçümdeki
+  turlar için uyarır.
+- **Koçluk:** açık iyileştirmenin dokunduğu konseptlerin hükmüne "Meta iyileştirmesi açık" eklenir; rapor uyarı satırı yazar; learn
+  bu konseptleri kontrollü doğrulama saymaz.
+- Migration 008 (yalnızca sütun ekler: `cycles.enhancements_json`); 2.3.0 öncesi turlarda kayıt yoktur, uyarı da çıkmaz. Yeni bağımlılık yok.
+
 **2.2.0** — profil kontrolü: 5 etiket sınırı, "kendi ortancasının kaç katı", profil puanı, İstatistikler girdisi; organik açıklama denetimi
 - Etiket bulgusu "10'dan fazla ortalama" yerine "5'ten fazla etiketli paylaşım" (Instagram Aralık 2025'ten beri paylaşım ve Reels başına
   en fazla 5 etiket; Instagram'ın Threads duyurusu ikincil kaynaklardan, yardım merkezinde teyit edilmedi — ref-legal-tr-meta). Eski

@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.2.0
+# Müşteri paketi — 2.3.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.2.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.3.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.3.0 migration 008 içerir (yalnızca sütun ekler: turun Advantage+ kreatif iyileştirme kaydı); güncelleyici uygular, mevcut kayıtlar
+değişmez. Yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Yayın paketinde yeni "Advantage+ kreatif
+iyileştirmeleri" bölümü var; "yayına aldım" adımında açık kalan iyileştirmeler sorulur. Önceki turlar etkilenmez.
 2.2.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Profil kontrolü raporunda
 yeni `outliers`, `score` ve (verildiyse) `insights`
 bölümleri ve 5 etiket sınırı bulgusu var; organik taslaklar `caption_check.py` ile denetlenir.

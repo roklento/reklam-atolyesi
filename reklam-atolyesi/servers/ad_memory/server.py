@@ -446,7 +446,8 @@ def campaign_status(profile_id: int, campaign_id: int | None = None) -> dict:
 
 @mcp.tool()
 def cycle_set(profile_id: int, cycle_id: int, fields: dict, correction_reason: str | None = None) -> dict:
-    """Tur alanları: bütçe, test günleri, takvim, ölçüm bağlamı, önseller, bütçe planı, risk sınırları, yapı kanıtı (6.3, 6.4)."""
+    """Tur alanları: bütçe, test günleri, takvim, ölçüm bağlamı, önseller, bütçe planı, risk sınırları, yapı kanıtı (6.3, 6.4),
+    Advantage+ kreatif iyileştirmeleri (enhancements_json; 2.3.0)."""
     return call(lambda s: s.cycle_set(profile_id, cycle_id, correction_reason, **fields))
 
 
@@ -498,10 +499,13 @@ def shoot_mark_done(profile_id: int, campaign_id: int, cycle_id: int, note: str 
 
 @mcp.tool()
 def launch_confirm(profile_id: int, campaign_id: int, cycle_id: int, s14_stage_run_id: int, output_version: int, ads: list[dict],
-                   launched_at: str, user_confirmation: str, test_start: str | None = None, readback: dict | None = None) -> dict:
-    """Gerçek yayın kaydı ve S15 geçişi: onaylı S14 sürümü + reklam kimlikleri + gerçek tarih + kullanıcı teyidi (+ MCP okuma)."""
+                   launched_at: str, user_confirmation: str, test_start: str | None = None, readback: dict | None = None,
+                   enhancements: dict | None = None) -> dict:
+    """Gerçek yayın kaydı ve S15 geçişi: onaylı S14 sürümü + reklam kimlikleri + gerçek tarih + kullanıcı teyidi (+ MCP okuma).
+    enhancements (2.3.0): yayındaki Advantage+ kreatif iyileştirmeleri {checked, source: advanced_preview | meta_mcp | user,
+    on: [{name, kind: text | visual | audio | destination | other, creative_keys?}], off: [ad]}; verilmezse 'kontrol edilmedi'."""
     return call(lambda s: s.launch_confirm(profile_id, campaign_id, cycle_id, s14_stage_run_id, output_version, ads, launched_at,
-                                           user_confirmation, test_start, readback))
+                                           user_confirmation, test_start, readback, enhancements))
 
 
 # ---------------------------------------------------------------- devam notu (8.3)

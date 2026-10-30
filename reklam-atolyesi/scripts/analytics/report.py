@@ -48,6 +48,14 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
     lines += ["## Kararlar", ""]
     for d in dec:
         lines.append(f"- **{d['concept']}** → {d['decision']} ({d['label']}): {d['why']}" + (f" — Ads Manager: {d['ads_manager']}" if d.get("ads_manager") else ""))
+    enh = an.get("enhancements") or {}
+    if enh.get("recorded") and not enh.get("checked"):
+        lines.append("- ⚠ Advantage+ kreatif iyileştirmeleri yayında kontrol edilmedi: Meta bazılarını varsayılan açar; kazanan kreatif mi "
+                     "iyileştirme mi, ayırt edilemeyebilir.")
+    elif enh.get("on"):
+        scope = "tüm reklamlarda" if enh.get("all") else ", ".join(enh.get("concepts") or [])
+        lines.append("- ⚠ Açık kalan Meta iyileştirmeleri (" + ", ".join(i["name"] for i in enh["on"]) + f"; {scope}): ilgili hükümler "
+                     "'Meta iyileştirmesi açık' kaydıyla; sonraki testte kapatılması önerilir.")
     for a in an["limit_alerts"]:
         lines.append(f"- ⚠ Sınır: {a['msg']} ({a.get('creative_key') or ''} {a.get('spend', '')} / {a.get('limit', a.get('budget_total', ''))})")
     sup = an.get("superiority_hook") or {}

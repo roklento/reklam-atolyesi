@@ -663,7 +663,18 @@ def metric_basis(snap: dict, cost: dict, test_rows: list[dict]) -> dict:
                      "Meta bu turda satış olayı görmedi (piksel/yükleme yok ya da satış yok): satışa dayalı hüküm verilmez.")}
 
 
-def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cost: dict) -> list[dict]:
+def enhancement_scope(snap: dict, cmap: dict) -> dict:
+    """2.3.0: yayında açık kalan Advantage+ kreatif iyileştirmeleri hangi konseptleri etkiliyor (creative_keys yoksa hepsini)."""
+    e = (snap.get("cycle") or {}).get("enhancements_json")
+    if not isinstance(e, dict):  # 2.3.0 öncesi tur: kayıt yok
+        return {"recorded": False, "checked": None, "on": [], "all": False, "concepts": []}
+    on = e.get("on") or []
+    every = any(not i.get("creative_keys") for i in on)
+    concepts = sorted({cmap.get(k) or UNMAPPED for i in on for k in (i.get("creative_keys") or [])})
+    return {"recorded": True, "checked": bool(e.get("checked")), "on": on, "all": every, "concepts": concepts}
+
+
+def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cost: dict, enh: dict | None = None) -> list[dict]:
     """tut / büyüt / kapat / yenile — gerekçeli; eşik altı → yön; aç kalan konsept kaybeden sayılmaz; 'kapat' performans gerekçesiyle
     yalnızca eşik geçilmiş ve Meta harcama veriyorsa; büyütme için yeterli sonuç ve doğrulanmış ekonomi gerekir."""
     out = []
@@ -680,7 +691,8 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
         ctr = c["rates"].get("ctr_link")
         d = dist.get(k, {})
         co = cost.get(k, {})
-        label = B.verdict_language(bool(hook and hook["threshold_met"]), structure)
+        label = B.verdict_language(bool(hook and hook["threshold_met"]), structure,
+                                   bool(enh and (enh["all"] or k in enh["concepts"])))
         if d.get("starved") and structure in ("bootstrap", None, "unverified"):
             out.append({"concept": k, "decision": "tut", "label": "yetersiz veri", "carry_over": True,
                         "why": "Meta bu konsepte harcama payının %10'undan azını verdi; kaybeden sayılmaz. Sonraki turun kreatif testine "
@@ -749,7 +761,8 @@ def analyze(snap_path: str) -> dict:
     fat = fatigue(rows_main_by_creative)
     ret = retention(snap, aggregate(test_rows, lambda r: r.get("creative_key") or r["meta_ad_id"]))
     lim = limit_alerts(snap, all_rows)
-    dec = decisions(kpost, dist, snap, structure, cost)
+    enh = enhancement_scope(snap, cmap)
+    dec = decisions(kpost, dist, snap, structure, cost, enh)
     stg = stage_section(snap, by_concept)
     if stg and stg["round_mode"] == "funnel":
         funnel_stage_guard(dec, stage_of_concept(snap), kpost, priors)
@@ -806,7 +819,8 @@ def analyze(snap_path: str) -> dict:
             predictions.append({"subject": f"concept:{k}", "metric": "hook_rate", "p_win": round(s["p_best"], 4),
                                 "interval": {"lo": kpost[k]["rates"]["hook_rate"]["lo"], "hi": kpost[k]["rates"]["hook_rate"]["hi"]}})
     return {"snapshot": {"path": snap_path, "sha256": sha256_file(snap_path)}, "model_version": snap.get("model_version"), "params": snap.get("params"),
-            "structure": structure, "verdict_qualifier": B.verdict_language(True, structure).replace("kanıt", "").strip(" ·"),
+            "structure": structure, "verdict_qualifier": B.verdict_language(True, structure, enh["all"]).replace("kanıt", "").strip(" ·"),
+            "enhancements": enh,
             "window": {"full_days": parts["full_days"], "excluded_boundary_days": parts["excluded_days"], "test_rows": len(test_rows),
                        "post_rows": len(parts["post"]), "note": "sınır günleri saat oranıyla bölünmez; toplam harcamada tam sayılır"},
             "creatives": cpost, "concepts": kpost, "roles": rpost, "superiority_hook": sup, "cost": cost, "spend_distribution": dist,
