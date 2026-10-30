@@ -46,7 +46,8 @@ class CoachMixin:
                 self.ex("UPDATE cycles SET priors_snapshot_json=? WHERE id=? AND priors_snapshot_json IS NULL", (jdump(priors), cy["id"]))
         comp = self.q1("SELECT id, sha256, fetched_at FROM competitor_snapshots WHERE profile_id=? ORDER BY fetched_at DESC, id DESC LIMIT 1", (profile_id,))
         creatives = self.qa("""SELECT cr.creative_key, cr.format, cr.media_type, cr.delivery_role, cr.duration_s, cr.features_json, cr.edit_plan_id,
-                                      cr.cycle_id, k.code AS concept, k.competitive_role, cr.ai_share
+                                      cr.cycle_id, k.code AS concept, k.competitive_role, cr.ai_share,
+                                      k.features_json AS concept_features, k.message_json AS concept_message
                                FROM creatives cr LEFT JOIN concepts k ON k.id=cr.concept_id WHERE cr.campaign_id=?""", (c["id"],))
         plans = {}
         for cr in creatives:

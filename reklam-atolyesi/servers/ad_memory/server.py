@@ -157,18 +157,19 @@ def product_upsert(profile_id: int, name: str, product_id: int | None = None, pr
                    occasions_json: list | None = None, provable_claims_json: list | None = None, capacity_limit: str | None = None,
                    photos_json: list | None = None, observation_json: dict | None = None, shoot_profile_json: dict | None = None,
                    catalog_product_id: str | None = None, buyers_json: list | None = None, kind: str | None = None,
-                   service_json: dict | None = None) -> dict:
+                   service_json: dict | None = None, objections_json: list | None = None) -> dict:
     """Ürün ya da hizmet kaydı; başa baş CPA/ROAS ve hedef CPA hesaplanır (6.2). shoot_profile_json: {'cards': [...]} (5.3).
     occasions_json: satın alma anları (ne zaman), buyers_json: alıcılar (kim); ikisi de [{code, label}] ve sözlükte moment / buyer.
     kind: product | service (1.5.0). service_json: {duration_min, capacity_per_week, booking, area: {city, districts, radius_km, online},
     regulated_sector, special_ad_category, audience_regions: ['TR', ...]}. Aday sonucu için economics_json.lead_close_rate (0–1, adaydan
-    satışa dönüş) + lead_close_rate_confirmed → başa baş/hedef aday maliyeti."""
+    satışa dönüş) + lead_close_rate_confirmed → başa baş/hedef aday maliyeti. objections_json (1.9.0): satın alma engelleri
+    [{code, text, source: user|dm_lost_reason|page_check|review|competitor, answer?, evidence?: {kind, ref}}]; cevap kanıtıyla yazılır."""
     f = {k: v for k, v in dict(price=price, gross_margin=gross_margin, aov=aov, currency=currency, safety_factor=safety_factor,
                                 economics_json=economics_json, occasions_json=occasions_json, buyers_json=buyers_json,
                                 provable_claims_json=provable_claims_json,
                                 capacity_limit=capacity_limit, photos_json=photos_json, observation_json=observation_json,
                                 shoot_profile_json=shoot_profile_json, catalog_product_id=catalog_product_id, kind=kind,
-                                service_json=service_json).items() if v is not None}
+                                service_json=service_json, objections_json=objections_json).items() if v is not None}
     return call(lambda s: s.product_upsert(profile_id, name, product_id, **f))
 
 
@@ -528,11 +529,16 @@ def checkpoint_close(profile_id: int, stage: str, summary: str, campaign_id: int
 def concept_upsert(profile_id: int, campaign_id: int, cycle_id: int, code: str, name: str, source: str, angle: str | None = None,
                    decision: str | None = None, user_said: str | None = None, rationale: str | None = None,
                    competitive_role: str | None = None, source_competitor_ad_ids: list[int] | None = None, features: dict | None = None,
-                   sound_intent: str | None = None, hypothesis_id: int | None = None, checkpoint: dict | None = None) -> dict:
+                   sound_intent: str | None = None, hypothesis_id: int | None = None, checkpoint: dict | None = None,
+                   message: dict | None = None) -> dict:
     """S03 konsept önerisi/kararı. Karar (accepted|merged|rejected|deferred) kullanıcının ifadesiyle (user_said) yazılır.
-    features'ta `buyer` (kime konuşuyor) tek değerdir. Güncellemede verilmeyen alanlar korunur; features eksen bazında birleşir."""
+    features'ta `buyer` (kime konuşuyor) tek değerdir. Güncellemede verilmeyen alanlar korunur; features eksen bazında birleşir.
+    message (1.9.0, S03 kapısı ister): {stage: tofu|mofu|bofu, stage_basis: data|user|assumption, stage_basis_note?, belief,
+    focus: need|desire|objection, objection_code?, evidence: [{kind: claim|review|asset|page_info|none, ref, checked_at?}],
+    expected_action}. BOFU izinli yorum, kanıtlanabilir iddia ya da okunmuş sayfa bilgisi ister."""
     return call(lambda s: s.concept_upsert(profile_id, campaign_id, cycle_id, code, name, source, angle, decision, user_said, rationale,
-                                           competitive_role, source_competitor_ad_ids, features, sound_intent, hypothesis_id, checkpoint))
+                                           competitive_role, source_competitor_ad_ids, features, sound_intent, hypothesis_id, checkpoint,
+                                           message))
 
 
 @mcp.tool()
@@ -640,7 +646,8 @@ def concept_distance_check(profile_id: int, concept_id: int, own_texts: list[str
 @mcp.tool()
 def concept_diversity_check(profile_id: int, campaign_id: int, cycle_id: int) -> dict:
     """S03 test portföyü denetimi (kapı da aynısını yapar, hiçbir şey yazmaz): her keşif konseptinin tek test hook'u ve tek alıcısı
-    (buyer) var; keşif konseptleri farklı alıcıya konuşur ve emotion/moment/proof/first_frame'den en az ikisinde farklı. Doğrulama çifti muaf."""
+    (buyer) var; keşif konseptleri farklı alıcıya konuşur ve emotion/moment/proof/first_frame'den en az ikisinde farklı. Doğrulama çifti muaf.
+    Huni turunda (S02 budget_plan_json.round_mode='funnel'; 1.9.0): aynı alıcı, ikişer ikişer farklı aşama, 2–3 konsept."""
     return call(lambda s: s.concept_diversity_check(profile_id, campaign_id, cycle_id))
 
 

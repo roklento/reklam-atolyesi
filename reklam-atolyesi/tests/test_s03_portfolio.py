@@ -22,9 +22,13 @@ def at_s03(s):
     return pid, cid, cyid
 
 
-def concept(s, pid, cid, cyid, code, features, hooks=(("h1", "product", False),), hypothesis_id=None):
+MSG = {"stage": "tofu", "stage_basis": "assumption", "belief": "bu ürün hediye için uygun", "focus": "need",
+       "evidence": [{"kind": "none"}], "expected_action": "profile bakmak"}
+
+
+def concept(s, pid, cid, cyid, code, features, hooks=(("h1", "product", False),), hypothesis_id=None, message=MSG):
     k = s.concept_upsert(pid, cid, cyid, code, f"Konsept {code}", "general", decision="accepted", user_said=f"{code} olsun",
-                         features=features, hypothesis_id=hypothesis_id)
+                         features=features, hypothesis_id=hypothesis_id, message=message)
     if hypothesis_id is None:
         s.hypothesis_add(pid, f"{code} konsepti hook oranında öndedir", "hook_rate", cid, cyid, concept_id=k["id"])
     for hcode, frame, reserve in hooks:
@@ -131,9 +135,10 @@ def test_partial_update_keeps_decision_buyer_hypothesis_and_reserve(store):
     hyp = store.q1("SELECT hypothesis_id FROM concepts WHERE id=?", (k["id"],))["hypothesis_id"]
     r = store.concept_upsert(pid, cid, cyid, "A", "Konsept A", "general", sound_intent="çekimdeki ses")
     assert (r["decision"], r["status"], r["hypothesis_id"], r["sound_intent"]) == ("accepted", "selected", hyp, "çekimdeki ses")
-    assert r["features_json"] == {"buyer": "alici-a", "emotion": "duygu-a"}
+    assert r["features_json"] == {"buyer": "alici-a", "emotion": "duygu-a", "stage": "tofu"}  # aşama mesaj kartından (1.9.0)
+    assert r["message_json"]["stage"] == "tofu"
     r = store.concept_upsert(pid, cid, cyid, "A", "Konsept A", "general", features={"moment": "an-a", "emotion": "duygu-b"})
-    assert r["features_json"] == {"buyer": "alici-a", "emotion": "duygu-b", "moment": "an-a"}  # eksen bazında birleşir
+    assert r["features_json"] == {"buyer": "alici-a", "emotion": "duygu-b", "moment": "an-a", "stage": "tofu"}  # eksen bazında birleşir
     h = store.hook_upsert(pid, k["id"], "h2", "person", "person açılışı", "yeni hareket", "h2 sesi", "Yeni metin")
     assert (h["decision"], h["reserve"]) == ("accepted", 1)
     h = store.hook_upsert(pid, k["id"], "h3", "context", "bağlam", "hareket", "ses", "Metin")  # yeni hook: varsayılan test

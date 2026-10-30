@@ -1,4 +1,4 @@
-# Müşteri paketi — 1.8.1
+# Müşteri paketi — 1.9.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`.
 Eski kök `kur.cmd` / `kur.ps1` ve eski masaüstü kurulum klasörü/ZIP'i korunmuştur.
@@ -16,10 +16,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.8.1**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **1.9.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+1.9.0 migration 007 içerir (yalnızca sütun ekler: ürün satın alma engelleri, konsept mesaj kartı, üç günlük metrik); güncelleyici
+uygular, mevcut kayıtlar değişmez. Yeni bağımlılık yok. Mevcut kampanyanın S03 kapısı yeniden açılırsa test konseptleri için mesaj kartı
+ister; geçmiş kapılar etkilenmez. Huni turu isteğe bağlıdır ve yalnızca 2. turdan itibaren seçilebilir.
 1.8.1 migration içermez, yeni bağımlılık yok. Efekt aramasına Türkçe etiketler eklendi; kaynağı kayıtsız 5 efekt dosyası paketten
 çıktı (kullanılmıyorlardı). Yalnızca `sfx_library.py`, skill metinleri ve ses arşivi değişti.
 1.8.0 migration içermez. Yeni bağımlılık: npm `@remotion/rough-notation` 4.0.532 (MIT; + roughjs ve dört küçük MIT paketi);

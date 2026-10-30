@@ -61,14 +61,34 @@ haritası ve onaylı strateji, reddedilen/ertelenen fikirler, ürün, marka belg
    (`ref-creative-taxonomy` çeşitlilik kuralı). Her yön: fikir · **kime konuştuğu** (`buyer`, S00c alıcılarından) · **neden önerildiği**
    (kaynak: `evidence | direction | general | product | brand_doc | competitor`) · neyi test ettiği · çekim yükü · izinli iddialarla
    uyumu · **portföydeki yeri** (`proven | gap | counter | free`) · rakipten türüyorsa kaynak rakip konsepti. Alıcıyı sahne, an ve ürünün
-   kullanımı anlatır; metin izleyiciye özellik atfetmez ("… misin?" türü kişisel hitap yok, `ref-legal-tr-meta` §8a). `competitor`
+   kullanımı anlatır; metin izleyiciye kişisel özellik atfetmez ve ima etmez (`ref-legal-tr-meta` §8a). Soruyla açılış serbesttir
+   (1.9.0): yasak olan, §8a listesindeki bir özelliği (sağlık, kilo/görünüm, yaş, maddi durum, aile/medeni durum, din/köken, yönelim,
+   engellilik, sabıka) izleyicide varsayan sorudur ("Kilo mu aldın?" ✗ · "Hediye seçmek zor mu geliyor?" ✓). `competitor`
    önerisi "kategori gözlemi, bu hesapta kanıtlanmadı" diye sunulur; hesabın verisiyle çelişirse hesabın verisi geçerli; soğuk
    başlangıçta `competitor`, `general`'den önce gelir. Marka belgesindeki konseptler hazır karar değil öneridir. Kullanıcı seçer,
    birleştirir, reddeder ya da kendi fikrini getirir; Claude geliştirir.
    Her karar **aynı çağrıda devam notuyla**: `concept_upsert(profile_id, campaign_id, cycle_id, code, name, source, angle, decision=
    accepted|merged|rejected|deferred, user_said, rationale, competitive_role, source_competitor_ad_ids, features={sözlük eksenleri:
-   `buyer` tek değer, `emotion`, `moment`, `proof`, …}, sound_intent?, checkpoint={…})`. Profil eksenine yeni değer gerekiyorsa
-   kullanıcıyla `taxonomy_value_add`.
+   `buyer` tek değer, `emotion`, `moment`, `proof`, …}, sound_intent?, message={…}, checkpoint={…})`. Profil eksenine yeni değer
+   gerekiyorsa kullanıcıyla `taxonomy_value_add`.
+7b. **Mesaj kartı (1.9.0; kapı ister):** her test konsepti hook'tan önce şu soruyu yanıtlar: *Kime, hangi düşünceyi değiştirmek için,
+   hangi kanıtla konuşuyoruz?* Kart beş alandır ve kullanıcıyla birlikte doldurulur:
+   - **Aşama** (`stage`: `tofu` ihtiyacı ya da çözümü bilmiyor · `mofu` seçenekleri tartıyor · `bofu` almaya yakın, tereddüdü var) ve
+     **dayanağı** (`stage_basis`: `data` — hesap verisi, `user` — kullanıcının bilgisi, `assumption` — veri yok; ilk ikisinde
+     `stage_basis_note`). Aşama kitle değildir: reklamın seslendiği karar anıdır; kimin gördüğünü Meta seçer.
+   - **Değişecek düşünce** (`belief`, tek cümle): reklam sonunda izleyicinin ne düşünmesini istiyoruz.
+   - **Odak** (`focus`: `need` ihtiyaç · `desire` istek · `objection` satın alma engeli; engelse `objection_code` ürün kartından).
+   - **Kanıt** (`evidence`: `claim` kanıtlanabilir iddia metni · `review` izinli yorum kimliği · `asset` klip kimliği · `page_info`
+     satış sayfasında okunan bilgi + `checked_at` · `none`). Kanıt uydurulmaz; istatistik, yorum, stok azlığı ya da süre yazılmaz.
+   - **Beklenen aksiyon** (`expected_action`): izleyicinin reklamdan sonra yapmasını beklediğimiz tek şey.
+   Kart açılış cümlesini, sahne seçimini, seslendirmeyi ve kapanışı **birlikte** yönlendirir; aynı senaryonun sonuna farklı CTA eklemek
+   aşama farkı sayılmaz. Aşamaya göre içerik: `ref-creative-taxonomy` "Huni aşaması". **BOFU** kartı en az bir gerçek kanıt taşır
+   (izinli yorum, kanıtlanabilir iddia ya da okunmuş sayfa bilgisi); odak engelse o engelin cevap kanıtı ürün kartında olmalı. Kanıt
+   yoksa BOFU önerilmez ve neden söylenir (sunucu da reddeder). Kayıt: `concept_upsert(..., message={stage, stage_basis,
+   stage_basis_note?, belief, focus, objection_code?, evidence:[…], expected_action})`; aşama sözlükteki `stage` eksenine de yazılır.
+7c. **Huni turu (S02 `round_mode="funnel"`, 2. turdan itibaren; 1.9.0):** yön önerileri farklı alıcılar yerine `budget_plan_json.funnel.buyer` alıcısının
+   farklı karar anlarına kurulur: 2–3 konsept, her biri ayrı aşamada, tek test hook'u. Aynı çekimden yararlanılabilir; açılış, sahneler,
+   kanıt, ses ve kapanış aşamaya göre değişir. Çeşitlilik denetimi bu turda "aynı alıcı, farklı aşama" kuralını uygular.
 8. **Hook'lar:** hook ilk 1–2 sn ve dört parça: **açılış karesi** (`first_frame_type` sözlükten + açıklama) · **ilk hareket** · **ilk
    ses** · **metin**. Kaydırmayı durduran öncelikle ilk üçüdür. Her seçilen konsept için en az biri görsel olarak farklı **3 hook
    alternatifi**; kullanıcı **teste girecek tek hook'u** seçer ya da yazar. Keşifte **konsept başına tek test hook'u** olur: test hakkı
@@ -103,7 +123,7 @@ haritası ve onaylı strateji, reddedilen/ertelenen fikirler, ürün, marka belg
 16. Tercihler: kabul/ret örüntüsü `memory_add(layer="preference", source="user", evidence_id=<karar kimliği>)` (eşleştirme kuralıyla).
 
 ## Çıktılar
-`concepts` (kaynak, karar, rol, kaynak rakip reklamları, sözlük özellikleri ve alıcı, ses niyeti, uzaklık kontrolü), `hooks` (test ya da
+`concepts` (kaynak, karar, rol, kaynak rakip reklamları, sözlük özellikleri ve alıcı, mesaj kartı, ses niyeti, uzaklık kontrolü), `hooks` (test ya da
 yedek), `hypotheses`, `campaigns.mode`, `c<tur>-hooks.csv`, görüşme özeti, referans tahtası, tercih gözlemleri, devam notu.
 
 ## Kontroller
@@ -113,10 +133,12 @@ yedek), `hypotheses`, `campaigns.mode`, `c<tur>-hooks.csv`, görüşme özeti, r
 - Test reklamı sayısı ≤ S02 tavanı; yedekler ayrı.
 - Her keşif konseptinin tek test hook'u ve tek alıcısı var; keşif konseptleri farklı alıcılara konuşuyor ve en az iki eksende farklı
   (`concept_diversity_check` geçti; sunucu kapıda denetler). Alıcı etiketi reklam metninde izleyiciye atfedilmedi (§8a).
+  Huni turunda konseptler aynı alıcıya, ikişer ikişer farklı aşamada konuşuyor.
+- Her test konseptinin mesaj kartı var; aşamanın dayanağı yazılı (veri yoksa "assumption"); BOFU kartları gerçek kanıtlı (1.9.0).
 - Hook'lar dört parçalı; görsel olarak farklı her hook çekim menüsüne ayrı satır olacak.
 
 ## Kapı mesajı
-"Görüşme özeti: seçilen konseptler <A (kime konuşuyor, rol, kaynak): fikir — test hook h1; yedek h2…>, gerekçeleri …;
+"Görüşme özeti: seçilen konseptler <A (kime konuşuyor, aşama ve dayanağı, değişecek düşünce, kanıt, rol, kaynak): fikir — test hook h1; yedek h2…>, gerekçeleri …;
 reddedilen/ertelenen: …; hipotezler: …; ses niyetleri: …; açık sorular: …; çekim yolu: <yeni çekim | kütüphaneden>. Bu özeti
 onaylıyor musun, neyi değiştirelim?" → açık onayda
 `gate_approve(..., cycle_id, checkpoint=…)`. Reddedilen/ertelenen fikirler sonraki tur için saklanır.

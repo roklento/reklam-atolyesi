@@ -49,6 +49,7 @@ Yok. Çekim tarifi kartlarının dili `ref-shooting-basics`'tedir.
    | 5 | Kim alıyor, hangi an için? (iki parçalı tek soru) | İki çoklu seçim: **(a) alıcılar** — ürünü kim alıyor ya da kime alınıyor, reklam kime konuşabilir (2–4 öneri + diğer); **(b) satın alma anları** — ne zaman (3–5 öneri + diğer). İkisi de ürün gözleminden ve Meta geçmişinden çıkarılır. Alıcı bir kişi tipidir, an bir zamandır: aynı an farklı alıcılara, aynı alıcı farklı anlara düşebilir; seçenekleri bu farkla kur. Alıcı etiketi iç kayıttır, reklam metninde izleyiciye atfedilmez (`ref-legal-tr-meta` §8a) | `buyers_json` ve `occasions_json` (`[{code, label}]`); her alıcı `taxonomy_value_add(axis="buyer", code, label, status="active", user_said)`, her an `taxonomy_value_add(axis="moment", …)` |
    | 6 | Kanıtlayabildiğin özellikler | Gözlemden çıkarılan öneriler (malzeme, üretim yöntemi, ölçü, kullanım…) + diğer; her biri için "belgesi var mı" | `provable_claims_json=[{claim, evidence_kind, document_path?, needs_document, verified}]` |
    | 7 | Üretim veya stok sınırı var mı? | yok · haftada N adet · sezonluk | `capacity_limit` |
+   | 8 | Almaya yakın kişi neden tereddüt ediyor? (1.9.0) | 2–4 öneri + diğer: ürün gözleminden, mesajla satış kayıp nedenlerinden (`dm_summary.lost_reasons`), satış sayfası kontrolünden ve izinli yorumlardan ("görseldeki gibi mi", "kaç günde gelir", "iade olur mu", "fiyatına değer mi"). Her engelin cevabı var mı, cevabın kanıtı ne (izinli yorum, kanıtlanabilir iddia, sayfada okunan bilgi)? Kanıtı olmayan cevap yazılmaz; engel "cevap kanıtı yok" diye kalır, BOFU reklamı onu cevaplayamaz | `objections_json=[{code, text, source: user\|dm_lost_reason\|page_check\|review\|competitor, answer?, evidence?: {kind, ref}}]` |
 
    Seçenekler sabit listeden değil **o ürünün gözleminden** üretilir (ilke 12). Her cevap `onboarding_save(profile_id, "product",
    product_id, question_key, answer, source, confirmed)`.
@@ -69,8 +70,8 @@ Yok. Çekim tarifi kartlarının dili `ref-shooting-basics`'tedir.
    konuşmalı kurgu), süreç adımları (eller, ekipman; kişi yüzü izinsiz görünmez), mekân güveni (temizlik, belge/sertifika görünürse
    gerçek olmalı), sonuç gösterimi (düzenlenen alanda önce/sonra ve müşteri görüntüsü §7'ye göre; sağlıkta resmi metin okunana kadar
    **kullanılmaz**). Müşteri yorumu yalnızca izinle (`review_add`).
-6. Ürün kartını yaz: `DD/profiles/<slug>/products/<ürün>/urun-karti.md` (gözlem, ekonomi ve dili, alıcılar, anlar, iddialar, çekim
-   tarifi; atomik).
+6. Ürün kartını yaz: `DD/profiles/<slug>/products/<ürün>/urun-karti.md` (gözlem, ekonomi ve dili, alıcılar, anlar, iddialar, satın
+   alma engelleri ve cevaplarının kanıtı, çekim tarifi; atomik).
 7. `stage_complete(profile_id, "S00c", outputs=[{path: urun-karti.md}], summary, scope_key="product:<id>")` → `awaiting_gate`.
 
 ## Çıktılar

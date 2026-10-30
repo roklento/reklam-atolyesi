@@ -28,7 +28,11 @@ Yok.
 2. **Değişmez girdi kopyası (6.4):** yapı `ab_test` ise önce çalışma salt okumayla okunur: `ads_experiment_abtest_get_test(study_id=
    cycles.meta_test_id)` → kazanan hücre (varsa `winner_result`) konsept koduna eşlenir. Sonra
    `decision_input_snapshot(profile_id, campaign_id, cycle_id, kind="coach_report", extra={competitor_snapshot_id, ab_test?: {study_id,
-   winner_concept, confidence?}})` (kazanan yoksa ya da eşlenemezse `winner_concept` yazılmaz; tahmin edilmez)
+   winner_concept, confidence?}, audience_segments?: {<konsept kodu>: {new, engaged, existing}}})` (kazanan yoksa ya da eşlenemezse
+   `winner_concept` yazılmaz; tahmin edilmez). **Kitle segmentleri (1.9.0):** konseptlerde aşama varsa test penceresi için bir kez
+   `ads_get_ad_entities(level="ad", breakdowns=["user_segment_key"], fields=["amount_spent"], time_range=<test>)` okunur; reklamlar
+   `creative_key` üzerinden konsepte toplanır ve harcama segment başına `audience_segments`'e yazılır. Segmentler tanımlı değilse ya da
+   döküm boş/`null` dönerse alan yazılmaz; raporda "kimin gördüğü okunamadı" çıkar (tahmin edilmez)
    — kullanılan satırlar ve kaynak/çekim zamanları, ölçüm bağlamı, dahil/dışlanan zaman aralıkları ve nedenleri, elle satış, ekonomi/hedef,
    bütçe ve risk sınırı, yapı kanıtı, dondurulmuş önseller, model/eşik sürümü, parametreler, tohum (1729), rakip görüntüsü kimliği ve hash'i.
    Kopya `reports/` altına tur/rapor sürümüyle, atomik ve SHA-256'lı; eski kopyanın üzerine yazılmaz. **Kopya saklanamazsa rapor
@@ -53,6 +57,13 @@ Yok.
    (`ab_test`, yapı `ab_test` iken: hücre başına sonuç, sonuç başına maliyet, en düşük maliyet olasılığı; Meta'nın okunan kazananı ve
    uyuşma). A/B yapısında hüküm dilinde "Meta'nın dağıtımı altında" yoktur (kitle rastgele bölünür). Tıklama çok, satış/aday sonrası
    zayıfsa `profile-check` önerilir.
+   1.9.0: **huni aşamaları** (`stages`): aşaması olan her konsept KENDİ aşamasının teşhis metriğiyle okunur — TOFU hook ve tutma, MOFU
+   bağlantı CTR'si, açılış sayfası ve içerik görüntüleme oranı, BOFU sepete ekleme ve ödeme başlatma oranı ile satın alma başı maliyet;
+   piksel olayı göndermiyorsa metrik "okunamadı" yazılır, sıfır sayılmaz. Segment dökümü varsa konsept başına yeni / etkileşime geçmiş /
+   mevcut müşteri harcama payı; BOFU harcamasının çoğu yeni kitleye gittiyse bu açıkça yazılır. **Hüküm kuralı değişmez** (sonuç türü,
+   toplam satış ve katkı). Huni turunda TOFU/MOFU konsepti yalnızca satış maliyetiyle "kapat" almaz (`coach.py` "tut — huni turu" yazar);
+   aşamalar arası sonuç maliyeti karşılaştırması keşiftir (kısa pencere satın almaya yakın mesajı kayırabilir; beklenti, doğrulanmış
+   bulgu değil).
 4. **Grafikler:** `PY PR/scripts/analytics/charts.py --analysis <analysis.json> --snapshot <kopya.json> --out-dir reports/c<tur>-charts-v<n>`.
    Her grafiğin altına tek cümlelik yorum; görselleri **açıp bak**.
 5. **Kalibrasyon (6.13):** `calibration_get(profile_id)`; 30'dan az çözülmüş tahminde yalnızca sayı ("12 tahminden 9'u tuttu"), eşik önerisi yok.

@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 1.8.1
+# Reklam Atölyesi (reklam-atolyesi) · 1.9.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -94,6 +94,24 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**1.9.0** — huni aşamasına göre içerik planlama (TOFU/MOFU/BOFU)
+- Aşama bir kitle değil, mesajın seslendiği karar anıdır. Plugin yine tek geniş set kurar, yeniden hedefleme kitlesi kurmaz; reklamı kimin
+  gördüğünü Meta seçer. Taksonomiye sabit `stage` ekseni (tofu, mofu, bofu) eklendi.
+- Mesaj kartı (S03, `concept_upsert(message=...)`): aşama ve dayanağı (veri, kullanıcı, varsayım), değişmesi istenen düşünce, odak
+  (ihtiyaç, istek, satın alma engeli), kanıt ve beklenen eylem. Test konseptinin kartı yoksa S03 kapısı açılmaz.
+- Satın alma engelleri ürün kartında (`products.objections_json`, S00c). BOFU konsepti gerçek kanıt ister (onaylı ve geri çekilmemiş yorum,
+  kanıtlanabilir iddia ya da okunma tarihli sayfa bilgisi); engele odaklanan konsept üründe kayıtlı bir engele bağlanır. Uydurma yorum,
+  istatistik, stok azlığı ya da kampanya süresi yok.
+- Huni turu (S02, `budget_plan_json.round_mode = "funnel"`): aynı alıcı için 2–3 konsept, her biri farklı aşamada. Yalnızca 2. turdan
+  itibaren açılır (ilk tur keşif turudur). Varsayılan keşif turu değişmedi.
+- Koç: konsept başına aşama ölçüleri (TOFU izlenme/tutma, MOFU bağlantı tıklaması/sayfa görüntüleme, BOFU sepet/ödeme/satın alma) ve
+  Meta kitle segmenti dökümü (yeni, etkileşime geçmiş, mevcut müşteri) okunabiliyorsa rapora. Huni turunda TOFU/MOFU kreatifi yalnızca
+  satın alma az diye kapatılmaz; kendi aşama ölçüsü de zayıfsa kapatılır.
+- Yeni günlük metrikler: `landing_page_views`, `view_content`, `initiate_checkout` (migration 007).
+- QC: `checks.py funnel-diff` huni turundaki planlar yalnızca son sahne/CTA'da ayrışıyorsa uyarır.
+- Soru yasağı Meta'nın kişisel özellik listesine (§8a) daraltıldı: "Hediye seçmek zor mu geliyor?" serbest, "Kilo mu aldın?" gibi kişisel
+  özelliği izleyicide varsayan soru yasak. `checks.py meta-text` taraması zaten bu ayrımı yapıyordu.
+
 **1.8.1** — ses efekti aramasında kalan boşluklar
 - `sfx_library.py`: "alkış", "kalp", "ışıltı", "sayaç", "daktilo", "kalem", "damla" gibi arşivdeki organik sesler için Türkçe etiketler
   (önceden "alkış" ve "kalp" sonuç vermiyordu, "ışıltı" önce cam kırılma seslerini getiriyordu). Ekli sorgu kökle açılır ("geçişi" →

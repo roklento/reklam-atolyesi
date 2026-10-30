@@ -35,6 +35,9 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
    kontak sayfasında 32 px yazı ≤ 8 px kalır, küçük yazı şeritten küçültmeden okunur), slayt gösterisi riski (`PY PR/scripts/qc/slideshow.py --plan <plan.json> --video <mp4>`:
    `critical` → düzeltme notu; ham/UGC türünde kullanıcı bilerek kabul ederse gerekçesiyle geçer; `high` → uyarı; eşikler yereldir),
    reklam metni varsa uzunluk (`checks.py copy`; uyarıdır).
+   Huni turunda (1.9.0) turun kurgu planları birlikte karşılaştırılır: `checks.py funnel-diff --plans T=<plan> M=<plan> B=<plan>`.
+   İki plan sahne sahne aynıysa ya da yalnızca son sahne/CTA farklıysa uyarı: aşama farkı açılışa, sahnelere, kanıta ve sese
+   yansımalıdır. Aynı çekimin kullanılması serbesttir; uyarı ya düzeltilir ya kullanıcı gerekçesiyle kabul edilir.
 3. **Bağımsız görsel/yasal inceleme (paralel):** workflow `qc-review` — `PR/workflows/qc-review.js`, args: `{profile_id, campaign_id,
    cycle_id, campaign_dir, plugin_root, data_dir, py, creatives:[{creative_id, file, plan_path, format, expect_duration, tech_report}],
    now_iso}`; her kreatif için `qc-reviewer`

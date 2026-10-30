@@ -21,6 +21,7 @@ import bayes as B  # noqa: E402
 import budget as BU  # noqa: E402
 
 UPPER = ("hook_rate", "hold_rate")
+STAGE_METRICS = ("tofu", "mofu", "bofu")
 METRICS = ("hook_rate", "hold_rate", "ctr_link", "cvr")
 
 
@@ -79,6 +80,68 @@ def concept_of(snap: dict) -> dict:
 
 def role_of(snap: dict) -> dict:
     return {c["creative_key"]: c.get("competitive_role") for c in snap.get("creatives", [])}
+
+
+def stage_of_concept(snap: dict) -> dict:
+    """Konsept kodu → huni aşaması (1.9.0; mesaj kartından sözlüğe yazılan `stage`). Aşaması olmayan konsept yer almaz."""
+    out = {}
+    for c in snap.get("creatives", []):
+        st = _jobj(c.get("concept_features")).get("stage")
+        if c.get("concept") and st in STAGE_METRICS:
+            out[c["concept"]] = st
+    return out
+
+
+def round_mode_of(snap: dict) -> str:
+    return _jobj(snap["cycle"].get("budget_plan_json")).get("round_mode") or "explore"
+
+
+def _ratio(num, den):
+    return round(num / den, 4) if den else None
+
+
+def stage_section(snap: dict, by_concept: dict) -> dict | None:
+    """Huni aşaması teşhisi (1.9.0). Her konsept KENDİ aşamasının metriğiyle okunur; hüküm yine sonuç türüyle verilir. Piksel bir olayı
+    göndermiyorsa o metrik okunamadı yazılır (sıfır sayılmaz). Kitle segmenti dökümü (yeni / etkileşime geçmiş / mevcut müşteri) yalnızca
+    girdi olarak verildiyse kullanılır; aşama bir kitle değildir, reklamı kimin gördüğü bu dökümle okunur."""
+    stages = stage_of_concept(snap)
+    if not stages:
+        return None
+    seg_in = ((snap.get("extra") or {}).get("audience_segments") or {})
+    per = []
+    for k in sorted(stages):
+        rows = by_concept.get(k, [])
+        st = stages[k]
+
+        def tot(col):
+            vals = [r.get(col) for r in rows if r.get(col) is not None]
+            return sum(float(v) for v in vals) if vals else None
+        imp, v3, thru, clicks = tot("impressions"), tot("video_3s"), tot("thruplay"), tot("link_clicks")
+        lpv, vc, atc, ic, pur, spend = (tot(c) for c in ("landing_page_views", "view_content", "add_to_cart", "initiate_checkout",
+                                                          "purchases", "spend"))
+        m = {"tofu": {"hook_rate": _ratio(v3 or 0, imp), "hold_rate": _ratio(thru or 0, v3) if v3 else None,
+                      "spend_per_3s_view": round(spend / v3, 4) if (spend and v3) else None},
+             "mofu": {"ctr_link": _ratio(clicks or 0, imp), "landing_page_view_rate": _ratio(lpv, clicks) if lpv is not None else None,
+                      "view_content_rate": _ratio(vc, clicks) if vc is not None else None},
+             "bofu": {"add_to_cart_rate": _ratio(atc, clicks) if atc is not None else None,
+                      "checkout_rate": _ratio(ic, clicks) if ic is not None else None,
+                      "cost_per_purchase": round(spend / pur, 2) if (spend and pur) else None}}[st]
+        unread = [n for n, v in m.items() if v is None]
+        seg = None
+        raw = seg_in.get(k)
+        if isinstance(raw, dict):
+            total = sum(float(raw.get(x) or 0) for x in ("new", "engaged", "existing"))
+            if total > 0:
+                seg = {x: round(float(raw.get(x) or 0) / total, 4) for x in ("new", "engaged", "existing")}
+        note = None
+        if seg and st == "bofu" and seg["new"] >= 0.5:
+            note = "BOFU mesajının harcamasının çoğu yeni kitleye gitti: mesaj tereddüdü olan kişiye değil, yeni kişiye gösterildi"
+        per.append({"concept": k, "stage": st, "metrics": m, "unread": unread, "segments": seg, "segment_note": note,
+                    "denominators": {"impressions": imp, "video_3s": v3, "link_clicks": clicks}})
+    return {"round_mode": round_mode_of(snap), "per_concept": per,
+            "segments_read": bool(seg_in),
+            "rule": ("Aşama metriği teşhistir, hüküm değildir; hüküm sonuç türüyle verilir. Farklı aşamaların sonuç maliyeti karşılaştırması "
+                     "keşiftir (kısa pencere satın almaya yakın mesajı kayırabilir; beklenti, doğrulanmış bulgu değil). Huni oranları çarpılmaz.")}
 
 
 def priors_for(snap: dict) -> dict:
@@ -613,6 +676,25 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
     return out
 
 
+def funnel_stage_guard(dec: list[dict], smap: dict, kpost: dict, priors: dict) -> None:
+    """Huni turu (1.9.0): TOFU/MOFU mesajı yalnızca satış maliyetiyle kapatılmaz. Kendi aşama metriği de zayıfsa (aralığın üst ucu
+    geçmiş ortalamanın altında) "kapat" korunur; değilse "tut" olur."""
+    own = {"tofu": "hook_rate", "mofu": "ctr_link"}
+    for d in dec:
+        st = smap.get(d["concept"])
+        if d["decision"] != "kapat" or st not in own:
+            continue
+        m = own[st]
+        r = (kpost.get(d["concept"], {}).get("rates") or {}).get(m)
+        pr = priors.get(m)
+        if r and r.get("threshold_met") and pr and r["hi"] < pr[0] / (pr[0] + pr[1]):
+            d["why"] += f"; {st.upper()} aşama metriği ({m}) de geçmiş ortalamanın altında (aralık üst ucu {r['hi']:.4f})"
+            continue
+        d.update(decision="tut", label="huni turu", ads_manager=None, gated="funnel_stage",
+                 why=d["why"] + f"; ancak bu {st.upper()} mesajı satın almadan önceki bir karar anına seslenir: yalnızca satış "
+                                f"maliyetiyle kapatılmaz; kendi aşama metriği ({m}) zayıf değil ya da geçmiş ortalama yok")
+
+
 def analyze(snap_path: str) -> dict:
     snap = read_json(snap_path)
     main_rows, scale_rows = scale_split(snap)
@@ -645,6 +727,9 @@ def analyze(snap_path: str) -> dict:
     ret = retention(snap, aggregate(test_rows, lambda r: r.get("creative_key") or r["meta_ad_id"]))
     lim = limit_alerts(snap, all_rows)
     dec = decisions(kpost, dist, snap, structure, cost)
+    stg = stage_section(snap, by_concept)
+    if stg and stg["round_mode"] == "funnel":
+        funnel_stage_guard(dec, stage_of_concept(snap), kpost, priors)
     leads = lead_section(snap, test_rows, parts["full_days"])
     if leads is not None and (not leads.get("periods") or leads.get("outcome_coverage", 0) < LEAD_COVERAGE_MIN):
         for d in dec:  # aday sonrası kayıt yoksa ya da pencerenin çoğunu kapsamıyorsa büyütme yok (ucuz aday ≠ satış)
@@ -703,7 +788,7 @@ def analyze(snap_path: str) -> dict:
                        "post_rows": len(parts["post"]), "note": "sınır günleri saat oranıyla bölünmez; toplam harcamada tam sayılır"},
             "creatives": cpost, "concepts": kpost, "roles": rpost, "superiority_hook": sup, "cost": cost, "spend_distribution": dist,
             "fatigue": fat, "retention": ret, "limit_alerts": lim, "decisions": dec, "data_quality": quality,
-            "scale_layer": scale, "scale_candidates": scand, "channels": chan, "funnel_diagnosis": diag, "metric_basis": basis, "dm": dms, "store_vs_meta": svm, "lead": leads, "ab_test": abt,
+            "scale_layer": scale, "scale_candidates": scand, "channels": chan, "funnel_diagnosis": diag, "stages": stg, "metric_basis": basis, "dm": dms, "store_vs_meta": svm, "lead": leads, "ab_test": abt,
             "competitive_context": competitive_context, "predictions": predictions,
             "portfolio_note": "Rol başına sonuç keşif karşılaştırmasıdır; önceden sabitlenmedikçe playbook adayı olmaz (6.16)."}
 

@@ -164,6 +164,7 @@ class StageMixin:
                     raise AdMemoryError("ölçekleme katmanı (scale_layer) cycle_set ile değiştirilmez; scale_layer_set kullanın")
                 if old_layer is not None:
                     new_bp = {**new_bp, "scale_layer": old_layer}
+                self._validate_round_mode(new_bp, int(cy["cycle"]))
                 fields["budget_plan_json"] = new_bp
             elif new_bp is None and old_layer is not None:
                 fields["budget_plan_json"] = {"scale_layer": old_layer}
@@ -388,6 +389,26 @@ class StageMixin:
             out["note"] = "Kapı: kullanıcının açık onayı gerekir (gate_approve). Değişiklik isteği onay değildir."
         return out
 
+    @staticmethod
+    def _validate_round_mode(bp: dict, cycle_no: int) -> None:
+        """Tur modu (1.9.0): explore (varsayılan; keşif konseptleri farklı alıcıya) | funnel (huni turu: aynı alıcı, farklı aşama).
+        Huni turu bilerek seçilir: alıcı ve dayanağı (kazanan konsept, kanıtlanmış alıcı ya da kullanıcının gerekçesi) yazılır. İlk turda
+        açılmaz: tek sette Meta bütçeyi satışa en yakın mesaja akıtır, aşamalar adil karşılaştırılmaz; 2. turdan itibaren kreatif test
+        bütçeyi test reklamlarına eşit böler (resmi, ref-legal-tr-meta §7)."""
+        mode = bp.get("round_mode")
+        if mode is None:
+            return
+        if mode not in ("explore", "funnel"):
+            raise AdMemoryError("round_mode: explore | funnel")
+        if mode == "funnel" and cycle_no <= 1:
+            raise AdMemoryError("huni turu ilk turda açılmaz: tek sette Meta bütçeyi eşit dağıtmaz, satışa en yakın mesaj öne geçer. "
+                                "2. turdan itibaren kreatif test (bütçe test reklamlarına eşit bölünür) yapısında açılır")
+        if mode == "funnel":
+            fu = bp.get("funnel") or {}
+            if not (isinstance(fu, dict) and str(fu.get("buyer") or "").strip() and str(fu.get("basis") or "").strip()):
+                raise AdMemoryError("huni turu için budget_plan_json.funnel = {buyer, basis, user_said?} gerekir: hangi alıcıya, neden "
+                                    "(kazanan konsept, kanıtlanmış alıcı ya da kullanıcının gerekçesi)")
+
     def _s02_preconditions(self, profile_id: int, c: dict, cy: dict) -> None:
         bp = jload(cy["budget_plan_json"], None) or {}
         if not any(k != "scale_layer" for k in bp):
@@ -446,6 +467,12 @@ class StageMixin:
                     out.append(f"seçilen test reklamı sayısı {n_test} > S02 kreatif tavanı {cap} (6.3); fazlası yedek işaretlenmeli")
             # Test hakkı önce farklı alıcılara konuşan farklı fikirlere: tek test açılışı, farklı alıcı, çeşitlilik eksenleri (4.3, 4.7; 1.4.5)
             out += self._s03_portfolio_check(cy["id"])["issues"]
+            # Mesaj kartı (1.9.0): her test konsepti "kime, hangi düşünceyi değiştirmek için, hangi kanıtla" sorusunu yanıtlar
+            for k in sel:
+                if k["message_json"] is None and self.q1("SELECT 1 FROM hooks WHERE concept_id=? AND decision IN ('accepted','merged') "
+                                                         "AND reserve=0", (k["id"],)):
+                    out.append(f"konsept {k['code']} için mesaj kartı (concept_upsert message: aşama, değişecek düşünce, odak, kanıt, "
+                               "beklenen aksiyon) yok")
         elif stage == "S13":
             bad = self.qa("SELECT creative_key, format, qc_status FROM creatives WHERE cycle_id=? AND delivery_role='test' AND qc_status!='passed'", (cy["id"],))
             if bad:

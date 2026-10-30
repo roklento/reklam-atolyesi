@@ -124,6 +124,30 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
         lines.append(f"_{fd['rule']}_")
     else:
         lines.append("- Teşhis yok.")
+    stg = an.get("stages")
+    if stg:
+        names = {"tofu": "TOFU", "mofu": "MOFU", "bofu": "BOFU"}
+        labels = {"hook_rate": "hook oranı", "hold_rate": "tutma", "spend_per_3s_view": "3 sn izlenme başına harcama",
+                  "ctr_link": "bağlantı CTR", "landing_page_view_rate": "açılış sayfası / tıklama", "view_content_rate": "içerik görüntüleme / tıklama",
+                  "add_to_cart_rate": "sepete ekleme / tıklama", "checkout_rate": "ödeme başlatma / tıklama", "cost_per_purchase": "satın alma başı maliyet"}
+        lines += ["", "## Huni aşamaları", "",
+                  ("Huni turu: konseptler aynı alıcıya, farklı karar anlarına konuştu." if stg["round_mode"] == "funnel"
+                   else "Normal tur: aşama bilgisi yalnızca teşhis için.")]
+        for p in stg["per_concept"]:
+            vals = [f"{labels[n]} {v:.2%}" if (isinstance(v, float) and n.endswith("rate")) else f"{labels[n]} {v}"
+                    for n, v in p["metrics"].items() if v is not None]
+            line = f"- **{p['concept']}** ({names[p['stage']]}): " + ("; ".join(vals) if vals else "aşama metriği okunamadı")
+            if p["unread"]:
+                line += " · okunamadı: " + ", ".join(labels[n] for n in p["unread"])
+            if p["segments"]:
+                s = p["segments"]
+                line += f" · harcama: yeni kitle {s['new']:.0%}, etkileşime geçmiş {s['engaged']:.0%}, mevcut müşteri {s['existing']:.0%}"
+            lines.append(line)
+            if p.get("segment_note"):
+                lines.append(f"  - {p['segment_note']}")
+        if not stg["segments_read"]:
+            lines.append("- Reklamı kimin gördüğü okunamadı (kitle segmentleri tanımlı değil ya da döküm girilmedi).")
+        lines.append(f"_{stg['rule']}_")
     lines += ["", "## Grafikler", ""]
     captions = {"funnel": "Konsept başına izlenme, tıklama ve sonuç oranları kendi paydalarıyla; oranlar birbirleriyle çarpılmaz.",
                 "intervals_hook": "Hook oranı aralıkları; açık renkli noktalar eşik altıdır ve yalnızca yön gösterir.",

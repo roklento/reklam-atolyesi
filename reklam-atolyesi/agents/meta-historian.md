@@ -35,6 +35,11 @@ varsayılanını asla kullanma.
    (`<plugin_root>/templates/reports/hesap-sagligi.md`; geçici ad → atomik yeniden adlandır).
 5. Katalog → ürün tanışması önerileri (yalnızca özetle döndür).
 6. Kreatif envanteri: adlandırma kuralına uyan adlar `creative_key`'e (`scripts/meta/meta_tools.py naming`), uymayanlar "eski".
+6b. Mesaj karışımı (1.9.0): son 90 günde harcaması olan reklamların metni ve önizlemesi (`ads_get_creatives`, `ads_get_ad_preview` izin
+   listesindeyse) ortak sözlükle **öneri olarak** kodlanır: `stage` (tofu | mofu | bofu), `proof`, `offer`, `cta`; görülemeyen eksen
+   `unknown`. Çıktı sağlık raporunda "Mesaj karışımı (öneri, kullanıcı onaylar)" tablosu: aşama başına reklam sayısı ve harcama payı.
+   `memory_add(layer="semantic", kind="message_mix", source="claude", content=<tablo özeti>, tags=["meta", "huni"])`. Boşluk
+   ("teklif çok, neden bu ürün yok") teşhis hipotezidir; düşük satışın nedeni diye yazılmaz.
 7. Önseller: amaç başına `priors_from_history(profile_id, objective, cutoff_at)`; geçmiş yoksa Beta(1,1) ve bunu açıkça söyle.
    Başka hesabın verisini bu profilin önseline katma.
 8. `profile_update(profile_id, history_status, last_meta_sync_at)`.
