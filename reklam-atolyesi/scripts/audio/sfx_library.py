@@ -5,7 +5,8 @@ Vendor arşivlerinden yalnızca kaynağı kayıtlı dosyalar listelenir (OVERRID
 - sfx-cc0: ATTRIBUTION.md tablosunda satırı olan, lisansı CC0 yazan ve SHA-256'sı tutan dosya,
 - ai-product-video: ATTRIBUTION.md'de Mixkit kaynak URL'si kayıtlı dosya.
 Eşleşme sözcük bazlıdır (dosya yolundaki sözcükler, camelCase bölünür); Türkçe sorgu sözcükleri İngilizce etiketlere de açılır
-(ör. "tık" → click, "geçiş" → whoosh/transition). 1.7.0 öncesi alt dize eşleşmesi "up" sorgusunu "cup"a da eşliyordu.
+(ör. "tık" → click, "geçiş" → whoosh/transition); ekli biçim de açılır ("geçişi" → gecis, 1.8.1). 1.7.0 öncesi alt dize eşleşmesi
+"up" sorgusunu "cup"a da eşliyordu.
 Kullanım: sfx_library.py --query whoosh [--profile-dir <data_dir>/profiles/<p>] [--limit 10]
 """
 from __future__ import annotations
@@ -38,9 +39,24 @@ TR_TAGS = {
     "kaydir": ["scroll", "swipe"], "anahtar": ["switch", "toggle"], "dugme": ["click", "switch", "toggle"],
     "lazer": ["laser"], "dijital": ["digital", "zap", "phaser", "tone"], "guc": ["powerup"], "yukselen": ["riser", "phaserup", "up"],
     "inen": ["down", "phaserdown"], "jingle": ["jingles"], "muzik": ["jingles"], "kapanis": ["jingles"], "fiyat": ["coin", "cash", "jingles"],
-    "isilti": ["sparkle", "shimmer", "glass"], "kamera": ["camera", "shutter"], "deklansor": ["shutter"], "kagit": ["paper"],
+    "isilti": ["sparkle", "shimmer"], "kamera": ["camera", "shutter"], "deklansor": ["shutter"], "kagit": ["paper"],
     "yazi": ["typing", "keyboard", "text"], "klavye": ["keyboard", "typing"], "su": ["water", "fluid"], "kalabalik": ["crowd"],
+    # 1.8.1: ai-product-video arşivindeki organik/kategori sözcükleri ("alkış", "kalp" önceden sonuç vermiyordu)
+    "alkis": ["applause", "clap"], "kalp": ["heart", "heartbeat"], "parilti": ["sparkle", "shimmer"], "isik": ["light"],
+    "sayac": ["counter", "countdown", "tick"], "saat": ["clock"], "daktilo": ["typewriter"], "kalem": ["pen", "pencil", "marker"],
+    "tebesir": ["chalk"], "sayfa": ["page"], "kitap": ["book"], "makas": ["scissors"], "sivi": ["liquid", "fluid"], "damla": ["drop"],
+    "sicrama": ["splash"], "baloncuk": ["bubble"], "kum": ["sand"], "kaset": ["cassette"], "plak": ["vinyl"], "bant": ["tape"],
+    "ruzgar": ["wind"], "hava": ["air"], "kilit": ["lock"], "disli": ["gear"], "makine": ["machine", "mech"],
+    "yakinlastirma": ["zoom"], "kirilma": ["break"],
 }
+
+
+def tr_tags(w: str) -> list[str]:
+    """Türkçe karşılıklar; ekli biçimde en uzun 4+ harfli kök ("geçişi" → gecis, "alkışlar" → alkis)."""
+    if w in TR_TAGS:
+        return TR_TAGS[w]
+    roots = [k for k in TR_TAGS if len(k) >= 4 and w.startswith(k)]
+    return TR_TAGS[max(roots, key=len)] if roots else []
 
 
 def words(s: str) -> list[str]:
@@ -52,17 +68,23 @@ def query_terms(query: str) -> list[set[str]]:
     """Her sorgu sözcüğü için kabul edilen sözcük kümesi (kendisi + Türkçe karşılıkları)."""
     out = []
     for w in words(query):
-        out.append({w, *TR_TAGS.get(w, [])})
+        out.append({w, *tr_tags(w)})
     return out
+
+
+def _match(a: str, ws: set[str]) -> bool:
+    return a in ws or (len(a) >= 4 and any(x.startswith(a) for x in ws))
 
 
 def score(path: str, terms: list[set[str]]) -> int:
     ws = set(words(path))
-    hit = 0
-    for alts in terms:
-        if any(a in ws or (len(a) >= 4 and any(x.startswith(a) for x in ws)) for a in alts):
-            hit += 1
-    return hit
+    return sum(1 for alts in terms if any(_match(a, ws) for a in alts))
+
+
+def strength(path: str, terms: list[set[str]]) -> int:
+    """Eşit puan ve aynı kaynakta sıralama: eşleşen karşılık sayısı ("geçiş" için transition/whoosh-fast, data/sweep-digital'in önüne geçer)."""
+    ws = set(words(path))
+    return sum(1 for alts in terms for a in alts if _match(a, ws))
 
 
 def vendor_allowed() -> list[Path]:
@@ -97,16 +119,22 @@ def search(query: str, profile_dir: Path | None = None, limit: int = 10) -> dict
     if profile_dir:
         lib = profile_dir / "audio_library"
         prof = [p for p in lib.rglob("*") if p.is_file() and p.suffix.lower() in AUDIO_EXT] if lib.exists() else []
-    hits = [{"path": str(p), "source": "profile", "score": score(p.as_posix(), terms)} for p in prof]
+    # profil dosyası kütüphaneye göre göreli puanlanır: mutlak yoldaki klasör adları ("profiles", kullanıcı adı) eşleşmesin
+    hits = [{"path": str(p), "source": "profile", "score": score(p.relative_to(lib).as_posix(), terms),
+             "_rel": p.relative_to(lib).as_posix()} for p in prof]
     hits += [{"path": str(p), "source": "vendor:sfx-cc0 (Kenney, CC0 1.0)", "category": p.relative_to(CC0_DIR).parts[0], "source_url": url,
-              "score": score(p.relative_to(CC0_DIR).as_posix(), terms)} for p, url in cc0_allowed()]
+              "score": score(p.relative_to(CC0_DIR).as_posix(), terms), "_rel": p.relative_to(CC0_DIR).as_posix()} for p, url in cc0_allowed()]
     hits += [{"path": str(p), "source": "vendor:ai-product-video (Mixkit SFX Free License)", "category": p.parent.name,
-              "score": score(p.relative_to(VENDOR_AUDIO).as_posix(), terms)} for p in vendor_allowed()]
+              "score": score(p.relative_to(VENDOR_AUDIO).as_posix(), terms), "_rel": p.relative_to(VENDOR_AUDIO).as_posix()}
+             for p in vendor_allowed()]
     rank = {"profile": 0, "vendor:sfx-cc0 (Kenney, CC0 1.0)": 1}
     hits = [h for h in hits if h["score"]]
-    hits.sort(key=lambda h: (-h["score"], rank.get(h["source"], 2), h["path"]))
+    hits.sort(key=lambda h: (-h["score"], rank.get(h["source"], 2), -strength(h["_rel"], terms), h["path"]))
+    for h in hits:
+        del h["_rel"]
     return {"query": query, "results": hits[:limit],
-            "note": "Eşleşme yoksa: tasarım sesi kodla (sfx_synth.py), organik ses ElevenLabs sfx ile (fiyat ve onay)."}
+            "note": "Eşleşme yoksa: tasarım sesi (whoosh, riser, shimmer, impact, pop) kodla (sfx_synth.py); organik ses (kağıt, cam, su…) "
+                    "önce İngilizce karşılığıyla yeniden aranır, yine yoksa ElevenLabs sfx ile (fiyat ve onay)."}
 
 
 def main() -> None:

@@ -57,8 +57,8 @@ Yok.
      KVKK aydınlatması için de gerekir — yerel kural, §7). Formda yalnızca gereken bilgi sorulur; nitelik için 1–2 soru (bütçe, tarih,
      ihtiyaç). Adaylar Meta'nın potansiyel müşteri merkezinden ya da CRM'den kullanıcıya gelir; **bu sisteme kişisel bilgi girmez**,
      yalnızca haftalık sayılar (`lead_outcome_set`).
-   - **Huni turu ve kitle segmentleri (1.9.0):** huni turunda (`round_mode="funnel"`) aşama konseptleri turun yapısına göre aynı
-     sette yayınlanır (ilk tur tek set, sonraki turlar kreatif test); aşama başına ayrı reklam seti ya da yeniden hedefleme kitlesi
+   - **Huni turu ve kitle segmentleri (1.9.0):** huni turunda (`round_mode="funnel"`, yalnızca 2. turdan itibaren) aşama konseptleri
+     turun kreatif testinde aynı sette yayınlanır (eşit bölüşüm her aşamaya okunur gösterim verir); aşama başına ayrı reklam seti ya da yeniden hedefleme kitlesi
      **kurulmaz** (aşama kitle değildir; çok set daha az öğrenme, §7). Paket, satış sonuçlu kampanyada kitle segmentleri tanımlı değilse
      raporlama için tanımlama talimatı içerir: Reklam ayarları → Kitle segmentleri → etkileşime geçmiş kitle (ör. son 180 gün site
      ziyaretçisi, Instagram etkileşimi) ve mevcut müşteri (satın alma olayı ya da müşteri listesi; KVKK dayanağı olmadan liste

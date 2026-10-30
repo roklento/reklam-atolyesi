@@ -197,7 +197,7 @@
    "name": "launch-pack",
    "kind": "stage",
    "description": "reklam-atolyesi S14 yayın paketi — reklam adları, metinler, Ads Manager kurulum talimatı, harcama/risk sınırları, AI açıklaması, takvim; insan yayınından sonra launch_confirm. Kapılı.",
-   "sha256": "a82866ffd275479f74a3b6995ddfa60903783ca49955edfc0c1e8fa0f99bcc6a"
+   "sha256": "acf8f0e1fa810468ab94572555af4a37a8a94db7952e751908e0352932a2b5f9"
   },
   {
    "name": "learn",
@@ -299,7 +299,7 @@
    "name": "ref-vendor-map",
    "kind": "reference",
    "description": "reklam-atolyesi hazır skill eşlemesi — hangi aşamada hangi vendor dosyasının hangi bölümü okunur, önce OVERRIDES kuralı, devre dışı kısımlar ve Remotion için resmi belge yolu.",
-   "sha256": "06547c6979be4e7e0ec2485cce636ff5ad5823836a569869ba4a802638e8970f"
+   "sha256": "d1fc9d2011b439f2d569f65fe26227b11bfd087b9427c3887a41db51af245d24"
   },
   {
    "name": "shoot-feedback",
@@ -311,13 +311,13 @@
    "name": "shoot-guide",
    "kind": "stage",
    "description": "reklam-atolyesi S04 çekim planı — hiç video çekmemiş biri için ürün tarifini uygulayan kartlar, numaralı çekim menüsü (her hook ayrı satır), fotoğraf listesi, ses talimatı, sfx_plan. Kapılı.",
-   "sha256": "ead58fb1b61464a3208ee2080d28cb26ec351dd7a123d446c6e0e5957b5d4fe4"
+   "sha256": "5eafe5c17034b630e43bfc8b66ec4047e8c09f9fce6250193993b862811679c3"
   },
   {
    "name": "sound",
    "kind": "stage",
    "description": "reklam-atolyesi S11 ses — sahne ses kararlarını uygular, vuruş haritası, temizlik, ducking, -14 LUFS/≤-1 dBTP miks, telefon testi, altyazı; taslağı kullanıcıyla izletir. Kapılı (taslak).",
-   "sha256": "569bd0d1fbb4995dba29e4e1f63ec21b361784d7de85a53c176282a74beeeb13"
+   "sha256": "e86c21f2fa00f4901efb063254c5cc9ec9606b0a68ef6985f2b952b84f7570cc"
   },
   {
    "name": "strategy",
@@ -897,11 +897,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 384,
+   "passed": 390,
    "failed": 4,
    "skipped": 5,
    "returncode": 1,
-   "summary": "384 passed, 4 failed, 5 skipped (1.9.0, Linux bulut ortamı; yeni testler tests/test_v190_funnel.py: aşama ekseni ve huni turu taksonomisi, migration 007, satın alma engelleri, mesaj kartı doğrulaması, BOFU kanıtı (iddia, yorum, geri çekilmiş yorum, engel kanıtı), S03 kapısının mesaj kartı istemesi, keşif ve huni turu portföy kuralları, huni turunun ilk turda reddi, yeni metriklerin kaydı ve toplamı, koç aşama bölümü, QC funnel-diff). Dört başarısızlık ortamdan geliyor (1.8.0'daki üç ve bu ortamda font eksikliğinden self_review); 1.9.0 değişikliği bunlara dokunmuyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.9.0 Windows'ta çalıştırılmadı.",
+   "summary": "390 passed, 4 failed, 5 skipped (1.9.0, 1.8.1 ile birleştirildikten sonra, Linux bulut ortamı; yeni testler tests/test_v190_funnel.py: aşama ekseni ve huni turu taksonomisi, migration 007, satın alma engelleri, mesaj kartı doğrulaması, BOFU kanıtı (iddia, yorum, geri çekilmiş yorum, engel kanıtı), S03 kapısının mesaj kartı istemesi, keşif ve huni turu portföy kuralları, huni turunun ilk turda reddi, yeni metriklerin kaydı ve toplamı, koç aşama bölümü ve huni turu kapatma koruması, QC funnel-diff). Dört başarısızlık ortamdan geliyor (önceki üç ve self_review: bu ortamın opencv derlemesinde CascadeClassifier yok, main'de de aynı hata); 1.9.0 değişikliği bunlara dokunmuyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.9.0 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
@@ -909,7 +909,7 @@
     "tests/test_v151_text_qc.py::test_self_review_reports_fonts_and_bands"
    ],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
-   "at": "2026-10-29",
+   "at": "2026-10-30",
    "platform": "linux"
   },
   "smoke": {
@@ -1535,11 +1535,20 @@
     "auditor": "değişikliği yapan oturum (Claude)"
    },
    {
-    "scope": "1.9.0: değişen/yeni dosyalar (huni aşaması, mesaj kartı, satın alma engelleri, huni turu, aşama ölçüleri, funnel-diff; diğer bileşen hash'leri 1.8.0 denetimiyle aynı)",
+    "scope": "1.8.1: scripts/audio/sfx_library.py, sfx_synth.py, sound, shoot-guide ve ref-vendor-map skill'leri, ai-product-video OVERRIDES.md, 5 arşiv dosyasının silinmesi, test_v181_sfx.py, README, sürüm dizgileri",
+    "files_reviewed": 14,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); eklenen satırlar yalnızca genel ses etiketleri ve arşiv dosya adları içerir; test profil adı nötr",
+    "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "1.9.0: değişen/yeni dosyalar (huni aşaması, mesaj kartı, satın alma engelleri, huni turu, aşama ölçüleri, funnel-diff; 1.8.1 ile birleştirme; diğer bileşen hash'leri 1.8.1 denetimiyle aynı)",
     "files_reviewed": 35,
     "kusur": 0,
     "not": 0,
-    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; örnekler markaya özgü değil"
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; örnekler markaya özgü değil",
+    "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
   "remaining_defects": [],
@@ -1552,15 +1561,15 @@
   "component_hashes": {
    "plugin_json": "a109d9ac3e59885fca1e27204064e2f1a27b293c0ca75319f7414113f953d62c",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "aea8e4fea2515ee74e5df10d74b87747a92e6158c5b49ce9cd22334b53ff31e4",
+   "skills": "db013523d3dc84a63a6e9c75989c66829effc3411f6c7bb2024930ad1dbf0001",
    "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
    "ad_memory": "f567c614fea9b27d316ab2bcf2865185b77f6e201f4cde05c001fcc8b1ca3433",
-   "scripts": "1cdb1a86e66b046d57425b87d530bf49e4d9015058c8e12ade77100b7c17fc86",
+   "scripts": "673dd62bae4e8921659c3260baabd14db0908ba1917beec2adf1893dfe24061e",
    "templates": "b8519b1fb9885a1484ccd7cfb10367b8c2605db442bb2996bd5958da1801f537",
-   "vendor_skills": "c523048fc8dff626157e30dfd4981b7f6296487927121730471f9a4f169f4d67"
+   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
   "checked_at": "2026-10-29"
  },
@@ -1721,15 +1730,15 @@
  "component_hashes": {
   "plugin_json": "a109d9ac3e59885fca1e27204064e2f1a27b293c0ca75319f7414113f953d62c",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "aea8e4fea2515ee74e5df10d74b87747a92e6158c5b49ce9cd22334b53ff31e4",
+  "skills": "db013523d3dc84a63a6e9c75989c66829effc3411f6c7bb2024930ad1dbf0001",
   "agents": "ce1a1ddb94f9dc91e489dea4a372628f19aacb1392998bface9a7d6615bdd3cf",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
   "ad_memory": "f567c614fea9b27d316ab2bcf2865185b77f6e201f4cde05c001fcc8b1ca3433",
-  "scripts": "1cdb1a86e66b046d57425b87d530bf49e4d9015058c8e12ade77100b7c17fc86",
+  "scripts": "673dd62bae4e8921659c3260baabd14db0908ba1917beec2adf1893dfe24061e",
   "templates": "b8519b1fb9885a1484ccd7cfb10367b8c2605db442bb2996bd5958da1801f537",
-  "vendor_skills": "c523048fc8dff626157e30dfd4981b7f6296487927121730471f9a4f169f4d67"
+  "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }

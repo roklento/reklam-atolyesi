@@ -676,6 +676,25 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
     return out
 
 
+def funnel_stage_guard(dec: list[dict], smap: dict, kpost: dict, priors: dict) -> None:
+    """Huni turu (1.9.0): TOFU/MOFU mesajı yalnızca satış maliyetiyle kapatılmaz. Kendi aşama metriği de zayıfsa (aralığın üst ucu
+    geçmiş ortalamanın altında) "kapat" korunur; değilse "tut" olur."""
+    own = {"tofu": "hook_rate", "mofu": "ctr_link"}
+    for d in dec:
+        st = smap.get(d["concept"])
+        if d["decision"] != "kapat" or st not in own:
+            continue
+        m = own[st]
+        r = (kpost.get(d["concept"], {}).get("rates") or {}).get(m)
+        pr = priors.get(m)
+        if r and r.get("threshold_met") and pr and r["hi"] < pr[0] / (pr[0] + pr[1]):
+            d["why"] += f"; {st.upper()} aşama metriği ({m}) de geçmiş ortalamanın altında (aralık üst ucu {r['hi']:.4f})"
+            continue
+        d.update(decision="tut", label="huni turu", ads_manager=None, gated="funnel_stage",
+                 why=d["why"] + f"; ancak bu {st.upper()} mesajı satın almadan önceki bir karar anına seslenir: yalnızca satış "
+                                f"maliyetiyle kapatılmaz; kendi aşama metriği ({m}) zayıf değil ya da geçmiş ortalama yok")
+
+
 def analyze(snap_path: str) -> dict:
     snap = read_json(snap_path)
     main_rows, scale_rows = scale_split(snap)
@@ -710,22 +729,7 @@ def analyze(snap_path: str) -> dict:
     dec = decisions(kpost, dist, snap, structure, cost)
     stg = stage_section(snap, by_concept)
     if stg and stg["round_mode"] == "funnel":
-        smap = stage_of_concept(snap)
-        own = {"tofu": "hook_rate", "mofu": "ctr_link"}
-        for d in dec:  # huni turu: üst/orta aşama mesajı yalnızca satış maliyetiyle kapatılmaz (1.9.0)
-            st = smap.get(d["concept"])
-            if d["decision"] != "kapat" or st not in own:
-                continue
-            m = own[st]
-            r = (kpost.get(d["concept"], {}).get("rates") or {}).get(m)
-            pr = priors.get(m)
-            weak = bool(r and r.get("threshold_met") and pr and r["hi"] < pr[0] / (pr[0] + pr[1]))
-            if weak:  # kendi görevinde de zayıf: aralığın üst ucu geçmiş ortalamanın altında → kapat korunur
-                d["why"] += f"; {st.upper()} aşama metriği ({m}) de geçmiş ortalamanın altında (aralık üst ucu {r['hi']:.4f})"
-                continue
-            d.update(decision="tut", label="huni turu", ads_manager=None, gated="funnel_stage",
-                     why=d["why"] + f"; ancak bu {st.upper()} mesajı satın almadan önceki bir karar anına seslenir: yalnızca satış "
-                                    f"maliyetiyle kapatılmaz; kendi aşama metriği ({m}) zayıf değil ya da geçmiş ortalama yok")
+        funnel_stage_guard(dec, stage_of_concept(snap), kpost, priors)
     leads = lead_section(snap, test_rows, parts["full_days"])
     if leads is not None and (not leads.get("periods") or leads.get("outcome_coverage", 0) < LEAD_COVERAGE_MIN):
         for d in dec:  # aday sonrası kayıt yoksa ya da pencerenin çoğunu kapsamıyorsa büyütme yok (ucuz aday ≠ satış)

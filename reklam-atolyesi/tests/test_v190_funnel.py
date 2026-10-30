@@ -216,6 +216,23 @@ def test_coach_stage_section_reads_each_concept_by_its_own_stage():
     assert CO.stage_section({"creatives": [], "cycle": {}}, {}) is None
 
 
+def test_coach_funnel_guard_keeps_upper_stage_unless_own_metric_is_weak():
+    import coach as CO
+    kapat = lambda c: {"concept": c, "decision": "kapat", "label": "kanıt", "why": "hedef altı olasılığı 0.05", "ads_manager": "durdur"}
+    dec = [kapat("T_ok"), kapat("T_weak"), kapat("M_nohist"), kapat("B"), {"concept": "T2", "decision": "tut", "why": "x"}]
+    smap = {"T_ok": "tofu", "T_weak": "tofu", "M_nohist": "mofu", "B": "bofu", "T2": "tofu"}
+    rate = lambda hi, met=True: {"rates": {"hook_rate": {"hi": hi, "threshold_met": met}, "ctr_link": {"hi": hi, "threshold_met": met}}}
+    kpost = {"T_ok": rate(0.35), "T_weak": rate(0.20), "M_nohist": rate(0.001), "B": rate(0.5)}
+    priors = {"hook_rate": (30.0, 70.0)}  # geçmiş ortalama 0.30; ctr_link için geçmiş yok
+    CO.funnel_stage_guard(dec, smap, kpost, priors)
+    got = {d["concept"]: d for d in dec}
+    assert got["T_ok"]["decision"] == "tut" and got["T_ok"]["gated"] == "funnel_stage"
+    assert got["T_weak"]["decision"] == "kapat" and "geçmiş ortalamanın altında" in got["T_weak"]["why"]
+    assert got["M_nohist"]["decision"] == "tut"  # geçmiş ortalama yoksa zayıf denmez
+    assert got["B"]["decision"] == "kapat"  # BOFU satışla değerlendirilir
+    assert got["T2"]["decision"] == "tut" and "gated" not in got["T2"]
+
+
 def test_qc_funnel_diff_flags_closing_only_difference():
     import checks as QC
     sc = lambda i, asset, text=None: {"id": f"s{i}", "layers": [{"type": "video", "source": {"kind": "footage", "asset": asset, "in_s": 0, "out_s": 2}}]

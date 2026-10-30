@@ -23,6 +23,8 @@ Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
 1.9.0 migration 007 içerir (yalnızca sütun ekler: ürün satın alma engelleri, konsept mesaj kartı, üç günlük metrik); güncelleyici
 uygular, mevcut kayıtlar değişmez. Yeni bağımlılık yok. Mevcut kampanyanın S03 kapısı yeniden açılırsa test konseptleri için mesaj kartı
 ister; geçmiş kapılar etkilenmez. Huni turu isteğe bağlıdır ve yalnızca 2. turdan itibaren seçilebilir.
+1.8.1 migration içermez, yeni bağımlılık yok. Efekt aramasına Türkçe etiketler eklendi; kaynağı kayıtsız 5 efekt dosyası paketten
+çıktı (kullanılmıyorlardı). Yalnızca `sfx_library.py`, skill metinleri ve ses arşivi değişti.
 1.8.0 migration içermez. Yeni bağımlılık: npm `@remotion/rough-notation` 4.0.532 (MIT; + roughjs ve dört küçük MIT paketi);
 güncelleyici kilit dosyası değiştiği için `npm ci`'yi kendisi çalıştırır. Mevcut kampanya projelerinin `components/` klasörü
 `render.py init` ile kopyalandığı için yeni beş bileşen yalnız yeni projelerde tam çalışır. Eski projede bu bileşenler "bilinmeyen bileşen"
@@ -72,6 +74,8 @@ araçları `scale_layer_set` / `scale_layer_get`; yeni script'ler `scripts/qc/sl
 (yeni bağımlılık yok: OpenCV, NumPy, Pillow ve ffmpeg zaten kurulu). 1.4.5'in migration'ı (003) 1.4.5'ten gelmeyen kurulumda yine uygulanır.
 
 ## Yerel doğrulama
+
+**1.8.1** (Linux bulut ortamı): tam paket 376 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v181_sfx.py` (5).
 
 **1.6.0** (Linux bulut ortamı): tam paket 351 geçti, aynı 3 ortam başarısızlığı, 5 atlandı; yeni testler `test_v160_plugins.py` (8),
 `test_v160_fit.py` (5), referans ve döküm (birer). Gerçek Remotion render'ında (headless Chromium) 8 yazı bileşeni demo ve uzun metinle
