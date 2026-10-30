@@ -192,6 +192,7 @@ SCRIPT_MAP = {
     "setup: yerel ses motoru kurulumu (DD/.tts: ema, voxcpm, whisper)": "scripts/setup/tts_setup.py",
     "organic: Instagram profil kontrolü (salt okuma sonucu)": "scripts/organic/profile_check.py",
     "organic: organik paylaşım adayları ve takvim": "scripts/organic/candidates.py",
+    "organic: organik açıklama denetimi (görünen baş, etiket, yönlendirme)": "scripts/organic/caption_check.py",
     "audio: sahne sesi ve miks": "scripts/audio/mix.py",
     "audio: ses kütüphanesi": "scripts/audio/sfx_library.py",
     "render: render, still, galeri, Türkçe final, eski kampanya projesinin güvenli güncellenmesi (upgrade)": "scripts/render/render.py",

@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.1.0
+# Müşteri paketi — 2.2.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.1.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.2.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.2.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Profil kontrolü raporunda
+yeni `outliers`, `score` ve (verildiyse) `insights`
+bölümleri ve 5 etiket sınırı bulgusu var; organik taslaklar `caption_check.py` ile denetlenir.
 2.1.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Yerel seslendirmede cümleler ayrı
 okunup araya duraklama girer: aynı metin önceki sürümden biraz daha uzun sürer (cümle başına ≈ 0,25 sn); eski davranış `--pause 0`.
 Okunuş sözlüğü profil klasöründe `okunus.json` olarak tutulur (yedeklenen veri klasörünün içinde).

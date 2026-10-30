@@ -1,9 +1,9 @@
 ---
 name: profile-check
-description: "reklam-atolyesi profil kontrolü — reklamın götürdüğü Instagram profilini salt okumayla ölçer (son paylaşım, sıklık, video payı, yönlendirme, etkileşim) ve araçla okunamayanları (biyografi, bağlantı, öne çıkanlar) kullanıcıya kontrol listesi olarak sorar. Yayından önce ve koçlukta."
+description: "reklam-atolyesi profil kontrolü — reklamın götürdüğü Instagram profilini salt okumayla ölçer (son paylaşım, sıklık, video payı, yönlendirme, kendi ortancasına göre kat), araçla okunamayanları (isim alanı, biyografi, bağlantı, öne çıkanlar, sabitlenmiş) kullanıcıdan alıp 100 üzerinden puanlar ve puan kaybına göre yeniden yazım önerir; isterse İstatistikler ekran görüntüsünden izlenme/gönderme okur. Yayından önce ve koçlukta."
 ---
 
-# profile-check — Profil kontrolü (1.5.0)
+# profile-check — Profil kontrolü (1.5.0; 2.2.0)
 
 ## Amaç
 Reklamı gören kişinin önemli bir kısmı satın almadan önce profile bakar. Profil durgun, boş ya da yönlendirmesizse iyi reklam bile
@@ -28,14 +28,44 @@ Yok.
    kampanya ya da profil klasöründe `analysis/profile/account.json` ve `analysis/profile/media.json` olarak saklanır: `media.json` sayfa
    sonuçlarının **listesi** (`[<sayfa 1 sonucu>, <sayfa 2 sonucu>, …]`) olabilir; betik sayfaları açar ve tekilleştirir. Görsel/video
    adresleri geçicidir, kullanılmaz. Araç **reklam verilebilir** paylaşımları döndürür; hikâyeler ölçüme girmez (ayrıca sayılır).
-2. **Ölçüm:** `PY PR/scripts/organic/profile_check.py --media analysis/profile/media.json --account analysis/profile/account.json
-   --cta-url <brand.cta_url> [--followers <kullanıcının söylediği takipçi sayısı>] --out analysis/profile/profil.json`.
+2. **Yazılı alanlar (araçta yok, kullanıcıdan):** profilin üst kısmının ekran görüntüsü ya da kopyası istenir; okunan değerler
+   `analysis/profile/alanlar.json`'a yazılır: `name_field` (kalın isim satırı, kullanıcı adı değil), `bio`, `link`, `highlights` (ad
+   listesi), `pinned` (sabitlenmiş sayısı), `contact_button`, `story_last_7d`. Bilinmeyen alan yazılmaz (tahmin edilmez); kullanıcı
+   vermek istemezse adım atlanır. İsteğe bağlı **İstatistikler:** kullanıcı son paylaşımların İstatistikler ekran görüntülerini verirse
+   her paylaşım için yalnızca görünen sayılar `analysis/profile/istatistik.json`'a yazılır (`permalink` ya da `date`, `views`, `reach`,
+   `nonfollower_share`, `shares`, `saves`, `follows`, `hold_3s`); ekranda olmayan alan boş bırakılır.
+   **Ölçüm:** `PY PR/scripts/organic/profile_check.py --media analysis/profile/media.json --account analysis/profile/account.json
+   --cta-url <brand.cta_url> [--followers <kullanıcının söylediği takipçi sayısı>] [--fields analysis/profile/alanlar.json]
+   [--insights analysis/profile/istatistik.json] --out analysis/profile/profil.json`.
    Ölçülenler: son paylaşımın yaşı, 30/90 günde paylaşım, haftalık sıklık, son 12 paylaşımda video/Reels payı, yönlendirme içeren
-   açıklama sayısı, ortalama etiket, türe göre ortanca beğeni+yorum, en iyi 3 paylaşım bağlantısı.
+   açıklama sayısı, ortalama etiket ve 5'ten fazla etiketli paylaşım sayısı, türe göre ortanca beğeni+yorum, en iyi 3 paylaşım
+   bağlantısı ve **kendi ortancasına göre kat** (`outliers`, 2.2.0): son 30 paylaşımda her paylaşımın beğeni+yorumu o hesabın
+   ortancasının kaç katı; en iyi ve en zayıf 5 paylaşım (tür, tarih, yönlendirme var mı) ve türe göre ortanca kat. Ham sayı hesabın
+   büyüklüğünü ölçer, kat paylaşımın o hesap için öne çıkıp çıkmadığını. 6'dan az paylaşımda hesaplanmaz; 30'dan azında "yön gösterir"
+   diye yazılır. İzlenme/erişim/kaydetme bu araçta yok: kat yalnızca beğeni+yorumdandır, izlenme katı diye sunulmaz.
+   **Profil puanı** (`score`, 2.2.0; yerel ağırlıklar, toplam 100): araçtan son paylaşım 12, sıklık 8, video payı 8, ızgara 6, fotoğraf 4,
+   açıklamalarda yönlendirme 6, etiket sınırı 2; kullanıcıdan isim alanı 10, biyografi 12, bağlantı 8, öne çıkanlar 8, sabitlenmiş 8,
+   iletişim düğmesi 4, hikâye 4. Bilinmeyen madde puanlanmaz ve paydadan düşer (`earned/known_max`; `of_100` yalnızca her madde
+   biliniyorsa). Betik metnin kalitesini değil yapısını ölçer (var mı, sınırda mı, yönlendirme/teslim bilgisi geçiyor mu).
+   **İstatistikler** (`insights`, verildiyse): izlenme katı (paylaşımın izlenmesi / verilen paylaşımların ortancası), takipçi dışı erişim,
+   erişim başına gönderme/takip/kaydetme ve teşhis: izlenme ≥ 2 kat ama erişim başına takip ortancanın altında → **sorun profil**
+   (açılışı yeniden yazma, profile bak); izlenme < 0,5 kat → **sorun açılış** (ilk 3 sn). Bu sayılar reklam kararlarına girmez.
 3. **Bulgular (yerel eşikler):** son paylaşım > 14 gün (yüksek), < 9 paylaşım (orta), video payı < %30 (orta), yönlendirme yok (düşük),
-   > 10 etiket (düşük), profil fotoğrafı yok (orta). Her bulgu: ne · neden önemli · ne yapılmalı. Bulgu yoksa "profil reklama hazır"
-   denmez; yalnızca "ölçülen maddelerde sorun yok" denir.
-4. **Kontrol listesi (araçta yok, kullanıcı bakar):** biyografi (ne, kime, nasıl teslim), profildeki bağlantı reklamın adresiyle aynı ve
+   5'ten fazla etiketli paylaşım (düşük; Instagram Aralık 2025'ten beri paylaşım ve Reels başına en fazla 5 etikete izin veriyor,
+   ikincil kaynak — ref-legal-tr-meta), profil fotoğrafı yok (orta). Her bulgu: ne · neden önemli · ne yapılmalı. Bulgu yoksa "profil reklama hazır"
+   denmez; yalnızca "ölçülen maddelerde sorun yok" denir. Kat tablosu bulgu değil, kanıttır: en iyi ve en zayıf paylaşımlar arasındaki
+   fark (tür, yönlendirme) kullanıcıya iddia + kanıt + güven düzeyiyle söylenir ve `organic` takviminde hangi türden fazla
+   üretileceğine girdi olur; gün/saat yorumu yapılmaz.
+4. **Puan tablosu ve yeniden yazım (alanlar verildiyse):** puan tablosu (madde · puan/en çok · ayrıntı · kaynak) ve toplam
+   "kazanılan / bilinen" olarak gösterilir; cömert puan verilmez. Sonra `fix_order` sırasıyla (en çok puan kaybettiren önce), her biri
+   kopyalanabilir taslak: **isim alanı** 3 seçenek (≤ 30 karakter, `Marka | aranan sözcüklerle ne yapıldığı`; Instagram araması bu alanı
+   eşleştirir), **biyografi** ilk satırı kim için ve ne değişiyor + teslim/sipariş bilgisi + tek yönlendirme (≤ 150 karakter),
+   **sabitlenmiş 3** üç ayrı görev (en güçlü kanıt, teklifin en açık anlatımı, işletmenin tanıtımı; `outliers` en iyi paylaşımlarından
+   aday), **öne çıkanlar** 4–6, alıcının sorusuyla adlı (Fiyat/Kargo, Yorumlar — izinli, Nasıl sipariş, SSS), **bağlantı** reklamın
+   adresiyle aynı tek hedef. Taslaklarda yalnızca ürün kartındaki kanıtlanabilir iddialar; düzenlenen sektörde ref-legal-tr-meta.
+   Kullanıcı değiştirdikten sonra yeniden puanlanır ve fark dürüstçe söylenir (84'e çıktıysa 84; kalanı çoğu zaman ızgara ve paylaşım
+   alışkanlığıdır, yeniden yazım değil). Plugin profile hiçbir şey yazmaz; alanları kullanıcı kendisi değiştirir.
+   **Kontrol listesi (alanlar verilmediyse, kullanıcı bakar):** biyografi (ne, kime, nasıl teslim), profildeki bağlantı reklamın adresiyle aynı ve
    açılıyor, öne çıkanlar (fiyat/kargo, yorumlar — izinli, SSS, nasıl sipariş), iletişim düğmesi ve mesaj karşılaması (mesaj sonuçlu
    kampanyada), sabitlenmiş paylaşımlar. Kullanıcının cevabı `memory_add(layer="semantic", kind="profile", content=…, source="user", profile_id=…)` ile kısa not olarak.
 5. **Sonraki adım:** bulgu "yüksek" ise yayından önce düzeltme önerilir (zorlanmaz); durgun profil için `organic` modülünden haftalık
@@ -46,9 +76,11 @@ Yok.
 
 ## Kontroller
 - Yalnızca izin listesindeki salt okuma araçları kullanıldı; paylaşım yapılmadı.
-- Araçta olmayan alan (biyografi, takipçi, erişim) tahmin edilmedi; kullanıcıya soruldu.
+- Araçta olmayan alan (biyografi, takipçi, erişim, izlenme) tahmin edilmedi; kullanıcıya soruldu ya da ekran görüntüsünden okundu.
+- Profil puanı "kazanılan / bilinen" olarak verildi; ağırlıkların yerel olduğu söylendi.
 - Bulgularda eşiklerin yerel olduğu yazıldı; kişi adı/yorum metni rapora girmedi.
 
 ## Kapı mesajı
-"Profil kontrolü: N paylaşım okundu, son paylaşım X gün önce; bulgular: …; sizin bakmanız gerekenler: biyografi, bağlantı, öne çıkanlar.
+"Profil kontrolü: N paylaşım okundu, son paylaşım X gün önce; profil puanı E/K (bilinmeyen: …); bulgular: …; önce düzeltilecek: …
+(taslaklar aşağıda).
 Organik paylaşım adaylarını çıkarayım mı?"

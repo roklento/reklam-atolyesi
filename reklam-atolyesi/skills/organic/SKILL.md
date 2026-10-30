@@ -33,7 +33,10 @@ Yok.
    `asr_local.py cuts` ile temizlenmiş kısa anlatım; kazanan reklam → gönderi zaten profildeyse yeniden paylaşılmaz.
 3. **Açıklama taslakları:** her aday için 1 taslak: ilk cümle ne gösterdiği, tek yönlendirme (profildeki bağlantı / DM / randevu), 3–5
    etiket; yalnızca ürün kartındaki kanıtlanabilir iddialar; düzenlenen sektörde (`service_json.regulated_sector`) ref-legal-tr-meta
-   kuralları. Taslaklar sohbette verilir, kaydedilmez.
+   kuralları. Taslaklar `PY PR/scripts/organic/caption_check.py --json analysis/organic/taslaklar.json [--keywords "…"]` ile
+   denetlenir (2.2.0): akışta görünen ilk 125 karakter kutu olarak gösterilir (organik için resmi sayı yok, yerel varsayım), ilk satır
+   bu sınırda bitmeli ve görünen kısımda somut bir şey (sayı, fiyat, süre) olmalı; en fazla 5 etiket; tek yönlendirme kanalı
+   (bağlantı / DM / WhatsApp / randevu); görünmez karakterler temizlenir. Uyarılar düzeltilip taslaklar sohbette verilir, kaydedilmez.
 4. **Takvim:** haftada 2–4 paylaşım (profil kontrolündeki sıklığa göre); tarih listesi kullanıcıya. Paylaşılan aday
    `asset_mark_used(profile_id, asset_id, creative_key="organic:<tarih>", role="organic")` ile işaretlenir (bir klip iki kez önerilmez).
 5. **İzleme:** sonraki profil kontrolünde organik paylaşımların beğeni/yorum ortancası türlere göre okunur; yalnızca organik planı
