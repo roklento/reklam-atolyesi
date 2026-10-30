@@ -97,13 +97,22 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
-**2.2.0** — profil kontrolü: Instagram'ın 5 etiket sınırı ve paylaşım başına "kendi ortancasının kaç katı"
+**2.2.0** — profil kontrolü: 5 etiket sınırı, "kendi ortancasının kaç katı", profil puanı, İstatistikler girdisi; organik açıklama denetimi
 - Etiket bulgusu "10'dan fazla ortalama" yerine "5'ten fazla etiketli paylaşım" (Instagram Aralık 2025'ten beri paylaşım ve Reels başına
   en fazla 5 etiket; Instagram'ın Threads duyurusu ikincil kaynaklardan, yardım merkezinde teyit edilmedi — ref-legal-tr-meta). Eski
   eşik yeni paylaşımlarda hiç tetiklenmiyordu. Etiket sayımı Türkçe harfli etiketleri de sayar.
 - **Kendi ortancasına göre kat** (`outliers`): son 30 paylaşımda her paylaşımın beğeni+yorumu hesabın ortancasının kaç katı; en iyi ve
   en zayıf 5 paylaşım, türe göre ortanca kat ve güven düzeyi (6'dan az paylaşımda hesaplanmaz). İzlenme/erişim araçta yok; kat yalnızca
   beğeni+yorumdan hesaplanır.
+- **Profil puanı** (`score`): araçtan ölçülenler + kullanıcının verdiği yazılı alanlar (isim alanı, biyografi, bağlantı, öne çıkanlar,
+  sabitlenmiş, iletişim düğmesi, hikâye) 100 üzerinden, yerel ağırlıklarla; bilinmeyen madde paydadan düşer ("kazanılan / bilinen").
+  Skill puan kaybına göre sırayla kopyalanabilir taslak verir (isim alanı 3 seçenek, biyografi, sabitlenmiş 3'ün görevleri, öne
+  çıkan adları); profile hiçbir şey yazılmaz.
+- **İstatistikler girdisi** (`--insights`): kullanıcının ekran görüntüsünden okunan izlenme, erişim, takipçi dışı erişim, gönderme,
+  kaydetme, takip; izlenme katı, erişim başına gönderme/takip ve teşhis ("görüntü çok, takip az" → profil; "görüntü az" → açılış).
+- **Organik açıklama denetimi** (`scripts/organic/caption_check.py`): akışta görünen ilk 125 karakter (organik için resmi sayı yok,
+  yerel varsayım), ilk satır, görünen kısımda somut bilgi, en fazla 5 etiket, tek yönlendirme kanalı, görünmez karakter temizliği;
+  `organic` taslakları bununla denetlenir.
 - Fikir kaynağı: Jakeschincariol/instagram-agent-skill (MIT) değerlendirmesi; kod alınmadı.
 - Veritabanı migration'ı yok, yeni bağımlılık yok.
 

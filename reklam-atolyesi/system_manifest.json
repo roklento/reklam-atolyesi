@@ -233,7 +233,7 @@
    "name": "organic",
    "kind": "module",
    "description": "reklam-atolyesi organik destek — reklam için çekilip kullanılmamış iyi kliplerden, kazanan reklamlardan ve konuşma çekimlerinden organik paylaşım adayları, haftalık takvim ve açıklama taslakları. Paylaşım yapılmaz; reklam kararlarına girmez.",
-   "sha256": "d26a27de9f57a92a2a0d37948da6d13483b27102542a3ba551e1a82c1f072116"
+   "sha256": "00b5a6830a4f06769b2ce2de8a0b0afdd5398d901c31002e6a283269e8d7fa6d"
   },
   {
    "name": "product-onboarding",
@@ -244,8 +244,8 @@
   {
    "name": "profile-check",
    "kind": "module",
-   "description": "reklam-atolyesi profil kontrolü — reklamın götürdüğü Instagram profilini salt okumayla ölçer (son paylaşım, sıklık, video payı, yönlendirme, etkileşim) ve araçla okunamayanları (biyografi, bağlantı, öne çıkanlar) kullanıcıya kontrol listesi olarak sorar. Yayından önce ve koçlukta.",
-   "sha256": "3fc8113d226d8e09f54bf88e066efab78517646a9bfa9052d51f3a140517f0ac"
+   "description": "reklam-atolyesi profil kontrolü — reklamın götürdüğü Instagram profilini salt okumayla ölçer (son paylaşım, sıklık, video payı, yönlendirme, kendi ortancasına göre kat), araçla okunamayanları (isim alanı, biyografi, bağlantı, öne çıkanlar, sabitlenmiş) kullanıcıdan alıp 100 üzerinden puanlar ve puan kaybına göre yeniden yazım önerir; isterse İstatistikler ekran görüntüsünden izlenme/gönderme okur. Yayından önce ve koçlukta.",
+   "sha256": "aea4a6ec8bb2d121cc1e45683d49563ca6edd1a7add18765f5d4aa0dc18fcefd"
   },
   {
    "name": "qc",
@@ -821,6 +821,7 @@
   "setup: yerel ses motoru kurulumu (DD/.tts: ema, voxcpm, whisper)": "scripts/setup/tts_setup.py",
   "organic: Instagram profil kontrolü (salt okuma sonucu)": "scripts/organic/profile_check.py",
   "organic: organik paylaşım adayları ve takvim": "scripts/organic/candidates.py",
+  "organic: organik açıklama denetimi (görünen baş, etiket, yönlendirme)": "scripts/organic/caption_check.py",
   "audio: sahne sesi ve miks": "scripts/audio/mix.py",
   "audio: ses kütüphanesi": "scripts/audio/sfx_library.py",
   "render: render, still, galeri, Türkçe final, eski kampanya projesinin güvenli güncellenmesi (upgrade)": "scripts/render/render.py",
@@ -901,11 +902,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 446,
+   "passed": 450,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "446 passed, 0 failed, 6 skipped (2.2.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v220_profile.py (4): 5 etiket sınırı bulgusu ve Türkçe harfli etiket sayımı, kendi ortancasına göre kat (en iyi/en zayıf, türe göre, güven düzeyi), az paylaşımda ve sıfır ortancada atlama, son 30 paylaşım penceresi. Önceki özet: 443 passed, 0 failed, 5 skipped (2.1.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. Yeni testler tests/test_tts_local.py (16): okunuş sözlüğü (altyazı yazımı, kesme eki, en uzun girdi, girdi doğrulama, genel liste), normalleştirici ipuçları (sıra sayısı, aralık, telefon), gerçek normalizer-tr ile okunuş haritası ve rapor (normalizer-tr yoksa atlanır), cümle birleştirme (kırpma, duraklama, sözcük zamanı kaydırma), synth'in cümleleri ve sözlüğü motora iletmesi, --pause 0 eski yol, Whisper denetiminin sözlük yazımını kabul etmesi, EMA+Whisper kurulum önerisi. EMA/Whisper modelleri bu ortamda indirilemedi: gerçek ses üretimi sınanmadı. Önceki özet: 427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
+   "summary": "450 passed, 0 failed, 6 skipped (2.2.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v220_profile.py (8): 5 etiket sınırı bulgusu ve Türkçe harfli etiket sayımı, kendi ortancasına göre kat (en iyi/en zayıf, türe göre, güven düzeyi), az paylaşımda ve sıfır ortancada atlama, son 30 paylaşım penceresi, alansız profil puanı (yalnız ölçülenler), tam/zayıf profilde puan ve düzeltme sırası, İstatistikler teşhisi (profil/açılış), organik açıklama denetimi (görünen 125, etiket, tek kanal, görünmez karakter, arama sözcüğü). Önceki özet: 443 passed, 0 failed, 5 skipped (2.1.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. Yeni testler tests/test_tts_local.py (16): okunuş sözlüğü (altyazı yazımı, kesme eki, en uzun girdi, girdi doğrulama, genel liste), normalleştirici ipuçları (sıra sayısı, aralık, telefon), gerçek normalizer-tr ile okunuş haritası ve rapor (normalizer-tr yoksa atlanır), cümle birleştirme (kırpma, duraklama, sözcük zamanı kaydırma), synth'in cümleleri ve sözlüğü motora iletmesi, --pause 0 eski yol, Whisper denetiminin sözlük yazımını kabul etmesi, EMA+Whisper kurulum önerisi. EMA/Whisper modelleri bu ortamda indirilemedi: gerçek ses üretimi sınanmadı. Önceki özet: 427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-30",
@@ -1586,11 +1587,11 @@
     "auditor": "değişikliği yapan oturum (Claude)"
    },
    {
-    "scope": "2.2.0: profil kontrolü (profile_check.py 5 etiket sınırı ve outliers, profile-check SKILL, ref-legal-tr-meta etiket satırı, test_v220_profile.py, README, MUSTERI-PAKETI-YAYIN)",
-    "files_reviewed": 6,
+    "scope": "2.2.0: profil kontrolü (profile_check.py 5 etiket sınırı, outliers, profil puanı, İstatistikler girdisi; yeni caption_check.py; profile-check ve organic SKILL, ref-legal-tr-meta etiket satırı, manifest SCRIPT_MAP, test_v220_profile.py, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 10,
     "kusur": 0,
     "not": 0,
-    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('marka', '#e1', '#ücretsizKargo')",
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; test örnekleri nötr ('marka', 'Marka | El yapımı mum', 'ornek.com', '#e1')",
     "auditor": "değişikliği yapan oturum (Claude)"
    }
   ],
@@ -1604,13 +1605,13 @@
   "component_hashes": {
    "plugin_json": "3001591f84cf4c8769e800725ffe7150f2386e84ba2913fc1a4aa81f784e9bbe",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "a69f305ea858a887b0554c72cae4d81f16d94c5115fc88fb905b2bcfdd38b383",
+   "skills": "802de99fc9ca37e37b3f6ac14df6481b060cdabd31b6da115f28b27203ac0828",
    "agents": "5d16ba494c1e8a232368dea6f774e4fd2297274d0dd9082078be68fde7bf69b6",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
    "ad_memory": "d4ff80a900520a991b35a651db7f8aaed8c57e91c862217e8f70876606267101",
-   "scripts": "9df65e638e7fe2c9b2bab8f65b71aab8c138a7a1eded701eafaf097a78c2e4a7",
+   "scripts": "d37ebfb9cee3f1df8f8609921cf4394199d803d3da30af778f0ef01a1e765e20",
    "templates": "46256a5d60b56d7b6a6d83b8a5b597824bf59319f21864ffbe77dcc76e02759b",
    "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
@@ -1773,13 +1774,13 @@
  "component_hashes": {
   "plugin_json": "3001591f84cf4c8769e800725ffe7150f2386e84ba2913fc1a4aa81f784e9bbe",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "a69f305ea858a887b0554c72cae4d81f16d94c5115fc88fb905b2bcfdd38b383",
+  "skills": "802de99fc9ca37e37b3f6ac14df6481b060cdabd31b6da115f28b27203ac0828",
   "agents": "5d16ba494c1e8a232368dea6f774e4fd2297274d0dd9082078be68fde7bf69b6",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
   "ad_memory": "d4ff80a900520a991b35a651db7f8aaed8c57e91c862217e8f70876606267101",
-  "scripts": "9df65e638e7fe2c9b2bab8f65b71aab8c138a7a1eded701eafaf097a78c2e4a7",
+  "scripts": "d37ebfb9cee3f1df8f8609921cf4394199d803d3da30af778f0ef01a1e765e20",
   "templates": "46256a5d60b56d7b6a6d83b8a5b597824bf59319f21864ffbe77dcc76e02759b",
   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },

@@ -52,3 +52,52 @@ def test_outlier_window_is_last_30():
     posts = [_post(d, likes=10) for d in range(1, 41)]
     o = PC.check(posts, _acc(), now=NOW)["outliers"]
     assert o["window"] == 30 and o["confidence"] == "desen için yeterli"
+
+
+# --- profil puanı, İstatistikler girdisi, organik açıklama denetimi ----------------------------------------------------------------
+def _fresh():
+    return [_post(d, "REELS" if d % 2 else "FEED", likes=10) for d in range(1, 13)]
+
+
+def test_score_only_measured_when_no_fields():
+    sc = PC.check(_fresh(), _acc(), now=NOW)["score"]
+    assert sc["of_100"] is None and "biyografi" in sc["unknown"] and sc["known_max"] == 46
+    assert all(i["source"] == "araç" for i in sc["items"])
+
+
+def test_score_full_profile_and_fix_order():
+    good = {"name_field": "Marka | El yapımı mum", "bio": "Doğum günü hediyesi arayanlara el yapımı mum. Tüm Türkiye kargo. Sipariş: DM",
+            "link": "https://www.ornek.com/urun", "highlights": ["Fiyat", "Kargo", "Yorumlar", "Nasıl sipariş"], "pinned": 3,
+            "contact_button": True, "story_last_7d": True}
+    sc = PC.check(_fresh(), _acc(), "https://ornek.com/kampanya", now=NOW, fields=good)["score"]
+    assert sc["known_max"] == 100 and sc["of_100"] == sc["earned"] and not sc["unknown"]
+    assert {i["id"]: i["points"] for i in sc["items"]}["name_field"] == 10
+    weak = {"name_field": "marka", "bio": "", "link": "https://baska.com", "highlights": ["Random", "2023"], "pinned": 0,
+            "contact_button": False}
+    sc2 = PC.check(_fresh(), _acc(), "https://ornek.com", now=NOW, fields=weak)["score"]
+    pts = {i["id"]: i["points"] for i in sc2["items"]}
+    assert pts["name_field"] == 3 and pts["bio"] == 0 and pts["link"] == 3 and pts["highlights"] == 2 and pts["pinned"] == 0
+    assert sc2["fix_order"][0]["id"] == "bio" and "hikâye (son 7 gün)" in sc2["unknown"] and sc2["of_100"] is None
+
+
+def test_insights_diagnosis():
+    posts = _fresh()
+    rows = [{"permalink": p["permalink"], "views": 1000, "reach": 800, "follows": 8, "shares": 4} for p in posts]
+    rows[0].update(views=5000, reach=4000, follows=4, shares=60, nonfollower_share=72)   # çok izlendi, takip az → profil
+    rows[1].update(views=200, reach=180)                                                   # az izlendi → açılış
+    ins = PC.check(posts, _acc(), now=NOW, insights=rows)["insights"]
+    assert ins["median_views"] == 1000 and ins["rows"][0]["views_multiple"] == 5.0 and ins["rows"][0]["nonfollower_share"] == 0.72
+    d = {x["permalink"]: x["finding"] for x in ins["diagnosis"]}
+    assert d[posts[0]["permalink"]] == "görüntü çok, takip az" and d[posts[1]["permalink"]] == "görüntü az"
+    assert "insights" not in PC.check(posts, _acc(), now=NOW)
+
+
+def test_caption_check():
+    import caption_check as CC
+    ok = CC.check_caption("3 günde kargoda: el yapımı mum, 250 TL.\nSipariş için profildeki bağlantı. #mum #hediye")
+    assert ok["warnings"] == 0 and not ok["cut"]
+    long_first = "Ç" * 130 + "​" + " DM ya da WhatsApp'tan yazın " + " ".join(f"#ş{i}" for i in range(6))
+    r = CC.check_caption(long_first, ["el yapımı"])
+    bad = {c["id"] for c in r["checks"] if not c["ok"]}
+    assert {"first_line", "hashtags", "one_cta", "concrete_in_view", "invisible_chars", "search_terms"} <= bad
+    assert r["cut"] and len(r["visible"]) == 125 and "​" not in r["clean_text"]
