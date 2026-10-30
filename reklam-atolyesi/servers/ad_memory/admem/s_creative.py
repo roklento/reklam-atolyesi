@@ -99,7 +99,17 @@ class CreativeMixin:
                 raise AdMemoryError("proven/counter konsept kaynak rakip reklam kimliklerini taşır (uzaklık kuralı için)")
             if ex:
                 old_feats = old.get("features_json") if isinstance(old.get("features_json"), dict) else {}
-                feats = {**old_feats, **feats} if features is not None else old_feats
+                feats = {**old_feats, **feats} if features is not None else dict(old_feats)
+                if msg is not None:  # kart aşaması özelliklere de yazılır (yalnız kart güncellemesinde eski özellik ezmesin)
+                    feats["stage"] = msg["stage"]
+                elif features is not None:  # yalnız özellik güncellemesi kayıtlı mesaj kartının aşamasını bozmaz (1.9.0)
+                    old_msg = jload(old.get("message_json"), None) if isinstance(old.get("message_json"), str) else old.get("message_json")
+                    ms = old_msg.get("stage") if isinstance(old_msg, dict) else None
+                    if ms and feats.get("stage") not in (None, "unknown", ms):
+                        raise AdMemoryError(f"features.stage={feats['stage']!r} kayıtlı mesaj kartındaki aşamayla ({ms}) çelişiyor; "
+                                            "aşamayı değiştirmek için mesaj kartını (message) yeniden yaz")
+                    if ms:
+                        feats["stage"] = ms  # kart varken aşama boşaltılamaz: koç aşamayı buradan okur
             dec = keep(decision, "decision")
             status = "selected" if dec in ("accepted", "merged") else ("dropped" if dec == "rejected" else "proposed")
             vals = dict(campaign_id=c["id"], cycle_id=cy["id"], code=code, name=name, angle=keep(angle, "angle"), source=source,

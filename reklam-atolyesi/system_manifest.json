@@ -897,11 +897,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 390,
+   "passed": 391,
    "failed": 4,
    "skipped": 5,
    "returncode": 1,
-   "summary": "390 passed, 4 failed, 5 skipped (1.9.0, 1.8.1 ile birleştirildikten sonra, Linux bulut ortamı; yeni testler tests/test_v190_funnel.py: aşama ekseni ve huni turu taksonomisi, migration 007, satın alma engelleri, mesaj kartı doğrulaması, BOFU kanıtı (iddia, yorum, geri çekilmiş yorum, engel kanıtı), S03 kapısının mesaj kartı istemesi, keşif ve huni turu portföy kuralları, huni turunun ilk turda reddi, yeni metriklerin kaydı ve toplamı, koç aşama bölümü ve huni turu kapatma koruması, QC funnel-diff). Dört başarısızlık ortamdan geliyor (önceki üç ve self_review: bu ortamın opencv derlemesinde CascadeClassifier yok, main'de de aynı hata); 1.9.0 değişikliği bunlara dokunmuyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.9.0 Windows'ta çalıştırılmadı.",
+   "summary": "391 passed, 4 failed, 5 skipped (1.9.0, 1.8.1 ile birleştirildikten sonra, Linux bulut ortamı; yeni testler tests/test_v190_funnel.py: aşama ekseni ve huni turu taksonomisi, migration 007, satın alma engelleri, mesaj kartı doğrulaması, BOFU kanıtı (iddia, yorum, geri çekilmiş yorum, engel kanıtı), S03 kapısının mesaj kartı istemesi, keşif ve huni turu portföy kuralları, huni turunun ilk turda reddi, yeni metriklerin kaydı ve toplamı, koç aşama bölümü ve huni turu kapatma koruması, yalnız özellik güncellemesinin mesaj kartı aşamasıyla çelişmemesi, QC funnel-diff). Dört başarısızlık ortamdan geliyor (önceki üç ve self_review: bu ortamın opencv derlemesinde CascadeClassifier yok, main'de de aynı hata); 1.9.0 değişikliği bunlara dokunmuyor. 1.5.0 Windows geliştirici ortamında 327 geçti, 0 başarısız; 1.5.1–1.9.0 Windows'ta çalıştırılmadı.",
    "known_environment_failures": [
     "tests/test_dagitim.py::test_doctor_resolves_mcp_command_with_spaces",
     "tests/test_media.py::test_ingest_outputs",
@@ -1566,7 +1566,7 @@
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-   "ad_memory": "f567c614fea9b27d316ab2bcf2865185b77f6e201f4cde05c001fcc8b1ca3433",
+   "ad_memory": "596c236ae80b4629544fb38422bcd9edc8e619b5b9c7fcf8434f0adb2b78c298",
    "scripts": "673dd62bae4e8921659c3260baabd14db0908ba1917beec2adf1893dfe24061e",
    "templates": "b8519b1fb9885a1484ccd7cfb10367b8c2605db442bb2996bd5958da1801f537",
    "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
@@ -1735,7 +1735,7 @@
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "f39a2c0361673b73ad8c8e5e337ca6deb31c1fb9bb3abfd396e496fa80b21ce7",
-  "ad_memory": "f567c614fea9b27d316ab2bcf2865185b77f6e201f4cde05c001fcc8b1ca3433",
+  "ad_memory": "596c236ae80b4629544fb38422bcd9edc8e619b5b9c7fcf8434f0adb2b78c298",
   "scripts": "673dd62bae4e8921659c3260baabd14db0908ba1917beec2adf1893dfe24061e",
   "templates": "b8519b1fb9885a1484ccd7cfb10367b8c2605db442bb2996bd5958da1801f537",
   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"

@@ -116,6 +116,17 @@ def test_bofu_requires_real_evidence(store):
         up(msg("bofu", focus="objection", objection_code="boyut", evidence=[{"kind": "claim", "ref": "el yapımı"}]))
 
 
+def test_features_only_update_cannot_contradict_message_card(store):
+    pid, cid, cyid = at_s03(store)
+    concept(store, pid, cid, cyid, "A", "alici-a", msg("tofu"))
+    with pytest.raises(AdMemoryError, match="kayıtlı mesaj kartındaki aşamayla"):
+        store.concept_upsert(pid, cid, cyid, "A", "A", "general", features={"stage": "mofu"})
+    k = store.concept_upsert(pid, cid, cyid, "A", "A", "general", features={"stage": "unknown", "buyer": "alici-b"})
+    assert k["features_json"]["buyer"] == "alici-b" and k["features_json"]["stage"] == "tofu"  # kart varken aşama boşalmaz
+    k = store.concept_upsert(pid, cid, cyid, "A", "A", "general", message=msg("mofu"))  # aşama kartla değişir
+    assert k["features_json"]["stage"] == "mofu"
+
+
 def test_gate_requires_message_card(store):
     pid, cid, cyid = at_s03(store)
     k = store.concept_upsert(pid, cid, cyid, "A", "A", "general", decision="accepted", user_said="A olsun", features={"buyer": "alici-a"})
