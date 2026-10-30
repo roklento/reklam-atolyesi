@@ -205,7 +205,12 @@ class MetaMixin:
         return {"priors": rows, "default": "Geçmiş yoksa Beta(1,1) (6.6)"}
 
     PRIOR_METRICS = {"hook_rate": ("video_3s", "impressions"), "ctr_link": ("link_clicks", "impressions"),
-                     "hold_rate": ("thruplay", "video_3s"), "cvr": ("purchases", "link_clicks")}
+                     "hold_rate": ("thruplay", "video_3s"), "cvr": ("purchases", "link_clicks"),
+                     # 2.4.0 tıklama sonrası adımlar (koçluktaki FUNNEL_STEPS ile aynı çiftler); reklamın paydası en az STEP_MIN_DEN
+                     "step_landing": ("landing_page_views", "link_clicks"), "step_view": ("view_content", "landing_page_views"),
+                     "step_cart": ("add_to_cart", "view_content"), "step_checkout": ("initiate_checkout", "add_to_cart"),
+                     "step_purchase": ("purchases", "initiate_checkout")}
+    STEP_MIN_DEN = 30
 
     def priors_from_history(self, profile_id: int, objective: str, cutoff_at: str, n_cap: float = 30,
                             min_impressions: int = 1000) -> dict:
@@ -213,7 +218,9 @@ class MetaMixin:
         bid = self._brand_id(profile_id)
         cutoff = _date(cutoff_at[:10])
         rows = self.qa("""SELECT a.id AS ad_id, SUM(m.impressions) AS impressions, SUM(m.video_3s) AS video_3s, SUM(m.thruplay) AS thruplay,
-                                 SUM(m.link_clicks) AS link_clicks, SUM(m.purchases) AS purchases
+                                 SUM(m.link_clicks) AS link_clicks, SUM(m.purchases) AS purchases,
+                                 SUM(m.landing_page_views) AS landing_page_views, SUM(m.view_content) AS view_content,
+                                 SUM(m.add_to_cart) AS add_to_cart, SUM(m.initiate_checkout) AS initiate_checkout
                           FROM metrics_daily m JOIN ads a ON a.id=m.ad_id
                           LEFT JOIN meta_entities e ON e.level='ad' AND e.meta_id=a.meta_ad_id
                           LEFT JOIN meta_entities ad_set ON ad_set.level='adset' AND ad_set.meta_id=e.parent_meta_id
@@ -228,6 +235,8 @@ class MetaMixin:
                     continue
                 n, d = r[num], r[den]
                 if n is None or not d or n > d:
+                    continue
+                if metric.startswith("step_") and d < self.STEP_MIN_DEN:
                     continue
                 ratios.append(n / d)
             if not ratios:

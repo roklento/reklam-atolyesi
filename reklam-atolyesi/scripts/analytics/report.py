@@ -73,6 +73,24 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
         for p in fd["per_concept"]:
             lines.append(f"- **{p['concept']}**: " + "; ".join(p["notes"]))
         lines.append(f"- Tıklamadan sonrası: {fd['after_click']['msg']}")
+        fs = fd.get("steps")
+        if fs:  # 2.4.0: ortak adım tablosu; her oran kendi paydasıyla, birbirleriyle çarpılmaz
+            lines.append("- Tıklamadan sonra adım adım (Meta'nın saydığı olaylar; her adım bir öncekine bölünür):")
+            for st in fs["steps"]:
+                if st.get("rate") is not None:
+                    txt = (f"%{st['rate'] * 100:.1f} ({int(st['count'])} / {int(st['denominator_count'])} {st['denominator_label']}"
+                           + ("" if st["canonical"] else "; önceki adım okunamadı, geçmişle kıyaslanmaz") + ")")
+                    if st["status"] == "veri_yetersiz":
+                        txt += " · veri yetersiz"
+                    if st.get("history_mean") is not None:
+                        txt += f" · geçmiş %{st['history_mean'] * 100:.1f}"
+                    if st.get("weak"):
+                        txt += " · ⚠ geçmişin altında"
+                else:
+                    txt = st["msg"].split(": ", 1)[1]
+                lines.append(f"  - {st['label']}: {txt}")
+            if fs.get("msg"):
+                lines.append(f"  - {fs['msg']}")
         ch = an.get("channels") or {}
         if ch.get("sales") or ch.get("leads"):
             parts = [f"{k}: {v['units']} adet" + (f" / {v['revenue']}" if v.get("revenue") else "") for k, v in ch["sales"].items()]

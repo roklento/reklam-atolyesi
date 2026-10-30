@@ -643,6 +643,99 @@ def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
             "rule": "Göreli eşikler yereldir (ortancanın %80'i; ≥ 100 tıklama). Teşhis hipotezdir; kesin neden değildir."}
 
 
+# Tıklamadan sonra adım adım (2.4.0). Adımlar her ürün ve satış yeri için ORTAKTIR (Meta'nın standart olayları); platforma özel aşama
+# eklenmez. Platform yalnızca hangi olayın geldiğini belirler: gelmeyen olay "okunamadı" kalır, sıfır sayılmaz. Her adım bir önceki
+# adıma bölünür; önceki adım okunamadıysa en yakın okunan adıma bölünür ve geçmişle kıyaslanmaz (tanım farklıdır).
+FUNNEL_STEPS = (
+    ("step_landing", "landing_page_views", "link_clicks", "Sayfaya ulaşma",
+     "tıklayan sayfaya ulaşmadan çıkıyor: sayfanın açılış hızı, bağlantı/yönlendirme, mobil uyum"),
+    ("step_view", "view_content", "landing_page_views", "Ürünü görme",
+     "sayfa açıldı ama ürün görüntülenmedi: ilk ekran, reklamdaki ürünün sayfada hemen görünmesi"),
+    ("step_cart", "add_to_cart", "view_content", "Sepete ekleme",
+     "ürünü gördü, sepete eklemedi: fiyat, ürün görselleri ve çeşitler, ölçü/beden bilgisi, yorumlar, stok"),
+    ("step_checkout", "initiate_checkout", "add_to_cart", "Ödemeye geçme",
+     "sepete ekledi, ödemeye geçmedi: kargo ücreti/süresi sepette mi ortaya çıkıyor, üyelik zorunluluğu, ek masraf"),
+    ("step_purchase", "purchases", "initiate_checkout", "Ödemeyi tamamlama",
+     "ödemeyi başlattı, tamamlamadı: ödeme seçenekleri (taksit, kapıda ödeme), güven, ödeme hatası/3D Secure, form uzunluğu"),
+)
+STEP_LABELS = {"link_clicks": "bağlantı tıklaması", **{num: lbl.lower() for _, num, _, lbl, _ in FUNNEL_STEPS}}
+
+
+def history_priors(snap: dict) -> dict:
+    """Yalnızca geçmişten türetilmiş önseller (Beta(1,1) bir "geçmiş ortalama" değildir; darboğaz kıyası ona yapılmaz)."""
+    out = {}
+    for p in (snap.get("priors") or {}).get("priors", []) or []:
+        if p.get("source") == "history":
+            out[p["metric"]] = (float(p["a"]), float(p["b"]))
+    return out
+
+
+def funnel_steps(test_rows: list[dict]) -> dict | None:
+    """Kampanya düzeyinde tıklama → sayfa → ürün → sepet → ödeme → satış. Sayım Meta'nın saydığı olaylardır (aynı kaynak, aynı atıf);
+    mağaza kaydı "Tıklamadan sonrası" satırında ayrıca okunur. Tıklama yoksa tablo yoktur."""
+    clicks = _sum(test_rows, "link_clicks")
+    if not clicks:
+        return None
+
+    def tot(col):
+        vals = [r.get(col) for r in test_rows if r.get(col) is not None]
+        return sum(float(v) for v in vals) if vals else None
+    counts = {"link_clicks": clicks}
+    steps = []
+    for metric, num, den, label, cause in FUNNEL_STEPS:
+        counts[num] = tot(num)
+        base = den if counts.get(den) is not None else next(
+            (c for c in reversed(list(counts)[:-1]) if counts[c] is not None), "link_clicks")
+        n, d = counts[num], counts[base]
+        st = {"step": metric, "label": label, "event": num, "count": n, "denominator": base, "denominator_count": d,
+              "denominator_label": STEP_LABELS[base], "canonical": base == den, "cause": cause}
+        if n is None:
+            st.update(status="okunamadi", msg=f"{label}: olay gelmiyor (piksel bu olayı göndermiyor ya da satış Meta'nın göremediği yerde)")
+        elif n > d:
+            st.update(status="ic_ice_degil", msg=f"{label}: {int(n)} > {int(d)} {STEP_LABELS[base]}; adımlar iç içe değil "
+                                                 "(atıf penceresi, adım atlayan ödeme akışı ya da olay kurulumu): oran hesaplanmaz")
+        elif not d:
+            st.update(status="veri_yetersiz", msg=f"{label}: payda ({STEP_LABELS[base]}) sıfır")
+        else:
+            post = B.rate_posterior(metric, n, d)
+            st.update(status="olculdu" if post.threshold_met else "veri_yetersiz", rate=round(n / d, 4), lo=round(post.lo, 4),
+                      hi=round(post.hi, 4))
+        steps.append(st)
+    if all(s["status"] == "okunamadi" for s in steps):
+        return {"steps": steps, "bottleneck": None, "all_unread": True,
+                "msg": "Meta tıklamadan sonrasını görmüyor (piksel yok ya da satış pazaryerinde/DM'de): sepet ve satış adımları satıcının "
+                       "kendi panelinden okunur."}
+    return {"steps": steps, "bottleneck": None, "all_unread": False}
+
+
+def mark_bottleneck(fs: dict | None, hist: dict) -> None:
+    """Darboğaz: yeterli paydası olan ve aralığının ÜST ucu bile markanın geçmiş ortalamasının altında kalan adım. Birden çoksa geçmişe
+    göre en çok gerileyen. Geçmiş yoksa işaretlenmez: adımların doğal oranları farklıdır (ödeme tamamlama sayfaya ulaşmadan hep düşüktür),
+    ham oranlar birbiriyle kıyaslanamaz."""
+    if not fs or fs["all_unread"]:
+        return
+    worst = None
+    for s in fs["steps"]:
+        pr = hist.get(s["step"])
+        if s["status"] != "olculdu" or not s["canonical"] or not pr:
+            continue
+        mean = pr[0] / (pr[0] + pr[1])
+        s["history_mean"] = round(mean, 4)
+        if s["hi"] < mean:
+            s["weak"] = True
+            if worst is None or s["hi"] / mean < worst["hi"] / worst["history_mean"]:
+                worst = s
+    if worst:
+        fs["bottleneck"] = worst["step"]
+        fs["msg"] = (f"En çok gerileyen adım: {worst['label']} (%{worst['rate'] * 100:.1f}; geçmiş ortalama %{worst['history_mean'] * 100:.1f}). "
+                     f"Olası neden (hipotez): {worst['cause']}.")
+    elif any("history_mean" in s for s in fs["steps"]):
+        fs["msg"] = "Ölçülen adımların hiçbiri markanın geçmiş ortalamasının belirgin altında değil."
+    else:
+        fs["msg"] = ("Adımlar listelendi; markanın bu adımlar için geçmişi olmadığından darboğaz işaretlenmedi (ham oranlar adımlar arasında "
+                     "kıyaslanmaz).")
+
+
 def metric_basis(snap: dict, cost: dict, test_rows: list[dict]) -> dict:
     """Hangi metrikle karar verildiği (1.4.7): olasılıklar ve kararlar raporda metrik adıyla yazılır."""
     purchases = _sum(test_rows, "purchases")
@@ -790,6 +883,8 @@ def analyze(snap_path: str) -> dict:
     scand = scale_candidates(dec, snap, structure, test_rows, all_rows)
     chan = channel_summary(snap, parts["full_days"])
     diag = funnel_diagnosis(kpost, test_rows, chan)
+    diag["steps"] = funnel_steps(test_rows)
+    mark_bottleneck(diag["steps"], history_priors(snap))
     dms = dm_section(snap, parts["full_days"])
     abt = ab_section(snap, kpost, structure)
     svm = store_vs_meta(snap, test_rows, chan)

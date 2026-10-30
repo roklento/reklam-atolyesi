@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.3.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.4.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,23 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.4.0** — tıklamadan sonra adım adım huni teşhisi: "yalnız ROAS'a bakma, hunide nerede takıldığını bul"
+- **Koçluk (`funnel_diagnosis.steps`):** kampanya düzeyinde bağlantı tıklaması → sayfaya ulaşma (landing_page_view) → ürünü görme
+  (omni_view_content) → sepete ekleme → ödemeye geçme → ödemeyi tamamlama. Her adım **bir önceki adıma** bölünür; payda yazılır;
+  oranlar birbiriyle çarpılmaz. Önceden tıklama sonrası tek oran (tıklama → satış) okunuyor, yalnızca hiç satış yoksa uyarı çıkıyordu;
+  sorunun sayfada mı, sepette mi, ödemede mi olduğu görünmüyordu.
+- **Adımlar her ürün ve satış yeri için ortaktır** (Meta'nın standart olayları); platforma özel aşama eklenmez. Platform yalnızca hangi
+  olayın geldiğini belirler: gelmeyen olay "okunamadı" (sıfır sayılmaz), sonraki adım en yakın okunan adıma bölünür ve geçmişle
+  kıyaslanmaz. Hiçbir olay gelmiyorsa (pazaryeri, DM, piksel yok) "Meta tıklamadan sonrasını görmüyor" yazılır. Sayım bir öncekinden
+  büyükse (atıf, adım atlayan ödeme akışı) oran hesaplanmaz.
+- **Darboğaz yalnızca geçmişe göre işaretlenir:** paydası ≥ 30 (yerel eşik) ve aralığının üst ucu markanın geçmiş ortalamasının altında
+  kalan adım; birden çoksa en çok gerileyen. Olası neden hipotez olarak yazılır (sayfa hızı, ilk ekran, fiyat/ürün sayfası, kargo
+  ücreti, ödeme seçenekleri). Geçmiş yoksa işaretlenmez: adımların doğal oranları farklıdır, ham oranlar kıyaslanmaz. Beta(1,1)
+  geçmiş sayılmaz.
+- **Önseller:** `priors_from_history` beş adım metriğini de üretir (reklam başına payda ≥ 30). Dondurulmuş eski tur önselleri değişmez;
+  yeni adım önselleri sonraki `priors_from_history` çağrısından sonra açılan turlarda kullanılır.
+- Rapor "Reklam mı, teklif mi, sayfa mı" bölümünde adım tablosu. Migration yok, yeni bağımlılık yok.
+
 **2.3.0** — Andromeda 28 Ekim 2026 değerlendirmesi: Advantage+ kreatif iyileştirmeleri yayın paketinde ve koçlukta
 - Meta'nın Andromeda ikinci nesil yazısı (2026-10-28) birincil kaynaktan doğrulandı: reklam seçiminin ilk aşaması yeniden yazıldı,
   reklamverenin açıp kapatacağı ayar yok. Plugin'in kreatif çeşitliliği, tek set yapısı ve koçluk kuralları **değişmedi**; "benzer
