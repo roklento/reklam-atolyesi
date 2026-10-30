@@ -3,7 +3,7 @@ name: profile-check
 description: "reklam-atolyesi profil kontrolü — reklamın götürdüğü Instagram profilini salt okumayla ölçer (son paylaşım, sıklık, video payı, yönlendirme, etkileşim) ve araçla okunamayanları (biyografi, bağlantı, öne çıkanlar) kullanıcıya kontrol listesi olarak sorar. Yayından önce ve koçlukta."
 ---
 
-# profile-check — Profil kontrolü (1.5.0)
+# profile-check — Profil kontrolü (1.5.0; 2.2.0)
 
 ## Amaç
 Reklamı gören kişinin önemli bir kısmı satın almadan önce profile bakar. Profil durgun, boş ya da yönlendirmesizse iyi reklam bile
@@ -31,10 +31,17 @@ Yok.
 2. **Ölçüm:** `PY PR/scripts/organic/profile_check.py --media analysis/profile/media.json --account analysis/profile/account.json
    --cta-url <brand.cta_url> [--followers <kullanıcının söylediği takipçi sayısı>] --out analysis/profile/profil.json`.
    Ölçülenler: son paylaşımın yaşı, 30/90 günde paylaşım, haftalık sıklık, son 12 paylaşımda video/Reels payı, yönlendirme içeren
-   açıklama sayısı, ortalama etiket, türe göre ortanca beğeni+yorum, en iyi 3 paylaşım bağlantısı.
+   açıklama sayısı, ortalama etiket ve 5'ten fazla etiketli paylaşım sayısı, türe göre ortanca beğeni+yorum, en iyi 3 paylaşım
+   bağlantısı ve **kendi ortancasına göre kat** (`outliers`, 2.2.0): son 30 paylaşımda her paylaşımın beğeni+yorumu o hesabın
+   ortancasının kaç katı; en iyi ve en zayıf 5 paylaşım (tür, tarih, yönlendirme var mı) ve türe göre ortanca kat. Ham sayı hesabın
+   büyüklüğünü ölçer, kat paylaşımın o hesap için öne çıkıp çıkmadığını. 6'dan az paylaşımda hesaplanmaz; 30'dan azında "yön gösterir"
+   diye yazılır. İzlenme/erişim/kaydetme bu araçta yok: kat yalnızca beğeni+yorumdandır, izlenme katı diye sunulmaz.
 3. **Bulgular (yerel eşikler):** son paylaşım > 14 gün (yüksek), < 9 paylaşım (orta), video payı < %30 (orta), yönlendirme yok (düşük),
-   > 10 etiket (düşük), profil fotoğrafı yok (orta). Her bulgu: ne · neden önemli · ne yapılmalı. Bulgu yoksa "profil reklama hazır"
-   denmez; yalnızca "ölçülen maddelerde sorun yok" denir.
+   5'ten fazla etiketli paylaşım (düşük; Instagram Aralık 2025'ten beri paylaşım ve Reels başına en fazla 5 etikete izin veriyor,
+   ikincil kaynak — ref-legal-tr-meta), profil fotoğrafı yok (orta). Her bulgu: ne · neden önemli · ne yapılmalı. Bulgu yoksa "profil reklama hazır"
+   denmez; yalnızca "ölçülen maddelerde sorun yok" denir. Kat tablosu bulgu değil, kanıttır: en iyi ve en zayıf paylaşımlar arasındaki
+   fark (tür, yönlendirme) kullanıcıya iddia + kanıt + güven düzeyiyle söylenir ve `organic` takviminde hangi türden fazla
+   üretileceğine girdi olur; gün/saat yorumu yapılmaz.
 4. **Kontrol listesi (araçta yok, kullanıcı bakar):** biyografi (ne, kime, nasıl teslim), profildeki bağlantı reklamın adresiyle aynı ve
    açılıyor, öne çıkanlar (fiyat/kargo, yorumlar — izinli, SSS, nasıl sipariş), iletişim düğmesi ve mesaj karşılaması (mesaj sonuçlu
    kampanyada), sabitlenmiş paylaşımlar. Kullanıcının cevabı `memory_add(layer="semantic", kind="profile", content=…, source="user", profile_id=…)` ile kısa not olarak.

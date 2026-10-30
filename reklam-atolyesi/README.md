@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.1.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.2.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,16 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.2.0** — profil kontrolü: Instagram'ın 5 etiket sınırı ve paylaşım başına "kendi ortancasının kaç katı"
+- Etiket bulgusu "10'dan fazla ortalama" yerine "5'ten fazla etiketli paylaşım" (Instagram Aralık 2025'ten beri paylaşım ve Reels başına
+  en fazla 5 etiket; Instagram'ın Threads duyurusu ikincil kaynaklardan, yardım merkezinde teyit edilmedi — ref-legal-tr-meta). Eski
+  eşik yeni paylaşımlarda hiç tetiklenmiyordu. Etiket sayımı Türkçe harfli etiketleri de sayar.
+- **Kendi ortancasına göre kat** (`outliers`): son 30 paylaşımda her paylaşımın beğeni+yorumu hesabın ortancasının kaç katı; en iyi ve
+  en zayıf 5 paylaşım, türe göre ortanca kat ve güven düzeyi (6'dan az paylaşımda hesaplanmaz). İzlenme/erişim araçta yok; kat yalnızca
+  beğeni+yorumdan hesaplanır.
+- Fikir kaynağı: Jakeschincariol/instagram-agent-skill (MIT) değerlendirmesi; kod alınmadı.
+- Veritabanı migration'ı yok, yeni bağımlılık yok.
+
 **2.1.0** — yerel seslendirme (EMA): cümle duraklaması, okunuş raporu ve okunuş sözlüğü
 - Gerekçe EMA'nın kaynak kodundan (ema-lightning 1.1.2, `chunker.py`): ~10 sn'ye (≈ 180 harf) kadar metin tek parça okunur, cümle
   arasına duraklama yalnızca motorun böldüğü yerde girer; 15 sn'lik VO'da cümleler birbirine bitişiyordu. Artık metin cümlelere

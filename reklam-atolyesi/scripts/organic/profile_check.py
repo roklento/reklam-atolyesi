@@ -1,4 +1,4 @@
-"""Instagram profil kontrolü (1.5.0): reklamı gören kişi profile baktığında güven buluyor mu.
+"""Instagram profil kontrolü (1.5.0; 2.2.0: etiket sınırı ve kendi ortancasına göre kat): reklamı gören kişi profile baktığında güven buluyor mu.
 
 Girdi yalnızca salt okuma araçlarının döndürdüğü alanlardır (ads_get_ig_accounts: username, profile_picture_url; ads_get_ig_media:
 caption, like_count, comments_count, media_type, media_product_type, permalink, timestamp — 21.10.2026'da bağlı hesapta okundu).
@@ -23,6 +23,11 @@ from common import emit, read_json, write_json  # noqa: E402
 STALE_DAYS = 14          # son paylaşım bundan eskiyse profil durgun görünür (yerel)
 GRID_MIN = 9             # ızgarada ilk bakışta görülen paylaşım sayısı (3 × 3; yerel)
 REELS_SHARE_MIN = 0.3    # son paylaşımlarda video/Reels payı (yerel)
+HASHTAG_MAX = 5          # Instagram'ın paylaşım/Reels başına etiket sınırı (Aralık 2025; ikincil kaynak, yardım merkezinde teyit edilmedi)
+OUTLIER_WINDOW = 30      # "kaç kat" ölçüsünde taban: son 30 paylaşımın ortancası (yerel)
+OUTLIER_MIN_POSTS = 6    # bundan az paylaşımda kat hesaplanmaz; desen için ~30 gerekir (yerel)
+OUTLIER_TOP = 5          # en iyi/en zayıf kaç paylaşım gösterilir (yerel)
+HASHTAG_RX = re.compile(r"#\w+")
 CTA_RX = re.compile(r"(sipariş|satın al|dm|mesaj|link|bağlantı|profil|bio|whatsapp|randevu|ara\b|bilgi al|teklif)", re.I)
 
 
@@ -117,7 +122,8 @@ def check(media: list[dict], account: dict | None = None, cta_url: str | None = 
                 "median_engagement_recent": statistics.median(eng) if eng else 0,
                 "median_engagement_by_type": {k: statistics.median(v) for k, v in by_type.items()},
                 "captions_with_cta": sum(1 for c in caps if CTA_RX.search(c)),
-                "avg_hashtags": round(sum(len(re.findall(r"#\w+", c)) for c in caps) / len(caps), 1)})
+                "avg_hashtags": round(sum(len(HASHTAG_RX.findall(c)) for c in caps) / len(caps), 1),
+                "posts_over_hashtag_max": sum(1 for c in caps if len(HASHTAG_RX.findall(c)) > HASHTAG_MAX)})
     if followers:
         out["engagement_rate_recent"] = round(out["median_engagement_recent"] / followers, 4)
     if age > STALE_DAYS:
@@ -132,19 +138,51 @@ def check(media: list[dict], account: dict | None = None, cta_url: str | None = 
     if out["captions_with_cta"] == 0:
         findings.append({"level": "low", "what": "son paylaşımlarda yönlendirme yok", "why": "ilgilenen kişi nasıl alacağını bilmez",
                          "fix": "açıklamalarda tek, net yönlendirme (profildeki bağlantı / DM / randevu)"})
-    if out["avg_hashtags"] > 10:
-        findings.append({"level": "low", "what": f"paylaşım başına ortalama {out['avg_hashtags']} etiket", "why": "metin kalabalık görünür",
-                         "fix": "3–5 ilgili etiket"})
+    if out["posts_over_hashtag_max"]:
+        findings.append({"level": "low", "what": f"son paylaşımlardan {out['posts_over_hashtag_max']} tanesinde {HASHTAG_MAX}'ten fazla etiket",
+                         "why": f"Instagram Aralık 2025'ten beri paylaşım ve Reels başına en fazla {HASHTAG_MAX} etikete izin veriyor; "
+                                "eski açıklamalar bu sınırın öncesinden kalmış olabilir",
+                         "fix": f"yeni paylaşımlarda 3–{HASHTAG_MAX} ilgili etiket"})
     if not out["account"].get("profile_picture_url"):
         findings.append({"level": "medium", "what": "profil fotoğrafı okunamadı", "why": "tanınırlık ve güven", "fix": "logo ya da ürün simgesi"})
     top = sorted(recent, key=lambda p: -(_n(p.get("like_count")) + _n(p.get("comments_count"))))[:3]
     out["top_recent"] = [{"permalink": p.get("permalink"), "type": p.get("media_product_type") or p.get("media_type"),
                           "engagement": _n(p.get("like_count")) + _n(p.get("comments_count"))} for p in top]
+    out["outliers"] = _outliers(posts[:OUTLIER_WINDOW])
     out["findings"] = findings
     out["manual_checklist"] = _manual(cta_url)
     out["note"] = ("Eşikler yereldir. Beğeni/yorum erişime göre değil mutlak sayıdır (erişim bu araçta yok); türler arası kıyas yön gösterir. "
                    "Kişi yorumları/kullanıcı adları rapora yazılmaz.")
     return out
+
+
+def _outliers(posts: list[dict]) -> dict:
+    """Her paylaşımın etkileşimi (beğeni+yorum) hesabın kendi ortancasının kaç katı; en iyi ve en zayıf paylaşımlar ve türe göre kat.
+
+    Ham sayı hesabın büyüklüğünü ölçer; kat, paylaşımın o hesap için olağan mı, öne çıkmış mı olduğunu gösterir. İzlenme ve erişim bu
+    araçta yok: kat yalnızca beğeni+yorumdan hesaplanır ve izlenme katı yerine geçmez.
+    """
+    if len(posts) < OUTLIER_MIN_POSTS:
+        return {"skipped": f"{len(posts)} paylaşım (< {OUTLIER_MIN_POSTS}); kat hesaplanmadı"}
+    eng = [_n(p.get("like_count")) + _n(p.get("comments_count")) for p in posts]
+    base = statistics.median(eng)
+    if base <= 0:
+        return {"skipped": "ortanca etkileşim 0; kat hesaplanamadı"}
+    rows = [{"permalink": p.get("permalink"), "date": _ts(p["timestamp"]).date().isoformat(),
+             "type": p.get("media_product_type") or p.get("media_type") or "?", "engagement": e, "multiple": round(e / base, 2),
+             "has_cta": bool(CTA_RX.search(str(p.get("caption") or "")))} for p, e in zip(posts, eng)]
+    ranked = sorted(rows, key=lambda r: -r["multiple"])
+    k = min(OUTLIER_TOP, len(rows) // 2)
+    top, bottom = ranked[:k], ranked[-k:][::-1]
+    by_type: dict[str, list[float]] = {}
+    for r in rows:
+        by_type.setdefault(r["type"], []).append(r["multiple"])
+    return {"window": len(rows), "median_engagement": base, "top": top, "bottom": bottom,
+            "median_multiple_by_type": {t: {"n": len(v), "median": round(statistics.median(v), 2)} for t, v in by_type.items()},
+            "top_types": [r["type"] for r in top], "bottom_types": [r["type"] for r in bottom],
+            "confidence": "desen için yeterli" if len(rows) >= 30 else f"{len(rows)} paylaşım: yön gösterir, kesin desen değil",
+            "note": "kat = beğeni+yorum / son paylaşımların ortancası; 3 kat üzeri öne çıkan, 1,5 kat altı olağan gün (yerel okuma). "
+                    "İzlenme, erişim, kaydetme ve gönderme bu araçta yok."}
 
 
 def _manual(cta_url: str | None) -> list[dict]:
