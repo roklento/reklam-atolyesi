@@ -20,7 +20,9 @@ SEED = 1729
 DRAWS = 10_000
 INTERVAL = 0.90
 THRESHOLDS = {"hook_rate": ("impressions", 1000), "ctr_link": ("impressions", 3000), "hold_rate": ("video_3s", 1000),
-              "cvr": ("link_clicks", 300)}
+              "cvr": ("link_clicks", 300),
+              # 2.4.0 tıklama sonrası adımlar: payda (bir önceki adım) en az 30 kişi. YEREL sezgisel eşik, Meta kuralı değil.
+              **{m: ("previous_step", 30) for m in ("step_landing", "step_view", "step_cart", "step_checkout", "step_purchase")}}
 RESULT_THRESHOLD = 10
 RATE_DEF = {"hook_rate": ("video_3s", "impressions"), "hold_rate": ("thruplay", "video_3s"),
             "ctr_link": ("link_clicks", "impressions"), "cvr": ("purchases", "link_clicks")}

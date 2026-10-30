@@ -25,6 +25,10 @@ Uygulama kodu: `PR/scripts/analytics/{budget,bayes,coach,charts,report,calibrati
   açılış sayfası / tıklama, içerik görüntüleme / tıklama; BOFU sepete ekleme / tıklama, ödeme başlatma / tıklama, satın alma başı
   maliyet. Payda her zaman yazılır; olay gelmiyorsa "okunamadı". Farklı aşamaların sonuç maliyeti kıyası keşiftir; huni turunda
   TOFU/MOFU yalnızca satış maliyetiyle kapatılmaz. Aşama kitle değildir; kimin gördüğü yalnızca Meta'nın segment dökümüyle söylenir.
+- **Tıklamadan sonra adım adım (2.4.0):** sayfaya ulaşma = açılış sayfası / tıklama; ürünü görme = içerik görüntüleme / açılış sayfası;
+  sepete ekleme = sepet / içerik görüntüleme; ödemeye geçme = ödeme başlatma / sepet; ödemeyi tamamlama = satın alma / ödeme başlatma.
+  Her adım bir öncekine bölünür (çarpılmaz); okunamayan adım atlanır ve sonraki adım en yakın okunan adıma bölünür (geçmişle kıyaslanmaz).
+  Darboğaz yalnızca geçmiş ortalamaya göre (payda ≥ 30, yerel eşik); adımların ham oranları birbiriyle kıyaslanmaz.
 - Erişim benzersiz kişidir; reklam/gün erişimleri toplanmaz; dönem frekansı yalnızca Meta'nın tekilleştirilmiş erişimi varsa.
 - Huni oranları iç içe koşullu olasılık değildir, **çarpılmaz** (hook × CTR × CVR yok).
 

@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.3.0",
+ "plugin_version": "2.4.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -155,7 +155,7 @@
    "name": "coach",
    "kind": "stage",
    "description": "reklam-atolyesi S16 koçluk — değişmez girdi kopyasından Beta-Binom/Gamma analizi, hüküm dili, sahne kaybı, rekabet bağlamı, grafikler, kararlar ve Ads Manager uygulama listesi. Kapılı.",
-   "sha256": "7130cfb54c7923d29f0b7d52caa8759d3e77403de7ada1764a2726538a767334"
+   "sha256": "4619bbe5991c6f3090bcae35e1115b8a33621b617f83b5cc7fe692f3ce4d64a9"
   },
   {
    "name": "competitor-analysis",
@@ -269,7 +269,7 @@
    "name": "ref-metrics-math",
    "kind": "reference",
    "description": "reklam-atolyesi koçluk matematiği — metrikler, ekonomi, bütçe/matris, test penceresi ve olgunluk, Beta-Binom/Gamma, eşikler, hüküm dili, yorgunluk, kalibrasyon, bağımsız doğrulama.",
-   "sha256": "9919da637f79de3ab64a6e537e62f8e7eebf1544a694eb783266cffb83701d59"
+   "sha256": "0858b652e3e00b942a9dfe0155121c0aa4b9d6dfc247f7c8c46f50da8d32e238"
   },
   {
    "name": "ref-production-recipes",
@@ -902,11 +902,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 458,
+   "passed": 467,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "458 passed, 0 failed, 6 skipped (2.3.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v230_enhancements.py (8): migration 008 sütunu, iyileştirme kaydı doğrulaması (tür, kaynak, kreatif anahtarı, checked), kontrol edilmeden yayın kaydı ve durum uyarısı, hepsi kapalıyken sessizlik ve sonradan açık kaydında uyarı, bilinmeyen anahtarda yayın kaydının yarım kalmaması, hüküm dilinde 'Meta iyileştirmesi açık', koçlukta yalnız etkilenen konseptin işaretlenmesi ve rapor uyarı satırı, §7/yayın paketi/koç metinleri. Önceki özet: 450 passed, 0 failed, 6 skipped (2.2.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v220_profile.py (8): 5 etiket sınırı bulgusu ve Türkçe harfli etiket sayımı, kendi ortancasına göre kat (en iyi/en zayıf, türe göre, güven düzeyi), az paylaşımda ve sıfır ortancada atlama, son 30 paylaşım penceresi, alansız profil puanı (yalnız ölçülenler), tam/zayıf profilde puan ve düzeltme sırası, İstatistikler teşhisi (profil/açılış), organik açıklama denetimi (görünen 125, etiket, tek kanal, görünmez karakter, arama sözcüğü). Önceki özet: 443 passed, 0 failed, 5 skipped (2.1.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. Yeni testler tests/test_tts_local.py (16): okunuş sözlüğü (altyazı yazımı, kesme eki, en uzun girdi, girdi doğrulama, genel liste), normalleştirici ipuçları (sıra sayısı, aralık, telefon), gerçek normalizer-tr ile okunuş haritası ve rapor (normalizer-tr yoksa atlanır), cümle birleştirme (kırpma, duraklama, sözcük zamanı kaydırma), synth'in cümleleri ve sözlüğü motora iletmesi, --pause 0 eski yol, Whisper denetiminin sözlük yazımını kabul etmesi, EMA+Whisper kurulum önerisi. EMA/Whisper modelleri bu ortamda indirilemedi: gerçek ses üretimi sınanmadı. Önceki özet: 427 passed, 0 failed, 5 skipped (2.0.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır. 1.5.1–1.9.0'da 'ortam başarısızlığı' sayılan testler giderildi: test_media ingest testleri gerçek uyumluluk hatasıydı (vidstabdetect fileformat seçeneği eski libvidstab'de yok; convert.py seçeneği desteğe göre verir), test_dagitim doctor testi işletim sistemine bağlıydı (doctor.mcp_server_command os_name alır), test_v151_text_qc self_review testi kilit dosyasındaki OpenCV ile geçti. Yeni testler tests/test_v200_project_upgrade.py (7): şablon geçmişinin güncel şablonu kapsaması, eski projenin durum sınıflandırması ve güvenli güncellemesi, kayda alınmamış bileşenin tanınması, eski projeye uymayan planda render'ın erken durması, sahne önbelleği anahtarının proje koduna bağlılığı, upgrade komut satırı. 1.5.0 Windows geliştirici ortamında 327 geçti; 1.5.1–2.0.0 Windows'ta çalıştırılmadı. 2.0.0 derin denetim testleri: tests/test_v200_algorithms.py (21: amaç başına önsel, kalibrasyon kutuları, yorgunluk penceresi, tutma eğrisi eşleri, eşlenmemiş reklam, aday ekonomisi, risk gerekçesi, beyaz dengesi, emojili yazı ölçümü, konuşma maskesi, kırpılmayan ara miks, CSV tarih sırası, ölçülmemiş metrik, Türkçe iddia eşleşmesi) ve tests/test_v200_architecture.py (7: iki oturumda kapı onayı ve aşama tamamlama, migration ayrıştırıcı sınırları, paralel hook/sunucu oturum yazımı, doğrulanmış yedek ve geri dönüş, ingest --only).",
+   "summary": "467 passed, 0 failed, 6 skipped (2.4.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni testler tests/test_v240_funnel_steps.py (9): adımların bir önceki adıma bölünmesi, okunamayan olayın sıfır sayılmaması ve sonraki adımın en yakın okunan adıma düşmesi, hiçbir olay gelmediğinde 'Meta tıklamadan sonrasını görmüyor', iç içe olmayan sayımda oran hesaplanmaması, küçük paydada veri yetersiz, darboğazın yalnızca geçmişe göre ve en çok gerileyen adım olarak işaretlenmesi, Beta(1,1)'in geçmiş sayılmaması, analiz/rapor tablosu, priors_from_history adım önselleri.",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-10-30",
@@ -1601,6 +1601,13 @@
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok; dağıtım hedefi satırındaki depo adı önceden vardı); fark satır satır okundu; iyileştirme adları Meta ekranına göre serbest metin, kodda marka ya da hesap sabiti yok; test örnekleri nötr ('Müzik', 'Metin varyasyonları', 'MRK_K1_A_…')",
     "auditor": "değişikliği yapan oturum (Claude)"
+   },
+   {
+    "scope": "2.4.0: tıklamadan sonra adım adım huni teşhisi (coach.py FUNNEL_STEPS/funnel_steps/mark_bottleneck/history_priors, bayes.THRESHOLDS adım eşikleri, s_meta PRIOR_METRICS adım önselleri, report.py adım tablosu; coach/ref-metrics-math SKILL, test_v240_funnel_steps.py, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 11,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok; dağıtım hedefi satırındaki depo adı önceden vardı); fark satır satır okundu; adımlar her ürün ve satış yeri için ortak, kodda platform ya da marka sabiti yok; olası neden metinleri genel; test örnekleri nötr ('Reklam A', sayısal örnekler)"
    }
   ],
   "remaining_defects": [],
@@ -1611,15 +1618,15 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "3d21610c56b6efd81806ea22ae4a5df241a5c89c71f3fb92046255d31d43f126",
+   "plugin_json": "5163ad7310e36023420296cc6b574fb00871981400dd0d24fd5aaa71e68b08ea",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "da3757a60fa72c5b4d91f1f018b3d86436172c279efc067ce3dc72ae896d4983",
+   "skills": "e382f857d6d67ce94805bbc37554ab787a1ba6d95c3c4ff471e941fb4322830b",
    "agents": "517c4ac267d655764c5239bf3f4a3158579ad40f49ce6f62af5da582c543cb8f",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
-   "ad_memory": "54f9be7b5f982b8ede47b883af7b63e4cb9c60dab639c3c3b3de9029c79610ef",
-   "scripts": "e58f7accc60492f1080b9ca4560a22669461ac94319f6eb8d6774fb0b166a435",
+   "ad_memory": "ec87b577d0c8c8bd6bd86771e7d0d8ff638344ab007157dd2eaedc6878f4a8b6",
+   "scripts": "7bccab40633899617c6a61a9520a6f048a5006247318320f0a2f7bbd307a1c84",
    "templates": "91c23eb379668aa8835308e796eef35b719a616ca9b7db5595e40e8b39b2ab93",
    "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
   },
@@ -1780,15 +1787,15 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "3d21610c56b6efd81806ea22ae4a5df241a5c89c71f3fb92046255d31d43f126",
+  "plugin_json": "5163ad7310e36023420296cc6b574fb00871981400dd0d24fd5aaa71e68b08ea",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "da3757a60fa72c5b4d91f1f018b3d86436172c279efc067ce3dc72ae896d4983",
+  "skills": "e382f857d6d67ce94805bbc37554ab787a1ba6d95c3c4ff471e941fb4322830b",
   "agents": "517c4ac267d655764c5239bf3f4a3158579ad40f49ce6f62af5da582c543cb8f",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "567ed607580fa396dd2cdd5686b8e5f358dc3aaf94784ea9251cd6f0f630efdb",
-  "ad_memory": "54f9be7b5f982b8ede47b883af7b63e4cb9c60dab639c3c3b3de9029c79610ef",
-  "scripts": "e58f7accc60492f1080b9ca4560a22669461ac94319f6eb8d6774fb0b166a435",
+  "ad_memory": "ec87b577d0c8c8bd6bd86771e7d0d8ff638344ab007157dd2eaedc6878f4a8b6",
+  "scripts": "7bccab40633899617c6a61a9520a6f048a5006247318320f0a2f7bbd307a1c84",
   "templates": "91c23eb379668aa8835308e796eef35b719a616ca9b7db5595e40e8b39b2ab93",
   "vendor_skills": "37b41dea854949b45c9ec2bcdf970d79a9b07cdaff54178641ae2b6b9b67b646"
  },

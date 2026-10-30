@@ -46,6 +46,11 @@ Yok.
    karar sonuç maliyetinden mi üst huniden mi; Meta bu turda satış gördü mü), **"Reklam mı, teklif mi, sayfa mı?"** teşhisi
    (`funnel_diagnosis`: konseptler arası göreli açılış ve tıklama; kampanyada ≥ 100 tıklama ve görünür web satışı yoksa "reklam sonrası
    şüpheli" — sayfa, fiyat, kargo, güven, teklif) ve **kanal özeti** (`channels`: elle girilen satış/talep kanala göre).
+   2.4.0: **tıklamadan sonra adım adım** (`funnel_diagnosis.steps`): tıklama → sayfaya ulaşma → ürünü görme → sepete ekleme → ödemeye
+   geçme → ödemeyi tamamlama; her adım bir öncekine bölünür, payda yazılır. Adımlar her ürün ve satış yeri için ortaktır; platforma özel
+   aşama eklenmez, gelmeyen olay "okunamadı" kalır. Darboğaz (`bottleneck`) yalnızca markanın geçmiş ortalamasına göre işaretlenir
+   (payda ≥ 30, aralık üst ucu geçmişin altında); geçmiş yoksa "darboğaz işaretlenmedi" yazılır, ham oranlar adımlar arasında
+   kıyaslanmaz. Olası neden hipotezdir; ROAS düşük diye reklam kapatılmadan önce bu tablo okunur.
    1.4.8: kanal özeti tek satış defteridir — kullanıcının verdiği dışa aktarım aralığı elle girişin dönemini tamamen kapsıyorsa dosya esastır; kapsamıyorsa
    ve mesaj kanallarında (DM modülü) aynı kanal ve dönemde ikisinden büyüğü sayılır; her çakışma rapora yazılır ("kaynak dönemi tam
    kapsamıyor" satırı kullanıcıyla kontrol edilir); **Meta ↔ mağaza** (`store_vs_meta`, yalnızca pikselin görebildiği site/Shopier
