@@ -350,6 +350,8 @@ class CompMixin:
             raise AdMemoryError(f"portföy {total} > kreatif test aracının reklam sınırı {tool_cap}")
         if not strategy.get("positioning") and not no_ctx:
             raise AdMemoryError("konumlandırma (seçilen tür ve tek cümle) yazılmalı")
+        if "loss_acknowledged" in strategy and not (isinstance(strategy["loss_acknowledged"], str) and strategy["loss_acknowledged"].strip()):
+            raise AdMemoryError("loss_acknowledged kullanıcının açık ifadesi olmalı (boş olamaz); katkı ≤ 0 kabulü onaysız yazılmaz")
         if no_ctx and "rakip bağlamı yok" not in json.dumps(strategy, ensure_ascii=False):
             strategy = {**strategy, "label": "rakip bağlamı yok"}
         prim = self.q1("SELECT * FROM hypotheses WHERE cycle_id=? AND is_primary=1", (cy["id"],))

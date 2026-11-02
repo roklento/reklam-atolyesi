@@ -124,7 +124,12 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
     konumlandırmalar "sonraki tur için" bölümünde saklanır).
 15. `strategy_save(profile_id, campaign_id, cycle_id, strategy={positioning:{type, statement}, promise, message_order, portfolio:{proven:n,
     gap:n, counter:n, free:n}, offer_stance, timing, candidates, rejected, validation_pair_first}, competitor_snapshot_id, document_path)`.
-16. `stage_complete(profile_id, "S02", outputs=[{path: strategy.md}, {path: budget_plan.json}], summary, campaign_id, cycle_id)` →
+    **Zararına ürün (2.5.0):** ürünün `economics.status` değeri `non_positive` (katkı ≤ 0) ve sonuç türü satın alma ya da müşteri
+    adayıysa her sonuç zarar ettirir. Bunu kullanıcıya sade dille söyle ve seçenekli sor: (1) önerilen: önce fiyat/maliyet düzeltilir
+    (`product_upsert`), S02 bekler · (2) bilerek sürdür (ör. tanıtım/ilk müşteri amacı) · (3) sonuç türünü değiştir (S01'e dön).
+    Kullanıcı (2)'yi seçerse sözünü `strategy.loss_acknowledged="<kullanıcının ifadesi>"` olarak kaydet ve belgenin (A) bölümüne
+    "katkı ≤ 0: her satış zarar; kullanıcı bilerek sürdürüyor" yaz. Kayıt yoksa S02 ve S14 kapısı açılmaz.
+16. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (c<tur>-strategy.md) için `draft_check(profile_id, "S02", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S02", outputs=[{path: strategy.md}, {path: budget_plan.json}], summary, campaign_id, cycle_id)` →
     `awaiting_gate`.
 
 ## Çıktılar

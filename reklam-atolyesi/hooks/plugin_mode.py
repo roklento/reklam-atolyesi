@@ -31,6 +31,26 @@ class ConfigError(Exception):
     pass
 
 
+RULES_FILE = PLUGIN_ROOT / "KURALLAR.md"
+_RULES_FALLBACK = ("K-- KURALLAR.md okunamadı: plugin kurulumu eksik olabilir. Meta'ya yazma yok, kapı yalnızca açık onayla, "
+                   "ücretli üretim onaysız başlamaz, kişisel veri kaydedilmez.")
+
+
+def rules_short(path: Path | None = None) -> list[str]:
+    """KURALLAR.md'deki kısa liste (2.5.0, harness: kalıcı kurallar). Okunamazsa tek satırlık güvenli özet; hook asla düşmez."""
+    try:
+        text = (path or RULES_FILE).read_text(encoding="utf-8")
+        body = text.split("<!-- kısa-liste -->", 1)[1].split("<!-- /kısa-liste -->", 1)[0]
+        lines = [ln.strip() for ln in body.splitlines() if re.match(r"^K\d{2}\s", ln.strip())]
+        return lines or [_RULES_FALLBACK]
+    except Exception:
+        return [_RULES_FALLBACK]
+
+
+def rules_block(path: Path | None = None) -> str:
+    return "Değişmez kurallar (KURALLAR.md; skill ile çelişirse bunlar geçerli):\n" + "\n".join(rules_short(path))
+
+
 def read_input() -> dict:
     raw = sys.stdin.buffer.read()
     if not raw:

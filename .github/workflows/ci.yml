@@ -1,0 +1,32 @@
+# 2.5.0: her push ve PR'da plugin'in deterministik denetimleri (ağ, Claude ya da Meta hesabı gerekmez).
+# Model değerlendirme seti (evals/vakalar) burada çalışmaz: Claude kimlik bilgisi ister; yayın öncesi elle çalıştırılır (evals/README.md).
+name: ci
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: reklam-atolyesi/servers/ad_memory
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - name: ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+      - name: Bağımlılıklar
+        run: uv sync --frozen
+      - name: Testler (senaryo matrisi dahil)
+        run: uv run --with pytest python -m pytest -q ../../tests
+      - name: Sürüm, manifest ve nötrlük tutarlılığı
+        run: uv run python ../../scripts/setup/ci_check.py

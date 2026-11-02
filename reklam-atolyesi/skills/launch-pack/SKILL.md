@@ -96,7 +96,7 @@ Yok.
    politika kesin zorunluluk diye sunulmaz).
 8. **Takvim:** planlanan `launch_at`, günlük takip 09:00, plan günü (karar hazırlığı sabahı), test bitişi.
 9. Paket: `PR/templates/reports/yayin-paketi.md` → `DD/profiles/<slug>/campaigns/<k>/c<tur>-yayin-paketi.md` (yükleme listesi yalnızca
-   test kreatifleri; atomik). `stage_complete(profile_id, "S14", outputs=[{path: paket}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
+   test kreatifleri; atomik). **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (c<tur>-yayin-paketi.md) için `draft_check(profile_id, "S14", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S14", outputs=[{path: paket}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
 10. Kapı onayından sonra kullanıcıya: "Yayına aldığında 'yayına aldım' yaz; reklam kimliklerini ve gerçek saati gir."
 
 ### Gerçek yayın kaydı (S14 → S15)

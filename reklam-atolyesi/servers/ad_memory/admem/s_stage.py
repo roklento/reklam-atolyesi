@@ -194,6 +194,13 @@ class StageMixin:
             raise AdMemoryError("turun önselleri dondurulmuş; ölçüm sırasında değiştirilemez (6.6)")
         if "risk_limits_json" in fields and fields["risk_limits_json"] is not None:
             self._validate_risk_limits(fields["risk_limits_json"])
+        if fields.get("adset_budget_daily") is not None:
+            try:
+                d = float(fields["adset_budget_daily"])
+            except (TypeError, ValueError):
+                raise AdMemoryError("reklam seti günlük bütçesi sayı olmalı") from None
+            if isinstance(fields["adset_budget_daily"], bool) or not math.isfinite(d) or d <= 0:
+                raise AdMemoryError("reklam seti günlük bütçesi sonlu ve pozitif olmalı (bilinmiyorsa kullanıcıya sorulur; 6.3)")
         if "enhancements_json" in fields:  # 2.3.0: yayından sonra kapatılan/açılan iyileştirmeler
             keys = {r["creative_key"] for r in self.qa("SELECT DISTINCT creative_key FROM creatives WHERE cycle_id=? AND delivery_role='test'", (cy["id"],))}
             ev = fields["enhancements_json"]
@@ -415,6 +422,8 @@ class StageMixin:
             raise AdMemoryError("S00c scope_key='product:<id>' ister (ürün başına tanışma)")
         sk = self._scope_key(profile_id, campaign_id, cycle_id, scope_key)
         gated = ST.is_gated(stage) and not skipped
+        # 2.5.0 (KURALLAR K10): metin aşamasının belgesi taslak denetiminden geçmiş (ya da tur sınırı dolmuş) olmalı
+        draft = None if skipped else self._draft_gate(profile_id, stage, sk, resolved)
         with self.tx():
             if c and (self.q1("SELECT stage FROM campaigns WHERE id=?", (c["id"],)) or {}).get("stage") != stage:
                 raise AdMemoryError("kampanya bu arada başka aşamaya geçti (başka oturum); aşama tamamlanmadı")  # 2.0.0: işlem içinde yeniden
@@ -423,6 +432,8 @@ class StageMixin:
             outputs_json = {"files": resolved, "summary": summary, "extra": extra or {}}
             if skipped:
                 outputs_json["skipped_reason"] = skipped_reason
+            if draft is not None:
+                outputs_json["draft"] = draft
             status = "skipped" if skipped else ("awaiting_gate" if gated else "done")
             if run:
                 self.ex("UPDATE stage_runs SET status=?, finished_at=?, outputs_json=? WHERE id=?",
@@ -435,6 +446,8 @@ class StageMixin:
                               (profile_id, campaign_id, stage, cycle_id, sk, v + 1, status, now_iso(), now_iso(), jdump(outputs_json))).lastrowid
             # yeni sürüm eski onayları geçersiz kılar: aynı aşamanın önceki awaiting_gate sürümleri eskir
             self.ex("UPDATE stage_runs SET stale=1 WHERE scope_key=? AND stage=? AND id!=? AND status='awaiting_gate'", (sk, stage, rid))
+            if draft is not None:
+                self._draft_consume_in_tx(sk, stage, rid)
             if skipped:
                 self._decision_insert(profile_id, campaign_id, cycle_id, rid, None, stage, None, "skipped", skipped_reason, "user")
             if not gated:
@@ -442,6 +455,10 @@ class StageMixin:
             self._checkpoint_close_in_tx(profile_id, stage, summary, campaign_id, cycle_id, scope_key)
         run = self.q1("SELECT * FROM stage_runs WHERE id=?", (rid,))
         out = {"stage_run": run, "status": status}
+        if draft and draft["remaining"]:
+            out["draft_remaining"] = draft["remaining"]
+            out["draft_note"] = ("Taslak denetiminin tur sınırı doldu ve kritik sorun kaldı: bunları kullanıcıya belgeyle birlikte, sade dille "
+                                 "söyle (KURALLAR K10). Kapıda karar kullanıcınındır.")
         if gated:
             out["gate"] = ST.GATES[stage]
             out["note"] = "Kapı: kullanıcının açık onayı gerekir (gate_approve). Değişiklik isteği onay değildir."
@@ -488,6 +505,19 @@ class StageMixin:
                 out.append("ölçekleme katmanının günlük bütçesi toplam harcama planına girmedi (budget.py scale_layer_daily) (6.3)")
         if not cy["strategy_json"]:
             out.append("stratejik yön (strategy_save) kaydedilmedi (4.6)")
+        # 2.5.0: katkısı ≤ 0 olan ürünle satış/aday kampanyası her sonuçta zarar eder; kullanıcı bunu bilerek seçmeden test başlamaz (6.2)
+        prod = self.q1("SELECT * FROM products WHERE id=?", (c["product_id"],)) if c["product_id"] else None
+        # 2.5.0: risk sınırı reklam hesabının (ürünün) para biriminde onaylanır; TRY onayı USD hesapta 30 kat farklı harcamaya izin verir
+        rcur = ((jload(cy["risk_limits_json"], {}) or {}).get("per_ad") or {}).get("currency")
+        if prod and prod.get("currency") and rcur and str(rcur).strip().upper() != str(prod["currency"]).upper():
+            out.append(f"zarar-risk sınırının para birimi ({rcur}) ürünün/reklam hesabının para birimiyle ({prod['currency']}) aynı değil; "
+                       "sınır hesabın para biriminde yeniden sorulup onaylanmalı (6.3)")
+        if c["result_type"] in ("purchase", "lead") and prod:
+            if self.economics(prod).get("status") == "non_positive":
+                ack = (jload(cy["strategy_json"], {}) or {}).get("loss_acknowledged")
+                if not (isinstance(ack, str) and ack.strip()):
+                    out.append("ürünün birim katkısı ≤ 0: her satış zarar ettirir; kullanıcı bunu bilerek sürdürüyorsa ifadesi "
+                               "strategy_save(strategy.loss_acknowledged=<kullanıcının sözü>) ile kaydedilmeli, yoksa önce fiyat/maliyet düzeltilir (6.2)")
         cal = jload(cy["calendar_json"], {}) or {}
         if not (cy["test_days"] and cy["cycle_days"]) and not cal:
             out.append("tur takvimi (test_days, cycle_days) hesaplanmadı (4.4)")
@@ -584,9 +614,11 @@ class StageMixin:
                 raise AdMemoryError("bu kapı az önce başka bir oturumda onaylandı ya da çıktı yenilendi; durum yeniden okunmalı")
             if c and (self.q1("SELECT stage FROM campaigns WHERE id=?", (c["id"],)) or {}).get("stage") != run["stage"]:
                 raise AdMemoryError("kampanya bu arada başka aşamaya geçti; onay uygulanmadı")
+            left = sum(len(d.get("issues") or []) for d in ((jload(run["outputs_json"], {}) or {}).get("draft") or {}).get("remaining") or [])
             did = self._decision_insert(profile_id, run["campaign_id"], run["cycle_id"], run["id"], run["output_version"],
                                         run["stage"], ST.GATES.get(run["stage"]), "approved",
-                                        (note + " — " if note else "") + f"onay: «{approval_text.strip()}»", "user")
+                                        (note + " — " if note else "") + f"onay: «{approval_text.strip()}»"
+                                        + (f" · kalan taslak sorunu: {left} (kullanıcıya gösterildi)" if left else ""), "user")
             nxt = self._advance(profile_id, run["stage"], c, cy, run["scope_key"], run["id"])
             # onaylanan aşamanın kapı görüşmesi sırasında kaydedilmiş notu kapanır (1.4.1); gerekiyorsa aşağıda yeni not yazılır
             self._checkpoint_close_in_tx(profile_id, run["stage"], "", run["campaign_id"], run["cycle_id"],

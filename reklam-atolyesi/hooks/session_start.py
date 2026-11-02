@@ -44,6 +44,7 @@ def main() -> int:
             lines.append("Kalıcı kaydedilmemiş bir yanıtın saklandığı varsayılmaz; stage_resume ile doğrula ve gerekirse tekrar teyit et (8.1).")
         finally:
             con.close()
+    lines.append(pm.rules_block())  # 2.5.0: özetlenen bağlamda değişmez kurallar kaybolmaz
     pm.context("SessionStart", "\n".join(lines))
     return 0
 

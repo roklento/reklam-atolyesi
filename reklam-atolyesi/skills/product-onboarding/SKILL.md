@@ -72,7 +72,7 @@ Yok. Çekim tarifi kartlarının dili `ref-shooting-basics`'tedir.
    **kullanılmaz**). Müşteri yorumu yalnızca izinle (`review_add`).
 6. Ürün kartını yaz: `DD/profiles/<slug>/products/<ürün>/urun-karti.md` (gözlem, ekonomi ve dili, alıcılar, anlar, iddialar, satın
    alma engelleri ve cevaplarının kanıtı, çekim tarifi; atomik).
-7. `stage_complete(profile_id, "S00c", outputs=[{path: urun-karti.md}], summary, scope_key="product:<id>")` → `awaiting_gate`.
+7. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (urun-karti.md) için `draft_check(profile_id, "S00c", path, scope_key="product:<id>")`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S00c", outputs=[{path: urun-karti.md}], summary, scope_key="product:<id>")` → `awaiting_gate`.
 
 ## Çıktılar
 `products` (gözlem, ekonomi, alıcılar, anlar, iddialar, kapasite, çekim tarifi), `onboarding_answers`, `taxonomy_values` (buyer, moment), ürün kartı

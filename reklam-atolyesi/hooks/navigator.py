@@ -196,6 +196,8 @@ def main() -> int:
                 pass
     except Exception as e:  # menü üretilemese bile mod çalışır
         out.append(f"menü üretilemedi ({type(e).__name__}: {e}); menu_render(session_id) aracını dene, o da olmazsa kullanıcıya söyle.")
+    if not was_on or trig:  # 2.5.0: plugin modu açılırken ve ad yazılınca değişmez kurallar bir kez bağlama girer
+        out.append(pm.rules_block())
     try:
         out.extend(status_lines(data_dir, sess))
     except Exception as e:  # durum satırı okunamasa bile mod çalışır

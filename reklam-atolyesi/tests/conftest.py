@@ -18,6 +18,7 @@ for sub in ("analytics", "audio", "analyze", "compose", "competitive", "ingest",
 
 from admem import util  # noqa: E402
 from admem.store import Store  # noqa: E402
+import draft_docs as DD  # noqa: E402
 
 
 class Clock:
@@ -60,8 +61,7 @@ def make_active_profile(s: Store, name: str = "Marka A", account: str = "act_A",
     # Satış sonuçlu sentetik kampanyalar için Meta satış sinyali (1.4.7); sinyalsiz durum ayrıca test edilir.
     s.meta_signal_set(p["id"], "purchase_seen", "meta_mcp", "sentetik veri kümesi: Purchase son 7 gün")
     run = s.stage_start(p["id"], "S00a")
-    f = s.profile_dir(p["id"]) / "brand" / "s00a.md"
-    f.write_text("marka özeti", encoding="utf-8")
+    f = DD.write_stage_doc(s, p["id"], "S00a")["path"]
     r = s.stage_complete(p["id"], "S00a", [{"path": str(f)}], "marka tanışması")
     s.gate_approve(p["id"], r["stage_run"]["id"], r["stage_run"]["output_version"], "onaylıyorum")
     s.profile_update(p["id"], status="active")
@@ -70,11 +70,15 @@ def make_active_profile(s: Store, name: str = "Marka A", account: str = "act_A",
                             provable_claims_json=[{"code": "c1", "text": "Örnek iddia", "proof_type": "process", "documented": True}],
                             occasions_json=[{"code": "an-a", "label": "Örnek an"}],
                             buyers_json=[{"code": "alici-a", "label": "Örnek alıcı"}])
-    pf = s.profile_dir(p["id"]) / "products" / "s00c.md"
-    pf.write_text("ürün tanışması", encoding="utf-8")
+    pf = DD.write_stage_doc(s, p["id"], "S00c", scope_key=f"product:{prod['id']}")["path"]
     r = s.stage_complete(p["id"], "S00c", [{"path": str(pf)}], "ürün tanışması", scope_key=f"product:{prod['id']}")
     s.gate_approve(p["id"], r["stage_run"]["id"], r["stage_run"]["output_version"], "evet onaylıyorum")
     return {"profile": s._profile(p["id"]), "product": s._product(p["id"], prod["id"])}
+
+
+def stage_doc(s: Store, pid: int, cid: int | None, cyid: int | None, stage: str, exhaust: bool = False, scope_key: str | None = None) -> str:
+    """Aşamanın taslak denetiminden geçen sentetik belgesi (2.5.0); exhaust: kasıtlı kritik sorunda tur sınırına kadar denetle."""
+    return DD.write_stage_doc(s, pid, stage, cid, cyid, scope_key=scope_key, exhaust=exhaust)["path"]
 
 
 def out_file(s: Store, pid: int, cid: int, name: str, content: str = "çıktı") -> str:

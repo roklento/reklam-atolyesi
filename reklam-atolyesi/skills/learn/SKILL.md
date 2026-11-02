@@ -53,7 +53,7 @@ Yok.
    üyenin yerine bir sonraki testin kazananı aday) ve katmanın bütçe payı. Ölçekleme setine yeni konsept doğrudan eklenmez; önce test edilir.
    Katman kaydını sunucu yeni tura kendisi taşır (`scale_layer_get` ile görülür); S02'nin bütçe planı onu silmez.
 9. `export_markdown(profile_id)` (playbook.md, hypotheses.md).
-10. `stage_complete(profile_id, "S17", outputs=[{path: brief taslağı}, {path: öğrenme özeti md}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
+10. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (brief taslağı ve öğrenme özeti (.md)) için `draft_check(profile_id, "S17", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S17", outputs=[{path: brief taslağı}, {path: öğrenme özeti md}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
     Onaydan sonra yeni tur S01'den açılır (aynı kampanya, yeni `cycle_id`); kapanan turun reklamları yayında kalır, ölçümleri kampanya
     düzeyinde sürer.
 
