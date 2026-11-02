@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.4.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.5.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,32 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.5.0** — değişmez kurallar, taslak öz-denetimi, senaryo matrisi, anonim geri bildirim
+- **Değişmez kurallar (`KURALLAR.md`):** her aşamada geçerli 15 kural tek dosyada; her kuralın kodla zorlandığı yer ve testi yazılı
+  (`tests/test_v250_rules.py` dosya, sembol ve testin gerçekten var olduğunu denetler). Kısa liste plugin modu açılırken ve oturum
+  özetlendikten sonra modele hook ile verilir; skill ile çelişirse bu dosya geçerlidir.
+- **Taslak öz-denetimi (`draft_check`, `draft_status`):** metin aşamasının belgesi (brief, rakip analizi, strateji, görüşme özeti, çekim
+  rehberi, yayın paketi, tanışma ve öğrenme notları) kullanıcıya gösterilmeden önce şablona ve **kayıtlara** karşı denetlenir: sonuç
+  türü, günlük bütçe, toplam sınır, başa baş CPA / aday maliyeti, sezon, test reklamı sayısı, risk sınırı, yüklenecek kreatifler,
+  Advantage+ kapatma, AI açıklaması, gizlilik bağlantısı, yer tutucu ve bozuk karakter. Kritik sorun varsa model düzeltip yeniden
+  denetler; en fazla 2 tur, turu sunucu sayar (değişmemiş dosya yeni tur değildir). `stage_complete` denetlenmemiş ya da denetimden
+  sonra değişmiş belgeyi kabul etmez. Tur sınırı dolarsa kalan sorunlar kullanıcıya söylenir; onaylanırsa kapı kaydına yazılır.
+- **Yeni kapı koşulları (S02 ve S14):** katkısı ≤ 0 olan ürünle satış/aday kampanyası, kullanıcı zararı bilerek kabul ettiğini
+  söyleyip sözü `strategy.loss_acknowledged` ile kaydedilmeden ilerlemez; zarar-risk sınırı ürünün/hesabın para biriminde olmalıdır
+  (USD hesapta TRY onayı kapıyı açmaz). Reklam seti günlük bütçesi sonlu ve pozitif olmalı.
+- **Bütçe hesabı (`budget.py`):** CPM 0/negatif/sayı değil, risk sınırı ≤ 0, bilinmeyen karar metriği ve tur no < 1 açık hatayla
+  reddedilir (önceden CPM 0 "14 günde bile yetmiyor" gibi yanıltıcı sonuç veriyordu); günlük test bütçesi ≤ 0 iken plan uyarı taşır.
+- **Senaryo matrisi (`evals/`):** 8 ürün türü × 8 kullanıcı profili (yeni başlayan, sınırsız, deneyimli, ajans, CSV, USD, bütçesi
+  yetmeyen, toplam sınırı yetmeyen). 64 birleşim pytest'te S00a'dan yayın kaydına kadar yürür; beklenen kapı sonucu matristen okunur.
+  Model cevabı için rubrik (R1–R6) ve 10 `claude plugin eval` vakası; yayın öncesi elle çalıştırılır (`evals/README.md`).
+- **CI:** `.github/workflows/ci.yml` her push ve PR'da testleri ve `scripts/setup/ci_check.py`'yi (sürüm dört yerde aynı, manifest ve
+  nötrlük güncel) çalıştırır.
+- **Anonim geri bildirim (`feedback_preview`, `feedback_export`; ana menü 9):** kullanıcı isterse aşama tamamlanma/geri dönüş/takılma
+  sayıları, taslak denetimi sorun kodları ve araç hata türlerinden oluşan paket önizlenir; yalnızca açık onayla
+  `<data_dir>/logs/geri-bildirim/` altına yazılır. Pakette marka, ürün, kampanya adı, yol, tutar, kişi bilgisi ya da serbest metin
+  yoktur (`assert_anonymous`); plugin paketi hiçbir yere göndermez.
+- Migration 009 yalnızca tablo ekler (`draft_checks`); mevcut kayıtlar değişmez. Yeni bağımlılık yok.
+
 **2.4.0** — tıklamadan sonra adım adım huni teşhisi: "yalnız ROAS'a bakma, hunide nerede takıldığını bul"
 - **Koçluk (`funnel_diagnosis.steps`):** kampanya düzeyinde bağlantı tıklaması → sayfaya ulaşma (landing_page_view) → ürünü görme
   (omni_view_content) → sepete ekleme → ödemeye geçme → ödemeyi tamamlama. Her adım **bir önceki adıma** bölünür; payda yazılır;

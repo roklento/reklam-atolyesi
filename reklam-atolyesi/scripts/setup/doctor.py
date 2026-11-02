@@ -53,7 +53,7 @@ cost_summary review_add review_withdraw review_query consent_add consent_withdra
 action_items_set action_item_set_status action_items_verify scale_layer_get scale_layer_set meta_signal_set meta_signal_get dm_thread_open dm_thread_event dm_daily_set dm_summary dm_follow_ups data_connection_set data_connection_get sales_import_csv sales_orders_summary service_info lead_outcome_set lead_outcomes_summary prediction_log prediction_resolve calibration_get playbook_get playbook_propose
 playbook_activate playbook_revalidate playbook_retire playbook_round_tick memory_card memory_context memory_search memory_add memory_observe
 memory_update memory_forget memory_consolidate consolidation_due journal_log journal_summary checkpoint_save checkpoint_get checkpoint_close
-export_markdown backup system_manifest_get""".split()
+export_markdown backup system_manifest_get draft_check draft_status feedback_preview feedback_export""".split()
 DATA_ALLOWED = {".venv", ".node", "db", ".kurulum-statik-tamam", ".sessions", "logs", "backups", "memory", ".selftest", ".tts"}
 FFMPEG_FILTERS = ["vidstabdetect", "vidstabtransform", "zscale", "loudnorm", "lut3d", "sidechaincompress", "tonemap", "colorchannelmixer"]
 VERSION_RE = re.compile(r"(\d+)\.(\d+)(?:\.(\d+))?")
@@ -500,7 +500,8 @@ def check_manifest(r: Report, manifest: dict) -> None:
           {"stale_components": diff, "missing_sections": missing})
     na = manifest.get("neutrality_audit") or {}
     covered = na.get("component_hashes") or {}
-    stale = [k for k in ("skills", "agents", "commands", "workflows", "hooks", "ad_memory", "scripts", "templates") if covered.get(k) != cur.get(k)]
+    stale = [k for k in ("skills", "agents", "commands", "workflows", "hooks", "ad_memory", "scripts", "templates", "rules", "evals")
+             if covered.get(k) != cur.get(k)]
     r.add("neutrality", "Nötrlük denetimi temiz ve güncel dosyaları kapsıyor", na.get("status") == "clean" and not stale,
           {"status": na.get("status"), "stale": stale, "auditor": na.get("auditor")})
     wt = (manifest.get("tests") or {}).get("workflow_trial") or {}

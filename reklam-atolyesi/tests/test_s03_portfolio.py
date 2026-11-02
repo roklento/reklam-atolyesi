@@ -9,7 +9,7 @@ import pytest
 from admem import db as DB
 from admem.store import Store
 from admem.util import AdMemoryError
-from conftest import ROOT, out_file
+from conftest import ROOT, out_file, stage_doc
 from test_store_stage import advance_to, new_campaign
 
 
@@ -39,7 +39,7 @@ def concept(s, pid, cid, cyid, code, features, hooks=(("h1", "product", False),)
 
 def gate(s, pid, cid, cyid):
     s.stage_start(pid, "S03", cid, cyid)
-    r = s.stage_complete(pid, "S03", [{"path": out_file(s, pid, cid, "ozet.md")}], "özet", cid, cyid)
+    r = s.stage_complete(pid, "S03", [{"path": stage_doc(s, pid, cid, cyid, "S03", exhaust=True)}], "özet", cid, cyid)
     return lambda: s.gate_approve(pid, r["stage_run"]["id"], r["stage_run"]["output_version"], "onaylıyorum", cycle_id=cyid)
 
 

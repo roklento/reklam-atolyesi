@@ -15,7 +15,7 @@ import report as RP
 import slideshow as SS
 from admem import editplan
 from admem.util import AdMemoryError
-from conftest import make_active_profile
+from conftest import make_active_profile, stage_doc
 
 CTX = {"account_id": "act_A", "timezone": "Europe/Istanbul", "currency": "TRY", "result_definition": "purchase",
        "metric_definitions": {}, "attribution_window": "7d_click", "action_report_time": "impression"}
@@ -148,8 +148,7 @@ def test_s17_carries_scale_layer_to_next_cycle(store):
     store.scale_layer_set(pid, cid, cyid, _layer())
     store.ex("UPDATE campaigns SET stage='S17' WHERE id=?", (cid,))
     run = store.stage_start(pid, "S17", cid, cyid)
-    f = store.campaign_dir(pid, cid) / "c1-ogrenme.md"
-    f.write_text("öğrenme", encoding="utf-8")
+    f = stage_doc(store, pid, cid, cyid, "S17")
     r = store.stage_complete(pid, "S17", [{"path": str(f)}], "öğrenme", cid, cyid)
     store.gate_approve(pid, r["stage_run"]["id"], r["stage_run"]["output_version"], "onaylıyorum", cycle_id=cyid)
     nxt = store.q1("SELECT * FROM cycles WHERE campaign_id=? AND cycle=2", (cid,))

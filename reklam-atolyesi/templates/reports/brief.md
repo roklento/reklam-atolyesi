@@ -8,6 +8,7 @@
 - Sonuç türü: {{sonuç_türü}} (purchase · lead · messaging · profile_visit · link_click · engagement; lead ise yol: instant_form · website · call)
 - Sezon / hedef tarih: {{sezon}} / {{hedef_tarih}}
 - Kampanya modu: {{tam_tur_ya_da_hızlı_tur}}
+- Reklam seti günlük bütçesi: {{günlük_bütçe}} {{para_birimi}} (ilk turda tek reklam setinin; sonraki turlarda mevcut setin günlük bütçesi)
 
 ## Toplam Meta harcama sınırı (6.3)
 - `budget_total`: {{tutar_ya_da_NULL}} {{para_birimi}} — bu kampanyanın ilk yayınından itibaren BÜTÜN turlarındaki Meta reklam harcamasının üst sınırı; üretim/servis ücretleri dahil değildir. NULL: kullanıcı sınır tanımlamadı (açık karar).

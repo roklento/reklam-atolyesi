@@ -79,13 +79,13 @@ def sha_file(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
-def tree_hash(root: Path, patterns: tuple[str, ...] = ("*",)) -> str:
+def tree_hash(root: Path, patterns: tuple[str, ...] = ("*",), skip: frozenset[str] = frozenset()) -> str:
     h = hashlib.sha256()
     if not root.exists():
         return h.hexdigest()
     files = []
     for pat in patterns:
-        files += [p for p in root.rglob(pat) if p.is_file() and not (set(p.relative_to(root).parts) & SKIP_DIRS)]
+        files += [p for p in root.rglob(pat) if p.is_file() and not (set(p.relative_to(root).parts) & (SKIP_DIRS | skip))]
     for p in sorted(set(files), key=lambda x: x.relative_to(root).as_posix()):
         h.update(p.relative_to(root).as_posix().encode("utf-8"))
         h.update(b"\0")
@@ -300,6 +300,9 @@ def build(root: Path, results_dir: Path | None) -> dict:
         "scripts": tree_hash(root / "scripts", ("*.py", "*.mjs", "*.sh", "*.ps1", "*.png")),
         "templates": tree_hash(root / "templates", ("*.json", "*.md", "*.cube", "*.ts", "*.tsx")),
         "vendor_skills": tree_hash(root / "vendor-skills"),
+        # 2.5.0: değişmez kurallar ve değerlendirme seti (evals/results yerel çalıştırma çıktısıdır, sürüme girmez)
+        "rules": sha_file(root / "KURALLAR.md") if (root / "KURALLAR.md").exists() else None,
+        "evals": tree_hash(root / "evals", ("*.md", "*.json", "*.yaml"), frozenset({"results"})),
     }
     results = {}
     if results_dir and results_dir.exists():

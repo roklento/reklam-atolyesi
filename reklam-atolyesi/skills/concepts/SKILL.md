@@ -119,7 +119,7 @@ haritası ve onaylı strateji, reddedilen/ertelenen fikirler, ürün, marka belg
 14. Görüşme özeti: `DD/profiles/<slug>/campaigns/<k>/c<tur>-konsept-gorusmesi.md` (seçilenler, kime konuştukları ve gerekçeleri,
     kaynakları, rolleri, test ve yedek hook'ları;
     reddedilen/ertelenenler ve nedenleri; açık sorular; çekim yolu; referans tahtası bağlantısı; atomik).
-15. `stage_complete(profile_id, "S03", outputs=[{path: özet}, {path: hooks.csv}, {path: referans tahtası}], summary, campaign_id, cycle_id)`.
+15. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (görüşme özeti (.md)) için `draft_check(profile_id, "S03", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S03", outputs=[{path: özet}, {path: hooks.csv}, {path: referans tahtası}], summary, campaign_id, cycle_id)`.
 16. Tercihler: kabul/ret örüntüsü `memory_add(layer="preference", source="user", evidence_id=<karar kimliği>)` (eşleştirme kuralıyla).
 
 ## Çıktılar

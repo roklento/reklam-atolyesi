@@ -75,7 +75,7 @@ Yok (spec 15: S01b hazır skill kullanmaz). Yöntem bu skill'de ve `ref-creative
     bulgular "zayıf kapsam" etiketi taşır.
 11. **Çıktı dosyası:** `PR/templates/reports/rakip-analizi.md` → `DD/profiles/<slug>/campaigns/<k>/competitive/c<tur>-rakip-analizi.md`
     (bir sayfa; atomik; önceki turun dosyası üzerine yazılmaz). Profil düzeyinde: `DD/profiles/<slug>/competitors/<tarih>-rakip-goruntusu.md`.
-12. `stage_complete(profile_id, "S01b", outputs=[{path: rapor}], summary, campaign_id, cycle_id, extra={snapshot_id, sha256})`.
+12. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (c<tur>-rakip-analizi.md) için `draft_check(profile_id, "S01b", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S01b", outputs=[{path: rapor}], summary, campaign_id, cycle_id, extra={snapshot_id, sha256})`.
 
 **Yedek yol (Kütüphane kullanılamıyorsa):** kullanıcıdan Reklam Kütüphanesi web arayüzünden ekran görüntüsü ya da bağlantı istenir
 (`DD/profiles/<slug>/competitors/user/`, `source="manual"`); analiz aynı sözlükle yapılır, kapsam "elle" diye işaretlenir.

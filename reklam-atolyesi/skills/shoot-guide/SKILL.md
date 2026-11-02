@@ -58,7 +58,7 @@ Ayrıca `c<tur>-hooks.csv`, `strategy_get`, `products.provable_claims_json` (ön
 10. **sfx_plan:** konseptlerden ve çekim menüsünden üretilecek efektlerin başlangıç listesi (önce ses kütüphanesi `sfx_library.py` — kağıt, cam, su gibi organik sesler de var; yoksa tasarım → kodla sentez, organik →
     ElevenLabs).
 11. Rehber: `PR/templates/reports/cekim-rehberi.md` → `DD/profiles/<slug>/campaigns/<k>/c<tur>-cekim-rehberi.md` (atomik).
-12. `stage_complete(profile_id, "S04", outputs=[{path: rehber}, {path: shoot_menu.json}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
+12. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (c<tur>-cekim-rehberi.md) için `draft_check(profile_id, "S04", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S04", outputs=[{path: rehber}, {path: shoot_menu.json}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
 
 ## Çıktılar
 Çekim rehberi, `shoot_menu.json`, fotoğraf listesi ve `sfx_plan` (rehber içinde), izin kayıtları, devam notu.

@@ -38,6 +38,12 @@ kayıtla cevaplamak.
    kayıtların kaybolacağı söylenir; Claude Code açıkken veritabanı kullanımdadır, bu yüzden kullanıcıya bütün Claude Code pencerelerini
    kapattıktan sonra bir terminalde çalıştıracağı tek komut verilir: `<py> PR/scripts/setup/db_restore.py restore --data-dir DD
    --backup <dosya> --confirm`. Önceki veritabanı `DD/db/onceki-<zaman>/` altında kalır.
+6. **Geri bildirim paketi (2.5.0, KURALLAR K15):** kullanıcı sağlayıcısına (plugin'i geliştiren ekibe) nerede takıldığını iletmek
+   isterse `feedback_preview(period_days=90)` → dönen özeti ve paketin tamamını göster ("içinde marka/ürün adı, dosya yolu, tutar, kişi
+   bilgisi ya da yazdığın bir metin yok; yalnızca sayılar ve aşama kodları") → kullanıcının açık onayında `feedback_export(approval_text)`
+   → dosya yolunu söyle (`DD/logs/geri-bildirim/`). Plugin dosyayı hiçbir yere göndermez; kullanıcı kendisi iletir. Sormadan hazırlanmaz.
+7. **Değişmez kurallar (2.5.0):** "kurallar ne", "neyi asla yapmazsın" sorularında `PR/KURALLAR.md` kısa listesi okunur ve sade dille
+   anlatılır; her kuralın kodla zorlandığı yer de o dosyadadır.
 
 ## Yetenek özeti (manifestle doğrulanarak söylenir)
 - Faz 2 tanışma: marka (S00a), Meta geçmişi (S00b), ürün (S00c).

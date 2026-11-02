@@ -10,7 +10,7 @@ import report as RP
 from admem import db as DB
 from admem.s_stage import normalize_enhancements
 from admem.util import AdMemoryError
-from conftest import ROOT, out_file
+from conftest import ROOT, out_file, stage_doc
 from test_analytics import build_campaign
 from test_store_stage import advance_to, new_campaign
 
@@ -33,7 +33,7 @@ def at_launch(s):
     rl["mapping"] = {KEY: {"amount": 500}}
     s.cycle_set(pid, cyid, risk_limits_json=rl)
     s.stage_start(pid, "S14", cid, cyid)
-    run = s.stage_complete(pid, "S14", [{"path": out_file(s, pid, cid, "paket.md")}], "paket", cid, cyid)["stage_run"]
+    run = s.stage_complete(pid, "S14", [{"path": stage_doc(s, pid, cid, cyid, "S14", exhaust=True)}], "paket", cid, cyid)["stage_run"]
     s.gate_approve(pid, run["id"], run["output_version"], "paket onaylı", cycle_id=cyid)
     return pid, cid, cyid, run
 

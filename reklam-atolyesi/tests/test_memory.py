@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 
 from admem.util import AdMemoryError, fts_query, tr_fold, tr_lower
-from conftest import make_active_profile, out_file
+from conftest import make_active_profile, out_file, stage_doc
 
 
 def test_turkish_normalization():
@@ -71,7 +71,7 @@ def test_card_budget_keeps_critical(store):
     for i in range(30):
         store.memory_add("preference", "x", f"Uzun tercih metni numara {i} " + "kelime " * 40, "user", profile_id=pid, force_new=True)
     store.stage_start(pid, "S01", cid, cyid)
-    r = store.stage_complete(pid, "S01", [{"path": out_file(store, pid, cid, "b.md")}], "brief", cid, cyid)
+    r = store.stage_complete(pid, "S01", [{"path": stage_doc(store, pid, cid, cyid, "S01", exhaust=True)}], "brief", cid, cyid)
     card = store.memory_card(pid, budget=200)
     assert any("Kampanya" in c_ for c_ in card["critical"])
     assert card["omitted_sections"]

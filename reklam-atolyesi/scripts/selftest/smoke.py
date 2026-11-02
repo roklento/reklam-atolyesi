@@ -67,7 +67,8 @@ def _active_profile(s, name: str, account: str, product: str) -> dict:
     s.profile_update(p["id"], meta_data_mode="csv", history_status="no_history")
     s.stage_start(p["id"], "S00a")
     f = s.profile_dir(p["id"]) / "brand" / "marka-ozeti.md"
-    f.write_text("Marka A özeti (sentetik)", encoding="utf-8")
+    f.write_text("# Marka tanışması\n\nMarka A özeti (sentetik): ton nötr, CTA bağlantısı örnek.\n", encoding="utf-8")
+    s.draft_check(p["id"], "S00a", str(f))  # 2.5.0: metin aşaması belgesi önce taslak denetiminden geçer
     r = s.stage_complete(p["id"], "S00a", [{"path": str(f)}], "marka tanışması (sentetik)")
     s.gate_approve(p["id"], r["stage_run"]["id"], r["stage_run"]["output_version"], "onaylıyorum (duman testi)")
     s.profile_update(p["id"], status="active")
@@ -76,7 +77,8 @@ def _active_profile(s, name: str, account: str, product: str) -> dict:
                             provable_claims_json=[{"code": "c1", "text": "Örnek iddia", "proof_type": "process", "documented": True}],
                             occasions_json=[{"code": "an-a", "label": "Örnek an"}])
     pf = s.profile_dir(p["id"]) / "products" / "urun-karti.md"
-    pf.write_text("Ürün A kartı (sentetik)", encoding="utf-8")
+    pf.write_text("# Ürün kartı\n\nÜrün A kartı (sentetik): fiyat 100 TRY, katkı 40 (doğrulandı).\n", encoding="utf-8")
+    s.draft_check(p["id"], "S00c", str(pf), scope_key=f"product:{prod['id']}")
     r = s.stage_complete(p["id"], "S00c", [{"path": str(pf)}], "ürün tanışması (sentetik)", scope_key=f"product:{prod['id']}")
     s.gate_approve(p["id"], r["stage_run"]["id"], r["stage_run"]["output_version"], "onaylıyorum (duman testi)")
     return {"profile_id": p["id"], "product_id": prod["id"]}

@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.4.0
+# Müşteri paketi — 2.5.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,16 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.4.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.5.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.5.0 migration 009 içerir (yalnızca tablo ekler: taslak denetimi kayıtları); güncelleyici uygular, mevcut kayıtlar değişmez. Yeni
+bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Metin aşamalarının belgesi artık kullanıcıya gösterilmeden önce
+denetlenir: güncellemeden sonra yarıda kalmış bir metin aşaması `stage_complete`'te belgeyi denetlemenizi ister (model kendisi yapar).
+Katkısı ≤ 0 ürünle satış kampanyasının S02 kapısı kullanıcının açık kabulünü, risk sınırı hesabın para birimini ister; daha önce
+onaylanmış kapılar etkilenmez. Ana menü 9'dan anonim geri bildirim paketi hazırlanabilir; paket yalnızca onayla yerel dosyaya yazılır,
+otomatik gönderilmez.
 2.4.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Koçluk raporunda tıklamadan sonra
 adım adım tablo var (sayfa → ürün → sepet → ödeme → satış); darboğaz yalnızca markanın geçmişine göre işaretlenir.
 2.3.0 migration 008 içerir (yalnızca sütun ekler: turun Advantage+ kreatif iyileştirme kaydı); güncelleyici uygular, mevcut kayıtlar

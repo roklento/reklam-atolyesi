@@ -54,13 +54,14 @@ Yok.
      atıf varsayımı söylenir (6.2). Kurumsal/toptan fırsat hedefleniyorsa sonuç türü çoğu zaman mesajdır; Shopier satışına bakılarak
      başarısız sayılmaz.
 3. **Ekonomi özeti** (6.2): ürünün başa baş CPA / hedef CPA ve durumu (`exact | assumed | range | unknown`); katkı bilinmiyorsa
-   "VARSAYIM". CPA kararı hedefleniyorsa konsept başına beklenen satın alma < 10 ise CPA hükmünün geniş aralıklı yön tahmini
+   "VARSAYIM"; katkı ≤ 0 (`non_positive`) ise "katkı ≤ 0: her satış zarar" diye açıkça yazılır (kararı S02'de kullanıcı verir). Müşteri adayı sonucunda başa baş / hedef aday maliyeti (`breakeven_cpl`, `target_cpl`) ve
+   durumu (`cpl_status`) aynı dille yazılır; teyitli değilse "VARSAYIM". Sezon kayıtlıysa "Sezon" satırına aynen yazılır. CPA kararı hedefleniyorsa konsept başına beklenen satın alma < 10 ise CPA hükmünün geniş aralıklı yön tahmini
    olacağı baştan yazılır (kesin sayı S02'de).
 4. **Kampanya modu:** `full` (yeni çekim) varsayılan; hızlı tur kararı S03'te verilir.
 5. `PR/templates/reports/brief.md` şablonundan `DD/profiles/<slug>/campaigns/<kampanya>/c<tur>-brief.md` (tur adıyla; önceki turun
-   dosyası üzerine yazılmaz; geçici ad → doğrula → atomik yeniden adlandır). Boş alan "bilinmiyor" yazılır, tahmin yazılmaz.
+   dosyası üzerine yazılmaz; geçici ad → doğrula → atomik yeniden adlandır). Boş alan "bilinmiyor" yazılır, tahmin yazılmaz. Reklam seti günlük bütçesi ve toplam sınır kayıttaki değerle aynı yazılır (taslak denetimi karşılaştırır).
    "Rakip bağlamı" bölümü S01b sonrası doldurulur (atlanırsa "rakip bağlamı yok — gerekçe").
-6. `stage_complete(profile_id, "S01", outputs=[{path: brief}], summary, campaign_id, cycle_id)` → S01b'ye geçilir (kapı yok).
+6. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (c<tur>-brief.md) için `draft_check(profile_id, "S01", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S01", outputs=[{path: brief}], summary, campaign_id, cycle_id)` → S01b'ye geçilir (kapı yok).
 
 ## Çıktılar
 `campaigns` (goal, result_type, season, budget_total + teyit), `cycles.adset_budget_daily`, `c<tur>-brief.md`, devam notu,

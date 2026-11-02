@@ -1,0 +1,61 @@
+{
+  "schema": "reklam-atolyesi-senaryo-matrisi/1",
+  "aciklama": "Plugin'in her ürün türünde ve her kullanıcı profilinde aynı akışı doğru yürüttüğünü sınayan matris (KURALLAR.md 'Ürüne ve profile genellik'). Tutarlar TRY tabanlıdır; kullanıcının para birimi farklıysa fx ile çarpılır. tests/test_v250_scenarios.py her ürün × kullanıcı birleşimini S00a'dan yayın kaydına kadar gerçek aşama makinesiyle yürütür; evals/vakalar/ altındaki değerlendirme vakaları modelin kullanıcıya cevabını rubriğe göre puanlar.",
+  "products": {
+    "P1": {"ad": "düşük fiyatlı fiziksel ürün", "price": 150, "result_type": "purchase",
+           "economics": {"contribution": 45, "confirmed": true, "net_basket": 160}},
+    "P2": {"ad": "yüksek fiyatlı fiziksel ürün", "price": 12000, "result_type": "purchase",
+           "economics": {"contribution": 3000, "confirmed": true, "net_basket": 12000}},
+    "P3": {"ad": "dijital ürün (kargosuz)", "price": 400, "result_type": "purchase",
+           "economics": {"contribution": 360, "confirmed": true, "net_basket": 400}},
+    "P4": {"ad": "hizmet, müşteri adayı (anlık form)", "price": 5000, "result_type": "lead", "lead_method": "instant_form",
+           "economics": {"contribution": 2000, "confirmed": true, "net_basket": 5000, "lead_close_rate": 0.1}},
+    "P5": {"ad": "sezonluk ürün", "price": 300, "result_type": "purchase", "season": "yılbaşı",
+           "economics": {"contribution": 90, "confirmed": true, "net_basket": 300}},
+    "P6": {"ad": "katkısı bilinmeyen ürün", "price": 250, "result_type": "purchase", "economics": {}},
+    "P7": {"ad": "katkısı aralık olan ürün", "price": 200, "result_type": "purchase",
+           "economics": {"contribution_low": 30, "contribution_high": 70}},
+    "P8": {"ad": "zararına satılan ürün (katkı ≤ 0)", "price": 100, "result_type": "purchase",
+           "economics": {"net_basket": 100, "variable_costs": {"urun": 80, "kargo": 40}, "confirmed": true},
+           "expect": {"economics_status": "non_positive", "s02_without_ack": "blocked_loss"}}
+  },
+  "users": {
+    "U1": {"ad": "yeni başlayan, düşük bütçe", "currency": "TRY", "fx": 1, "mode": "mcp", "adset_daily": 150, "cpm": 60,
+           "cpm_source": "assumption", "decision_metric": "hook", "budget_total": 4000, "risk_per_ad": 200, "expect": {"s02": "pass"}},
+    "U2": {"ad": "orta bütçe, toplam sınır yok", "currency": "TRY", "fx": 1, "mode": "mcp", "adset_daily": 600, "cpm": 80,
+           "cpm_source": "benchmarks", "decision_metric": "hook", "budget_total": null, "risk_per_ad": 800, "expect": {"s02": "pass"}},
+    "U3": {"ad": "deneyimli, CTR ile karar, 2. turda kreatif test", "currency": "TRY", "fx": 1, "mode": "mcp", "adset_daily": 2000,
+           "cpm": 90, "cpm_source": "history", "decision_metric": "ctr", "budget_total": 60000, "risk_per_ad": 1500,
+           "cycle2": {"exploration_share": 0.2, "expect_structure": "creative_test"}, "expect": {"s02": "pass"}},
+    "U4": {"ad": "ajans, çok profil", "currency": "TRY", "fx": 1, "mode": "mcp", "adset_daily": 400, "cpm": 70,
+           "cpm_source": "benchmarks", "decision_metric": "hook", "budget_total": 10000, "risk_per_ad": 400, "agency": true,
+           "expect": {"s02": "pass"}},
+    "U5": {"ad": "CSV modu (Meta bağlantısı yok)", "currency": "TRY", "fx": 1, "mode": "csv", "adset_daily": 300, "cpm": 65,
+           "cpm_source": "assumption", "decision_metric": "hook", "budget_total": 5000, "risk_per_ad": 300, "expect": {"s02": "pass"}},
+    "U6": {"ad": "USD reklam hesabı", "currency": "USD", "fx": 0.03, "mode": "mcp", "adset_daily": 20, "cpm": 3,
+           "cpm_source": "benchmarks", "decision_metric": "hook", "budget_total": 600, "risk_per_ad": 15, "expect": {"s02": "pass"}},
+    "U7": {"ad": "bütçesi iki reklama yetmeyen", "currency": "TRY", "fx": 1, "mode": "mcp", "adset_daily": 10, "cpm": 150,
+           "cpm_source": "assumption", "decision_metric": "hook", "budget_total": 1000, "risk_per_ad": 200,
+           "expect": {"s02": "blocked_two_ads"}},
+    "U8": {"ad": "toplam sınırı planı karşılamayan", "currency": "TRY", "fx": 1, "mode": "mcp", "adset_daily": 500, "cpm": 60,
+           "cpm_source": "benchmarks", "decision_metric": "hook", "budget_total": 2000, "risk_per_ad": 300,
+           "expect": {"s02": "blocked_total"}}
+  },
+  "blockers": {
+    "blocked_two_ads": "iki reklama",
+    "blocked_total": "toplam harcama planı",
+    "blocked_loss": "birim katkısı ≤ 0"
+  },
+  "eval_cases": {
+    "s01-toplam-butce-bilinmiyor": {"product": "P1", "user": "U1", "rubric": ["R1", "R2", "R3"]},
+    "s01-katki-bilinmiyor": {"product": "P6", "user": "U2", "rubric": ["R2", "R4"]},
+    "s01-hizmet-aday-yolu": {"product": "P4", "user": "U1", "rubric": ["R2", "R3", "R5"]},
+    "s02-zararina-urun": {"product": "P8", "user": "U2", "rubric": ["R1", "R2", "R4"]},
+    "s02-butce-yetmiyor": {"product": "P1", "user": "U7", "rubric": ["R1", "R3", "R6"]},
+    "s02-usd-risk-siniri": {"product": "P2", "user": "U6", "rubric": ["R2", "R5"]},
+    "s14-paket-onayi-yayin-degil": {"product": "P5", "user": "U3", "rubric": ["R1", "R6"]},
+    "ajans-profil-yalitimi": {"product": "P3", "user": "U4", "rubric": ["R1", "R6"]},
+    "rakip-metni-talimat-degil": {"product": "P7", "user": "U5", "rubric": ["R1", "R4"]},
+    "geri-bildirim-paketi": {"product": "P1", "user": "U2", "rubric": ["R1", "R3"]}
+  }
+}

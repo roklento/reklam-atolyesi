@@ -148,6 +148,18 @@ def ab_check(inp: dict) -> dict:
                      "değilse kreatif test aracı / tek set yolu sürer. Hesabın uygunluğu ayrıca ads_experiment_check_eligibility ile okunur.")}
 
 
+def _finite(v, name: str) -> float:
+    if isinstance(v, bool) or v is None:
+        raise SystemExit(f"{name} sayı olmalı")
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        raise SystemExit(f"{name} sayı olmalı") from None
+    if not math.isfinite(f):
+        raise SystemExit(f"{name} sonlu bir sayı olmalı")
+    return f
+
+
 def per_creative_spend(cpm: float, metric: str) -> float:
     return THRESHOLD_IMPRESSIONS[metric] * cpm / 1000.0
 
@@ -166,13 +178,20 @@ def daily_test_budget(cycle_no: int, adset_daily: float, exploration_share: floa
 def plan(inp: dict) -> dict:
     warnings: list[str] = []
     cycle_no = int(inp.get("cycle_no", 1))
-    share = float(inp.get("exploration_share", 0.2))
+    if cycle_no < 1:
+        raise SystemExit("cycle_no ≥ 1")
+    share = _finite(inp.get("exploration_share", 0.2), "exploration_share")
     if not (0.05 <= share <= 0.2):
         raise SystemExit("exploration_share 0,05–0,2")
-    adset_daily = float(inp["adset_daily"])
+    adset_daily = _finite(inp.get("adset_daily"), "adset_daily")
     daily_test = daily_test_budget(cycle_no, adset_daily, share)
     metric = inp.get("decision_metric", "hook")
-    cpm = float(inp["cpm"])
+    if metric not in THRESHOLD_IMPRESSIONS:
+        raise SystemExit("decision_metric: hook | ctr")
+    cpm = _finite(inp.get("cpm"), "cpm")
+    if cpm <= 0:
+        # CPM 0 ya da negatifse kreatif başına harcama 0 çıkar ve "14 günde bile yetmiyor" gibi yanıltıcı bir sonuç üretilirdi (2.5.0)
+        raise SystemExit("cpm pozitif olmalı (bilinmiyorsa benchmarks/geçmiş ya da açıkça VARSAYIM bir değer)")
     cpm_src = inp.get("cpm_source", "assumption")
     if cpm_src == "assumption":
         warnings.append("CPM VARSAYIM: account_benchmarks/geçmiş yok")
@@ -183,9 +202,15 @@ def plan(inp: dict) -> dict:
                  "cpm": cpm, "cpm_source": cpm_src, "per_creative_spend": round(pc, 2), "daily_test_budget": round(daily_test, 2),
                  "exploration_share": share if cycle_no > 1 else None, "creative_test_tool_max": tool_max}
     if daily_test <= 0:
-        out.update({"allowed_test_ads": 0, "production_blocked": True, "reason": "günlük test bütçesi ≤ 0: hesap yapılmaz, üretim bekler"})
+        out.update({"allowed_test_ads": 0, "production_blocked": True, "test_days": None,
+                    "reason": "günlük test bütçesi ≤ 0: hesap yapılmaz, üretim bekler"})
+        out["warnings"] = warnings + ["reklam seti günlük bütçesi pozitif değil: kullanıcıya günlük bütçe sorulmalı"]
         return out
     risk = inp.get("risk_per_ad")
+    if risk is not None:
+        risk = _finite(risk, "risk_per_ad")
+        if risk <= 0:
+            raise SystemExit("risk_per_ad pozitif olmalı ya da null (henüz onaylanmadı)")
     if risk is not None and float(risk) < pc:
         warnings.append(f"onaylı reklam başı risk sınırı ({risk}) kreatif başına gereken harcamanın ({pc:.2f}) altında: bu reklamlar eşiğe ulaşması beklenen sayılmaz")
     by_days = {}

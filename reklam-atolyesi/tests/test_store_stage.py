@@ -6,7 +6,8 @@ import json
 import pytest
 
 from admem.util import AdMemoryError
-from conftest import make_active_profile, out_file
+from admem.drafts import DRAFT_STAGES
+from conftest import make_active_profile, out_file, stage_doc
 
 
 def advance_to(s, pid, cid, cyid, target, gate_text="onaylıyorum"):
@@ -44,7 +45,7 @@ def advance_to(s, pid, cid, cyid, target, gate_text="onaylıyorum"):
         if st == "S15":
             return c
         s.stage_start(pid, st, cid, cyid)
-        f = out_file(s, pid, cid, f"out_{st}.md", f"{st} çıktısı")
+        f = stage_doc(s, pid, cid, cyid, st, exhaust=True) if st in DRAFT_STAGES else out_file(s, pid, cid, f"out_{st}.md", f"{st} çıktısı")
         r = s.stage_complete(pid, st, [{"path": f}], f"{st} tamam", cid, cyid)
         if r["status"] == "awaiting_gate":
             s.gate_approve(pid, r["stage_run"]["id"], r["stage_run"]["output_version"], gate_text, cycle_id=cyid)
@@ -117,7 +118,7 @@ def test_full_machine_s01_to_s15(store):
     rl["mapping"] = {key: {"amount": 500}}
     store.cycle_set(pid, cyid, risk_limits_json=rl)
     store.stage_start(pid, "S14", cid, cyid)
-    r = store.stage_complete(pid, "S14", [{"path": out_file(store, pid, cid, "paket.md")}], "paket", cid, cyid)
+    r = store.stage_complete(pid, "S14", [{"path": stage_doc(store, pid, cid, cyid, "S14", exhaust=True)}], "paket", cid, cyid)
     run = r["stage_run"]
     store.gate_approve(pid, run["id"], run["output_version"], "paket onaylı", cycle_id=cyid)
     # paket onayı yayın sayılmaz: S15'e geçmez
@@ -140,9 +141,9 @@ def test_gate_bound_to_version_and_cycle(store):
                     risk_limits_json={"per_ad": {"amount": 500, "currency": "TRY", "scope": "ad_launch_to_stop", "approved_at": "x", "note": "n"}, "mapping": {}})
     store.strategy_save(pid, cid, cyid, {"positioning": {"type": "gap"}, "portfolio": {"gap": 1, "free": 1}})
     store.stage_start(pid, "S02", cid, cyid)
-    r1 = store.stage_complete(pid, "S02", [{"path": out_file(store, pid, cid, "s1.md")}], "v1", cid, cyid)
+    r1 = store.stage_complete(pid, "S02", [{"path": stage_doc(store, pid, cid, cyid, "S02", exhaust=True)}], "v1", cid, cyid)
     store.stage_start(pid, "S02", cid, cyid)
-    r2 = store.stage_complete(pid, "S02", [{"path": out_file(store, pid, cid, "s2.md")}], "v2", cid, cyid)
+    r2 = store.stage_complete(pid, "S02", [{"path": stage_doc(store, pid, cid, cyid, "S02", exhaust=True)}], "v2", cid, cyid)
     with pytest.raises(AdMemoryError):  # eski sürümün onayı geçersiz
         store.gate_approve(pid, r1["stage_run"]["id"], r1["stage_run"]["output_version"], "evet", cycle_id=cyid)
     with pytest.raises(AdMemoryError):  # başka turun onayı kullanılamaz
@@ -158,7 +159,7 @@ def test_s02_blocked_without_risk_limit(store):
     advance_to(store, pid, cid, cyid, "S02")
     store.cycle_set(pid, cyid, budget_plan_json={"allowed_test_ads": 1, "fits_total_budget": True}, test_days=7, cycle_days=14)
     store.stage_start(pid, "S02", cid, cyid)
-    r = store.stage_complete(pid, "S02", [{"path": out_file(store, pid, cid, "s.md")}], "v", cid, cyid)
+    r = store.stage_complete(pid, "S02", [{"path": stage_doc(store, pid, cid, cyid, "S02", exhaust=True)}], "v", cid, cyid)
     with pytest.raises(AdMemoryError) as e:
         store.gate_approve(pid, r["stage_run"]["id"], r["stage_run"]["output_version"], "evet", cycle_id=cyid)
     assert "risk" in str(e.value) and "iki reklama" in str(e.value)
@@ -201,7 +202,7 @@ def test_s03_requires_user_decision_and_hook_parts(store):
     with pytest.raises(AdMemoryError):
         store.hook_upsert(pid, k["id"], "h1", "product", "", "hareket", "ses", "metin")  # dört parça zorunlu
     store.stage_start(pid, "S03", cid, cyid)
-    r = store.stage_complete(pid, "S03", [{"path": out_file(store, pid, cid, "ozet.md")}], "özet", cid, cyid)
+    r = store.stage_complete(pid, "S03", [{"path": stage_doc(store, pid, cid, cyid, "S03", exhaust=True)}], "özet", cid, cyid)
     with pytest.raises(AdMemoryError):  # seçilmiş konsept yok
         store.gate_approve(pid, r["stage_run"]["id"], r["stage_run"]["output_version"], "evet", cycle_id=cyid)
 
@@ -238,7 +239,7 @@ def test_cycle_rolls_after_s17(store):
     store.ex("UPDATE cycles SET launched_at='2026-03-01T00:00:00Z', status='measuring' WHERE id=?", (cyid,))
     for st in ("S16", "S17"):
         store.stage_start(pid, st, cid, cyid)
-        r = store.stage_complete(pid, st, [{"path": out_file(store, pid, cid, f"{st}.md")}], st, cid, cyid)
+        r = store.stage_complete(pid, st, [{"path": stage_doc(store, pid, cid, cyid, st, exhaust=True)}], st, cid, cyid)
         store.gate_approve(pid, r["stage_run"]["id"], r["stage_run"]["output_version"], "onaylıyorum", cycle_id=cyid)
     c = store.q1("SELECT * FROM campaigns WHERE id=?", (cid,))
     assert c["cycle"] == 2 and c["stage"] == "S01"
