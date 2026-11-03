@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.5.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.6.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,18 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.6.0** — Earshot ses bankası
+- Yeni dağıtılabilir efekt kaynağı `vendor-skills/sfx-earshot/`: Earshot'un (Leonxlnx/earshot, MIT, commit 591fa3e) tariflerinden kodla
+  üretilmiş 252 ses (6,2 MB OGG): whoosh, swish, riser, downlifter, reverse swell, impact, sub drop, cut hit, logo sting, shimmer,
+  bildirim, tık, hover, toggle, pop, glitch, klavye, damla, deklanşör, tokmak, kalimba. 15'i CC0 kayıtlardan çıkarılmış tariflerden.
+  Dosya başına kaynak kaydı (kimlik, tohum, denetim sonucu, SHA-256); kayıtsız ya da değişmiş dosya listelenmez.
+- Earshot'un kendi denetiminde uyarı alan 16 ses (yükselen perde, metalik kuyruk, kesik kuyruk) varsayılan aramada yok;
+  `sfx_library.py --include-flagged` ile görünür, yalnızca dinlenerek seçilir.
+- Arama sırası: profil → Kenney CC0 → Earshot → Mixkit. Eşit puanda dosyanın kendi ailesi sorguyla eşleşen önce gelir; yeni Türkçe
+  sözcükler: "logo", "marka", "iniş", "düşüş", "gerilim", "bozulma", "kayma", "fermuar", "tokmak", "ters", "kesme", "vurgu", "tuş".
+- Banka `scripts/setup/sfx_earshot_build.py` ile pinli commit'ten, Earshot'un kendi ortamında yeniden üretilir; çekirdek ortama torch
+  ve Earshot kodu girmez. Analiz kısmı (CLAP/AST modelleri, `critique`) alınmadı.
+
 **2.5.0** — değişmez kurallar, taslak öz-denetimi, senaryo matrisi, anonim geri bildirim
 - **Değişmez kurallar (`KURALLAR.md`):** her aşamada geçerli 15 kural tek dosyada; her kuralın kodla zorlandığı yer ve testi yazılı
   (`tests/test_v250_rules.py` dosya, sembol ve testin gerçekten var olduğunu denetler). Kısa liste plugin modu açılırken ve oturum

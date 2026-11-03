@@ -48,7 +48,9 @@ S01b ve S02 hazır skill kullanmaz.
 Efekt arşivi: `ai-product-video/assets/audio/sfx/` yalnızca `assets/audio/ATTRIBUTION.md` (ve OVERRIDES lisans koşulu) ile kaynağı kayıtlı
 dosyalar (`sfx_library.py` bunu uygular). CC0 çekirdek (1.7.0): `sfx-cc0/` — soundcn deposundan yalnızca Kenney paketleri
 (interface, digital, impact, music-jingles; 377 dosya); `sfx-cc0/ATTRIBUTION.md`'de satırı ve SHA-256'sı olan dosya kullanılır, soundcn
-`wow/` (Blizzard, CC0 değil) alınmadı. Ayrıntı `sfx-cc0/OVERRIDES.md`. `ad-video-scripts/` yalnızca yöntem referansı. `setup-api-key` tamamen devre dışı (anahtar yok;
+`wow/` (Blizzard, CC0 değil) alınmadı. Ayrıntı `sfx-cc0/OVERRIDES.md`. Earshot bankası (2.6.0): `sfx-earshot/` — Leonxlnx/earshot
+tariflerinden kodla üretilmiş 252 ses (236 temiz, 16 uyarılı; kod alınmadı, `scripts/setup/sfx_earshot_build.py` ile yeniden üretilir);
+`sfx-earshot/ATTRIBUTION.md`'de satırı ve SHA-256'sı olan dosya kullanılır. Ayrıntı `sfx-earshot/OVERRIDES.md`. `ad-video-scripts/` yalnızca yöntem referansı. `setup-api-key` tamamen devre dışı (anahtar yok;
 OAuth). `elevenlabs-mcp/mcp.json` yalnızca resmi uzak MCP adresinin kaynağı.
 
 ## Remotion — resmi belge yolu (vendor kopyası yok)
