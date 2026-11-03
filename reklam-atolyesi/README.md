@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.7.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.8.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -92,11 +92,25 @@ Deponun `musteri-paketi/` klasöründe ilk kurulum (`kur.cmd`) ve testsiz günce
 Eski kök kurulum betikleri aynı davranışı korur. Yeni güncelleyici SQLite yedeği alır, plugin'i günceller,
 yalnızca değişen bağımlılıkları alır ve gerekli migration'ları uygular. İlk kurulumu tamamlamış kullanıcıda
 toplu canlı kabul testleri açılışta tekrarlanmaz; önceki test kayıtları değiştirilmez.
-Gerçek araç hataları `PostToolUseFailure` ile yerel loga yazılır ve kullanıcıya sağlayıcısına göndermesi söylenir.
+Gerçek araç hataları `PostToolUseFailure` ile yerel loga yazılır; kullanıcıya bir kez "hata defterine yazıp geliştiriciye gönderelim mi?" diye sorulur (2.8.0).
 Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.8.0** — hata defteri ve geliştirme döngüsü (sahadaki hata → eval vakası → düzeltme → kör karşılaştırma → etki defteri)
+- **Müşteriye tek ve sade soru:** bir araç hata verdiğinde müşteri artık "bu dosyayı sağlayıcınıza gönderin" görmez; "Burada bir hata
+  aldık. İsterseniz bunu hata defterine yazıp geliştiriciye gönderelim" görür. Soru bir oturumda bir kez sorulur, sonraki hatalar
+  yalnızca kayda eklenir. "Evet" derse defter `logs/hata-defteri/` altına yazılır ve müşteriye dosyanın yeri ile "e-postayla ya da
+  WhatsApp'tan göndermeniz yeterli" söylenir. "Paket", "önizleme", "dışa aktarma" terimleri müşteriye kullanılmaz.
+- **Defter imza taşır:** hangi adımda ne olduğu (değişiklik isteği, geri dönüş, bekleyen adım, son turda da kalan taslak, kalan
+  sorunla onay, kreatif reddi, araç hatası), kodu ve senaryo hücresi (ürün × kullanıcı, ör. P8.U5). Ad, marka, ürün, tutar ya da
+  serbest metin yine girmez; anonimlik denetimi aynen geçer (K15).
+- **Admin tarafı (`evals/`, müşteride çalışmaz):** `defter_oku.py` gelen defterleri toplu okur: sürüm başına saha göstergeleri,
+  tekrarlayan imzalar ve onları kapsayan vaka var mı, önceki sürüme göre kötüleşen imzalar; kapsanmayan imza için vaka iskeleti.
+  `kor_kiyas.py` eski ve yeni sürümün cevaplarını kimliği gizleyerek hakeme verir; "eski daha iyi" çıkan vaka regresyondur.
+  `etki-defteri.md` her sürümde neyin değiştiğini ve işe yarayıp yaramadığını tutar. Yeni vaka: `hata-sonrasi-defter-sorusu`.
+- **CI:** skill, ajan ve komut metinlerinde adı geçen her betiğin varlığı ve her zaman bağlamda duran kurallar özetinin boyutu (≤ 3000).
+- Yöntem fikirleri Harness²'den (google-research/harness2, Apache 2.0, arXiv 2610.14224); kod ya da metin kopyalanmadı.
 **2.7.0** — efektin kareye oturması, türe göre seviye, görüntüden aday anlar, efekt öz puanlaması
 - **Oturma noktası (`scripts/audio/sfx_place.py`):** miks artık efektin ilk örneğini değil, türüne göre doğru noktasını kareye koyar:
   darbe, tık, pop, bildirim gövdesiyle (`arrive`); riser, whoosh, swell, logo sting doruğuyla (`peak`); müzik vuruşu ve ortam sesi

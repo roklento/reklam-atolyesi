@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 import statistics
 
-SCHEMA = "reklam-atolyesi-geri-bildirim/1"
+SCHEMA = "reklam-atolyesi-geri-bildirim/2"  # 2.8.0: hata defteri — imzalar (aşama · sinyal · kod · senaryo hücresi)
 SAFE_TOKEN = re.compile(r"^[A-Za-z0-9_.:+\-/]{0,64}$")
 OWN_TOOL = re.compile(r"^mcp__plugin_reklam-atolyesi_[A-Za-z0-9_-]+__[a-z0-9_]+$")
 BUILTIN_TOOLS = {"Bash", "PowerShell", "Read", "Write", "Edit", "Glob", "Grep", "WebFetch", "WebSearch", "Agent", "Task", "Skill",
@@ -77,16 +77,63 @@ def assert_anonymous(obj, path: str = "$") -> None:
         raise ValueError(f"{path}: desteklenmeyen tür {type(obj).__name__}")
 
 
+def product_cell(kind: str | None, eco_status: str | None, season: str | None, result_type: str | None, lead_method: str | None) -> str:
+    """Senaryo matrisinin ürün ekseni (evals/senaryo-matrisi.json): kayıttan güvenle ayrılabilen en belirgin tür. P1–P3 (düşük/yüksek
+    fiyatlı fiziksel, dijital) kayıttan ayrılamaz → "P1-3"; ürün yoksa "Px". Tahmin yok."""
+    if kind is None and eco_status is None:
+        return "Px"
+    if eco_status == "non_positive":
+        return "P8"
+    if kind == "service" or result_type == "lead" or lead_method:
+        return "P4"
+    if eco_status == "range":
+        return "P7"
+    if eco_status == "unknown":
+        return "P6"
+    if season:
+        return "P5"
+    return "P1-3"
+
+
+def user_cell(n_profiles: int, data_mode: str | None, currency: str | None, cycle: int | None) -> str:
+    """Kullanıcı ekseni: U4 ajans (birden çok profil) · U5 CSV modu · U6 TRY dışı para birimi · U3 ikinci ve sonraki tur. U1/U2/U7/U8
+    bütçeye göreli olduğundan kayıttan ayrılmaz → "Ux"."""
+    if n_profiles > 1:
+        return "U4"
+    if data_mode == "csv":
+        return "U5"
+    if currency and str(currency).upper() not in ("TRY", "TL"):
+        return "U6"
+    if cycle and int(cycle) >= 2:
+        return "U3"
+    return "Ux"
+
+
+SIGNAL_TEXT = {  # müşteriye ve admin'e sade anlatım (pakete girmez)
+    "duzeltme_istendi": "kullanıcı taslakta değişiklik istedi",
+    "geri_donuldu": "kullanıcı önceki bir adıma geri döndü",
+    "takildi": "adım 3 günden uzun süredir bekliyor",
+    "taslak_son_tur_kaldi": "taslak, son düzeltme turunda da denetimi geçemedi",
+    "sorunla_onaylandi": "adım, denetimde kalan bir sorunla onaylandı",
+    "kreatif_red": "kreatif, kalite kontrolünden geçemedi",
+    "arac_hatasi": "bir araç hata verdi",
+}
+
+
 def summary_lines(rep: dict) -> list[str]:
-    """Kullanıcıya önizlemede gösterilecek sade Türkçe özet (pakete girmez)."""
+    """Kullanıcıya gösterilecek sade özet (pakete girmez). Teknik terim yok; ilk kez gören biri anlamalı."""
     st = rep.get("stages") or {}
     stuck = rep.get("stuck") or []
-    dc = rep.get("draft_checks") or {}
     er = rep.get("errors") or {}
-    lines = [f"Dönem: son {rep['period_days']} gün · plugin {rep['plugin_version']} · profil sayısı {sum((rep.get('profiles') or {}).values())}",
-             f"Tamamlanan aşama: {sum(v.get('completed', 0) for v in st.values())} · geri dönüş: {sum(v.get('back_to', 0) for v in st.values())}",
-             f"Bekleyen/takılı aşama: {len(stuck)}" + (" (" + ", ".join(f"{s['stage']} {s['open_runs']}" for s in stuck[:5]) + ")" if stuck else ""),
-             f"Taslak denetimi: {dc.get('total', 0)} denetim, ilk turda geçen oran {dc.get('pass_first_round_rate')}",
-             f"Kayıtlı araç hatası: {er.get('count', 0)}"]
-    lines.append("Pakette marka, ürün, kampanya adı, dosya yolu, tutar, kişi bilgisi ya da serbest metin yoktur; yalnızca sayılar ve plugin kodları.")
+    sig = rep.get("imzalar") or []
+    lines = [f"Son {rep['period_days']} günün kaydı (Reklam Atölyesi {rep['plugin_version']}).",
+             f"Tamamlanan adım: {sum(v.get('completed', 0) for v in st.values())}. Geri dönülen adım: "
+             f"{sum(v.get('back_to', 0) for v in st.values())}. Bekleyen adım: {len(stuck)}.",
+             f"Kaydedilen hata: {er.get('count', 0)}."]
+    if sig:
+        lines.append("En sık görülenler:")
+        for s in sig[:5]:
+            lines.append(f"- {s['asama']} adımında {SIGNAL_TEXT.get(s['sinyal'], s['sinyal'])} ({s['n']} kez)")
+    lines.append("Defterde adınız, markanız, ürünleriniz, tutarlarınız, dosya yollarınız ya da yazdığınız bir metin yer almaz. "
+                 "Yalnızca hangi adımda ne tür bir sorun olduğu ve kaç kez olduğu yazılır.")
     return lines

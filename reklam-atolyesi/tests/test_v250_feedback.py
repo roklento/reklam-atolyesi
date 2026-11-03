@@ -43,7 +43,7 @@ def test_export_requires_approval_and_contains_no_identity(store, data_dir, cloc
         store.feedback_export("  ")
     out = store.feedback_export("evet, paketi hazırla", 30)
     text = open(out["path"], encoding="utf-8").read()
-    assert "logs" in out["path"] and "geri-bildirim" in out["path"]
+    assert "logs" in out["path"] and "hata-defteri" in out["path"]  # 2.8.0: müşteriye görünen ad
     for w in SECRET_WORDS + [str(data_dir), "profiles/"]:
         assert w not in text, w
     data = json.loads(text)

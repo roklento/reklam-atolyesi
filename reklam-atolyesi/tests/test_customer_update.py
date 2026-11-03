@@ -56,13 +56,16 @@ def test_failure_notification_scope_and_redaction(data_dir):
     assert EN.notify(data_dir, event) is None
     PM.save_session(data_dir, 'test-session', {'plugin_mode': True})
     result = EN.notify(data_dir, event)
-    assert 'sağlayıcınıza' in result['systemMessage']
+    assert 'hata defterine' in result['systemMessage'] and 'geliştiriciye' in result['systemMessage']  # 2.8.0: sade soru
     files = list((data_dir / 'logs').glob('kullanim-hatasi-*.json'))
     assert len(files) == 1
     record = files[0].read_text(encoding='utf-8')
     assert 'secret-value' not in record and 'hidden' not in record and 'private' not in record
     assert EN.notify(data_dir, {**event, 'is_interrupt': True}) is None
     assert len(list((data_dir / 'logs').glob('*.json'))) == 1
+    again = EN.notify(data_dir, event)  # 2.8.0: aynı oturumda soru bir kez sorulur
+    assert 'hata defterine' not in again['systemMessage'] and 'yeniden sorma' in again['hookSpecificOutput']['additionalContext']
+    assert len(list((data_dir / 'logs').glob('kullanim-hatasi-*.json'))) == 2
     assert EN.notify(data_dir, {**event, 'session_id': 'unknown', 'tool_name': PM.OWN_SERVER_PREFIX + 'ad-memory__profile_list'})
 
 

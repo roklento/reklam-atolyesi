@@ -25,7 +25,7 @@ K11 Plugin modu dışında hook'lar hiçbir şey yapmaz (tek istisna: plugin'in 
 K12 Kanıt eşiğini geçmeyen bulgu playbook kuralı olmaz; playbook kuralı yalnızca kullanıcının onayıyla etkinleşir.
 K13 Yarıda kalan iş devam notuyla sürer: tamamlanan iş tekrarlanmaz, eksik dosya tamamlandı sayılmaz, running/unknown ücretli iş yeniden başlatılmaz.
 K14 Teyit edilmemiş Meta kuralı ya da tahmin kesin bilgi diye sunulmaz; varsayım "VARSAYIM", aralık "aralık" diye yazılır.
-K15 Geri bildirim paketi yalnızca kullanıcının onayıyla, kişisel veri ve marka/ürün adı içermeden yerel dosyaya yazılır; plugin onu hiçbir yere göndermez.
+K15 Hata defteri (geri bildirim) yalnızca kullanıcının "evet"iyle, kişisel veri ve marka/ürün adı içermeden yerel dosyaya yazılır; plugin onu hiçbir yere göndermez.
 <!-- /kısa-liste -->
 
 ## Kurallar ve zorlandıkları yer
@@ -46,7 +46,7 @@ K15 Geri bildirim paketi yalnızca kullanıcının onayıyla, kişisel veri ve m
 | K12 | Playbook kanıt eşiği + kullanıcı onayı | Tek turun şansı kalıcı kural olmaz | `servers/ad_memory/admem/s_coach.py::playbook_activate` | `tests/test_analytics.py::test_playbook_requires_independent_validation` | 8.6 |
 | K13 | Devam notu kuralları | Yarım iş iki kez ücretlendirilmez, eksik iş tamam sayılmaz | `servers/ad_memory/admem/s_stage.py::stage_resume` | `tests/test_store_stage.py::test_resume_detects_missing_and_unknown` | 8.3 |
 | K14 | Teyit edilmemiş kural / tahmin kesin sunulmaz | Yanlış kesinlik yanlış karar verdirir | `servers/ad_memory/admem/drafts.py::check_s01` | `tests/test_v250_drafts.py::test_s01_null_budget_unconfirmed_lead_and_trial` | 6.2, §7 |
-| K15 | Geri bildirim paketi onaylı, anonim, yerel | Admin ekibi sorunu görür, müşteri verisi dışarı çıkmaz | `servers/ad_memory/admem/s_feedback.py::feedback_export`, `servers/ad_memory/admem/feedback.py::assert_anonymous` | `tests/test_v250_feedback.py::test_export_requires_approval_and_contains_no_identity` | 2.5.0 |
+| K15 | Hata defteri onaylı, anonim, yerel | Admin ekibi sorunu görür, müşteri verisi dışarı çıkmaz | `servers/ad_memory/admem/s_feedback.py::feedback_export`, `servers/ad_memory/admem/feedback.py::assert_anonymous` | `tests/test_v250_feedback.py::test_export_requires_approval_and_contains_no_identity`, `tests/test_v280_feedback_loop.py::test_defter_carries_signatures_with_cell_and_stays_anonymous` | 2.5.0, 2.8.0 |
 
 ## Yönerge düzeyindeki kurallar (kodla tam zorlanamaz)
 

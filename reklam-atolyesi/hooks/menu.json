@@ -21,6 +21,6 @@
     {"no": 8, "key": "profiller", "label": "Profiller: değiştir / yeni profil ekle",
      "action": "profile_list ile profilleri göster; değiştirmek için profile_set_active(profile_id, session_id); yeni profil için reklam-atolyesi:brand-onboarding (mevcut profiller etkilenmez)."},
     {"no": 9, "key": "sistem", "label": "Sistem ve hesap durumu",
-     "action": "reklam-atolyesi:ref-system-map + system_manifest_get özeti: kurulum (statik ve canlı), OAuth, disk, son yedek, cost_summary, calibration_get. Kullanıcı sağlayıcısına geri bildirim göndermek isterse: feedback_preview → özeti ve paketin tamamını göster → açık onayda feedback_export (anonim, yerel dosya; plugin göndermez; KURALLAR K15)."}
+     "action": "reklam-atolyesi:ref-system-map + system_manifest_get özeti: kurulum (statik ve canlı), OAuth, disk, son yedek, cost_summary, calibration_get. Kullanıcı bir sorunu geliştiriciye iletmek isterse sade dille sor: \"Bunu hata defterine yazıp geliştiriciye gönderelim mi?\" → feedback_preview özetini madde madde göster → \"evet\" derse feedback_export → dosyanın yerini söyle, \"bu dosyayı bize e-postayla ya da WhatsApp'tan göndermeniz yeterli\" de (plugin göndermez; KURALLAR K15). Paket/önizleme/dışa aktarma deme."}
   ]
 }
