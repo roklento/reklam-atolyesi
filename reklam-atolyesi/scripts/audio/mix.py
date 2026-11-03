@@ -4,7 +4,7 @@ Sahne başına audio.mode: original (çekim sesi aynen) · original_clean (afftd
 generated (çekim sesi kaldırılır; üretilmiş VO/müzik/efekt) · none (çekim sesi kaldırılır; müzik + efekt).
 Çekim sesi ile üretilmiş ses arasındaki geçişler kısa çapraz geçişle; müzik VO/konuşmanın 4–5 dB altında + sidechain; konuşma
 sırasında ses efektleri de kısılır (varsayılan 6 dB; konuşma hiçbir zaman efekt yüzünden kısılmaz — 1.5.0);
-efektler kare hassasiyetinde; iki geçişli loudnorm → -14 LUFS, ≤ -1 dBTP. Stem'ler ayrı yazılır.
+efektler kare hassasiyetinde (2.7.0: sesin oturma noktası kareye, seviye türün hedefinden — sfx_place.py); iki geçişli loudnorm → -14 LUFS, ≤ -1 dBTP. Stem'ler ayrı yazılır.
 
 Kullanım: mix.py --plan plan.json --scene-audio scenes_map.json [--music m.wav] [--vo vo.wav] [--sfx-dir dir] --out-dir audio/stems
 """
@@ -19,6 +19,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from common import emit, read_json, write_json  # noqa: E402
 import loudness as LN  # noqa: E402
+import sfx_place as SP  # noqa: E402
 
 SR = 48000
 XFADE = 0.03
@@ -87,6 +88,7 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
     dialog = np.zeros((n, 2), np.float32)
     effects = np.zeros((n, 2), np.float32)
     applied = []
+    placed: list[dict] = []
     speech_mask = np.zeros(n, bool)
     for s in plan["scenes"]:
         mode = s["audio"]["mode"]
@@ -107,7 +109,13 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
             p = sfx.get(cue.get("sfx", ""))
             clip = _read(p)
             if clip is not None:
-                _place(effects, clip * (10 ** (float(cue.get("gain_db", 0)) / 20)), s["start_s"] + float(cue["at_s"]), 0.004)
+                # 2.7.0: sesin oturma noktası (başlangıç / gövdenin gelişi / doruk) kareye gelir; seviye türün hedefinden
+                r = SP.resolve(cue, p, clip)
+                at = s["start_s"] + float(cue["at_s"])
+                _place(effects, clip * (10 ** (r["gain_db"] / 20)), at - r["offset_s"], 0.004)
+                placed.append({"scene": s["id"], "sfx": cue.get("sfx"), "file": p, "at_s": round(at, 4),
+                               "start_s": round(at - r["offset_s"], 4), **{k: r[k] for k in ("role", "anchor", "anchor_from",
+                               "offset_s", "level", "target_peak_db", "gain_db")}, "measure": r["measure"]})
     vo_track = np.zeros((n, 2), np.float32)
     vo_clip = _read(vo, total) if vo and any(s["audio"]["mode"] in ("generated", "user_vo") for s in plan["scenes"]) else None
     if vo_clip is not None:
@@ -138,7 +146,7 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
     pre_path = _write(out_dir / "mix_pre.wav", pre, "FLOAT")
     ln = LN.loudnorm(pre_path, str(out_dir / "mix_final.wav"))
     rep = {"stems": stems, "pre": pre_path, "final": ln["out"], "loudness": ln["verify"], "loudness_ok": ln["ok"], "applied_modes": applied,
-           "duck_db": duck_db, "sfx_duck_db": sfx_duck_db}
+           "sfx_placed": placed, "duck_db": duck_db, "sfx_duck_db": sfx_duck_db}
     write_json(out_dir / "mix_report.json", rep)
     return rep
 

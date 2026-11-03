@@ -1,13 +1,15 @@
-"""Ses kütüphanesi araması (spec 5.9 adım 2): önce profil ses kütüphanesi, sonra CC0 çekirdek (Kenney, 1.7.0), sonra ai-product-video
-efekt arşivi.
+"""Ses kütüphanesi araması (spec 5.9 adım 2): önce profil ses kütüphanesi, sonra CC0 çekirdek (Kenney, 1.7.0), sonra Earshot bankası
+(kodla üretilmiş, MIT, 2.6.0), sonra ai-product-video efekt arşivi.
 
 Vendor arşivlerinden yalnızca kaynağı kayıtlı dosyalar listelenir (OVERRIDES.md lisans kuralı):
 - sfx-cc0: ATTRIBUTION.md tablosunda satırı olan, lisansı CC0 yazan ve SHA-256'sı tutan dosya,
+- sfx-earshot: ATTRIBUTION.md tablosunda satırı olan, lisansı MIT (Earshot) yazan ve SHA-256'sı tutan dosya; Earshot denetiminde
+  uyarı alanlar yalnızca --include-flagged ile,
 - ai-product-video: ATTRIBUTION.md'de Mixkit kaynak URL'si kayıtlı dosya.
 Eşleşme sözcük bazlıdır (dosya yolundaki sözcükler, camelCase bölünür); Türkçe sorgu sözcükleri İngilizce etiketlere de açılır
 (ör. "tık" → click, "geçiş" → whoosh/transition); ekli biçim de açılır ("geçişi" → gecis, 1.8.1). 1.7.0 öncesi alt dize eşleşmesi
 "up" sorgusunu "cup"a da eşliyordu.
-Kullanım: sfx_library.py --query whoosh [--profile-dir <data_dir>/profiles/<p>] [--limit 10]
+Kullanım: sfx_library.py --query whoosh [--profile-dir <data_dir>/profiles/<p>] [--limit 10] [--include-flagged]
 """
 from __future__ import annotations
 
@@ -24,8 +26,13 @@ from admem.util import tr_fold  # noqa: E402
 
 VENDOR_AUDIO = PLUGIN_ROOT / "vendor-skills" / "ai-product-video" / "assets" / "audio"
 CC0_DIR = PLUGIN_ROOT / "vendor-skills" / "sfx-cc0"
+EARSHOT_DIR = PLUGIN_ROOT / "vendor-skills" / "sfx-earshot"
 AUDIO_EXT = (".wav", ".mp3", ".flac", ".ogg")
 CC0_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*CC0[^|]*\|\s*(https://\S+)\s*\|\s*`([0-9a-f]{64})`\s*\|", re.M)
+EARSHOT_ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*MIT \(Earshot[^|]*\|\s*`([^`]+)`\s*\(\d+\)\s*\|\s*(temiz|uyarı[^|]*?)\s*\|\s*`([0-9a-f]{64})`\s*\|",
+                         re.M)
+SRC_CC0 = "vendor:sfx-cc0 (Kenney, CC0 1.0)"
+SRC_EARSHOT = "vendor:sfx-earshot (Earshot, MIT, kodla üretilmiş)"
 
 # Türkçe sorgu sözcüğü (tr_fold'lu) → dosya adlarındaki İngilizce sözcükler
 TR_TAGS = {
@@ -33,13 +40,13 @@ TR_TAGS = {
     "gecis": ["whoosh", "woosh", "swoosh", "sweep", "transition"], "hisirti": ["whoosh", "swoosh", "sweep"],
     "vurus": ["impact", "hit", "punch"], "darbe": ["impact", "hit", "punch"], "carpma": ["impact"], "yumruk": ["punch"],
     "onay": ["confirmation", "success", "correct"], "basari": ["confirmation", "success", "jingles"], "hata": ["error", "wrong"],
-    "uyari": ["error", "question", "alert"], "bildirim": ["notification", "pop", "bong"], "pop": ["pop", "drop"],
+    "uyari": ["error", "question", "alert"], "bildirim": ["notification", "notify", "ding", "pop", "bong"], "pop": ["pop", "drop"],
     "cam": ["glass"], "metal": ["metal"], "tahta": ["wood", "plank"], "ahsap": ["wood", "plank"], "zil": ["bell", "bong"],
     "adim": ["footstep"], "ayak": ["footstep"], "kapi": ["open", "close"], "ac": ["open", "maximize"], "kapat": ["close", "minimize"],
     "kaydir": ["scroll", "swipe"], "anahtar": ["switch", "toggle"], "dugme": ["click", "switch", "toggle"],
-    "lazer": ["laser"], "dijital": ["digital", "zap", "phaser", "tone"], "guc": ["powerup"], "yukselen": ["riser", "phaserup", "up"],
+    "lazer": ["laser"], "dijital": ["digital", "zap", "phaser", "tone"], "guc": ["powerup"], "yukselen": ["riser", "phaserup", "up", "swell"],
     "inen": ["down", "phaserdown"], "jingle": ["jingles"], "muzik": ["jingles"], "kapanis": ["jingles"], "fiyat": ["coin", "cash", "jingles"],
-    "isilti": ["sparkle", "shimmer"], "kamera": ["camera", "shutter"], "deklansor": ["shutter"], "kagit": ["paper"],
+    "isilti": ["sparkle", "shimmer", "spark"], "kamera": ["camera", "shutter"], "deklansor": ["shutter"], "kagit": ["paper"],
     "yazi": ["typing", "keyboard", "text"], "klavye": ["keyboard", "typing"], "su": ["water", "fluid"], "kalabalik": ["crowd"],
     # 1.8.1: ai-product-video arşivindeki organik/kategori sözcükleri ("alkış", "kalp" önceden sonuç vermiyordu)
     "alkis": ["applause", "clap"], "kalp": ["heart", "heartbeat"], "parilti": ["sparkle", "shimmer"], "isik": ["light"],
@@ -48,6 +55,14 @@ TR_TAGS = {
     "sicrama": ["splash"], "baloncuk": ["bubble"], "kum": ["sand"], "kaset": ["cassette"], "plak": ["vinyl"], "bant": ["tape"],
     "ruzgar": ["wind"], "hava": ["air"], "kilit": ["lock"], "disli": ["gear"], "makine": ["machine", "mech"],
     "yakinlastirma": ["zoom"], "kirilma": ["break"],
+    # 2.6.0: Earshot bankasının aile adları
+    "logo": ["logo", "sting"], "marka": ["logo", "sting"], "imza": ["sting"], "acilis": ["pop", "in", "sting"],
+    "inis": ["downlifter", "drop", "fall"], "dusus": ["downlifter", "drop", "fall", "sink"], "derin": ["sub", "deep"],
+    "gerilim": ["riser", "tension", "build"], "bozulma": ["glitch"], "parazit": ["glitch"],
+    "savurma": ["swish", "swipe"], "kayma": ["swish", "swipe", "glide", "zip"], "fermuar": ["zip"], "tokmak": ["mallet"],
+    "kalimba": ["kalimba", "pluck"], "ters": ["reverse"], "nefes": ["breath"], "kesme": ["cut", "hit"], "kesim": ["cut", "hit"],
+    "vurgu": ["hit", "impact", "sting"], "acma": ["toggle", "on"], "kapama": ["toggle", "off"],
+    "yazma": ["typing", "key"], "tus": ["key", "typing"], "ding": ["ding", "notify"],
 }
 
 
@@ -87,6 +102,14 @@ def strength(path: str, terms: list[set[str]]) -> int:
     return sum(1 for alts in terms for a in alts if _match(a, ws))
 
 
+def family_hit(path: str, terms: list[set[str]]) -> int:
+    """Eşit puanda dosyanın kendi klasörü (aile) sorguyla eşleşen önce gelir (2.6.0: "geçiş" için whoosh_big/…, logo_sting/whoosh_glass'ın
+    önüne geçer)."""
+    parts = path.replace("\\", "/").split("/")
+    ws = set(words(parts[-2])) if len(parts) > 1 else set()
+    return sum(1 for alts in terms if any(_match(a, ws) for a in alts))
+
+
 def vendor_allowed() -> list[Path]:
     attr = (VENDOR_AUDIO / "ATTRIBUTION.md").read_text(encoding="utf-8") if (VENDOR_AUDIO / "ATTRIBUTION.md").exists() else ""
     ok = []
@@ -113,7 +136,21 @@ def cc0_allowed() -> tuple[tuple[Path, str], ...]:
     return tuple(out)
 
 
-def search(query: str, profile_dir: Path | None = None, limit: int = 10) -> dict:
+@lru_cache(maxsize=1)
+def earshot_allowed() -> tuple[tuple[Path, str, bool], ...]:
+    """(dosya, earshot kimliği, temiz mi) — yalnızca ATTRIBUTION.md satırı olan ve hash'i tutan dosyalar."""
+    attr = EARSHOT_DIR / "ATTRIBUTION.md"
+    if not attr.exists():
+        return ()
+    out = []
+    for rel, sid, status, sha in EARSHOT_ROW.findall(attr.read_text(encoding="utf-8")):
+        f = EARSHOT_DIR / rel
+        if f.is_file() and f.suffix.lower() in AUDIO_EXT and hashlib.sha256(f.read_bytes()).hexdigest() == sha:
+            out.append((f, sid, status.strip() == "temiz"))
+    return tuple(out)
+
+
+def search(query: str, profile_dir: Path | None = None, limit: int = 10, include_flagged: bool = False) -> dict:
     terms = query_terms(query)
     prof = []
     if profile_dir:
@@ -122,18 +159,23 @@ def search(query: str, profile_dir: Path | None = None, limit: int = 10) -> dict
     # profil dosyası kütüphaneye göre göreli puanlanır: mutlak yoldaki klasör adları ("profiles", kullanıcı adı) eşleşmesin
     hits = [{"path": str(p), "source": "profile", "score": score(p.relative_to(lib).as_posix(), terms),
              "_rel": p.relative_to(lib).as_posix()} for p in prof]
-    hits += [{"path": str(p), "source": "vendor:sfx-cc0 (Kenney, CC0 1.0)", "category": p.relative_to(CC0_DIR).parts[0], "source_url": url,
+    hits += [{"path": str(p), "source": SRC_CC0, "category": p.relative_to(CC0_DIR).parts[0], "source_url": url,
               "score": score(p.relative_to(CC0_DIR).as_posix(), terms), "_rel": p.relative_to(CC0_DIR).as_posix()} for p, url in cc0_allowed()]
+    hits += [{"path": str(p), "source": SRC_EARSHOT, "category": p.relative_to(EARSHOT_DIR).parts[0], "earshot_id": sid,
+              **({} if ok else {"flagged": True}),
+              "score": score(p.relative_to(EARSHOT_DIR).as_posix(), terms), "_rel": p.relative_to(EARSHOT_DIR).as_posix()}
+             for p, sid, ok in earshot_allowed() if ok or include_flagged]
     hits += [{"path": str(p), "source": "vendor:ai-product-video (Mixkit SFX Free License)", "category": p.parent.name,
               "score": score(p.relative_to(VENDOR_AUDIO).as_posix(), terms), "_rel": p.relative_to(VENDOR_AUDIO).as_posix()}
              for p in vendor_allowed()]
-    rank = {"profile": 0, "vendor:sfx-cc0 (Kenney, CC0 1.0)": 1}
+    rank = {"profile": 0, SRC_CC0: 1, SRC_EARSHOT: 2}
     hits = [h for h in hits if h["score"]]
-    hits.sort(key=lambda h: (-h["score"], rank.get(h["source"], 2), -strength(h["_rel"], terms), h["path"]))
+    hits.sort(key=lambda h: (-h["score"], rank.get(h["source"], 3), -strength(h["_rel"], terms),
+                         -family_hit(h["_rel"], terms), h["path"]))
     for h in hits:
         del h["_rel"]
     return {"query": query, "results": hits[:limit],
-            "note": "Eşleşme yoksa: tasarım sesi (whoosh, riser, shimmer, impact, pop) kodla (sfx_synth.py); organik ses (kağıt, cam, su…) "
+            "note": "Earshot sesleri kodla üretilmiştir: organik sesin (kumaş, kağıt, sıvı) yerine geçmez. Eşleşme yoksa: tasarım sesi (whoosh, riser, shimmer, impact, pop) kodla (sfx_synth.py); organik ses (kağıt, cam, su…) "
                     "önce İngilizce karşılığıyla yeniden aranır, yine yoksa ElevenLabs sfx ile (fiyat ve onay)."}
 
 
@@ -142,8 +184,9 @@ def main() -> None:
     ap.add_argument("--query", required=True)
     ap.add_argument("--profile-dir")
     ap.add_argument("--limit", type=int, default=10)
+    ap.add_argument("--include-flagged", action="store_true", help="Earshot denetiminde uyarı alan sesleri de listele (dinleyerek seç)")
     a = ap.parse_args()
-    emit(search(a.query, Path(a.profile_dir) if a.profile_dir else None, a.limit))
+    emit(search(a.query, Path(a.profile_dir) if a.profile_dir else None, a.limit, a.include_flagged))
 
 
 if __name__ == "__main__":

@@ -11,7 +11,8 @@ def _rel(query, **kw):
 def test_missing_turkish_tags():
     assert "ai-product-video/assets/audio/sfx/crowd/applause-rhythmic-loop.mp3" in _rel("alkış")
     assert _rel("kalp") == ["ai-product-video/assets/audio/sfx/crowd/heartbeat-single.mp3"]
-    assert _rel("ışıltı") and all("/sfx/light/" in r for r in _rel("ışıltı"))  # önceden cam kırılma sesleri önce geliyordu
+    # önceden cam kırılma sesleri önce geliyordu; 2.6.0'dan beri Earshot shimmer ailesi Mixkit "light"tan önce gelir
+    assert _rel("ışıltı") and all("/sfx/light/" in r or "shimmer/" in r for r in _rel("ışıltı"))
 
 
 def test_suffixed_query_uses_root():
@@ -21,7 +22,8 @@ def test_suffixed_query_uses_root():
 
 
 def test_category_breaks_ties():
-    assert all("/sfx/transition/" in r for r in _rel("geçiş", limit=5))
+    # 2.6.0: Earshot whoosh aileleri (dağıtılabilir) Mixkit transition'dan önce; ikisi de "geçiş" ailesidir
+    assert all("whoosh" in r.split("/")[-2] or "/sfx/transition/" in r for r in _rel("geçiş", limit=5))
     assert all("interface-sounds/click" in r for r in _rel("tık", limit=3))  # CC0 önceliği korunur
 
 

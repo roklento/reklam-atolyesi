@@ -31,13 +31,25 @@ S10 tamam: `ready` üretim planı ve öz denetimden geçmiş önizleme.
    Kullanıcının seslendirmesi ve tutulan konuşma için gürültü azaltma + yüksek geçiren filtre.
 4. **Yeni efekt ihtiyacı** (S10 yeni `audio_cues` eklediyse; yoğunluk kuralı: 1 saniyede ≤ 2, aynı efekt 2 sn içinde tekrar yok — 1.5.0):
    önce ses kütüphanesi (`sfx_library.py`; profil kütüphanesi → CC0 çekirdek `vendor-skills/sfx-cc0/` (Kenney: arayüz, dijital,
-   darbe/adım sesleri, kısa müzik vuruşları) → Mixkit arşivi; Türkçe sorgu da olur: "tık", "darbe cam", "onay") ve kodla sentez (`sfx_synth.py`);
+   darbe/adım sesleri, kısa müzik vuruşları) → Earshot bankası `vendor-skills/sfx-earshot/` (2.6.0; kodla üretilmiş 236 temiz ses: whoosh,
+   riser, downlifter, logo sting, sub drop, glitch, klavye, bildirim) → Mixkit arşivi; Türkçe sorgu da olur: "tık", "darbe cam", "onay",
+   "logo", "iniş") ve kodla sentez (`sfx_synth.py`); Earshot denetiminde uyarılı 16 ses yalnızca `--include-flagged` ile ve dinlenerek;
    ElevenLabs gerekiyorsa fiyat ve onay **S11 içinde** alınır (S09 kapısı yeniden açılmaz).
+   **Aday anlar (2.7.0):** önizlemeden ya da ham çekimden `PY PR/scripts/analyze/sfx_moments.py --video <önizleme.mp4> --plan <plan.json>
+   --frames-dir analysis/sfx-anlar --out analysis/sfx_moments.json` → kesme, ani hareket, hareketin başlaması ve durması (ürün masaya
+   kondu, kapak oturdu); `uncovered` listesindeki adayların karelerine bakılır, yalnız görüntüye gerçekten uyanlar cue olur (yoğunluk
+   kuralı geçerli). Cue alanları: `at_s` (görüntüdeki an), isteğe bağlı `role` (impact, whoosh, riser, logo, click, pop…; yoksa dosya
+   adından), `anchor` (`auto` varsayılan: darbe/tık gövdesiyle, riser/whoosh/logo doruğuyla, müzik/ortam başıyla kareye oturur;
+   `start` 2.6 davranışı), `level` (`role` varsayılan: türün tepe hedefi; `file` dosyanın kendi seviyesi), `gain_db` (ince ayar).
 5. **Miks:** `PY PR/scripts/audio/mix.py --plan <plan.json> --scene-audio footage/scenes/map_final.json (ya da map_proxy.json)
    --music <müzik.wav> --vo <vo.wav> --sfx-map audio/sfx/map.json --out-dir audio/stems [--duck-db 4.5]`
    → stem'ler (diyalog, VO, müzik, efekt) ayrı; müzik VO/konuşmanın 4–5 dB altında + konuşma anlarında ek kısma; çekim sesi ↔ üretilmiş
    ses geçişleri kısa çapraz geçişle; efektler kare hassasiyetinde (kesimler ve reveal anı); iki geçişli `loudnorm` → **-14 LUFS entegre,
-   ≤ -1 dBTP**, `pyloudnorm` doğrulaması (`mix_report.json`).
+   ≤ -1 dBTP**, `pyloudnorm` doğrulaması (`mix_report.json`; `sfx_placed`: her efektin türü, oturma noktası, kaydırması, kazancı).
+   **Efekt öz puanlaması (2.7.0):** `PY PR/scripts/qc/sfx_review.py --mix-report audio/stems/mix_report.json --plan <plan.json>
+   --moments analysis/sfx_moments.json --out audio/stems/sfx_review.json` → senkron, seviye, konuşma üstü, yoğunluk, kapsama, kesilme
+   eksenleri (1–10, geçme 8) ve en kötü üç sorun. Yalnız bu üçü düzeltilir, yeniden miks, tekrar puan. `listen` listesindeki en fazla 5
+   an taslak kapısında kullanıcıya zaman koduyla verilir: "şu anları telefonda dinle". Puan "dinlendi" demek değildir.
 6. **Telefon testi:** `PY PR/scripts/audio/loudness.py phone --in audio/stems/mix_final.wav --out audio/stems/phone_test.wav` (300–3400 Hz
    bant). Oturumda dosyayı gerçekten dinleyebilen doğrulanmış araç yoksa **kullanıcı dinler**; seslendirme anlaşılır olmalı. Ölçüm
    sesin doğal/anlaşılır olduğunu tek başına doğrulamaz: dinleyen, dosya sürümü ve sonuç çıktıda tutulur.
@@ -53,14 +65,15 @@ S10 tamam: `ready` üretim planı ve öz denetimden geçmiş önizleme.
     cycle_id)` → `awaiting_gate`.
 
 ## Çıktılar
-`audio/stems/` (stem'ler, `mix_pre.wav`, `mix_final.wav`, `phone_test.wav`, `mix_report.json`), `audio/beats.json`, altyazı parçaları,
+`audio/stems/` (stem'ler, `mix_pre.wav`, `mix_final.wav`, `phone_test.wav`, `mix_report.json`, `sfx_review.json`), `analysis/sfx_moments.json`, `audio/beats.json`, altyazı parçaları,
 miksli taslak, dinleme notu (`analysis/c<tur>-dinleme.md`: kim dinledi, hangi dosya/sürüm, sonuç), devam notu.
 
 ## Kontroller
 - Her sahnenin `audio.mode`'u uygulandı (`mix_report.applied_modes`); kamerada konuşan sahnede ses değiştirilmedi.
 - Loudness -14 LUFS (±1) ve ≤ -1 dBTP ölçümle doğrulandı; telefon testi dinlendi (ya da kullanıcı kontrolü bekliyor diye yazıldı).
 - Altyazı = VO metni; ücretli yeni efekt/temizlik onaysız yapılmadı.
+- Efekt varsa `sfx_review.json` üretildi; 8'in altındaki eksen ya düzeltildi ya da kapı mesajında gerekçesiyle yazıldı.
 
 ## Kapı mesajı
-"Taslak: <konsept/hook>, M sn, ses: VO <kaynak>, müzik <ad>, efektler <n>; -14,0 LUFS / -1,2 dBTP; telefon testi: <sonuç | senin
-dinlemen gerekiyor>. Referans tahtasıyla yan yana izle. Bu taslağı onaylıyor musun, neyi değiştirelim?" → açık onayda `gate_approve(...)`.
+"Taslak: <konsept/hook>, M sn, ses: VO <kaynak>, müzik <ad>, efektler <n> (öz puan en düşük eksen: <eksen puan>); -14,0 LUFS / -1,2 dBTP; telefon testi: <sonuç | senin
+dinlemen gerekiyor>; efekt için dinle: <zaman kodları>. Referans tahtasıyla yan yana izle. Bu taslağı onaylıyor musun, neyi değiştirelim?" → açık onayda `gate_approve(...)`.

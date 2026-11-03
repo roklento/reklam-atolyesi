@@ -90,7 +90,11 @@ _scene = {
         "layers": {"type": "array", "items": _layer},
         "transition_out": {"type": "object", "properties": {"type": {"type": "string"}, "dur_s": {"type": "number", "minimum": 0}}},
         "audio_cues": {"type": "array", "items": {"type": "object", "required": ["at_s"],
-                                                   "properties": {"sfx": {"type": "string"}, "at_s": {"type": "number", "minimum": 0}}}},
+                                                   "properties": {"sfx": {"type": "string"}, "at_s": {"type": "number", "minimum": 0},
+                                                                  # 2.7.0: oturma noktası, tür ve seviye (scripts/audio/sfx_place.py)
+                                                                  "anchor": {"enum": ["auto", "start", "arrive", "peak"]},
+                                                                  "role": {"type": "string"}, "level": {"enum": ["role", "file"]},
+                                                                  "gain_db": {"type": "number", "minimum": -40, "maximum": 12}}}},
         "speaking_person": {"type": "boolean"},
     },
 }
