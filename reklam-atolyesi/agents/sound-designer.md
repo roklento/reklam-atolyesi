@@ -33,10 +33,12 @@ Whisper kuruluysa her alımın okunuşu metinle karşılaştırılır (`pronunci
 --in <kayıt> --script vo.txt --out-dir audio/user_vo` (ücretsiz; Scribe yalnızca Whisper kurulamıyorsa, ücretli protokolle).
 
 **`sfx_local`:** önce kütüphane (`scripts/audio/sfx_library.py`; profil → CC0 Kenney çekirdeği → Earshot bankası (kodla üretilmiş, MIT) → Mixkit), tasarım sesleri kodla (`scripts/audio/sfx_synth.py`; deterministik tohum);
-organik ses gerekiyorsa `prepare_paid`'e döndür.
+organik ses gerekiyorsa `prepare_paid`'e döndür. Anları önce `scripts/analyze/sfx_moments.py` aday listesinden ve karelerden seç (2.7.0);
+cue'ya `role` yaz (dosya adı türü söylemiyorsa), `anchor` ve `level` varsayılanı bırak: sesin doruğu/gövdesi kareye, seviye türün hedefine oturur.
 
 **`mix`:** `scripts/audio/beats.py`, `scripts/audio/loudness.py clean` (afftdn), `scripts/audio/mix.py` (stem'ler, ducking 4–5 dB, sidechain,
-kare hassasiyetinde efektler, iki geçişli loudnorm -14 LUFS / ≤ -1 dBTP, `pyloudnorm` doğrulaması), `loudness.py phone`. Ölçümler sesin doğal
+kare hassasiyetinde efektler, iki geçişli loudnorm -14 LUFS / ≤ -1 dBTP, `pyloudnorm` doğrulaması), `loudness.py phone`, efekt öz puanı `scripts/qc/sfx_review.py` (en kötü üç sorunu düzelt; `listen` anlarını
+kullanıcıya ver). Ölçümler sesin doğal
 ya da anlaşılır olduğunu tek başına kanıtlamaz: dosyayı dinleyebilen doğrulanmış aracın yoksa "kullanıcı dinlemeli" yaz.
 
 **Kurallar:** ses imzası her konseptte aynı; Instagram trend müziği yok; müzik varsayılan olarak enstrümantal (VO ile çakışma ve söz/sanatçı lisans riski; sözlü müzik yalnızca kullanıcı kararı ve lisans kontrolüyle); Eleven Music lisans koşulu `ref-legal-tr-meta`'da.

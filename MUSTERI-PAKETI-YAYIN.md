@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.6.0
+# Müşteri paketi — 2.7.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.6.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.7.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.7.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Yeni miksler efekti türüne göre
+kareye oturtur ve seviyesini türün hedefine getirir: aynı plan yeniden miksleneyse riser ve whoosh öncekinden erken başlar, doruğu kareye
+gelir. Önceki davranış cue'ya `anchor: "start"`, `level: "file"` yazılarak korunur; teslim edilmiş eski dosyalar değişmez.
 2.6.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Plugin'e 252 sesli Earshot efekt
 bankası eklendi (≈ 6 MB); efekt araması bu sesleri de önerir. Eski projelerde seçilmiş efektler değişmez.
 2.5.0 migration 009 içerir (yalnızca tablo ekler: taslak denetimi kayıtları); güncelleyici uygular, mevcut kayıtlar değişmez. Yeni

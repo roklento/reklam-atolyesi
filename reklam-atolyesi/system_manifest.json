@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.6.0",
+ "plugin_version": "2.7.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -317,7 +317,7 @@
    "name": "sound",
    "kind": "stage",
    "description": "reklam-atolyesi S11 ses — sahne ses kararlarını uygular, vuruş haritası, temizlik, ducking, -14 LUFS/≤-1 dBTP miks, telefon testi, altyazı; taslağı kullanıcıyla izletir. Kapılı (taslak).",
-   "sha256": "426b196d73196389fdf072cc554750b2123fa93fe0c246a2b7cc5c9725160f54"
+   "sha256": "8c9dcd8b1587c1c7d4939a7d9b20fd0f49b53d14ea9d209b14b41358a53098b3"
   },
   {
    "name": "strategy",
@@ -398,7 +398,7 @@
   {
    "name": "sound-designer",
    "description": "reklam-atolyesi ses tasarımcısı. Sahne ses kararlarını önerir, seslendirme/müzik/efekt hatlarını (ücretli üretim yalnızca tahmin → onay → rezervasyonla) hazırlar, miksi -14 LUFS / ≤ -1 dBTP'ye getirir, ses imzasını korur. S09 ve S11.",
-   "sha256": "505734e890ccca9dfcb1951c23e95a7680e272cf9597fb81e2023e91edf672b5"
+   "sha256": "d674594dfbf0112ca302fa18d59c1706811c28dab1206d9946f04c6b6489fbc7"
   }
  ],
  "commands": [
@@ -828,6 +828,10 @@
   "organic: organik açıklama denetimi (görünen baş, etiket, yönlendirme)": "scripts/organic/caption_check.py",
   "audio: sahne sesi ve miks": "scripts/audio/mix.py",
   "audio: ses kütüphanesi": "scripts/audio/sfx_library.py",
+  "audio: efektin kareye oturması (başlangıç/gövde/doruk) ve türe göre seviye": "scripts/audio/sfx_place.py",
+  "analyze: görüntüden ses efekti aday anları (kesme, ani hareket, başlama, durma)": "scripts/analyze/sfx_moments.py",
+  "qc: efekt öz puanlaması (senkron, seviye, konuşma üstü, yoğunluk, kapsama, kesilme) ve dinleme listesi": "scripts/qc/sfx_review.py",
+  "setup: Earshot ses bankasını yeniden üretme (geliştirici)": "scripts/setup/sfx_earshot_build.py",
   "render: render, still, galeri, Türkçe final, eski kampanya projesinin güvenli güncellenmesi (upgrade)": "scripts/render/render.py",
   "render: Remotion programatik render": "scripts/render/render.mjs",
   "render: export ve adlandırma": "scripts/render/export.py",
@@ -906,11 +910,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 576,
+   "passed": 582,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "576 passed, 0 failed, 6 skipped (2.6.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v260_sfx_earshot.py (Earshot bankası: 252 kayıtlı dosya, 236 temiz, uyarılıların varsayılan aramada gizlenmesi, kayıtsız/değişmiş dosya, Türkçe aile sözcükleri, kaynak sırası, vendor kaydı); tests/test_v181_sfx.py iki beklenti yeni sıraya göre güncellendi.",
+   "summary": "582 passed, 0 failed, 6 skipped (2.7.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v270_sfx_place.py (efekt oturma noktası start/arrive/peak ve türden/şekilden çıkarımı, türe göre seviye ve 18 dB yükseltme sınırı, miksin riser doruğunu kareye koyması, plan şemasının yeni cue alanları, sentetik videoda kesme/başlama/durma anları ve plan kapsaması, efekt öz puanlama eksenleri ve dinleme listesi).",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-11-03",
@@ -1375,7 +1379,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.3.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.3.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1633,6 +1637,13 @@
     "kusur": 0,
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; CREDITS_FIT.md'deki Freesound kullanıcı adları CC0 kaydedenlerin üçüncü taraf atfıdır, marka verisi değildir; ses dosyaları kodla üretilmiştir, marka içermez"
+   },
+   {
+    "scope": "2.7.0: efekt yerleştirme ve öz puanlama (scripts/audio/sfx_place.py, scripts/analyze/sfx_moments.py, scripts/qc/sfx_review.py, mix.py, editplan şeması, manifest işlev haritası, sound SKILL, sound-designer, testler, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 14,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama; tek eşleşme testteki sahte '<yol>/...' yoludur (mutlak yol klasörünün tür sayılmadığını sınar, gerçek makine yolu değildir); fark satır satır okundu; Clipwing real-sfx yalnız yöntem kaynağı olarak anılır, kod kopyalanmadı"
    }
   ],
   "remaining_defects": [],
@@ -1643,15 +1654,15 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "904ad80dd5cc64156b82466767271b81d5c77cc75fab5d716481db2da835724e",
+   "plugin_json": "2f79d41ebe67b35fb6b4f0ab9e9d2ed61723bbc216518536c3e147530ecf2184",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "1c55711939b5fc3bafa41a0790ddc4b9ca4a2415292559977230ffb39533cddd",
-   "agents": "28f618df105ef7611ba1bad3032e606f8b723da8c47572912e6bb18085a5573c",
+   "skills": "ad4cc2f2ee9bdb215f99ce244fbe7da7997e61c4f52edd8256b912b558f799c2",
+   "agents": "5a4441d6bbfd77b5ae176ecadd39324a58b01e480c113aa62930cbba12f820d2",
    "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "054718b2b21236c9f38b2b4df6030c47ea68301ae274685378cb941092ff9063",
-   "ad_memory": "f130ad2876a2cf667fa4a9ec13b15d79003e71b5797736787fb3f0b3edae2c7e",
-   "scripts": "1045137ee356028eca72c6b428ca918c966362bea5bb68c5d5ecee34081c431c",
+   "ad_memory": "5188adb5141fed7efff99f4a36157ebcfd3d99088190a5e4360c59e85a6fc9be",
+   "scripts": "45e43b4d26e26148178d03df1382cfd356eb6475bf741025e7972c24e1736a10",
    "templates": "2681b3b8a8a3a0945b704ce49b4083ee31730f0c49891bc5e2b06fcadaade110",
    "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
    "rules": "5f151186a3229b23430755b35b67e6b29ee655d4378d725b1e4252e429ee9799",
@@ -1814,15 +1825,15 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "904ad80dd5cc64156b82466767271b81d5c77cc75fab5d716481db2da835724e",
+  "plugin_json": "2f79d41ebe67b35fb6b4f0ab9e9d2ed61723bbc216518536c3e147530ecf2184",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "1c55711939b5fc3bafa41a0790ddc4b9ca4a2415292559977230ffb39533cddd",
-  "agents": "28f618df105ef7611ba1bad3032e606f8b723da8c47572912e6bb18085a5573c",
+  "skills": "ad4cc2f2ee9bdb215f99ce244fbe7da7997e61c4f52edd8256b912b558f799c2",
+  "agents": "5a4441d6bbfd77b5ae176ecadd39324a58b01e480c113aa62930cbba12f820d2",
   "commands": "b9b36d7de2216af9c6cb005c34a7f155c13ea7fdea8b414767170e5313cee102",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "054718b2b21236c9f38b2b4df6030c47ea68301ae274685378cb941092ff9063",
-  "ad_memory": "f130ad2876a2cf667fa4a9ec13b15d79003e71b5797736787fb3f0b3edae2c7e",
-  "scripts": "1045137ee356028eca72c6b428ca918c966362bea5bb68c5d5ecee34081c431c",
+  "ad_memory": "5188adb5141fed7efff99f4a36157ebcfd3d99088190a5e4360c59e85a6fc9be",
+  "scripts": "45e43b4d26e26148178d03df1382cfd356eb6475bf741025e7972c24e1736a10",
   "templates": "2681b3b8a8a3a0945b704ce49b4083ee31730f0c49891bc5e2b06fcadaade110",
   "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
   "rules": "5f151186a3229b23430755b35b67e6b29ee655d4378d725b1e4252e429ee9799",

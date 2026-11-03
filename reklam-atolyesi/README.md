@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.6.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.7.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,21 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.7.0** — efektin kareye oturması, türe göre seviye, görüntüden aday anlar, efekt öz puanlaması
+- **Oturma noktası (`scripts/audio/sfx_place.py`):** miks artık efektin ilk örneğini değil, türüne göre doğru noktasını kareye koyar:
+  darbe, tık, pop, bildirim gövdesiyle (`arrive`); riser, whoosh, swell, logo sting doruğuyla (`peak`); müzik vuruşu ve ortam sesi
+  başıyla (`start`). Tür cue'nun `role` alanından, yoksa dosya adından; o da yoksa sesin biçiminden çıkarılır. Önceden 0,9 sn'de
+  doruğa çıkan bir riser kareden 0,9 sn sonra patlıyordu. Eski davranış `anchor: "start"`.
+- **Türe göre seviye:** efektin tepesi türünün hedefine getirilir (darbe -4, whoosh -9, riser -12, tık -14, ortam -24 dBFS; en fazla
+  +18 dB yükseltme), `gain_db` ince ayardır. Eski davranış `level: "file"`. `mix_report.sfx_placed` her efektin kararını yazar.
+- **Aday anlar (`scripts/analyze/sfx_moments.py`):** önizlemeden ya da ham çekimden kesme, ani hareket, hareketin başlaması ve durması
+  (ürün masaya kondu, kapak oturdu); eşikler elde çekimin gürültüsüne uyarlanır. `--plan` ile sahnelere çevrilir, mevcut efektle
+  örtüşenler `covered`. Kareler bakılmak üzere yazılır; karar ajan ve kullanıcınındır.
+- **Efekt öz puanlaması (`scripts/qc/sfx_review.py`):** senkron, seviye, konuşma üstü, yoğunluk, kapsama, kesilme eksenleri (1–10, geçme 8),
+  en kötü üç sorun ve kullanıcının kulakla dinleyeceği en fazla 5 an. S11 kapı mesajına girer.
+- Plan şeması cue'da `anchor`, `role`, `level`, `gain_db` alanlarını tanır. Yöntem fikirleri Clipwing real-sfx'ten; depoda lisans dosyası
+  olmadığı için kod kopyalanmadı, hepsi sıfırdan yazıldı.
+
 **2.6.0** — Earshot ses bankası
 - Yeni dağıtılabilir efekt kaynağı `vendor-skills/sfx-earshot/`: Earshot'un (Leonxlnx/earshot, MIT, commit 591fa3e) tariflerinden kodla
   üretilmiş 252 ses (6,2 MB OGG): whoosh, swish, riser, downlifter, reverse swell, impact, sub drop, cut hit, logo sting, shimmer,
