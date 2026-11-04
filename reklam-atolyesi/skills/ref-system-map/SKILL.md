@@ -38,10 +38,12 @@ kayıtla cevaplamak.
    kayıtların kaybolacağı söylenir; Claude Code açıkken veritabanı kullanımdadır, bu yüzden kullanıcıya bütün Claude Code pencerelerini
    kapattıktan sonra bir terminalde çalıştıracağı tek komut verilir: `<py> PR/scripts/setup/db_restore.py restore --data-dir DD
    --backup <dosya> --confirm`. Önceki veritabanı `DD/db/onceki-<zaman>/` altında kalır.
-6. **Geri bildirim paketi (2.5.0, KURALLAR K15):** kullanıcı sağlayıcısına (plugin'i geliştiren ekibe) nerede takıldığını iletmek
-   isterse `feedback_preview(period_days=90)` → dönen özeti ve paketin tamamını göster ("içinde marka/ürün adı, dosya yolu, tutar, kişi
-   bilgisi ya da yazdığın bir metin yok; yalnızca sayılar ve aşama kodları") → kullanıcının açık onayında `feedback_export(approval_text)`
-   → dosya yolunu söyle (`DD/logs/geri-bildirim/`). Plugin dosyayı hiçbir yere göndermez; kullanıcı kendisi iletir. Sormadan hazırlanmaz.
+6. **Hata defteri (2.5.0, 2.8.0'de sadeleşti; KURALLAR K15):** müşteriye "paket", "önizleme", "dışa aktarma" denmez; "hata defteri"
+   denir. Bir hata olduğunda (hook bunu bir kez sorar) ya da kullanıcı "sorun var, geliştiriciye iletmek istiyorum" dediğinde sade
+   dille sorulur: "Bunu hata defterine yazıp geliştiriciye gönderelim mi? Defterde adınız, markanız, ürünleriniz ya da tutarlarınız
+   yer almaz." → `feedback_preview(period_days=90)` özetini madde madde göster (isterse tamamını) → "evet" derse
+   `feedback_export(approval_text=<kullanıcının sözü>)` → "Hata defterine yazdım. Dosya burada: <yol>. Bu dosyayı bize e-postayla ya da
+   WhatsApp'tan göndermeniz yeterli." Plugin dosyayı göndermez; kullanıcı gönderir. "Hayır" derse hiçbir şey yazılmaz. Sormadan yazılmaz.
 7. **Değişmez kurallar (2.5.0):** "kurallar ne", "neyi asla yapmazsın" sorularında `PR/KURALLAR.md` kısa listesi okunur ve sade dille
    anlatılır; her kuralın kodla zorlandığı yer de o dosyadadır.
 

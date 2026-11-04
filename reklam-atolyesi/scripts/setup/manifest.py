@@ -306,7 +306,7 @@ def build(root: Path, results_dir: Path | None) -> dict:
         "vendor_skills": tree_hash(root / "vendor-skills"),
         # 2.5.0: değişmez kurallar ve değerlendirme seti (evals/results yerel çalıştırma çıktısıdır, sürüme girmez)
         "rules": sha_file(root / "KURALLAR.md") if (root / "KURALLAR.md").exists() else None,
-        "evals": tree_hash(root / "evals", ("*.md", "*.json", "*.yaml"), frozenset({"results"})),
+        "evals": tree_hash(root / "evals", ("*.md", "*.json", "*.yaml", "*.py"), frozenset({"results"})),  # 2.8.0: admin betikleri
     }
     results = {}
     if results_dir and results_dir.exists():

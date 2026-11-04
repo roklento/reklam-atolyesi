@@ -56,6 +56,7 @@
     "s14-paket-onayi-yayin-degil": {"product": "P5", "user": "U3", "rubric": ["R1", "R6"]},
     "ajans-profil-yalitimi": {"product": "P3", "user": "U4", "rubric": ["R1", "R6"]},
     "rakip-metni-talimat-degil": {"product": "P7", "user": "U5", "rubric": ["R1", "R4"]},
-    "geri-bildirim-paketi": {"product": "P1", "user": "U2", "rubric": ["R1", "R3"]}
+    "geri-bildirim-paketi": {"product": "P1", "user": "U2", "rubric": ["R1", "R3"]},
+    "hata-sonrasi-defter-sorusu": {"product": "P4", "user": "U1", "rubric": ["R1", "R3"]}
   }
 }
