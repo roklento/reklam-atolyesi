@@ -3,6 +3,10 @@
 Her sürümde neyi değiştirdiğimizi ve bunun ne işe yaradığını tek yerde tutar. Sonraki revizeye başlarken ilk okunan dosya budur:
 daha önce bozduğu görülen bir değişiklik tekrar denenmez, işe yaradığı görülen bir biçim yeniden kullanılır.
 
+**Kapalı vakalar (2.10.0):** `evals/kapali/` altındaki vakalar düzeltme yazarken açılmaz. Bir düzeltmenin gördüğümüz vakaların
+dışında da işe yaradığını yalnızca onlar gösterir; açıp onlara göre düzeltme yapılırsa bu bilgi kaybolur. Ayrıntı:
+`evals/README.md` "Kapalı vakalar".
+
 ## Nasıl yazılır
 
 Her sürüm bir bölümdür. Bölümde üç şey olur:
@@ -12,14 +16,30 @@ Her sürüm bir bölümdür. Bölümde üç şey olur:
    - *Tür:* işleyiş (kapı, hook, araç, bütçe hesabı gibi nasıl çalıştığı) ya da uzman bilgisi (Meta kuralı, sektör, yasal liste,
      kreatif gibi ne bildiği).
    - *Etkilenen vaka ya da senaryo hücresi:* evals/vakalar/ adı ya da ürün × kullanıcı (ör. P4.U1).
-   - *Gözlenen fark:* eval puanı, kör karşılaştırma sonucu ya da sahadaki gösterge; nereden görüldüğüyle.
+   - *Gerekçe (2.10.0):* değişikliği ne istedi: bir saha imzası, bir vaka ya da bir revize. Gerekçe bir vaka adıysa, düzeltmenin o
+     vakanın dışında hangi ürün × kullanıcı hücrelerine de uyduğu aynı hücrede yazılır. Yalnızca o vakaya uyan bir düzeltme genel
+     kural değildir, yeniden yazılır.
+   - *Gözlenen fark:* eval puanı (`kor_kiyas.py puan` sonucu: iyileşti / geriledi / fark yok), kör karşılaştırma sonucu ya da sahadaki
+     gösterge; nereden görüldüğüyle. Puan "fark yok" diyorsa karar "yardım etti" yazılmaz.
+   - *Harcama farkı (2.10.0):* `kor_kiyas.py puan` raporundaki harcama değişimi (ör. "+%12") ya da "ölçülmedi".
    - *Karar:* **yardım etti**, **bozdu**, **etkisiz** ya da **karışık**. Aynı sürümde birden çok bileşen birlikte değiştiyse ve hiçbir
      vaka birini tek başına ayırmıyorsa karar "karışık"tır. Uydurulmuş bir neden-sonuç, sonraki sürümleri yanlış yönlendirir.
+   - Silinen bir bileşen için de satır yazılır ve karar sütununa **silindi** yazılır.
 2. **Sahada:** `python evals/defter_oku.py <defterler>` raporunun 1. tablosundaki bu sürümün satırı. İlk müşteri defterleri gelene
    kadar boş kalır; geldikçe doldurulur.
 3. **Ders (en fazla bir):** yalnızca değişiklik satırları destekliyorsa. *Ne zaman:* derslerin geçerli olduğu durumun biçimi (bu
    sürümün ayrıntısı değil). *Ne yap:* hangi bileşende ne yapılacağı. *Dayanak:* hangi satır(lar). *Güven:* yüksek, orta ya da düşük.
    Destek yoksa "ders yok" yazılır.
+
+## Silmeye aday parçalar (2.10.0)
+
+Revizeye başlarken `python evals/etki_ozeti.py` çalıştırılır. Betik bu dosyadaki tablolardan iki liste çıkarır:
+
+- **Silmeye aday:** en az iki sürümde "etkisiz" diye yazılmış ve hiç "yardım etti" almamış bileşenler.
+- **Ölçülmemiş:** üç ya da daha çok sürümde "ölçülecek" diye kalmış bileşenler. Bunlar ya ölçülür ya da etkisiz sayılır.
+
+Betik hiçbir şeyi silmez. Silme kararı admin'indir. Silinen parça bu dosyaya "silindi" diye yazılır ve kör karşılaştırmayla bir şeyi
+bozmadığı gösterilir.
 
 ## Yeni metin nereye konur
 
@@ -34,12 +54,12 @@ zaman duran metne bir satır eklenirse başka bir satır kısaltılır; CI özet
 
 **Değişiklikler**
 
-| Bileşen | Tür | Etkilenen vaka / hücre | Gözlenen fark | Karar |
-|---|---|---|---|---|
-| `hooks/error_notify.py` | işleyiş | hata-sonrasi-defter-sorusu (P4.U1) | Müşteriye "sağlayıcınıza gönderin" yerine tek ve sade soru; oturumda bir kez soruluyor (`tests/test_customer_update.py`) | ölçülecek (vaka yeni) |
-| `admem/s_feedback.py`, `admem/feedback.py` | işleyiş | geri-bildirim-paketi | Defter imza taşıyor (adım · ne oldu · kod · ürün × kullanıcı); anonimlik denetimi aynen geçiyor (`tests/test_v280_feedback_loop.py`) | yardım etti (test) |
-| `skills/ref-system-map`, `hooks/menu.json`, KURALLAR K15 | uzman bilgisi | geri-bildirim-paketi | Müşteriye "paket/önizleme/dışa aktarma" yerine "hata defteri" | ölçülecek |
-| `evals/defter_oku.py`, `evals/kor_kiyas.py` | işleyiş (admin) | — | Müşteri akışına girmez | — |
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `hooks/error_notify.py` | işleyiş | hata-sonrasi-defter-sorusu (P4.U1) | — (2.10.0 öncesi) | Müşteriye "sağlayıcınıza gönderin" yerine tek ve sade soru; oturumda bir kez soruluyor (`tests/test_customer_update.py`) | ölçülmedi | ölçülecek (vaka yeni) |
+| `admem/s_feedback.py`, `admem/feedback.py` | işleyiş | geri-bildirim-paketi | — (2.10.0 öncesi) | Defter imza taşıyor (adım · ne oldu · kod · ürün × kullanıcı); anonimlik denetimi aynen geçiyor (`tests/test_v280_feedback_loop.py`) | ölçülmedi | yardım etti (test) |
+| `skills/ref-system-map`, `hooks/menu.json`, KURALLAR K15 | uzman bilgisi | geri-bildirim-paketi | — (2.10.0 öncesi) | Müşteriye "paket/önizleme/dışa aktarma" yerine "hata defteri" | ölçülmedi | ölçülecek |
+| `evals/defter_oku.py`, `evals/kor_kiyas.py` | işleyiş (admin) | — | — (2.10.0 öncesi) | Müşteri akışına girmez | ölçülmedi | — |
 
 **Sahada:** ilk defterler gelince doldurulacak.
 
@@ -51,15 +71,33 @@ zaman duran metne bir satır eklenirse başka bir satır kısaltılır; CI özet
 
 **Değişiklikler**
 
-| Bileşen | Tür | Etkilenen vaka / hücre | Gözlenen fark | Karar |
-|---|---|---|---|---|
-| KURALLAR K16 + `skills/ref-sade-dil` | uzman bilgisi | s02-strateji-yeni-baslayan (P1.U1), s13-son-kontrol-sade (P3.U1), hata-sonrasi-defter-sorusu | Her oturumda bağlama giren tek kural; sözlük ve örnekler skill'de | ölçülecek (vakalar yeni) |
-| 25 skill'in kapı mesajı | uzman bilgisi | bütün hücreler | Kalıp mesajlarda iç ad ve terim kalmadı (`tests/test_v290_plain_language.py::test_gate_messages_are_plain`) | yardım etti (test) |
-| `admem/stages.py`, `hooks/menu.py`, `hooks/menu.json`, `hooks/error_notify.py`, `admem/feedback.py`, `scripts/audio/tts_local.py` | işleyiş | bütün hücreler | Koddan gelen metinler taramadan bulgusuz geçiyor; menü numaraları aynı (`tests/test_hooks.py`) | yardım etti (test) |
-| `templates/reports/*.md`, `scripts/analytics/report.py`, `scripts/analytics/coach.py` | uzman bilgisi | s02-*, s14-*, koçluk | Taslak denetimi başlık ve satır adlarını aynen buluyor (`tests/test_v250_drafts.py`); rapor taramadan geçiyor | yardım etti (test) |
-| `musteri-paketi/*`, `scripts/setup/windows/kurulum.ps1` | işleyiş | U1, U5 | Kurulum ve güncelleme mesajları sade; Windows güncelleyici testi yeni ifadeyi arıyor | ölçülecek (Windows'ta) |
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| KURALLAR K16 + `skills/ref-sade-dil` | uzman bilgisi | s02-strateji-yeni-baslayan (P1.U1), s13-son-kontrol-sade (P3.U1), hata-sonrasi-defter-sorusu | — (2.10.0 öncesi) | Her oturumda bağlama giren tek kural; sözlük ve örnekler skill'de | ölçülmedi | ölçülecek (vakalar yeni) |
+| 25 skill'in kapı mesajı | uzman bilgisi | bütün hücreler | — (2.10.0 öncesi) | Kalıp mesajlarda iç ad ve terim kalmadı (`tests/test_v290_plain_language.py::test_gate_messages_are_plain`) | ölçülmedi | yardım etti (test) |
+| `admem/stages.py`, `hooks/menu.py`, `hooks/menu.json`, `hooks/error_notify.py`, `admem/feedback.py`, `scripts/audio/tts_local.py` | işleyiş | bütün hücreler | — (2.10.0 öncesi) | Koddan gelen metinler taramadan bulgusuz geçiyor; menü numaraları aynı (`tests/test_hooks.py`) | ölçülmedi | yardım etti (test) |
+| `templates/reports/*.md`, `scripts/analytics/report.py`, `scripts/analytics/coach.py` | uzman bilgisi | s02-*, s14-*, koçluk | — (2.10.0 öncesi) | Taslak denetimi başlık ve satır adlarını aynen buluyor (`tests/test_v250_drafts.py`); rapor taramadan geçiyor | ölçülmedi | yardım etti (test) |
+| `musteri-paketi/*`, `scripts/setup/windows/kurulum.ps1` | işleyiş | U1, U5 | — (2.10.0 öncesi) | Kurulum ve güncelleme mesajları sade; Windows güncelleyici testi yeni ifadeyi arıyor | ölçülmedi | ölçülecek (Windows'ta) |
 
 **Sahada:** ilk defterler gelince doldurulacak. 2.8.0 defterleriyle karşılaştırırken bakılacak gösterge: "kullanıcı taslakta değişiklik
 istedi" imzasının sıklığı (anlaşılmayan mesaj çoğu zaman düzeltme isteği olarak döner).
 
 **Ders:** yok (değişiklikler aynı sürümde birlikte yapıldı; tek tek etkisini ayıran vaka henüz koşulmadı).
+
+---
+
+## 2.10.0 (2026-11-04): ezber önlemleri
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `evals/ezber_denetimi.py`, `.github/workflows/ci.yml` | işleyiş (admin) | — | Revize: RRSI "eleştirmen" fikri; sahadan gelen düzeltmelerin vakayı ezberlemesini önlemek | 2.9.0 farkında 7 eşleşme bulundu, hepsi plugin cümlesini bilerek alıntılayan iki vakadan; bu vakalar işaretlendi (`tests/test_v2100_overfit.py`) | yok (müşteriye girmez) | yardım etti (test) |
+| `evals/kapali/` (3 vaka), `senaryo-matrisi.json` → `kapali_cases` | işleyiş (admin) | P7.U8, P3.U3, P5.U5 | Revize: RRSI ayrık test grubu; K04, K12 ve U8 ilk kez model cevabıyla sınanıyor | Biçim doğrulandı (ücretsiz koşu); puanlar ilk yayın testinde | yayın testi yaklaşık +%23 | ölçülecek (vakalar yeni) |
+| `evals/kor_kiyas.py puan` | işleyiş (admin) | bütün vakalar | Revize: RRSI oynama payı, HarnessPro maliyet | Sahte JSON'larla sınandı; gerçek JSON'daki koşu puanı alan adı ilk yayın testinde doğrulanacak | yok | ölçülecek |
+| `evals/etki_ozeti.py`, etki defteri sütunları | işleyiş (admin) | — | Revize: RRSI budama | Bugünkü defterde silmeye aday yok | yok | — |
+| `CLAUDE.md` (depo kökü) | işleyiş (admin) | — | Kapalı vaka kuralının sonraki oturumlara geçmesi | Müşteri paketine girmez | yok | — |
+
+**Sahada:** müşteri akışı değişmedi; gösterge beklenmez.
+
+**Ders:** yok (yalnızca admin tarafı ölçüm araçları).

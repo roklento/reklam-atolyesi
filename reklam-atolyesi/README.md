@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.9.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,23 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.0** — ezber önlemleri: düzeltmelerin yalnızca test vakalarına değil, bütün müşterilere iyi gelmesi (admin tarafı)
+- Müşterinin gördüğü hiçbir şey değişmedi: akış, mesajlar, belgeler ve harcama aynı. Migration yok, yeni bağımlılık yok, müşteri paketi
+  değişmedi.
+- **Ezber denetimi:** CI, plugin metnine bu değişiklikte eklenen satırlarda bir vakadan birebir alınmış 6 kelimelik parça ya da vaka
+  adı varsa durur (`evals/ezber_denetimi.py`). Plugin cümlesini bilerek alıntılayan iki vaka matriste `"alinti": true` ile işaretli.
+- **Kapalı vakalar:** `evals/kapali/` altında, düzeltme yazarken açılmayan üç yeni vaka. İlk kez U8 kullanıcı (toplam sınırı yetmeyen),
+  K04 (yayındaki tur) ve K12 (kanıt eşiği) model cevabı düzeyinde sınanıyor. Yayın testi 13 vakadan 16 vakaya çıktı (yaklaşık %23
+  daha uzun ve pahalı).
+- **Oynama payı ve harcama:** `kor_kiyas.py puan` iki yayın testinin JSON çıktısını karşılaştırır: puan farkı eski sürümün kendi
+  koşuları arasındaki farktan büyük değilse "fark yok" sayılır; gerileyen vaka sürümü durdurur, kapalı vakadaki gerileme "ezbere
+  kayma şüphesi" diye işaretlenir. Harcama %20 ya da daha çok arttı ve hiçbir vaka iyileşmediyse uyarı verir.
+- **Etki defteri:** "Gerekçe" ve "Harcama farkı" sütunları; `evals/etki_ozeti.py` birkaç sürümdür işe yaramamış bileşenleri
+  "silmeye aday" diye listeler (hiçbir şeyi silmez).
+- Depo kökünde `CLAUDE.md`: bu depoda çalışan Claude oturumlarına kapalı vaka ve ezber kurallarını hatırlatır.
+- Yöntem fikirleri RRSI'den (google-research/rrsi, Apache 2.0, arXiv 2609.24972) ve HarnessPro'dan (pzs19/HarnessPro, MIT,
+  arXiv 2610.26770); kod ya da metin kopyalanmadı.
+
 **2.9.0** — sade ve net dil: kullanıcının gördüğü her yerde tam cümle, günlük kelimeler, iç ad yok (KURALLAR K16)
 - **Tek kural, her oturumda:** K16 "kullanıcıya sade Türkçe ve tam cümleyle yazılır: önce sonuç, sonunda tek soru; aşama kodu, araç
   ya da alan adı gösterilmez; terim ilk geçtiğinde açıklanır". Kısa liste her oturumda bağlama girdiği için modelin bütün konuşması

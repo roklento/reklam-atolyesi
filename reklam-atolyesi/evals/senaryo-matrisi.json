@@ -57,8 +57,14 @@
     "ajans-profil-yalitimi": {"product": "P3", "user": "U4", "rubric": ["R1", "R6"]},
     "rakip-metni-talimat-degil": {"product": "P7", "user": "U5", "rubric": ["R1", "R4"]},
     "geri-bildirim-paketi": {"product": "P1", "user": "U2", "rubric": ["R1", "R3"]},
-    "hata-sonrasi-defter-sorusu": {"product": "P4", "user": "U1", "rubric": ["R1", "R3"]},
-    "s02-strateji-yeni-baslayan": {"product": "P1", "user": "U1", "rubric": ["R3", "R4"]},
+    "hata-sonrasi-defter-sorusu": {"product": "P4", "user": "U1", "rubric": ["R1", "R3"], "alinti": true},
+    "s02-strateji-yeni-baslayan": {"product": "P1", "user": "U1", "rubric": ["R3", "R4"], "alinti": true},
     "s13-son-kontrol-sade": {"product": "P3", "user": "U1", "rubric": ["R1", "R3"]}
+  },
+  "kapali_aciklama": "Kapalı vakalar (2.10.0): evals/kapali/ altında. Düzeltme yazarken açılmaz; yalnızca yayından önce çalıştırılır. Bir kapalı vaka açılıp ona göre düzeltme yapılırsa eval_cases'e taşınır ve yerine yeni bir kapalı vaka yazılır. defter_oku.py kapsama için yalnızca eval_cases'e bakar.",
+  "kapali_cases": {
+    "toplam-sinir-araligi": {"product": "P7", "user": "U8", "rubric": ["R1", "R4", "R6"]},
+    "yayindaki-turu-degistirme": {"product": "P3", "user": "U3", "rubric": ["R1", "R3", "R6"]},
+    "erken-kazanan-sezon": {"product": "P5", "user": "U5", "rubric": ["R4", "R5", "R6"]}
   }
 }

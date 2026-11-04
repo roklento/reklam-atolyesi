@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.9.0",
+ "plugin_version": "2.10.0",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -916,11 +916,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 599,
+   "passed": 614,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "599 passed, 0 failed, 6 skipped (2.9.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v290_plain_language.py (sade dil tarayıcısı; aşama adları, ana menü, hata sorusu, hata defteri özeti, ses kurulumu, komut açıklamaları, Windows kurulum/güncelleme mesajları, kullanım kılavuzu, belge şablonları, koçluk raporu ve 25 skill'in kapı mesajı taramadan bulgusuz geçer; K16 her oturumun kurallar özetinde).",
+   "summary": "614 passed, 0 failed, 6 skipped (2.10.0, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v2100_overfit.py (ezber denetimi: birebir parça, vaka adı, Türkçe harf eşleme, satır sonunda bölünmüş cümle, alıntı vakası, bu daldaki farkın temizliği; kapalı vakaların matrisle tutarlılığı ve açık vakalarla aynı hücrede olmaması; defter okuyucunun kapalı vakalara bakmaması; oynama payı, kapalı vakada gerileme, eklentisiz kolun sayılmaması, harcama uyarısı, elle puan biçimi; etki özeti).",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-11-04",
@@ -1385,7 +1385,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.3.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.3.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1664,6 +1664,20 @@
     "kusur": 0,
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; yeni vakalardaki ürünler ('el yapımı sabun', 'çevrim içi yemek kursu') genel örneklerdir; sözlük ve örnek cümleler belirli bir markaya ait değildir"
+   },
+   {
+    "scope": "2.10.0: ezber önlemleri (evals/ezber_denetimi.py, evals/kapali/ 3 vaka, senaryo-matrisi.json kapali_cases + alinti işaretleri, evals/kor_kiyas.py puan, evals/etki_ozeti.py, etki defteri sütunları, evals/README, defter_oku açıklaması, CI, depo kökü CLAUDE.md, testler, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 20,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; kapalı vakalardaki ürünler ('süs seti', 'tasarım şablonu paketi') genel örneklerdir; test verisindeki 'kırmızı kupa bardağı' uydurma bir örnektir"
+   },
+   {
+    "scope": "2.10.0: ezber önlemleri (evals/ezber_denetimi.py, evals/kapali/ 3 vaka, senaryo-matrisi.json kapali_cases + alinti işaretleri, evals/kor_kiyas.py puan, evals/etki_ozeti.py, etki defteri sütunları, evals/README, defter_oku açıklaması, CI, depo kökü CLAUDE.md, testler, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 20,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; kapalı vakalardaki ürünler ('süs seti', 'tasarım şablonu paketi') genel örneklerdir; test verisindeki 'kırmızı kupa bardağı' uydurma bir örnektir"
    }
   ],
   "remaining_defects": [],
@@ -1674,19 +1688,19 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "00ede84590301ace5fc56ba9e4197d4223e3450c248e7332c558f06eb352ed05",
+   "plugin_json": "01cdac7bcfc8e8edec831c3601af78fcab7dda3891d541f0c7c332874baf819e",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
    "skills": "2479718354ca98c51c382526ae9f6a9aa633feea7eb9663fe5d10d16f30c9eac",
    "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
    "commands": "f27cb19532ea412d43e08c02a222944a4342eb7b86a282b080900a68b5f54cde",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "cf58fe083079ed5179e6e1ae3a56a49cf83ce5043c99d38061bb9316240cb1e7",
-   "ad_memory": "10f4c2ef19aa14ccb13207d42297d060352c8b4388de9898fbf23501885feb7c",
+   "ad_memory": "ecd39585229c48f4bbc20dfd0a22ac60b7caa4cb7d69eb53c2026dcab7d96c59",
    "scripts": "95935559933e321fb870b921ded10757e4e27169916e123066bc1ae2272cb5e1",
    "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
    "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
    "rules": "f2e2f1fe950351c92fe52c4da70ad3462e223d66741a641c823b90db55b0835c",
-   "evals": "8dc4fa2c3615992725124ecc7d0f314ca60823be66ea22eec7b25c587b52b64b"
+   "evals": "8eb09614b9c3cd9fafe28827d4b4bf7833fed909e380524890d646325271b222"
   },
   "checked_at": "2026-11-04"
  },
@@ -1845,19 +1859,19 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "00ede84590301ace5fc56ba9e4197d4223e3450c248e7332c558f06eb352ed05",
+  "plugin_json": "01cdac7bcfc8e8edec831c3601af78fcab7dda3891d541f0c7c332874baf819e",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
   "skills": "2479718354ca98c51c382526ae9f6a9aa633feea7eb9663fe5d10d16f30c9eac",
   "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
   "commands": "f27cb19532ea412d43e08c02a222944a4342eb7b86a282b080900a68b5f54cde",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "cf58fe083079ed5179e6e1ae3a56a49cf83ce5043c99d38061bb9316240cb1e7",
-  "ad_memory": "10f4c2ef19aa14ccb13207d42297d060352c8b4388de9898fbf23501885feb7c",
+  "ad_memory": "ecd39585229c48f4bbc20dfd0a22ac60b7caa4cb7d69eb53c2026dcab7d96c59",
   "scripts": "95935559933e321fb870b921ded10757e4e27169916e123066bc1ae2272cb5e1",
   "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
   "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
   "rules": "f2e2f1fe950351c92fe52c4da70ad3462e223d66741a641c823b90db55b0835c",
-  "evals": "8dc4fa2c3615992725124ecc7d0f314ca60823be66ea22eec7b25c587b52b64b"
+  "evals": "8eb09614b9c3cd9fafe28827d4b4bf7833fed909e380524890d646325271b222"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }
