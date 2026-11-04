@@ -7,7 +7,8 @@ tek bir Markdown rapor yazar:
 1. Sürüm başına saha göstergeleri: kaç defter, ilk turda geçen taslak oranı, düzeltme/geri dönüş/takılma/hata sayıları.
    Bu tablo `evals/etki-defteri.md`'deki sürüm satırının "sahada" bölümüne yapıştırılır.
 2. Tekrarlayan imzalar: aşama · ne oldu · kod · senaryo hücresi (ürün × kullanıcı) → kaç kez, kaç defterde.
-3. Kapsam: her tekrarlayan imza için onu kapsayan eval vakası var mı (evals/senaryo-matrisi.json → eval_cases)? Yoksa
+3. Kapsam: her tekrarlayan imza için onu kapsayan AÇIK eval vakası var mı (evals/senaryo-matrisi.json → eval_cases; kapalı
+   vakalara (kapali_cases) bilerek bakılmaz, 2.10.0)? Yoksa
    `--iskelet <klasör>` verilirse oraya doldurulmaya hazır bir vaka iskeleti yazar (prompt.md + graders/). İskelet bilerek evals/
    dışına yazılır: `claude plugin eval` evals/ altındaki her prompt.md'yi çalıştırır; iskelet doldurulup vakalar/ altına taşınınca ve
    matrise eklenince sete girer.

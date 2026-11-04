@@ -19,6 +19,8 @@ jobs:
         working-directory: reklam-atolyesi/servers/ad_memory
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 2.10.0: ezber denetimi önceki sürümle farkı okur
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
@@ -30,3 +32,5 @@ jobs:
         run: uv run --with pytest python -m pytest -q ../../tests
       - name: Sürüm, manifest ve nötrlük tutarlılığı
         run: uv run python ../../scripts/setup/ci_check.py
+      - name: Ezber denetimi (vakadan plugin metnine kopya yok)
+        run: uv run python ../../evals/ezber_denetimi.py

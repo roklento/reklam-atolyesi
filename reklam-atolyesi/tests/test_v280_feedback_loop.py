@@ -151,7 +151,8 @@ def test_ci_checks_script_refs_and_rules_size():
 
 
 def test_eval_cases_only_under_vakalar():
-    # claude plugin eval evals/**/prompt.md'yi vaka sayar: vaka klasörleri yalnızca vakalar/ altında, betikler ve etki defteri vaka değil
+    # claude plugin eval evals/**/prompt.md'yi vaka sayar: vaka klasörleri yalnızca vakalar/ (açık) ve kapali/ (2.10.0, kapalı)
+    # altında; betikler ve etki defteri vaka değil
     prompts = {p.parent.parent.name for p in (ROOT / "evals").rglob("prompt.md") if "results" not in p.parts}
-    assert prompts == {"vakalar"}, prompts
+    assert prompts == {"vakalar", "kapali"}, prompts
     assert (ROOT / "evals" / "etki-defteri.md").exists() and (ROOT / "evals" / "defter_oku.py").exists()
