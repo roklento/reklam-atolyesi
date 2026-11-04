@@ -234,4 +234,5 @@ def runtime_item(data_dir: Path, item_id: str, scope: str = "common") -> dict | 
 
 
 def setup_hint() -> str:
-    return "Kurulumu kontrol edin: plugin ayarlarında data_dir ve <data_dir>/.venv mevcut olmalı (doctor.py)."
+    return ("Kullanıcıya sade dille söyle: 'Kurulum tam bitmemiş görünüyor. Kurulum klasöründeki kur.cmd dosyasını bir kez daha "
+            "çalıştırman yeterli.' (Geliştirici için: plugin ayarlarında data_dir ve <data_dir>/.venv mevcut olmalı; doctor.py.)")

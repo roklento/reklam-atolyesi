@@ -1,5 +1,5 @@
 ---
-description: "Günlük takip işi (zamanlanmış): Meta okuma, metrikler, uyarılar"
+description: "Günlük takip (kendiliğinden çalışır): Meta'dan sonuçları okur, rakamları kaydeder ve dikkat edilmesi gerekenleri yazar"
 argument-hint: "--profile <id> --campaign <id>"
 ---
 

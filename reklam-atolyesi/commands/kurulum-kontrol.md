@@ -1,5 +1,5 @@
 ---
-description: "Canlı kurulum kontrolü: hesap bağlantıları, hook tetiklenmeleri, MCP şemaları, canlı kabul listesi"
+description: "Kurulumu canlı olarak kontrol eder: hesap bağlantıları, otomatik kontroller, Meta bağlantısı ve son kontrol listesi"
 argument-hint: "[madde-id]"
 ---
 

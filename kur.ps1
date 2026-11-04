@@ -25,7 +25,7 @@ function Write-Tamam([string]$t) { Write-Host "  [tamam] $t" -ForegroundColor Gr
 function Write-Uyari([string]$t) { Write-Host "  [uyarı] $t" -ForegroundColor Yellow }
 function Stop-Kurulum([string]$t) {
     Write-Host ""; Write-Host "  [hata] $t" -ForegroundColor Red
-    Write-Host "  Kurulum günlüğü: $script:Gunluk"
+    Write-Host "  Kurulum kayıt dosyası: $script:Gunluk"
     try { Stop-Transcript | Out-Null } catch { }
     exit 1
 }
@@ -118,7 +118,7 @@ function Set-EksikAyarlar {
     $proc = [System.Diagnostics.Process]::Start($psi)
     $proc.WaitForExit()
     Remove-Item $tmp -ErrorAction SilentlyContinue
-    if ($proc.ExitCode -ne 0) { Write-Uyari "Varsayılan ayarlar kaydedilemedi; Claude'da /plugin → reklam-atolyesi → Configure ile ayarlayabilirsiniz." }
+    if ($proc.ExitCode -ne 0) { Write-Uyari "Başlangıç ayarları kaydedilemedi. Kurulum yine de devam ediyor; ilk açılışta Reklam Atölyesi bunları size soracak." }
     else { Write-Tamam ("Varsayılan ayarlar: " + (($vals.Keys | ForEach-Object { "$_=$($vals[$_])" }) -join ", ")) }
 }
 function Get-OnerilenVeriKlasoru {
@@ -136,17 +136,17 @@ try { Start-Transcript -Path $script:Gunluk | Out-Null } catch { }
 Write-Host ""
 Write-Host "  Reklam Atölyesi — kurulum / güncelleme" -ForegroundColor White
 Write-Host "  Bu pencereyi kurulum bitene kadar kapatmayın. İlk kurulum internet hızına göre 20-40 dakika sürer."
-if ($DepoUrl -like "__*" -or $PazarAdi -like "__*") { Stop-Kurulum "Bu betik yayın betiğiyle hazırlanmamış (depo adresi boş). Sağlayıcınızdan güncel kur.cmd / kur.ps1 isteyin." }
-if (-not [Environment]::Is64BitOperatingSystem) { Stop-Kurulum "64 bit Windows gerekli." }
+if ($DepoUrl -like "__*" -or $PazarAdi -like "__*") { Stop-Kurulum "Bu kurulum dosyası eksik hazırlanmış. Geliştiriciden güncel kurulum dosyalarını isteyin." }
+if (-not [Environment]::Is64BitOperatingSystem) { Stop-Kurulum "Reklam Atölyesi için 64 bit Windows gerekiyor; bu bilgisayarda 32 bit Windows var." }
 
 # --- 1. git ve Claude Code ------------------------------------------------------------------------------------------------
-Write-Adim "1/5 git ve Claude Code"
+Write-Adim "1/5 Gerekli programlar: git ve Claude Code"
 Update-YolDegiskeni
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Stop-Kurulum "git gerekli ama winget yok. Microsoft Store'dan 'Uygulama Yükleyicisi'ni kurun ya da https://git-scm.com adresinden git'i kurup tekrar çalıştırın."
     }
-    Write-Host "  git kuruluyor ..."
+    Write-Host "  git programı kuruluyor (dosyaları indirmek için gerekli) ..."
     & winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements --silent
     Update-YolDegiskeni
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { Stop-Kurulum "git kurulamadı. https://git-scm.com adresinden kurup tekrar çalıştırın." }
@@ -155,7 +155,7 @@ Write-Tamam ((& git --version) -join " ")
 
 $script:ClaudeExe = Find-Claude
 if (-not $script:ClaudeExe) {
-    Write-Uyari "Claude Code komut satırı bulunamadı."
+    Write-Uyari "Claude Code bulunamadı; kuruluyor."
     if (-not (Read-EvetHayir "Anthropic'in resmi kurulum betiğiyle (claude.ai/install.ps1) Claude Code kurulsun mu?")) {
         Stop-Kurulum "Claude Code gerekli. https://code.claude.com adresinden kurup tekrar çalıştırın."
     }
@@ -176,22 +176,22 @@ if ($cv -lt $EnDusukClaude) {
 Write-Tamam "Claude Code $cv ($script:ClaudeExe)"
 
 # --- 2. GitHub erişimi ----------------------------------------------------------------------------------------------------
-Write-Adim "2/5 Depo erişimi"
+Write-Adim "2/5 İndirme izni (GitHub)"
 Write-Host "  İlk seferde tarayıcıda GitHub girişi açılabilir; size davet gönderilen GitHub hesabıyla giriş yapın."
 & git ls-remote --exit-code $DepoUrl HEAD | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Stop-Kurulum ("Depoya erişilemedi: $DepoUrl`n  GitHub hesabınızın bu depoya erişimi olmalı (sağlayıcınızın gönderdiği daveti GitHub'da kabul edin) " +
+    Stop-Kurulum ("Depoya erişilemedi: $DepoUrl`n  GitHub hesabınızın bu depoya erişimi olmalı (geliştiricinin gönderdiği daveti GitHub'da kabul edin) " +
         "ve doğru hesapla giriş yapmış olmalısınız. Yanlış hesapla giriş yaptıysanız Windows 'Kimlik Bilgileri Yöneticisi'nden github.com kaydını silip tekrar deneyin.")
 }
-Write-Tamam "Depoya erişim var"
+Write-Tamam "İndirme izni var"
 
 # --- 3. Marketplace -------------------------------------------------------------------------------------------------------
-Write-Adim "3/5 Reklam Atölyesi marketplace'i"
+Write-Adim "3/5 Reklam Atölyesi indirme kaynağı"
 $mk = Get-ClaudeJson @("plugin", "marketplace", "list", "--json")
 $var = $false
 if ($mk) { foreach ($m in $mk) { if ($m -and $m.name -eq $PazarAdi) { $var = $true } } }
 if ($var) {
-    if ((Invoke-Claude @("plugin", "marketplace", "update", $PazarAdi)) -ne 0) { Stop-Kurulum "Marketplace güncellenemedi." }
+    if ((Invoke-Claude @("plugin", "marketplace", "update", $PazarAdi)) -ne 0) { Stop-Kurulum "Reklam Atölyesi indirme kaynağı güncellenemedi. İnternet bağlantınızı kontrol edip kur.cmd dosyasını yeniden çalıştırın." }
     Write-Tamam "Güncellendi"
 } else {
     if ((Invoke-Claude @("plugin", "marketplace", "add", $DepoUrl)) -ne 0) { Stop-Kurulum "Marketplace eklenemedi ($DepoUrl)." }
@@ -199,21 +199,21 @@ if ($var) {
 }
 
 # --- 4. Plugin -----------------------------------------------------------------------------------------------------------
-Write-Adim "4/5 Plugin"
+Write-Adim "4/5 Reklam Atölyesi"
 $kurulu = Get-KuruluPlugin
 $guncelleme = $false
 if ($kurulu) {
     $guncelleme = $true
     $dd = Get-KayitliVeriKlasoru
-    if (-not $dd) { Stop-Kurulum "Plugin kurulu ama kayıtlı veri klasörü okunamadı. Claude'da /plugin → reklam-atolyesi → Configure ile veri klasörünü kontrol edin." }
-    Write-Host "  Kurulu sürüm: $($kurulu.version) · veri klasörü: $dd"
-    if ((Invoke-Claude @("plugin", "update", "$PluginAdi@$PazarAdi", "--scope", "user")) -ne 0) { Stop-Kurulum "Plugin güncellenemedi." }
+    if (-not $dd) { Stop-Kurulum "Reklam Atölyesi kurulu ama verilerin durduğu klasör bulunamadı. Bu mesajı geliştiriciye gönderin." }
+    Write-Host "  Kurulu sürüm: $($kurulu.version). Veri klasörü: $dd"
+    if ((Invoke-Claude @("plugin", "update", "$PluginAdi@$PazarAdi", "--scope", "user")) -ne 0) { Stop-Kurulum "Reklam Atölyesi güncellenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin." }
     if (-not $kurulu.enabled) { Invoke-Claude @("plugin", "enable", "$PluginAdi@$PazarAdi", "--scope", "user") | Out-Null }
 } else {
     $dd = $VeriKlasoru
     if (-not $dd) {
         $oneri = Get-OnerilenVeriKlasoru
-        Write-Host "  Veri klasörü: markalarınızın verisi, çekimler, render'lar ve bağımlılıklar burada tutulur (önerilen ≥ 50 GB boş alan)."
+        Write-Host "  Veri klasörü: markalarınızın bilgileri, çekimleriniz, hazırlanan videolar ve gerekli programlar burada durur (en az 50 GB boş yer önerilir)."
         $g = Read-Host "  Veri klasörü [Enter = $oneri]"
         $dd = if ($g -and $g.Trim()) { $g.Trim().Trim('"') } else { $oneri }
     }
@@ -221,17 +221,17 @@ if ($kurulu) {
     $dd = [System.IO.Path]::GetFullPath($dd)
     if ($dd.TrimEnd("\") -eq [System.IO.Path]::GetPathRoot($dd).TrimEnd("\")) { Stop-Kurulum "Sürücünün kökü veri klasörü olamaz; bir alt klasör verin." }
     New-Item -ItemType Directory -Force -Path $dd | Out-Null
-    if ((Invoke-Claude @("plugin", "install", "$PluginAdi@$PazarAdi", "--scope", "user", "--config", "data_dir=$dd")) -ne 0) { Stop-Kurulum "Plugin kurulamadı." }
+    if ((Invoke-Claude @("plugin", "install", "$PluginAdi@$PazarAdi", "--scope", "user", "--config", "data_dir=$dd")) -ne 0) { Stop-Kurulum "Reklam Atölyesi kurulamadı. İnternet bağlantınızı kontrol edip kur.cmd dosyasını yeniden çalıştırın." }
 }
 Set-EksikAyarlar
 $kurulu = Get-KuruluPlugin
-if (-not $kurulu -or -not $kurulu.installPath) { Stop-Kurulum "Plugin kurulumu doğrulanamadı (claude plugin list)." }
+if (-not $kurulu -or -not $kurulu.installPath) { Stop-Kurulum "Reklam Atölyesi kuruldu ama kurulumu doğrulanamadı. Bu mesajı geliştiriciye gönderin." }
 Write-Tamam "reklam-atolyesi $($kurulu.version) · $($kurulu.installPath)"
 
 # --- 5. Plugin'in kurulum adımları -----------------------------------------------------------------------------------------
-Write-Adim "5/5 Araçlar, bağımlılıklar ve doğrulama"
+Write-Adim "5/5 Video, ses ve hesap araçları; son kontrol"
 $ic = Join-Path $kurulu.installPath "scripts\setup\windows\kurulum.ps1"
-if (-not (Test-Path $ic)) { Stop-Kurulum "Plugin içinde kurulum adımları bulunamadı: $ic" }
+if (-not (Test-Path $ic)) { Stop-Kurulum "İndirilen dosyalarda kurulum adımları eksik ($ic). Bu mesajı geliştiriciye gönderin." }
 $p = @{ DataDir = $dd; Claude = $script:ClaudeExe }
 if ($guncelleme) { $p.Guncelleme = $true }
 if ($DogrulamaYok) { $p.DogrulamaYok = $true }
@@ -242,10 +242,10 @@ Write-Host ""
 Write-Host "  $(if ($DogrulamaYok) { "KURULUM ADIMLARI TAMAMLANDI (doğrulama atlandı; tamamlamak için -DogrulamaYok olmadan yeniden çalıştırın)" } else { "KURULUM TAMAMLANDI" })" -ForegroundColor Green
 if (-not $DogrulamaYok) {
     Write-Host "  1. Claude masaüstü uygulamasını tamamen kapatın (sistem tepsisindeki simgeden 'Çıkış') ve yeniden açın."
-    Write-Host "  2. Yeni bir oturum açıp yalnızca şunu yazın:  reklam-atolyesi"
-    Write-Host "  3. İlk açılışta ElevenLabs ve Meta (salt okuma) hesaplarınızı bağlamanız istenecek."
-    if ($guncelleme) { Write-Host "  Güncellemeden sonra ilk açılışta canlı kontroller yeniden yapılır." }
+    Write-Host "  2. Yeni bir sohbet başlatıp yalnızca şunu yazın:  reklam-atolyesi"
+    Write-Host "  3. İlk açılışta ElevenLabs ve Meta hesaplarınızı bağlamanız istenecek (Meta'da yalnızca okuma izni verilir; reklamlarınız değiştirilmez)."
+    if ($guncelleme) { Write-Host "  Güncellemeden sonraki ilk açılışta hesap bağlantıları yeniden kontrol edilir." }
 }
-Write-Host "  Kurulum günlüğü: $script:Gunluk"
+Write-Host "  Kurulum kayıt dosyası: $script:Gunluk"
 try { Stop-Transcript | Out-Null } catch { }
 exit 0

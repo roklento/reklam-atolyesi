@@ -1,5 +1,5 @@
 ---
-description: "Son koçluk raporunu ya da güncel performans özetini gösterir"
+description: "Son sonuç yorumunu ya da reklamların güncel durumunun özetini gösterir"
 ---
 
 Bu komut oturumu plugin moduna alır (UserPromptSubmit/UserPromptExpansion hook'u `/reklam-atolyesi:` önekinden tanır); hook bağlamındaki `session_id`, `plugin` ve `data_dir` değerlerini kullan. Maliyet koruması ve Meta izin listesi bu oturumda geçerlidir.

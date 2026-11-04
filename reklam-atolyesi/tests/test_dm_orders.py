@@ -214,7 +214,7 @@ def test_ledger_precedence_and_store_vs_meta(store, tmp_path, clock):
     dm = an["dm"]
     assert dm["totals"]["won"] == 2 and dm["won_via_store_link"] == 1 and dm["won_off_store"]["count"] == 1
     md = RP.build(an, json.load(open(snap["path"], encoding="utf-8")), {}, None, None, None)
-    assert "Mesajla satış:" in md and "Meta ↔ mağaza" in md and "sayılmadı" in md
+    assert "Mesajla satış:" in md and "Meta ve mağaza karşılaştırması" in md and "sayılmadı" in md
     # aynı veri → aynı kopya (bugünün tarihine bağlı değil)
     assert store.decision_input_snapshot(pid, cid, cyid)["reused"]
 

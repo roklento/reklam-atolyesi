@@ -26,6 +26,7 @@ K12 Kanıt eşiğini geçmeyen bulgu playbook kuralı olmaz; playbook kuralı ya
 K13 Yarıda kalan iş devam notuyla sürer: tamamlanan iş tekrarlanmaz, eksik dosya tamamlandı sayılmaz, running/unknown ücretli iş yeniden başlatılmaz.
 K14 Teyit edilmemiş Meta kuralı ya da tahmin kesin bilgi diye sunulmaz; varsayım "VARSAYIM", aralık "aralık" diye yazılır.
 K15 Hata defteri (geri bildirim) yalnızca kullanıcının "evet"iyle, kişisel veri ve marka/ürün adı içermeden yerel dosyaya yazılır; plugin onu hiçbir yere göndermez.
+K16 Kullanıcıya sade Türkçe ve tam cümleyle yazılır: önce sonuç, sonunda tek soru; aşama kodu, araç ya da alan adı gösterilmez; terim ilk geçtiğinde açıklanır. Ayrıntı ve sözlük: ref-sade-dil skill'i.
 <!-- /kısa-liste -->
 
 ## Kurallar ve zorlandıkları yer
@@ -47,11 +48,12 @@ K15 Hata defteri (geri bildirim) yalnızca kullanıcının "evet"iyle, kişisel 
 | K13 | Devam notu kuralları | Yarım iş iki kez ücretlendirilmez, eksik iş tamam sayılmaz | `servers/ad_memory/admem/s_stage.py::stage_resume` | `tests/test_store_stage.py::test_resume_detects_missing_and_unknown` | 8.3 |
 | K14 | Teyit edilmemiş kural / tahmin kesin sunulmaz | Yanlış kesinlik yanlış karar verdirir | `servers/ad_memory/admem/drafts.py::check_s01` | `tests/test_v250_drafts.py::test_s01_null_budget_unconfirmed_lead_and_trial` | 6.2, §7 |
 | K15 | Hata defteri onaylı, anonim, yerel | Admin ekibi sorunu görür, müşteri verisi dışarı çıkmaz | `servers/ad_memory/admem/s_feedback.py::feedback_export`, `servers/ad_memory/admem/feedback.py::assert_anonymous` | `tests/test_v250_feedback.py::test_export_requires_approval_and_contains_no_identity`, `tests/test_v280_feedback_loop.py::test_defter_carries_signatures_with_cell_and_stays_anonymous` | 2.5.0, 2.8.0 |
+| K16 | Sade ve net dil; iç ad gösterilmez | Kullanıcılar reklamcı ya da yazılımcı değil; ilk kez açan da ne yapacağını anlamalı | `scripts/lib/sade_dil.py::scan_text`, `hooks/plugin_mode.py::rules_block` | `tests/test_v290_plain_language.py::test_customer_facing_texts_are_plain`, `tests/test_v290_plain_language.py::test_gate_messages_are_plain` | 2.9.0 |
 
 ## Yönerge düzeyindeki kurallar (kodla tam zorlanamaz)
 
-- **Sade dil:** yeni başlayan kullanıcıya terim (CPA, CTR, hook) ilk geçtiği yerde tek cümleyle açıklanır. Değerlendirme seti rubriği
-  (`evals/rubrik.md` R3) sınar.
+- **Sade dil (K16):** kodun ürettiği metinleri (menü, aşama adları, hook mesajları, kurulum ve güncelleme mesajları) ve skill'lerdeki
+  kapı mesajı kalıplarını `scripts/lib/sade_dil.py` tarar; modelin serbest cevabını değerlendirme seti rubriği (`evals/rubrik.md` R3) sınar.
 - **Seçenekli soru:** bilinmeyen değer kullanıcıya seçenekli ve önerilen cevapla sorulur; model değer uydurmaz. Rubrik R2.
 - **Ürüne ve profile genellik:** kural, eşik ya da örnek tek bir markaya göre sabitlenmez. Senaryo matrisi
   (`evals/senaryo-matrisi.json`) farklı ürün ve kullanıcılarda aynı akışı sınar.

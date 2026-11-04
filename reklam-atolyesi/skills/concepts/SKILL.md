@@ -138,7 +138,9 @@ yedek), `hypotheses`, `campaigns.mode`, `c<tur>-hooks.csv`, görüşme özeti, r
 - Hook'lar dört parçalı; görsel olarak farklı her hook çekim menüsüne ayrı satır olacak.
 
 ## Kapı mesajı
-"Görüşme özeti: seçilen konseptler <A (kime konuşuyor, aşama ve dayanağı, değişecek düşünce, kanıt, rol, kaynak): fikir — test hook h1; yedek h2…>, gerekçeleri …;
-reddedilen/ertelenen: …; hipotezler: …; ses niyetleri: …; açık sorular: …; çekim yolu: <yeni çekim | kütüphaneden>. Bu özeti
-onaylıyor musun, neyi değiştirelim?" → açık onayda
+"Konuştuklarımızı özetliyorum. Seçtiğimiz reklam fikirleri: <A: fikir. Kime konuşuyor: …. Bu kişi ürünü ne kadar tanıyor ve bunu
+neye dayanarak söylüyoruz: …. Kafasında değiştirmek istediğimiz düşünce: …. Bunu neyle kanıtlayacağız: …. Fikrin görevi ve nereden
+geldiği: …. İlk deneyeceğimiz açılış (videonun ilk 3 saniyesi): h1; yedek açılış: h2.> Bunları seçme nedenimiz: …. Şimdilik
+bıraktığımız fikirler: …. Bu turda sınamak istediğimiz tahminler: …. Seste istediklerimiz: …. Henüz cevaplanmamış sorular: ….
+Çekim: <yeni çekim yapacağız | elimizdeki videoları kullanacağız>. Bu özeti onaylıyor musun, değiştirmek istediğin bir yer var mı?" → açık onayda
 `gate_approve(..., cycle_id, checkpoint=…)`. Reddedilen/ertelenen fikirler sonraki tur için saklanır.

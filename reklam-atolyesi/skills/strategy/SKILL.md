@@ -40,7 +40,7 @@ Yok (spec 15: S02 hazır skill kullanmaz). Matematik `ref-metrics-math`'te.
    - **İzin verilen test reklamı sayısı** = ⌊test bütçesi / kreatif başına gereken harcama⌋; önce 7, yetmezse 14 günlük test.
      İki reklam bile sığmıyorsa **S03–S14 bekler**: gereken günlük bütçe ve eksik tutar gösterilir; bütçe değişikliği uygulanmaz,
      kendiliğinden daha uzun tur açılmaz.
-   - CPA kararı hedefleniyorsa konsept başına beklenen satın alma < 10 → "CPA hükmü yalnızca geniş aralıklı yön tahmini" uyarısı.
+   - CPA kararı hedefleniyorsa konsept başına beklenen satın alma < 10 → kullanıcıya "Her reklam fikri için beklenen satış sayısı az; bu yüzden bir satışın kaça mal olduğunu kesin söyleyemeyeceğiz, yalnızca hangi reklamın daha iyi gittiğine dair kaba bir yön görebileceğiz" uyarısı.
    - **Toplam harcama planı:** veri kesiminden `launch_at + cycle_days`'e kadar bütün aktif reklamların tahmini harcaması (test,
      atıf bekleme, çekim/üretim, bekleme günleri; aynı reklam seti bir kez). Kalan bütçeyi aşıyorsa test matrisi sığsa bile S02
      üretime geçmez; eksik tutar gösterilir. 7 → 14 gün uzatımı toplam sınırı aşmayı meşrulaştırmaz. Bu bir **tahmindir**.
@@ -146,6 +146,8 @@ belgesi, hipotez adayları, devam notu.
 - Huni durumu teşhis hipotezi diliyle yazıldı; huni turu seçildiyse alıcı ve dayanak `budget_plan_json.funnel`'da (1.9.0).
 
 ## Kapı mesajı
-"Strateji: konumlandırma *<seçilen tür>: <tek cümle>*; ana vaat …; tur modu: <normal | huni turu: alıcı …, dayanak …>; portföy N reklam = … proven · … gap · … free; teklif tutumu: …;
-önerilen yayın: <tarih>; test <7|14> gün, tur <14|21> gün; bütçe ve reklam başı risk sınırı: …; toplam plan … / kalan …. Onaylıyor musun,
-neyi değiştirelim?" → açık onayda `gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, checkpoint=…)`.
+"Strateji önerim şu. Markayı şöyle konumlandırıyoruz: *<seçilen tür>: <tek cümle>*. Ana vaadimiz: …. Bu turun türü: <normal tur |
+satış hunisi turu: ürünü ilk kez görenler yerine … kişilere odaklanıyoruz, çünkü …>. Toplam N reklam deneyeceğiz: … tanesi daha
+önce işe yaramış fikirler, … tanesi rakiplerin boş bıraktığı fikirler, … tanesi serbest denemeler. Fiyat ve kampanya teklifi
+konusundaki tutumumuz: …. Önerdiğim yayın tarihi: <tarih>. Deneme süresi <7|14> gün, turun tamamı <14|21> gün. Günlük bütçe ve bir
+reklama en fazla harcanacak tutar: …. Toplam plan … TL, kalan … TL. Onaylıyor musun, değiştirmek istediğin bir yer var mı?" → açık onayda `gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, checkpoint=…)`.

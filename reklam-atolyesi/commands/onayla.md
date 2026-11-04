@@ -1,5 +1,5 @@
 ---
-description: "Bekleyen kapıyı kullanıcının açık onayıyla geçirir"
+description: "Onayını bekleyen adımı, senin açık onayınla tamamlar"
 argument-hint: "[not]"
 ---
 

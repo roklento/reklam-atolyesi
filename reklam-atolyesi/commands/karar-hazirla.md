@@ -1,5 +1,5 @@
 ---
-description: "Plan günü karar hazırlığı (zamanlanmış): koçluk taslağı ve rakip fark görüntüsü"
+description: "Karar günü hazırlığı (kendiliğinden çalışır): sonuç yorumunun taslağını ve rakiplerdeki yenilikleri hazırlar"
 argument-hint: "--profile <id> --campaign <id> --cycle <id>"
 ---
 

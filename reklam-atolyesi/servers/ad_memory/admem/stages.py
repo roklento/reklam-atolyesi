@@ -4,19 +4,19 @@ from __future__ import annotations
 ONBOARDING_STAGES = ["S00a", "S00b", "S00c"]
 CAMPAIGN_STAGES = ["S01", "S01b", "S02", "S03", "S04", "S05", "W", "S06", "S07", "S08", "S09",
                    "S10", "S11", "S12", "S13", "S14", "S15", "S16", "S17"]
-STAGE_NAMES = {
-    "S00a": "Marka tanışması", "S00b": "Meta geçmişi", "S00c": "Ürün tanışması",
-    "S01": "Brief", "S01b": "Rakip analizi", "S02": "Strateji", "S03": "Konsept görüşmesi",
-    "S04": "Çekim planı", "S05": "Deneme geri bildirimi", "W": "Çekim bekleniyor", "S06": "Ingest",
-    "S07": "Analiz", "S08": "Stil yönleri", "S09": "Malzeme", "S10": "Kurgu", "S11": "Ses",
-    "S12": "Varyasyon ve export", "S13": "Kalite kontrol", "S14": "Yayın paketi", "S15": "Takip",
-    "S16": "Analiz ve koçluk", "S17": "Öğrenme",
+STAGE_NAMES = {  # kullanıcıya görünen adlar: sade Türkçe (2.9.0, K16)
+    "S00a": "Marka tanışması", "S00b": "Geçmiş reklamlara bakış", "S00c": "Ürün tanışması",
+    "S01": "Reklamın özeti", "S01b": "Rakiplere bakış", "S02": "Strateji ve bütçe", "S03": "Reklam fikirleri",
+    "S04": "Çekim planı", "S05": "Deneme çekimine bakış", "W": "Çekim bekleniyor", "S06": "Çekimleri alma",
+    "S07": "Çekimleri inceleme", "S08": "Görünüm seçimi", "S09": "Ses ve malzemeler", "S10": "Kurgu", "S11": "Ses ve taslak",
+    "S12": "Farklı sürümler ve dosyalar", "S13": "Son kontrol", "S14": "Yayın paketi", "S15": "Sonuçları izleme",
+    "S16": "Sonuçları yorumlama", "S17": "Bu turdan öğrendiklerimiz",
 }
-GATES = {
+GATES = {  # onay istenen konu, kullanıcıya görünür
     "S00a": "marka tanışması", "S00c": "ürün tanışması",
-    "S02": "strateji (bütçe, risk sınırı, stratejik yön)", "S03": "görüşme özeti", "S04": "çekim planı",
-    "S08": "stil seçimi", "S09": "ses kararları + maliyet", "S11": "taslak", "S13": "QC",
-    "S14": "yayın paketi", "S16": "kararlar", "S17": "playbook",
+    "S02": "strateji (bütçe, harcama sınırı ve yön)", "S03": "konuşmamızın özeti", "S04": "çekim planı",
+    "S08": "görünüm seçimi", "S09": "ses kararları ve maliyet", "S11": "video taslağı", "S13": "son kontrol",
+    "S14": "yayın paketi", "S16": "kararlar", "S17": "kalıcı kurallar",
 }
 SKILLS = {
     "S00a": "brand-onboarding", "S00b": "meta-history", "S00c": "product-onboarding",

@@ -51,5 +51,6 @@ Yok.
 - Reklamda kullanılmış klip "kullanılmamış" diye önerilmedi.
 
 ## Kapı mesajı
-"Organik adaylar: N aday (K kazanan reklam, T konuşma, U kullanılmamış klip); bu hafta için 3 tarih ve taslaklar hazır. Hangilerini
+"Reklam dışındaki normal paylaşımların için N fikir çıkardım: K tanesi iyi sonuç veren reklamlardan, T tanesi müşteri
+konuşmalarından, U tanesi henüz kullanılmamış videolardan. Bu hafta için 3 paylaşım tarihi ve metin taslakları hazır. Hangilerini
 hazırlayayım?"

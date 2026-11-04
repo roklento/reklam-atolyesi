@@ -129,7 +129,9 @@ Yayın paketi, `cycles.risk_limits_json.mapping`, güncel bütçe planı; yayın
 - `launch_confirm` olmadan S15'e geçilmedi.
 
 ## Kapı mesajı
-"Yayın paketi: N test reklamı (… ), yedekte K. Kurulum: <ilk tur | kreatif test> — adımlar pakette. Sınırlar: kampanya toplam … (kalan …),
-reklam başı risk …; uygulanacak harcama limiti/bitiş: …. AI açıklaması gereken: …. Meta iyileştirmeleri: <test turunda kapatılacaklar |
-ilk turda senin seçimin>. Planlanan yayın: …. Paketi onaylıyor musun?"
+"Yayın paketi hazır. Deneyeceğimiz N reklam var (… ), K tanesi yedekte. Kurulum: <ilk kez yayın | reklam deneme kurulumu>; adım adım
+talimatlar pakette. Kampanyanın toplam bütçesi … TL, bunun … TL'si kaldı. Tek bir reklam için göze aldığımız en yüksek harcama … TL.
+Meta'da ayarlayacağın harcama sınırı ve bitiş tarihi: …. Yapay zekâyla hazırlandığını belirtmemiz gereken reklamlar: …. Meta'nın
+reklamlarda kendiliğinden yaptığı değişiklikler: <bu deneme turunda kapalı kalacak olanlar | ilk turda senin seçimin>. Planlanan
+yayın tarihi: …. Paketi onaylıyor musun?"
 → `gate_approve(...)`. Yayının kendisi ayrıca `launch_confirm` ile kaydedilir.

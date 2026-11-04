@@ -1,5 +1,5 @@
 ---
-description: "Yeni marka/reklam hesabı için yeni profil tanışmasını başlatır"
+description: "Yeni bir marka ya da reklam hesabı eklemek için tanışmayı başlatır"
 argument-hint: "[profil adı]"
 ---
 

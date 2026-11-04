@@ -93,5 +93,6 @@ Yok (spec 15: S01b hazır skill kullanmaz). Yöntem bu skill'de ve `ref-creative
 - Sosyal medya kazıma, rakip hesabına giriş, tarayıcıyla otomatik kazıma yok.
 
 ## Kapı mesajı
-Kapı yoktur; kararlar S02 kapısında birlikte verilir. Geçiş özeti: "Pazarda N rakip, M konsept gördüm. Norm: … Uzun soluklu açılar
-(vekil): … Boşluklar: … Kapsam: … (<zayıf kapsam ise belirt>). Stratejiyi buna göre kuralım."
+Kapı yoktur; kararlar strateji adımında (S02) birlikte verilir. Geçiş özeti: "Pazarda N rakibin toplam M farklı reklam fikrini
+inceledim. Çoğunun yaptığı şey: …. Uzun süredir yayında kalan, yani büyük olasılıkla işe yarayan yaklaşımlar: …. Kimsenin
+kullanmadığı fırsatlar: …. Bu inceleme ne kadar geniş: … (az reklam bulduysak bunu açıkça söyle). Stratejiyi bu bilgilere göre kuralım."

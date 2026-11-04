@@ -82,6 +82,7 @@ planları, devam notu.
 - `color_match.json` okundu: düzeltilen klipler önce|sonra kareleriyle kapıda gösterildi; yeniden çekim adayları adıyla söylendi.
 
 ## Kapı mesajı
-"Stil yönleri: A — … (renk/tipografi/hareket/ses), B — …, C — …. Öz denetimde kalan not: …. Hangisiyle devam edelim, ya da hangilerini
-karıştıralım?" Klip eşitlemesi yapıldıysa: "Farklı ışıktaki <n> klibi referans klibe eşitledim (önce|sonra kareleri ekte);
-<klip> farkı çok büyük olduğu için düzeltilmedi, yeniden çekim adayı." (onaylı stil varsa: "Aynı stille devam mı, stili yenileyelim mi?") → seçim açık ifadeyle `gate_approve(...)`.
+"Videonun görünümü için üç seçenek hazırladım. A: … (renkler, yazı tipi, hareketler, ses). B: …. C: …. Kendi kontrolümde dikkatimi
+çeken nokta: …. Hangisiyle devam edelim, ya da birkaçını karıştıralım mı?" Videoların rengi eşitlendiyse: "Farklı ışıkta çekilmiş
+<n> videonun rengini örnek videoya uydurdum (önceki ve sonraki hâlleri ekte). <video> çok farklı olduğu için düzeltemedim; onu
+yeniden çekmek gerekebilir." (onaylı stil varsa: "Daha önce onayladığın görünümle mi devam edelim, yoksa yenileyelim mi?") → seçim açık ifadeyle `gate_approve(...)`.

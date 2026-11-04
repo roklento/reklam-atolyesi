@@ -22,6 +22,37 @@ SECTIONS = ["Özet", "Kararlar", "Reklam mı, teklif mi, sayfa mı", "Grafikler"
             "Öğrenilenler", "Sonraki tur", "Veri yeterliliği", "Koçluğun isabeti"]
 
 
+DECISION_TR = {"büyüt": "büyüt (bütçesini artır)", "kapat": "durdur", "tut": "şimdilik olduğu gibi bırak"}
+STATUS_TR = {"active": "yayında", "paused": "duraklatıldı", "closed": "kapandı"}
+ACTION_TR = {"proposed": "önerildi", "approved": "onaylandı", "applied": "uygulandı", "not_applied": "uygulanmadı"}
+ROLE_TR = {"proven": "Daha önce işe yaramış fikirler", "gap": "Rakiplerin boş bıraktığı fikirler", "counter": "Rakiplerin tersini söyleyen fikirler",
+           "free": "Serbest denemeler"}
+QUALITY_TR = {"missing_days": "Bazı günlerin verisi eksik:", "unmapped_ads": "Adı reklam kayıtlarımızla eşleşmeyen reklamlar var:",
+              "video_3s_derived": "Bazı günlerde 3 saniyelik izlenme sayısı Meta'dan doğrudan gelmedi; harcamadan hesapladık.",
+              "mixed_definitions": "Meta bu dönemde ölçüm tanımını değiştirmiş; farklı tanımlı rakamları birbirine karıştırmadık."}
+# Analizden gelen kısa notlardaki terimler raporda sade karşılığıyla yazılır (2.9.0, KURALLAR K16).
+PLAIN = [(r"\bhook oranı\b", "açılışı izleme oranı"), (r"\bhook\b", "videonun açılışı"), (r"\bbağlantı CTR'si\b", "bağlantıya tıklama oranı"),
+         (r"\bbağlantı CTR\b", "bağlantıya tıklama oranı"), (r"\bCTR\b", "tıklama oranı"), (r"\bCPM\b", "1.000 gösterimin maliyeti"),
+         (r"\bkonseptlerin\b", "fikirlerin"), (r"\bkonseptler\b", "fikirler"), (r"\bkonseptin\b", "fikrin"), (r"\bkonsepte\b", "fikre"),
+         (r"\bkonsept\b", "fikir"), (r"\bkreatiflere\b", "reklamlara"), (r"\bkreatifinde\b", "reklamında"), (r"\bkreatif testine\b", "reklam denemesine"),
+         (r"\bkreatif\b", "reklam"), (r"\bönsele\b", "başlangıç beklentisine"), (r"\bplaybook\b", "kalıcı kural"), (r"\büst huni\b", "ilk izlenim"),
+         (r" · ", ", "), (r" → ", ": "), (r"\bTOFU\b", "ilk kez görenlere seslenen"), (r"\bMOFU\b", "tanıyanlara seslenen"),
+         (r"\bBOFU\b", "almaya yakın olanlara seslenen"), (r"\(coach 6a\)|\(6\.\d+\)|\(lead_outcomes\)|\(ürün ekonomisinde lead_close_rate\)", ""),
+         (r"lead_outcome_set ile", "aday kayıtlarına"), (r"\bS00b 6b\b", "veri bağlantısı adımı"), (r"\bDM\b", "mesaj")]
+
+
+def _plain(s) -> str:
+    out = str(s or "")
+    for p, r in PLAIN:
+        out = re.sub(p, r, out)
+    return re.sub(r"\s+([.,;])", r"\1", out).strip()
+
+
+def _days(q_: dict) -> str:
+    v = q_.get("days") or q_.get("ads") or ""
+    return ", ".join(map(str, v)) if isinstance(v, list) else str(v)
+
+
 def causal_terms(text: str) -> list[str]:
     t = tr_fold(text)
     return [p for p in CAUSAL if re.search(p, t)]
@@ -33,40 +64,48 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
     q = an.get("verdict_qualifier") or ""
     dec = an["decisions"]
     lines = [f"# Koçluk raporu — {camp['name']} · tur {cyc['cycle']}", "",
-             f"_Girdi kopyası: `{Path(an['snapshot']['path']).name}` (SHA-256 {an['snapshot']['sha256'][:12]}…), model {an.get('model_version')}, tohum {(an.get('params') or {}).get('seed')}._", ""]
+             f"_Bu rapor, verilerin değişmeyen bir kopyasından hazırlandı (kayıt kodu {an['snapshot']['sha256'][:12]}); aynı kopyadan hep aynı "
+             f"sonuç çıkar._", f"<!-- girdi: {Path(an['snapshot']['path']).name}, model {an.get('model_version')}, "
+             f"tohum {(an.get('params') or {}).get('seed')} -->", ""]
     n_ev = sum(1 for d in dec if d["label"].startswith("kanıt"))
     lines += ["## Özet", "",
-              f"Bu turda {len(an['concepts'])} konsept ve {len(an['creatives'])} kreatif ölçüldü; {n_ev} konseptin verisi karar eşiğini geçti"
-              + (f" ({q})." if q else "."),
-              (f"Sonuç maliyetine dair hüküm yalnızca yeterli sonuç (≥ 10) olan konseptlerde verildi; " if any(c.get("threshold_met") for c in an["cost"].values())
-               else "Sonuç sayısı az olduğu için bu hüküm satışa değil, dikkat ve tıklamaya dayanıyor; ")
-              + "eşik altındaki bulgular 'yön' etiketlidir.",
-              ("Onaylı harcama sınırı uyarısı var: ayrıntı Kararlar bölümünde." if an["limit_alerts"] else "Harcama sınırı uyarısı yok."), ""]
+              f"Bu turda {len(an['concepts'])} reklam fikrini ve {len(an['creatives'])} reklamı ölçtük; {n_ev} fikrin verisi karar vermeye yetti"
+              + (f" ({_plain(q)})." if q else "."),
+              (f"Bir sonucun kaça mal olduğuna dair yargıyı yalnızca en az 10 sonuç alan fikirlerde verdik; " if any(c.get("threshold_met") for c in an["cost"].values())
+               else "Sonuç sayısı az olduğu için yorumlarımız satışa değil, izlenmeye ve tıklamaya dayanıyor; ")
+              + "verinin yetmediği bulgular 'yön' diye işaretli: bunlar kesin değil, yalnızca bir eğilim gösterir.",
+              ("Onayladığın bir harcama sınırına ulaşıldı ya da yaklaşıldı: ayrıntı Kararlar bölümünde." if an["limit_alerts"] else "Harcama sınırlarında bir sorun yok."), ""]
     mb = an.get("metric_basis")
     if mb:
-        lines[-1:-1] = [f"**Karar metriği:** {mb['decision']}. {mb['note']}"]
+        lines[-1:-1] = [f"**Karar metriği:** kararları {_plain(mb['decision'])} üzerinden verdik. {_plain(mb['note'])}"]
     lines += ["## Kararlar", ""]
     for d in dec:
-        lines.append(f"- **{d['concept']}** → {d['decision']} ({d['label']}): {d['why']}" + (f" — Ads Manager: {d['ads_manager']}" if d.get("ads_manager") else ""))
+        lines.append(f"- **{d['concept']}**: {DECISION_TR.get(d['decision'], d['decision'])} ({_plain(d['label'])}). {_plain(d['why']).rstrip('.')}."
+                     + (f" Meta'da yapılacak: {_plain(d['ads_manager']).rstrip('.')}." if d.get("ads_manager") else ""))
+    if any("dağıtımı altında" in d["label"] for d in dec):
+        lines.append("_\"Meta'nın dağıtımı altında\" şu demek: bütçeyi reklamlar arasında Meta kendisi paylaştırdı. Bu yüzden karşılaştırma tam eşit "
+                     "koşullarda yapılmadı; sonuçları dikkatli okumak gerekir._")
     enh = an.get("enhancements") or {}
     if enh.get("recorded") and not enh.get("checked"):
-        lines.append("- ⚠ Advantage+ kreatif iyileştirmeleri yayında kontrol edilmedi: Meta bazılarını varsayılan açar; kazanan kreatif mi "
-                     "iyileştirme mi, ayırt edilemeyebilir.")
+        lines.append("- ⚠ Meta'nın reklamlarda kendiliğinden yaptığı değişiklikler (Advantage+ kreatif iyileştirmeleri) yayında kontrol edilmedi. "
+                     "Meta bunların bazılarını kendiliğinden açar; bu yüzden iyi sonucu bizim reklamımızın mı yoksa Meta'nın değişikliğinin mi "
+                     "getirdiğini ayırt edemeyebiliriz.")
     elif enh.get("on"):
         scope = "tüm reklamlarda" if enh.get("all") else ", ".join(enh.get("concepts") or [])
-        lines.append("- ⚠ Açık kalan Meta iyileştirmeleri (" + ", ".join(i["name"] for i in enh["on"]) + f"; {scope}): ilgili hükümler "
-                     "'Meta iyileştirmesi açık' kaydıyla; sonraki testte kapatılması önerilir.")
+        lines.append("- ⚠ Açık kalan Meta iyileştirmeleri (" + ", ".join(i["name"] for i in enh["on"]) + f"; {scope}): bu reklamlarla ilgili "
+                     "yorumlar 'Meta iyileştirmesi açık' notuyla yazıldı. Bir sonraki denemede bunları kapatmanı öneririm.")
     for a in an["limit_alerts"]:
-        lines.append(f"- ⚠ Sınır: {a['msg']} ({a.get('creative_key') or ''} {a.get('spend', '')} / {a.get('limit', a.get('budget_total', ''))})")
+        lines.append(f"- ⚠ Harcama sınırı: {a['msg']} ({(a.get('creative_key') or '') + ': ' if a.get('creative_key') else ''}harcanan {a.get('spend', '')}, "
+                     f"sınır {a.get('limit', a.get('budget_total', ''))})")
     sup = an.get("superiority_hook") or {}
     if sup:
-        lines += ["", f"_Olasılıklar — {(mb or {}).get('superiority', 'hook oranı')}:_"]
+        lines += ["", f"_Hangi reklam fikrinin en iyi olma olasılığı: {_plain((mb or {}).get('superiority', 'videonun açılışını izleyenlerin oranı'))}_"]
         for k in sorted(sup):
             hr = (an["concepts"].get(k, {}).get("rates") or {}).get("hook_rate") or {}
             pb = sup[k].get("p_best")
             if pb is not None:
-                lines.append(f"- {k}: en iyi olma olasılığı {pb:.0%} (hook oranı; {int(hr.get('successes', 0))} izlenme / "
-                             f"{int(hr.get('trials', 0))} gösterim; {hr.get('label', '—')})")
+                lines.append(f"- {k}: en iyi olma olasılığı %{pb * 100:.0f} (açılışı izleme oranına göre: {int(hr.get('successes', 0))} izlenme, "
+                             f"{int(hr.get('trials', 0))} gösterim; {_plain(hr.get('label', '—'))})")
     lines += ["", "## Reklam mı, teklif mi, sayfa mı", ""]
     fd = an.get("funnel_diagnosis")
     if fd:
@@ -75,17 +114,17 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
         lines.append(f"- Tıklamadan sonrası: {fd['after_click']['msg']}")
         fs = fd.get("steps")
         if fs:  # 2.4.0: ortak adım tablosu; her oran kendi paydasıyla, birbirleriyle çarpılmaz
-            lines.append("- Tıklamadan sonra adım adım (Meta'nın saydığı olaylar; her adım bir öncekine bölünür):")
+            lines.append("- Tıklamadan sonra adım adım (Meta'nın saydığı olaylar; her adımın oranı bir önceki adıma göre hesaplanır):")
             for st in fs["steps"]:
                 if st.get("rate") is not None:
                     txt = (f"%{st['rate'] * 100:.1f} ({int(st['count'])} / {int(st['denominator_count'])} {st['denominator_label']}"
                            + ("" if st["canonical"] else "; önceki adım okunamadı, geçmişle kıyaslanmaz") + ")")
                     if st["status"] == "veri_yetersiz":
-                        txt += " · veri yetersiz"
+                        txt += "; veri yetersiz"
                     if st.get("history_mean") is not None:
-                        txt += f" · geçmiş %{st['history_mean'] * 100:.1f}"
+                        txt += f"; geçmişteki ortalama %{st['history_mean'] * 100:.1f}"
                     if st.get("weak"):
-                        txt += " · ⚠ geçmişin altında"
+                        txt += "; ⚠ geçmişin altında"
                 else:
                     txt = st["msg"].split(": ", 1)[1]
                 lines.append(f"  - {st['label']}: {txt}")
@@ -95,20 +134,21 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
         if ch.get("sales") or ch.get("leads"):
             parts = [f"{k}: {v['units']} adet" + (f" / {v['revenue']}" if v.get("revenue") else "") for k, v in ch["sales"].items()]
             parts += [f"{k}: {n} talep" for k, n in ch["leads"].items()]
-            lines.append("- Kanallar: " + " · ".join(parts) + ". DM/WhatsApp/kurumsal Meta'da görünmez.")
+            lines.append("- Satış kanalları: " + ", ".join(parts) + ". Instagram mesajı, WhatsApp ve kurumsal satışlar Meta'da görünmez.")
         for ex in ch.get("excluded_manual") or []:
             lines.append(f"- ⚠ Elle girilen {ex['channel']} satışı ({ex['period'][0]}–{ex['period'][1]}, {ex['units']} adet): {ex['why']}.")
         svm = an.get("store_vs_meta")
         if svm:
-            lines.append(f"- Meta ↔ mağaza: {svm['msg']}")
+            lines.append(f"- Meta ve mağaza karşılaştırması: {svm['msg']}")
         dm = an.get("dm")
         if dm:
             t = dm["totals"]
-            line = (f"- Mesajla satış: {t['conversations']} konuşma → {t['qualified']} nitelikli → {t['quoted']} teklif → {t['won']} satış"
-                    + (f" (satış oranı %90 aralık {dm['won_rate_interval']['lo']:.0%}–{dm['won_rate_interval']['hi']:.0%})"
+            line = (f"- Mesajla satış: {t['conversations']} konuşmanın {t['qualified']} tanesi ciddi talepti (nitelikli), {t['quoted']} tanesine "
+                    f"teklif verildi, {t['won']} tanesi satışa döndü"
+                    + (f" (gerçek satış oranı büyük olasılıkla %{dm['won_rate_interval']['lo'] * 100:.0f} ile %{dm['won_rate_interval']['hi'] * 100:.0f} arasında)"
                        if dm.get("won_rate_interval") else ""))
             if dm.get("median_first_response_min") is not None:
-                line += f"; ilk cevap ortanca {dm['median_first_response_min']:.0f} dk"
+                line += f"; mesajlara ilk cevap genelde {dm['median_first_response_min']:.0f} dakikada verildi"
             lines.append(line + ".")
             if dm.get("lost_reasons"):
                 lines.append("  - Kayıp nedenleri: " + ", ".join(f"{k} {v}" for k, v in dm["lost_reasons"].items()))
@@ -119,9 +159,9 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
                 lines.append(f"  - Bu kampanyaya kanıtla bağlı konuşma {ca['threads']}, satış {ca['won']} (günlük toplamlar kampanyaya bölünmez).")
         ab = an.get("ab_test")
         if ab and ab.get("cells"):
-            lines.append("- Meta A/B testi (kitle rastgele bölündü): " + "; ".join(
+            lines.append("- Meta A/B testi (kitle rastgele ve eşit bölündü): " + "; ".join(
                 f"{k}: {v['results']} sonuç" + (f", sonuç başı {v['cost_per_result']}" if v.get("cost_per_result") else "")
-                + f", en düşük maliyet olasılığı {v['p_lowest_cost']:.0%}" + ("" if v["threshold_met"] else " (yön)")
+                + f", en düşük maliyetli olma olasılığı %{v['p_lowest_cost'] * 100:.0f}" + ("" if v["threshold_met"] else " (yön)")
                 for k, v in ab["cells"].items()) + ".")
             mr = ab.get("meta_read") or {}
             if mr:
@@ -134,99 +174,111 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
             t = ld["totals"]
             seg = [f"{ld['meta_leads']} aday (Meta)" + (f", aday başı {ld['cost_per_lead']}" if ld.get("cost_per_lead") else "")]
             if ld.get("periods"):
-                seg.append(f"kayıtta {t['leads']} aday → " + " → ".join(
-                    f"{t[k] if t.get(k) is not None else '?'} {lab}" for k, lab in (("reached", "ulaşılan"), ("qualified", "nitelikli"), ("won", "satış"))))
+                seg.append(f"kayıtlarda {t['leads']} aday var: " + ", ".join(
+                    f"{t[k] if t.get(k) is not None else '?'} {lab}" for k, lab in (("reached", "tanesine ulaşıldı"), ("qualified", "tanesi ciddi talepti (nitelikli)"),
+                                                                                    ("won", "tanesi satışa döndü"))))
             if ld.get("cost_per_qualified"):
                 seg.append(f"nitelikli aday başı {ld['cost_per_qualified']}")
             if ld.get("cost_per_won"):
                 seg.append(f"satış başı {ld['cost_per_won']}")
             if ld.get("close_rate_interval"):
                 iv = ld["close_rate_interval"]
-                seg.append(f"adaydan satışa %90 aralık {iv['lo']:.0%}–{iv['hi']:.0%}")
+                seg.append(f"adayların satışa dönme oranı büyük olasılıkla %{iv['lo'] * 100:.0f} ile %{iv['hi'] * 100:.0f} arasında")
             lines.append("- Müşteri adayı: " + "; ".join(seg) + ".")
             for k in ("meta_vs_crm_note", "coverage_note", "partial_note", "close_rate_check", "note"):
                 if ld.get(k):
-                    lines.append(f"  - {ld[k]}")
-        lines.append(f"_{fd['rule']}_")
+                    lines.append(f"  - {_plain(ld[k])}")
+        lines.append(f"_{_plain(fd['rule'])}_")
     else:
         lines.append("- Teşhis yok.")
     stg = an.get("stages")
     if stg:
-        names = {"tofu": "TOFU", "mofu": "MOFU", "bofu": "BOFU"}
-        labels = {"hook_rate": "hook oranı", "hold_rate": "tutma", "spend_per_3s_view": "3 sn izlenme başına harcama",
-                  "ctr_link": "bağlantı CTR", "landing_page_view_rate": "açılış sayfası / tıklama", "view_content_rate": "içerik görüntüleme / tıklama",
-                  "add_to_cart_rate": "sepete ekleme / tıklama", "checkout_rate": "ödeme başlatma / tıklama", "cost_per_purchase": "satın alma başı maliyet"}
+        names = {"tofu": "ürünü ilk kez görenler", "mofu": "ürünü tanıyanlar", "bofu": "almaya yakın olanlar"}
+        labels = {"hook_rate": "açılışı izleme oranı", "hold_rate": "izlemeye devam oranı", "spend_per_3s_view": "3 saniyelik bir izlenmenin maliyeti",
+                  "ctr_link": "bağlantıya tıklama oranı", "landing_page_view_rate": "tıklayıp sayfayı açanlar",
+                  "view_content_rate": "tıklayıp ürüne bakanlar", "add_to_cart_rate": "tıklayıp sepete ekleyenler",
+                  "checkout_rate": "tıklayıp ödemeye geçenler", "cost_per_purchase": "bir satışın maliyeti"}
         lines += ["", "## Huni aşamaları", "",
-                  ("Huni turu: konseptler aynı alıcıya, farklı karar anlarına konuştu." if stg["round_mode"] == "funnel"
-                   else "Normal tur: aşama bilgisi yalnızca teşhis için.")]
+                  ("Huni turu: reklam fikirleri aynı alıcıya, karar verme sürecinin farklı anlarında seslendi." if stg["round_mode"] == "funnel"
+                   else "Normal tur: bu bilgi yalnızca sorunun nerede olduğunu anlamak için.")]
         for p in stg["per_concept"]:
             vals = [f"{labels[n]} {v:.2%}" if (isinstance(v, float) and n.endswith("rate")) else f"{labels[n]} {v}"
                     for n, v in p["metrics"].items() if v is not None]
-            line = f"- **{p['concept']}** ({names[p['stage']]}): " + ("; ".join(vals) if vals else "aşama metriği okunamadı")
+            line = f"- **{p['concept']}** ({names[p['stage']]}): " + ("; ".join(vals) if vals else "bu aşamanın ölçüsü okunamadı")
             if p["unread"]:
-                line += " · okunamadı: " + ", ".join(labels[n] for n in p["unread"])
+                line += "; okunamayanlar: " + ", ".join(labels[n] for n in p["unread"])
             if p["segments"]:
                 s = p["segments"]
-                line += f" · harcama: yeni kitle {s['new']:.0%}, etkileşime geçmiş {s['engaged']:.0%}, mevcut müşteri {s['existing']:.0%}"
+                line += (f"; harcamanın %{s['new'] * 100:.0f} kadarı yeni kişilere, %{s['engaged'] * 100:.0f} kadarı daha önce etkileşime geçenlere, "
+                         f"%{s['existing'] * 100:.0f} kadarı mevcut müşterilere gitti")
             lines.append(line)
             if p.get("segment_note"):
-                lines.append(f"  - {p['segment_note']}")
+                lines.append(f"  - {_plain(p['segment_note'])}")
         if not stg["segments_read"]:
-            lines.append("- Reklamı kimin gördüğü okunamadı (kitle segmentleri tanımlı değil ya da döküm girilmedi).")
-        lines.append(f"_{stg['rule']}_")
+            lines.append("- Reklamı kimin gördüğünü okuyamadık (Meta'da kitle grupları tanımlı değil ya da döküm girilmedi).")
+        lines.append(f"_{_plain(stg['rule'])}_")
     lines += ["", "## Grafikler", ""]
-    captions = {"funnel": "Konsept başına izlenme, tıklama ve sonuç oranları kendi paydalarıyla; oranlar birbirleriyle çarpılmaz.",
-                "intervals_hook": "Hook oranı aralıkları; açık renkli noktalar eşik altıdır ve yalnızca yön gösterir.",
-                "intervals_ctr": "Bağlantı CTR aralıkları; 3.000 gösterim altı yön etiketlidir.",
-                "spend": "Meta'nın bütçeyi nasıl dağıttığı; aç kalan konsept kaybeden sayılmaz.",
-                "timeseries": "Günlük hook oranı; düşüş yorgunluk olasılığıdır, nedeni kesin değildir.",
-                "retention": "Beklenenden hızlı kayıp görülen aralıklar; 5 ölçüm noktasıyla olasılık cümlesidir."}
+    captions = {"funnel": "Her reklam fikri için izlenme, tıklama ve sonuç oranları; her oran kendi tabanına göre hesaplandı, birbirleriyle çarpılmaz.",
+                "intervals_hook": "Videonun açılışını (ilk 3 saniye) izleyenlerin oranı ve olası aralığı; açık renkli noktalar az veriye dayanır, yalnızca yön gösterir.",
+                "intervals_ctr": "Reklamı görüp bağlantıya tıklayanların oranı ve olası aralığı; 3.000 gösterimin altındakiler yalnızca yön gösterir.",
+                "spend": "Meta'nın bütçeyi reklamlar arasında nasıl paylaştırdığı; az bütçe alan fikir kaybetmiş sayılmaz.",
+                "timeseries": "Günlere göre açılışı izleme oranı; düşüş, izleyenlerin reklamı görmekten sıkıldığını düşündürebilir ama kesin değildir.",
+                "retention": "İzleyenlerin beklenenden hızlı ayrıldığı saniyeler; Meta bunu az noktada ölçtüğü için bu bir olasılıktır."}
     for k, p in charts.items():
         lines += [f"![{k}]({Path(p).parent.name}/{Path(p).name})", f"_{captions.get(k, '')}_", ""]
     lines += ["## Sahne düzeyinde izleyici kaybı", ""]
-    lines += [f"- {r['statement']}" for r in an["retention"]] or ["- Beklenen eğriden belirgin sapma yok ya da karşılaştırma için yeterli kreatif yok."]
+    lines += [f"- {_plain(r['statement'])}" for r in an["retention"]] or ["- İzleyenlerin ayrılışında beklenmedik bir şey görmedik ya da karşılaştırma için yeterli reklam yok."]
     lines += ["", "## Ölçekleme katmanı", ""]
     sl = an.get("scale_layer")
     if sl:
-        lines.append(f"- Katman ({sl['label']}): günlük {sl.get('daily_budget')}, durum {sl.get('status')}, toplam harcama {sl['spend']}."
+        lines.append(f"- İyi giden reklamları büyüttüğümüz kampanya ({_plain(sl['label'])}): günlük bütçe {sl.get('daily_budget')}, "
+                     f"durum {STATUS_TR.get(sl.get('status'), sl.get('status'))}, toplam harcama {sl['spend']}."
                      + (f" ⚠ {sl['learning_warning']}" if sl.get("learning_warning") else ""))
         for m in sl["members"]:
             cpr = f", sonuç başı {m['cost_per_result']}" if m.get("cost_per_result") is not None else ""
-            lines.append(f"  - {m['creative_key']} (gönderi {m.get('post_id')}): harcama {m['spend']}, sonuç {m['results']}{cpr}, son 7 gün sıklık {m.get('frequency_last7')}")
-        lines += [f"  - Yorgunluk: {f['msg']} ({f['creative']})" for f in sl["fatigue"]]
+            lines.append(f"  - {m['creative_key']} (gönderi {m.get('post_id')}): harcama {m['spend']}, sonuç {m['results']}{cpr}; son 7 günde bir kişi "
+                         f"bu reklamı ortalama {m.get('frequency_last7')} kez gördü")
+        lines += [f"  - Dikkat: {_plain(f['msg'])} ({f['creative']})" for f in sl["fatigue"]]
     for c in an.get("scale_candidates") or []:
         if c["eligible"]:
-            lines.append(f"- **{c['concept']}** → {c['action']} (günlük ≥ {c['min_daily']}; {c['fits_note']}). Gönderi kimliği Ads Manager'dan okunur; yoksa taşınmaz.")
+            lines.append(f"- **{c['concept']}**: {_plain(c['action'])} (günlük bütçe en az {c['min_daily']}; {_plain(c['fits_note'])}). Bunun için "
+                         "gönderinin numarası Ads Manager'dan okunur; okunamazsa reklam taşınmaz.")
         else:
-            lines.append(f"- **{c['concept']}** → {c['action']}. Ölçekleme önerilmedi: {'; '.join(c['reasons'])}.")
+            lines.append(f"- **{c['concept']}**: {_plain(c['action'])}. Ayrı kampanyada büyütmeyi önermiyorum, çünkü: {_plain('; '.join(c['reasons']))}.")
     if not sl and not an.get("scale_candidates"):
-        lines.append("- Ölçekleme katmanı yok ve bu turda 'büyüt' hükmü alan konsept yok.")
-    lines += ["_Ölçekleme katmanının verisi test hükmüne, önsele ya da playbook kanıtına girmez._"]
+        lines.append("- İyi giden reklamları büyüttüğümüz ayrı bir kampanya yok ve bu turda büyütmeye değer bir fikir çıkmadı.")
+    lines += ["_Büyütülen reklamların sonuçları, deneme sonuçlarına, başlangıç beklentilerimize ya da kalıcı kurallarımıza karıştırılmaz._"]
     lines += ["", "## Uygulama listesi ve durumu", ""]
-    lines += [f"- [{a.get('status', 'proposed')}] {a['action']}" for a in (actions or [])] or ["- Bu raporla yeni madde önerilmedi."]
+    lines += [f"- [{ACTION_TR.get(a.get('status', 'proposed'), a.get('status', 'proposed'))}] {_plain(a['action'])}" for a in (actions or [])] \
+        or ["- Bu raporla yeni bir adım önermedim."]
     lines += ["", "## Rekabet bağlamı", ""]
     cc = an.get("competitive_context") or {}
     stm = cc.get("statements") or []
-    lines += [f"- {s}" for s in stm] or ["- Test penceresinde kayda değer rakip değişikliği görülmedi ya da fark görüntüsü yok."]
-    lines += ["_Rekabet bağlamı bilgi içindir; nedensellik iddia edilmez ve hüküm diline girmez._", ""]
+    lines += [f"- {s}" for s in stm] or ["- Deneme süresinde rakiplerde kayda değer bir değişiklik görmedik ya da karşılaştıracak önceki inceleme yok."]
+    lines += ["_Rakiplerdeki değişiklikler yalnızca bilgi içindir; sonuçlarımızı onlara bağlamıyoruz ve kararlarımıza katmıyoruz._", ""]
     lines += ["## Öğrenilenler", ""]
     roles = an.get("roles") or {}
     if roles:
         for r, v in sorted(roles.items()):
             hr = (v["rates"].get("hook_rate") or {})
-            lines.append(f"- Portföy rolü **{r}**: hook oranı ortalaması {hr.get('mean', 0):.3f} ({hr.get('label', '—')}) — keşif karşılaştırmasıdır.")
-    lines += [f"- Yorgunluk/anomali: {f['msg']} ({f['creative']})" for f in an["fatigue"]]
-    lines += ["", "## Sonraki tur", "", next_md or "- Sonraki tur önerileri S17'de brief taslağına işlenir; rakip görüntüsü tazelenmeli mi notu eklenir.", ""]
+            lines.append(f"- **{ROLE_TR.get(r, r)}**: açılışı izleme oranı ortalaması %{hr.get('mean', 0) * 100:.1f} ({_plain(hr.get('label', '—'))}). "
+                         "Bu yalnızca bir ön karşılaştırmadır.")
+    lines += [f"- Dikkat: {_plain(f['msg'])} ({f['creative']})" for f in an["fatigue"]]
+    lines += ["", "## Sonraki tur", "", next_md or "- Sonraki tur önerileri, bu turdan öğrendiklerimizle birlikte yeni reklam özetine eklenecek; "
+              "rakiplere yeniden bakmamız gerekip gerekmediğini de not edeceğim.", ""]
     lines += ["## Veri yeterliliği", ""]
     w = an["window"]
-    lines.append(f"- Test penceresi tam günleri: {len(w['full_days'])}; dışlanan sınır günleri: {', '.join(w['excluded_boundary_days']) or 'yok'} (bölünmez, toplam harcamada sayılır).")
-    lines += [f"- {q_['kind']}: {q_.get('msg', '')} {q_.get('days', q_.get('ads', ''))}" for q_ in an["data_quality"]] or ["- Veri kalitesi kontrollerinde sorun yok."]
-    lines.append("- Son 72 saatin verisi geçicidir; sonuç metrikleri olgunluk penceresi dolmadan kesin sayılmaz.")
+    ex_days = ", ".join(w["excluded_boundary_days"])
+    lines.append(f"- Denemenin tam gün sayısı: {len(w['full_days'])}." + (f" Başlangıç ve bitiş günleri yarım olduğu için karşılaştırmaya katılmadı ({ex_days}); "
+                 "bu günlerin harcaması toplamda sayıldı." if ex_days else ""))
+    lines += [f"- {QUALITY_TR.get(q_['kind'], _plain(q_.get('msg', '')))} {_days(q_)}".rstrip() for q_ in an["data_quality"]] \
+        or ["- Verilerde bir sorun görmedik."]
+    lines.append("- Son 3 günün rakamları Meta'da hâlâ değişebilir; satışlar birkaç gün geç yazılabildiği için bu günler kesin sayılmaz.")
     lines += ["", "## Koçluğun isabeti", ""]
     if calibration:
-        lines.append(f"- {calibration.get('summary', '')}" + (f" · {calibration.get('note')}" if calibration.get("note") else ""))
+        lines.append(f"- {_plain(calibration.get('summary', ''))}" + (f" {_plain(calibration.get('note'))}" if calibration.get("note") else ""))
     else:
-        lines.append("- Henüz çözülmüş tahmin yok.")
+        lines.append("- Önceki tahminlerimizin doğru çıkıp çıkmadığını görmek için henüz yeterli sonuç yok.")
     text = "\n".join(lines) + "\n"
     comp_part = text.split("## Rekabet bağlamı", 1)[1].split("## Öğrenilenler", 1)[0]
     bad = causal_terms(comp_part)

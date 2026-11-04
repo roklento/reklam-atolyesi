@@ -73,5 +73,6 @@ günlüğe tek satır gerekçe.
 - Kampanyanın bağlı olduğu profil adı kullanıcıya gösterildi.
 
 ## Kapı mesajı
-Kapı yoktur. Geçiş özeti: "Brief hazır: <ürün> · amaç … · sonuç türü … · hedef tarih … · günlük reklam seti bütçesi … · toplam sınır
-<tutar|yok>. Şimdi pazara bakalım (rakip analizi); istemezsen atlayabiliriz."
+Kapı yoktur. Geçiş özeti: "Reklamın özeti hazır. Ürün: <ürün>. Amacımız: …. Meta'da sayacağımız sonuç: … (ör. satış). Hedef
+tarih: …. Günlük bütçe: … TL. Toplam harcama sınırı: <tutar ya da 'koymadık'>. Şimdi rakiplerin reklamlarına bakalım mı? İstemezsen
+bu adımı atlayabiliriz."

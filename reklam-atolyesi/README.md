@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.8.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.9.0
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,26 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.9.0** — sade ve net dil: kullanıcının gördüğü her yerde tam cümle, günlük kelimeler, iç ad yok (KURALLAR K16)
+- **Tek kural, her oturumda:** K16 "kullanıcıya sade Türkçe ve tam cümleyle yazılır: önce sonuç, sonunda tek soru; aşama kodu, araç
+  ya da alan adı gösterilmez; terim ilk geçtiğinde açıklanır". Kısa liste her oturumda bağlama girdiği için modelin bütün konuşması
+  bu kurala bağlıdır. Ayrıntı, yaklaşık 60 terimlik sözlük (CPA, hook, kreatif, playbook, TOFU…) ve kötü/iyi örnekler yeni
+  `ref-sade-dil` skill'indedir.
+- **Onay ve geçiş mesajları:** 25 adımın kalıp mesajı yeniden yazıldı: "·" dizileri ve ok zincirleri yerine tam cümleler; "QC",
+  "VO", "LUFS", "proven/gap", "s2 original_clean" gibi ifadeler yerine "son kontrol", "seslendirme", "daha önce işe yaramış fikirler",
+  "çekimdeki sesi temizleyip kullanıyoruz". Ses yüksekliği gibi ölçüm değerleri kullanıcı mesajında sayıyla verilmez.
+- **Koddan gelen metinler:** aşama adları ("Brief" → "Reklamın özeti", "Ingest" → "Çekimleri alma", "Varyasyon ve export" →
+  "Farklı sürümler ve dosyalar"), ana menü (madde numaraları aynı; "Performans ve koçluk" → "Reklam sonuçları ve öneriler", üst satır
+  tam cümle), hata sorusu ve hata defteri özeti ("sen" diliyle; aşama kodu yerine adı), ses kurulumu önerileri, komut açıklamaları.
+- **Belgeler:** özet, strateji, rakip, çekim rehberi, yayın paketi ve hesap sağlığı şablonları sade dille; yazım notları belgeye
+  kopyalanmayan HTML yorumuna taşındı. Taslak denetiminin aradığı başlık ve satır adları değişmedi. Koçluk raporu ve analiz
+  notları sadeleşti ("hook oranı" → "açılışı izleme oranı", "portföy rolü proven" → "daha önce işe yaramış fikirler").
+- **Kurulum ve güncelleme (Windows):** "bağımlılık", "veritabanı geçişi", "sağlayıcınıza gönderin", "Test çalıştırılmadı" gibi
+  ifadeler kalktı; hata olunca "bu mesajı ve kayıt dosyasını geliştiriciye gönderin" denir. `KULLANIM.txt` adım adım yeniden yazıldı.
+  Müşteri paketi değişti: ZIP yeniden gönderilmeli.
+- **Denetim:** `scripts/lib/sade_dil.py` tarayıcısı ve `tests/test_v290_plain_language.py` kodun ürettiği metinleri ve kapı
+  mesajlarını tarar; değerlendirme rubriğinin R3'ü sıkılaştı, iki yeni vaka eklendi (yeni başlayana strateji, sade son kontrol).
+
 **2.8.0** — hata defteri ve geliştirme döngüsü (sahadaki hata → eval vakası → düzeltme → kör karşılaştırma → etki defteri)
 - **Müşteriye tek ve sade soru:** bir araç hata verdiğinde müşteri artık "bu dosyayı sağlayıcınıza gönderin" görmez; "Burada bir hata
   aldık. İsterseniz bunu hata defterine yazıp geliştiriciye gönderelim" görür. Soru bir oturumda bir kez sorulur, sonraki hatalar

@@ -148,7 +148,7 @@ def check(media: list[dict], account: dict | None = None, cta_url: str | None = 
                          "fix": "ürün yakın çekim, kullanım anı, süreç, müşteri yorumu (izinli) paylaşımları"})
     if out["reels_share_recent"] < REELS_SHARE_MIN:
         findings.append({"level": "medium", "what": f"son paylaşımlarda video payı %{out['reels_share_recent'] * 100:.0f}",
-                         "why": "reklamlar video; profil aynı dili konuşmuyor", "fix": "çekim artıklarından kısa videolar (organik adaylar)"})
+                         "why": "reklamlar video; profil aynı dili konuşmuyor", "fix": "reklam çekiminden artan görüntülerle kısa videolar (normal paylaşım fikirleri)"})
     if out["captions_with_cta"] == 0:
         findings.append({"level": "low", "what": "son paylaşımlarda yönlendirme yok", "why": "ilgilenen kişi nasıl alacağını bilmez",
                          "fix": "açıklamalarda tek, net yönlendirme (profildeki bağlantı / DM / randevu)"})

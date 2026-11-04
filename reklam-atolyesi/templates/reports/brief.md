@@ -1,26 +1,32 @@
-# Brief — {{kampanya}} · tur {{tur}}
+# Reklamın özeti — {{kampanya}} · tur {{tur}}
 
-> Şablon (spec 4.1 S01, 6.2, 6.3). `{{…}}` alanları kampanya verisinden doldurulur; boş kalan alan "bilinmiyor" yazılır, tahmin yazılmaz.
+<!-- Yazım notu (belgeye kopyalanmaz): spec 4.1 S01, 6.2, 6.3. `{{…}}` alanları kampanya verisinden doldurulur; boş kalan alana
+"bilinmiyor" yazılır, tahmin yazılmaz. Belge sade Türkçe ve tam cümleyle yazılır (KURALLAR K16, ref-sade-dil): terim ilk geçtiğinde
+parantez içinde açıklanır, iç alan adı (budget_total gibi) ve aşama kodu yazılmaz. -->
 
 ## Kampanya
-- Ürün: {{ürün}} (tanışma: {{ürün_tanışma_durumu}})
-- Kampanya amacı: {{amaç}}
-- Sonuç türü: {{sonuç_türü}} (purchase · lead · messaging · profile_visit · link_click · engagement; lead ise yol: instant_form · website · call)
+- Ürün: {{ürün}} (ürün tanışması: {{tamamlandı | tamamlanmadı}})
+- Kampanyanın amacı: {{amaç}}
+- Sonuç türü (Meta'da neyi sayacağız): {{satış | müşteri adayı | mesaj | profil ziyareti | bağlantı tıklaması | etkileşim — yalnızca biri}}
+  {{müşteri adayıysa: "Müşteri adayını şu yolla alacağız: anlık form (Meta'nın kendi formu) | sitedeki form | telefonla arama"}}
 - Sezon / hedef tarih: {{sezon}} / {{hedef_tarih}}
-- Kampanya modu: {{tam_tur_ya_da_hızlı_tur}}
-- Reklam seti günlük bütçesi: {{günlük_bütçe}} {{para_birimi}} (ilk turda tek reklam setinin; sonraki turlarda mevcut setin günlük bütçesi)
+- Çalışma biçimi: {{tam tur (çekimle) | hızlı tur (elimizdeki videolarla)}}
+- Reklam seti günlük bütçesi: {{günlük_bütçe}} {{para_birimi}} (ilk turda tek reklam setinin, sonraki turlarda yayındaki setin günlük bütçesi)
 
-## Toplam Meta harcama sınırı (6.3)
-- `budget_total`: {{tutar_ya_da_NULL}} {{para_birimi}} — bu kampanyanın ilk yayınından itibaren BÜTÜN turlarındaki Meta reklam harcamasının üst sınırı; üretim/servis ücretleri dahil değildir. NULL: kullanıcı sınır tanımlamadı (açık karar).
-- Kullanıcı teyidi: {{teyit_ifadesi_ve_tarihi}}
+## Toplam Meta harcama sınırı
+- Bu kampanyada Meta reklamlarına toplam en fazla {{tutar}} {{para_birimi}} harcanacak. {{ya da: "Toplam harcama sınırı yok; bunu sen açıkça seçtin."}}
+  Bu tutar kampanyanın bütün turlarını kapsar; çekim, seslendirme gibi üretim ücretleri bunun içinde değildir.
+- Onayın: {{senin_sözün_ve_tarih}}
 
-## Ekonomi (6.2)
-- Başa baş CPA: {{başa_baş}} · hedef CPA (güvenlik payı {{pay}}): {{hedef}} · durum: {{exact|assumed|range|unknown}}
-- Varsayımlar (VARSAYIM etiketli): {{varsayımlar}}
-{{deneme_kampanyası_ise: "ekonomi VARSAYIMSAL (ürün tanışması atlandı; 17.7)"}}
+## Ekonomi (bir satıştan ne kazanıyoruz, reklama ne kadar harcayabiliriz)
+- Bir satış için reklama en fazla harcayabileceğimiz tutar (başa baş maliyet, CPA): {{başa_baş}} {{para_birimi}}. Bunun üstü zarar demektir.
+- Hedefimiz bir satışı {{hedef}} {{para_birimi}} reklam harcamasıyla almak ({{pay}} güvenlik payı bıraktık).
+- Bu rakamlar: {{kesin | VARSAYIM (henüz teyit edilmedi) | tahmini aralık | bilinmiyor}}
+- Varsayımlarımız (VARSAYIM: henüz teyit edilmedi): {{varsayımlar}}
+{{deneme kampanyasıysa: "Bu rakamlar VARSAYIMSAL: ürün tanışmasını atladık, maliyetleri henüz bilmiyoruz."}}
 
 ## Rakip bağlamı
-{{S01b atlandıysa: "rakip bağlamı yok — kullanıcı rakip analizini atladı (gerekçe: …)"}}
+{{rakiplere bakmadıysak: "Rakiplerin reklamlarına bakmadık; sen bu adımı atlamayı seçtin (neden: …)."}}
 
 ## Varsayımlar ve açık sorular
 - {{…}}

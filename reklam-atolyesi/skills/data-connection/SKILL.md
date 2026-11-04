@@ -90,4 +90,5 @@ Yok.
 - Sipariş dosyasından kişisel veri okunmadı.
 
 ## Kapı mesajı
-Kapı yoktur. Özet: "Veri yolu: <yollar> · Meta satışı görüyor mu: <durum> · son içe aktarma: <tarih/yok> · bekleyen: <adım>."
+Kapı yoktur. Özet: "Satış bilgilerini şu yolla alıyoruz: <yollar>. Meta satışları görebiliyor mu: <evet | hayır | kısmen>. Son veri
+aktarımı: <tarih ya da 'henüz yok'>. Sıradaki adım: <adım>."

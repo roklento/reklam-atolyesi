@@ -73,14 +73,16 @@ Yok.
 
 ## Kontroller
 - Kapanış özetinde geçmiş ve kıyas yoksa kullanıcıya "sektör ortalaması" ya da başka bir dış başlangıç değeri **vaat edilmez**; doğru cümle:
-  "İlk test önsel varsayım olmadan başlar (Beta(1,1)); ilk sonuçlardan öğreniriz. Harcama başladıktan sonra Meta'nın kıyas aracı
-  veri verirse bağlam olarak eklenir."
+  "Elimizde geçmiş reklam verisi yok, bu yüzden ilk denemeye hazır bir beklentiyle başlamıyoruz; ne işe yaradığını ilk sonuçlardan
+  öğreneceğiz. Reklamlar yayına girince Meta benzer hesaplarla bir karşılaştırma verirse onu da yanına ekleriz." (hesapta Beta(1,1) kullanılır;
+  bu kullanıcıya söylenmez)
 - En fazla 6 soru; çıkarılabilen bilgi sorulmadı.
 - Aynı reklam hesabı iki profile bağlanmadı; saat dilimi doğrulandı.
 - Yorumların hepsinde izin kanıtı ve ad gösterim biçimi var; sahte/uydurma yorum yok.
 - Kişisel veri, izin kapısı geçmeden dışarı gönderilmedi.
 
 ## Kapı mesajı
-"Marka özeti: <ad> · hesap <id> (sayfa/IG: …) · saat dilimi … · ton: … · CTA: … · kaçınılacaklar: … · renkler: ink …, accent …, bg … ·
-yorumlar: N izinli. Onaylıyor musun, neyi düzeltelim?" → açık onayda `gate_approve(profile_id, stage_run_id, output_version,
-approval_text, checkpoint=…)`.
+"Markanı şöyle kaydettim. Marka adı: <ad>. Reklam hesabı: <hesabın adı> (Facebook sayfası ve Instagram: …). Saat dilimi: ….
+Konuşma tarzımız: …. Reklamın sonunda izleyene ne yapmasını söyleyeceğiz: …. Kaçınacağımız şeyler: …. Renkler: yazı rengi …,
+vurgu rengi …, arka plan rengi …. Reklamda kullanmamıza izin verilen müşteri yorumu: N tane. Bunları onaylıyor musun, düzeltmemi
+istediğin bir yer var mı?" → açık onayda `gate_approve(profile_id, stage_run_id, output_version, approval_text, checkpoint=…)`.

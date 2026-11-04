@@ -116,5 +116,5 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
 - S10 yeni sahne eklediyse ya da onaylı ses seçimini değiştirdiyse yalnızca etkilenen sahnenin ses kararı yeniden soruldu; yeni maliyet ayrıca onaylandı.
 
 ## Kapı mesajı
-Kapı yoktur (taslak kapısı S11'de). Geçiş özeti: "İlk taslak hazır (önizleme): N sahne, M sn; öz denetim <k> tur, kalan not: …. Sesi
-bitirip taslağı birlikte izleyelim."
+Kapı yoktur (taslak onayı S11'de). Geçiş özeti: "Videonun ilk taslağı hazır: N sahne, toplam M saniye. Taslağı k kez kendim kontrol
+ettim; hâlâ dikkat etmemiz gereken nokta: …. Şimdi sesi tamamlayıp taslağı birlikte izleyelim."

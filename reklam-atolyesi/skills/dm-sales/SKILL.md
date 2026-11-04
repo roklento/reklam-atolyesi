@@ -98,4 +98,5 @@ mesajla satış satırları.
 - Taslakta bilinmeyen bilgi yer tutucuyla bırakıldı; fiyat satış sayfasıyla aynı; otomatik gönderim yok.
 
 ## Kapı mesajı
-Kapı yoktur. Kayıttan sonra tek satır: "M-0007 açıldı (WhatsApp, kurumsal, toplu). Takip: <tarih>. Menüye dönmek için 'menü' yaz."
+Kapı yoktur. Kayıttan sonra kısa bir mesaj: "M-0007 numaralı kayıt açıldı: WhatsApp'tan gelen kurumsal ve toplu bir sipariş. Bir
+sonraki takip tarihi: <tarih>. Ana menüye dönmek için 'menü' yazabilirsin."

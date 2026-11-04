@@ -1,5 +1,5 @@
 ---
-description: "Gece üretimi (zamanlanmış): çekim tamam sonrası ingest, analiz ve tamamlanmamış render'lar"
+description: "Gece üretimi (kendiliğinden çalışır): çekimler gelince videoları alır, inceler ve yarım kalan video dosyalarını tamamlar"
 argument-hint: "--profile <id> --campaign <id> --cycle <id>"
 ---
 

@@ -102,15 +102,15 @@ Yok.
      olarak kopyalamak beğeni ve yorum birikimini sıfırlar.
    Katman zaten açıksa yalnızca yeni üye taşıma ve yorgunluk kararları üretilir. Katmandaki reklamların verisi test verisi değildir:
    hüküm dili "Meta'nın dağıtımı altında"; raporda ayrı bölümdür ve test hükümlerine, önsele ya da playbook kanıtına girmez.
-7. **Uygulama listesi:** her karar somut bir Ads Manager adımı (örnek biçim: "Y reklam setinin günlük bütçesini <mevcut> → <yeni> yap"; tutarlar ve para birimi profilden).
+7. **Uygulama listesi:** her karar somut bir Ads Manager adımı (örnek biçim: "Y reklam setinin günlük bütçesini <mevcut> TL'den <yeni> TL'ye çıkar"; tutarlar ve para birimi profilden; adımlar ok işaretiyle değil tam cümleyle yazılır).
    **Koruma sınırları (yerel; Meta kuralı diye sunulmaz, §7):** günlük bütçe artışı ≤ %20; aynı reklam setinde aynı gün birden fazla büyük değişiklik yok; eşik altı kreatife
    istatistiksel "kapat" yok. → `action_items_set(profile_id, campaign_id, items=[{action, reason_kind:"performance", target_meta_id,
    before, after, evidence:{input_snapshot}}], cycle_id)` (onay S16 kapısında).
    Ölçekleme maddeleri (`scale_candidates[].eligible` ve okunmuş gönderi kimliği varsa) sırasıyla, `kind` alanıyla:
-   (1) katman yoksa `kind:"scale_open"`, `reason_kind:"structure"`, `after:{daily_budget}` — "Ölçekleme kampanyası aç: tek reklam seti,
-   geniş kitle, günlük <B>, En yüksek hacim, kreatif test yok"; (2) `kind:"scale_move"`, `reason_kind:"performance"`,
-   `after:{post_id}`, `evidence:{input_snapshot, scale_checks:<checks>}` — "<reklam adı>'nı ölçekleme setine yeni reklam olarak ekle →
-   Mevcut gönderiyi kullan → gönderi kimliği <post_id>"; (3) `kind:"scale_pause_source"`, `reason_kind:"structure"`, `after:{post_id}`
+   (1) katman yoksa `kind:"scale_open"`, `reason_kind:"structure"`, `after:{daily_budget}` — "Ölçekleme kampanyası aç (iyi giden reklamları daha büyük bütçeyle sürdürdüğümüz ayrı kampanya). İçinde tek reklam seti olsun,
+   kitle geniş kalsın, günlük bütçe <B> olsun, teklif ayarı 'En yüksek hacim' seçilsin, reklam deneme ayarı açılmasın"; (2) `kind:"scale_move"`, `reason_kind:"performance"`,
+   `after:{post_id}`, `evidence:{input_snapshot, scale_checks:<checks>}` — "<reklam adı> reklamını ölçekleme kampanyasındaki reklam setine yeni reklam olarak ekle.
+   Eklerken 'Mevcut gönderiyi kullan' seçeneğini seç ve şu gönderiyi bul: <post_id>"; (3) `kind:"scale_pause_source"`, `reason_kind:"structure"`, `after:{post_id}`
    — "Aynı gönderiyi test setinde duraklat" (aynı gönderi iki sette kendi kendisiyle yarışmasın diye; yerel koruma kuralı, §7). Sunucu
    gönderi kimliği ya da dört koşuldan biri eksik taşıma maddesini reddeder. Ölçekleme seti bütçesindeki sonraki artışlar da ≤ %20/gün.
    İnsan uyguladıktan ve `track` doğruladıktan sonra katman kaydedilir: `scale_layer_set(profile_id, campaign_id, cycle_id,
@@ -147,6 +147,7 @@ Girdi kopyası (hash'li), analiz JSON'u, grafikler, sürümlü koçluk raporu, `
   hükmüne, önsele ya da playbook kanıtına karışmadı.
 
 ## Kapı mesajı
-"Koçluk özeti (3 cümle) … Kararlar: 1) … (veri yeterliliği: …) 2) … Ölçekleme: <taşınacak reklam + gönderi kimliği | önerilmedi: neden>.
-Uygulama listesi: N adım (Ads Manager'da senin uygulaman gerekiyor).
-Hangi kararları onaylıyorsun, neyi değiştirelim?" → açık onayda `gate_approve(...)`.
+"Kısaca durum şu: <en fazla üç cümle>. Önerdiğim kararlar: 1) … (Bu karar için elimizdeki veri yeterli mi: …) 2) ….
+Daha büyük bütçeyle sürdürmeyi önerdiğim reklam: <reklamın adı ve gönderisi> (ya da: Şimdilik hiçbir reklamın bütçesini artırmayı
+önermiyorum, çünkü …). Meta'nın reklam ekranında senin yapman gereken N adım var; listesi aşağıda.
+Hangi kararları onaylıyorsun, hangisini değiştirelim?" → açık onayda `gate_approve(...)`.

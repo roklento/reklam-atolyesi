@@ -49,4 +49,6 @@ description: "reklam-atolyesi S06 ingest — telefon çekimlerini güvenli kurgu
 - Hatalı klipler kullanıcıya listelendi; eksik dosya "tamamlandı" sayılmadı.
 
 ## Kapı mesajı
-Kapı yoktur. Geçiş özeti: "N klip, M fotoğraf işlendi (VFR→CFR: …, HDR→SDR: …, sabitlenen: …). Hata: <yok|…>. Analize geçiyorum."
+Kapı yoktur. Geçiş özeti: "N video ve M fotoğrafı aldım. Bazı videoların görüntüsünü düzelttim: <hangi videolar ve ne yapıldı; ör.
+titremeyi azalttım, renkleri telefonda doğru görünecek hâle getirdim>. Sorun: <yok | …>. Şimdi videoları inceliyorum." Teknik
+ayrıntı (kare hızı, renk alanı) kullanıcıya söylenmez; yalnızca ne düzeldiği söylenir.

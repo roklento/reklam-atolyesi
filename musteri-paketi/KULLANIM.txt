@@ -1,31 +1,36 @@
 ﻿REKLAM ATÖLYESİ — MÜŞTERİ PAKETİ
 
-ZIP dosyasını bir klasöre çıkarın. Dosyalar yan yana kalmalı.
+Önce ZIP dosyasını bir klasöre çıkarın. Çıkan dosyalar aynı klasörde yan yana kalmalı.
 
-İLK KURULUM: kur.cmd dosyasına çift tıklayın.
-Araçları, bağımlılıkları ve ilk kurulum doğrulamasını yapar.
-GitHub davetini kabul etmiş hesabınızla giriş yapın. Veri klasörünü seçin.
-Kurulum tamamlanmışsa sizi guncelle.cmd dosyasına yönlendirir.
-Kurulum yarıda kaldıysa (doğrulama geçmedi, pencere kapandı) sorunu giderip kur.cmd dosyasını
-yeniden çalıştırın; kayıtlı veri klasörüyle kaldığı yerden sürer.
+İLK KURULUM
+1. kur.cmd dosyasına çift tıklayın.
+2. Kurulum, gerekli programları indirir ve en sonda her şeyin çalıştığını kontrol eder. İnternet hızına göre 20-40 dakika sürer.
+3. Tarayıcıda GitHub girişi açılırsa, size davet gönderilen GitHub hesabıyla giriş yapın.
+4. Sizden bir veri klasörü seçmeniz istenir. Markalarınızın bilgileri ve videolarınız burada durur.
+Reklam Atölyesi zaten kuruluysa kur.cmd sizi güncelleme dosyasına (guncelle.cmd) yönlendirir.
+Kurulum yarıda kaldıysa (pencere kapandı ya da son kontrol geçmedi) kur.cmd dosyasını yeniden çalıştırın.
+Kaldığı yerden devam eder.
 
-GÜNCELLEME: Claude masaüstü uygulamasını sistem tepsisinden tamamen kapatın.
-Açık Claude Code oturumlarını da kapatın. Sonra guncelle.cmd dosyasına çift tıklayın.
-Kayıtlı veri klasörü kullanılır, veritabanının yedeği alınır, yayımlanan sürüm yüklenir.
-Yalnızca değişen bağımlılıklar alınır; gerekli veritabanı geçişleri uygulanır.
-Test, örnek render, galeri, doctor ve toplu canlı kabul testi çalıştırılmaz.
-İlk kurulumda tamamlanmamış hesap bağlantıları ayrıca tamamlanmalıdır.
-İş bitince Claude'u yeniden açıp yeni oturumda reklam-atolyesi yazın.
-Güncellemeden önce başlamış kampanyaların video projesi değişmez. Böyle bir kampanyada yeni bir
-video bileşeni istenirse Reklam Atölyesi projeyi güncellemek için onayınızı ister.
+GÜNCELLEME
+1. Claude uygulamasını tamamen kapatın: saatin yanındaki simgeye sağ tıklayıp "Çıkış" deyin.
+   Açık Claude Code pencereleri varsa onları da kapatın.
+2. guncelle.cmd dosyasına çift tıklayın.
+3. Güncelleme önce verilerinizin yedeğini alır, sonra yeni sürümü kurar. Yalnızca değişen parçalar indirilir.
+4. İş bitince Claude'u açın, yeni bir sohbet başlatın ve reklam-atolyesi yazın.
+Daha önce bağlamadığınız hesaplar varsa (Meta, ElevenLabs) ilk açılışta bunları bağlamanız istenir.
+Güncellemeden önce başlamış kampanyaların videoları değişmez. Böyle bir kampanyada yeni bir video
+özelliği gerekirse Reklam Atölyesi önce sizden onay ister.
 
-HATA OLURSA: Ekrandaki mesajı ve belirtilen günlük dosyasını sağlayıcınıza gönderin.
-Güncelleme günlükleri veri klasöründeki logs klasörüne de kopyalanır.
-Kullanım sırasında araç hataları Claude içinde bildirilir; logs/kullanim-hatasi-*.json
-dosyası belirtilir. Kullanıcının iptal ettiği işlemler hata bildirimi oluşturmaz.
-Claude veya Python hiç başlayamıyorsa ekrandaki hata mesajını sağlayıcınıza iletin.
-Loglar kendiliğinden gönderilmez. Paylaşmadan önce kişisel bilgi bulunup bulunmadığına bakın.
-Başarısız güncellemede sürüm kısmen değişmiş olabilir; otomatik geri alma yapılmaz.
-Sorun çözüldükten sonra guncelle.cmd yeniden çalıştırılabilir; yedek backups klasöründedir.
-Veritabanını bir yedeğe geri döndürmek gerekirse Claude'a "veritabanı yedeklerini göster" deyin: uygun yedekleri listeler ve
-Claude Code kapatıldıktan sonra çalıştırılacak tek komutu verir. Geri dönüş önceki veritabanını silmez, ayrı klasörde saklar.
+BİR HATA OLURSA
+Kullanırken bir hata olursa Reklam Atölyesi size şunu sorar: "Bunu hata defterine yazıp geliştiriciye
+gönderelim mi?" Evet derseniz bir dosya hazırlar ve yerini söyler. Bu dosyayı bize e-postayla ya da
+WhatsApp'tan göndermeniz yeterli. Dosyada adınız, markanız, ürünleriniz ya da tutarlarınız yer almaz.
+Reklam Atölyesi hiçbir dosyayı kendiliğinden göndermez.
+Kurulum ya da güncelleme sırasında hata olursa ekrandaki mesajı ve ekranda yeri yazan kayıt dosyasını
+geliştiriciye gönderin. Bu kayıtların kopyası veri klasöründeki logs klasöründe de durur.
+Claude hiç açılmıyorsa ekrandaki hata mesajının fotoğrafını ya da ekran görüntüsünü gönderin.
+Yarıda kalan bir güncelleme kendiliğinden geri alınmaz. Sorun çözülünce guncelle.cmd dosyasını yeniden
+çalıştırabilirsiniz. Verilerinizin yedeği veri klasöründeki backups klasöründedir.
+Verilerinizi eski bir yedeğe döndürmek gerekirse Claude'a "verilerimin yedeklerini göster" yazın. Reklam
+Atölyesi uygun yedekleri listeler ve ne yapmanız gerektiğini adım adım söyler. Geri dönüş, o anki verilerinizi
+silmez; ayrı bir klasörde saklar.

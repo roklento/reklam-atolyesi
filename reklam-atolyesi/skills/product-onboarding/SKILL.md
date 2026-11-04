@@ -87,6 +87,8 @@ dosyası; tercihler gözlemlenirse `memory_add(layer="preference", …)`; devam 
 - Kampanyaya özgü sorular (hedef tarih, test bütçesi, amaç, sonuç türü) burada sorulmadı; S01'de.
 
 ## Kapı mesajı
-"Ürün: <ad> · gözlem: … (teyit edilmeyenler: …) · fiyat … · katkı … → başa baş CPA … / hedef CPA … (<kesin|varsayım|aralık>) ·
-alıcılar: … · anlar: … · kanıtlanabilir iddialar: … · çekim tarifi: N kart (…). Onaylıyor musun, neyi düzeltelim?" → `gate_approve(...)`;
-onaydan sonra ürün kampanyaya hazırdır.
+"Ürününü şöyle kaydettim. Ürün: <ad>. Gördüklerim: … (henüz teyit edilmeyenler: …). Satış fiyatı: … TL. Bir satıştan masraflar
+çıkınca kalan: … TL. Bu yüzden bir satış için reklama en fazla … TL harcayabiliriz; bunun üstü zarar demek. Hedefimiz bir satışı
+… TL reklam harcamasıyla almak. (Bu rakamlar <kesin | VARSAYIM (henüz teyit edilmedi) | tahmini bir aralık>.) Kimler alıyor: ….
+Hangi anlarda ihtiyaç duyuluyor: …. Kanıtlayabileceğimiz iddialar: …. Çekim için N tarif kartı hazırladım (…). Onaylıyor musun,
+düzeltmemi istediğin bir yer var mı?" → `gate_approve(...)`; onaydan sonra ürün kampanyaya hazırdır.

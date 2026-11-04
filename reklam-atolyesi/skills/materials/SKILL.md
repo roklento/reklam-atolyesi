@@ -163,6 +163,8 @@ Sahne ses kararları (`decisions`), `audio/{vo,user_vo,music,sfx}/`, `*.words.js
 - Belirsiz (`unknown`) çağrı yeniden başlatılmadı; uzlaştırma bekliyor.
 
 ## Kapı mesajı
-"Ses kararları: s1 none · s2 original_clean · … (gerekçeler). Malzeme: VO <kaynak, seçilen alım>, müzik <aday>, efektler <liste>,
-AI <katmanlar, kabul durumu>. Bu tur ücretli kullanım: … kredi (onaylı tahmin …; gerçekleşen …). Onaylıyor musun, neyi değiştirelim?"
+"Her sahnenin sesini şöyle planladım: 1. sahne sessiz, 2. sahnede çekimdeki sesi temizleyip kullanıyoruz, … (her birinin nedeniyle).
+Kullanacağımız malzemeler: seslendirme <kimin sesi, hangi kayıt>, müzik <seçenek>, ses efektleri <liste>, yapay zekâyla hazırlanacak
+kısımlar <neler, onaylandı mı>. Bu turda ücretli araçlar için harcanan: … kredi (onayladığın tahmin …; şu ana kadar harcanan …).
+Onaylıyor musun, değiştirmek istediğin bir yer var mı?"
 → `gate_approve(...)`. S10 yeni sahne ekler ya da ses seçimini değiştirirse yalnızca etkilenen sahnenin kararı yeniden sorulur.

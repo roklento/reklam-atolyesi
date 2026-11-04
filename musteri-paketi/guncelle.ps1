@@ -64,7 +64,7 @@ function Invoke-Adim([string]$exe, [string[]]$argv) {
     & $command.Source @argv 2>&1 | Out-Host
     $result = $LASTEXITCODE
     $ErrorActionPreference = 'Stop'
-    if ($result -ne 0) { throw "İşlem başarısız: $exe (çıkış kodu $result)" }
+    if ($result -ne 0) { throw "Bir adım tamamlanamadı: $exe (hata kodu $result)" }
 }
 function Get-PythonKilit([string]$root) {
     return ((Get-Sha (Join-Path $root 'servers\ad_memory\uv.lock')) + ':' +
@@ -83,27 +83,27 @@ $code = 1
 $updateLock = $null
 try {
     Start-Transcript -Path $Gunluk | Out-Null
-    Write-Host 'Reklam Atölyesi — güncelleme (test çalıştırılmaz)' -ForegroundColor Cyan
-    Write-Host 'Başlamadan önce Claude masaüstü uygulamasını ve açık Claude Code oturumlarını kapatın.'
+    Write-Host 'Reklam Atölyesi güncelleniyor.' -ForegroundColor Cyan
+    Write-Host 'Başlamadan önce Claude uygulamasını ve açık Claude Code pencerelerini kapatın.'
     Update-YolDegiskeni
     $script:ClaudeExe = Find-Claude
-    if (-not $script:ClaudeExe) { throw 'Claude Code bulunamadı. İlk kurulum için kur.cmd kullanın.' }
+    if (-not $script:ClaudeExe) { throw 'Bu bilgisayarda Claude Code bulunamadı. İlk kez kuruyorsanız kur.cmd dosyasını çalıştırın.' }
     $kurulu = Get-KuruluPlugin
     if (-not $kurulu -or $kurulu.scope -ne 'user' -or -not $kurulu.installPath) {
-        throw 'Kullanıcı kapsamında mevcut kurulum bulunamadı. İlk kurulum için kur.cmd kullanın.'
+        throw 'Reklam Atölyesi bu bilgisayarda kurulu görünmüyor. İlk kez kuruyorsanız kur.cmd dosyasını çalıştırın.'
     }
     $dd = Get-KayitliVeriKlasoru
     if (-not $dd -or -not [IO.Path]::IsPathRooted($dd) -or -not (Test-Path -LiteralPath $dd -PathType Container)) {
-        throw 'Kayıtlı veri klasörü okunamadı. Claude plugin ayarındaki data_dir değerini kontrol edin.'
+        throw 'Reklam Atölyesi verilerinin durduğu klasör bulunamadı. Bu mesajı geliştiriciye iletin.'
     }
     $py = Join-Path $dd '.venv\Scripts\python.exe'
-    if (-not (Test-Path -LiteralPath $py)) { throw 'Mevcut Python ortamı bulunamadı. Sağlayıcınızdan destek isteyin.' }
+    if (-not (Test-Path -LiteralPath $py)) { throw 'Kurulumun bir parçası eksik görünüyor. Bu mesajı geliştiriciye iletin.' }
     # İkinci güncelleyicinin aynı veriye/bağımlılıklara eşzamanlı yazmasını engelle.
     $updateLock = [IO.File]::Open((Join-Path $dd '.guncelleme.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
     $env:PYTHONIOENCODING = 'utf-8'
     $helper = Join-Path $PSScriptRoot 'guncelle.py'
     $oldVersion = [string]$kurulu.version
-    Write-Host "Mevcut sürüm: $oldVersion"
+    Write-Host "Şu an kurulu sürüm: $oldVersion"
     Invoke-Adim $py @($helper, 'backup', '--data-dir', $dd)
     $pythonStamp = Join-Path $dd '.guncelleme-python-sha256'
     if (-not (Test-Path -LiteralPath $pythonStamp)) {
@@ -112,55 +112,55 @@ try {
     Invoke-Adim $script:ClaudeExe @('plugin', 'marketplace', 'update', $PazarAdi)
     Invoke-Adim $script:ClaudeExe @('plugin', 'update', "$PluginAdi@$PazarAdi", '--scope', 'user')
     $kurulu = Get-KuruluPlugin
-    if (-not $kurulu -or -not $kurulu.installPath) { throw 'Güncellenen plugin bilgisi okunamadı.' }
+    if (-not $kurulu -or -not $kurulu.installPath) { throw 'Yeni sürümün bilgisi okunamadı. Bu mesajı geliştiriciye iletin.' }
     $root = [string]$kurulu.installPath
     # Özellik bulunmadan başarı yazılmaz: yayımlanmamış/eski sürüme güncelleme anlaşılır biçimde durur.
     if (-not (Test-Path -LiteralPath (Join-Path $root 'hooks\error_notify.py'))) {
-        throw 'Depodaki sürüm yeni müşteri güncellemesini desteklemiyor. Sağlayıcınızın yeni sürümü yayımlaması gerekiyor.'
+        throw 'Bu güncelleme dosyası, yayımlanan sürümle uyumlu değil. Geliştiricinin yeni sürümü yayımlaması gerekiyor.'
     }
     $want = Get-PythonKilit $root
     if ((Get-Content -LiteralPath $pythonStamp -Raw).Trim() -ne $want) {
-        if (-not (Get-Command uv -ErrorAction SilentlyContinue)) { throw 'Değişen Python bağımlılıkları için uv bulunamadı.' }
-        Write-Host 'Değişen Python bağımlılıkları alınıyor...'
+        if (-not (Get-Command uv -ErrorAction SilentlyContinue)) { throw 'Güncelleme için gereken bir program (uv) bulunamadı. kur.cmd dosyasını bir kez daha çalıştırın.' }
+        Write-Host 'Gerekli program parçaları indiriliyor...'
         $env:UV_PROJECT_ENVIRONMENT = Join-Path $dd '.venv'
         $env:UV_LINK_MODE = 'copy'
         Invoke-Adim 'uv' @('sync', '--project', (Join-Path $root 'servers\ad_memory'), '--frozen', '--no-install-project', '--python', $py)
         [IO.File]::WriteAllText($pythonStamp, $want)
-    } else { Write-Host 'Python bağımlılıkları aynı; atlandı.' }
+    } else { Write-Host 'Program parçaları zaten güncel.' }
     $nd = Join-Path $dd '.node'
     $tpl = Join-Path $root 'templates\remotion'
     $nodeStamp = Join-Path $nd '.kilit-sha256'
     $nodeHash = Get-Sha (Join-Path $tpl 'package-lock.json')
     $have = if (Test-Path -LiteralPath $nodeStamp) { (Get-Content -LiteralPath $nodeStamp -Raw).Trim() } else { '' }
     if ($have -ne $nodeHash -or -not (Test-Path -LiteralPath (Join-Path $nd 'node_modules\remotion'))) {
-        if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) { throw 'Değişen video bağımlılıkları için npm bulunamadı.' }
-        Write-Host 'Değişen video bağımlılıkları alınıyor...'
+        if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) { throw 'Güncelleme için gereken bir program (npm) bulunamadı. kur.cmd dosyasını bir kez daha çalıştırın.' }
+        Write-Host 'Video hazırlama parçaları indiriliyor...'
         New-Item -ItemType Directory -Force -Path $nd | Out-Null
         Copy-Item -LiteralPath (Join-Path $tpl 'package.json'), (Join-Path $tpl 'package-lock.json') -Destination $nd -Force
         Push-Location $nd
         try { Invoke-Adim 'npm.cmd' @('ci', '--no-audit', '--no-fund') } finally { Pop-Location }
         [IO.File]::WriteAllText($nodeStamp, $nodeHash)
-    } else { Write-Host 'Video bağımlılıkları aynı; atlandı.' }
+    } else { Write-Host 'Video hazırlama parçaları zaten güncel.' }
     Invoke-Adim $py @($helper, 'finish', '--data-dir', $dd, '--plugin-root', $root, '--from-version', $oldVersion)
-    Write-Host "GÜNCELLEME TAMAMLANDI: $($kurulu.version). Test çalıştırılmadı." -ForegroundColor Green
-    Write-Host 'Claude uygulamasını yeniden açıp yeni bir oturumda reklam-atolyesi yazın.'
-    Write-Host 'Kullanımda hata bildirimi görürseniz belirtilen hata kaydını sağlayıcınıza gönderin.'
+    Write-Host "GÜNCELLEME TAMAMLANDI. Yeni sürüm: $($kurulu.version)." -ForegroundColor Green
+    Write-Host 'Şimdi Claude uygulamasını açın, yeni bir sohbet başlatın ve reklam-atolyesi yazın.'
+    Write-Host 'Kullanırken bir hata olursa Reklam Atölyesi size hata defterini geliştiriciye göndermeyi önerir.'
     $code = 0
 } catch {
-    Write-Host "GÜNCELLEME TAMAMLANAMADI: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host 'Bu hata mesajını ve aşağıdaki günlük dosyasını sağlayıcınıza gönderin.' -ForegroundColor Yellow
-    Write-Host 'Sürüm veya bağımlılıklar kısmen değişmiş olabilir. Sorun giderildikten sonra guncelle.cmd yeniden çalıştırılabilir.'
+    Write-Host "GÜNCELLEME TAMAMLANAMADI. Sebep: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host 'Bu ekrandaki mesajı ve aşağıda yeri yazan kayıt dosyasını geliştiriciye gönderin.' -ForegroundColor Yellow
+    Write-Host 'Güncelleme yarıda kalmış olabilir. Sorun çözülünce guncelle.cmd dosyasını yeniden çalıştırabilirsiniz; verileriniz yedeklendi.'
 } finally {
     if ($updateLock) { $updateLock.Dispose() }
-    Write-Host "Günlük: $Gunluk"
+    Write-Host "Kayıt dosyası: $Gunluk"
     try { Stop-Transcript | Out-Null } catch { }
     if ($dd -and (Test-Path -LiteralPath $Gunluk)) {
         try {
             $logs = Join-Path $dd 'logs'
             New-Item -ItemType Directory -Force -Path $logs | Out-Null
             Copy-Item -LiteralPath $Gunluk -Destination $logs -Force
-            Write-Host "Kalıcı günlük: $(Join-Path $logs ([IO.Path]::GetFileName($Gunluk)))"
-        } catch { Write-Host "Günlük veri klasörüne kopyalanamadı; yukarıdaki geçici günlük dosyasını gönderin." }
+            Write-Host "Kayıt dosyasının kopyası: $(Join-Path $logs ([IO.Path]::GetFileName($Gunluk)))"
+        } catch { Write-Host "Kayıt dosyası kopyalanamadı; yukarıda yeri yazan dosyayı gönderin." }
     }
 }
 exit $code

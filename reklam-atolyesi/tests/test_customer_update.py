@@ -142,7 +142,7 @@ function Invoke-Adim([string]$exe, [string[]]$argv) {
     assert any('finish' in e['argv'] for e in entries) == (mode in ('same', 'changed'))
     assert list((dd / 'logs').glob('reklam-atolyesi-guncelleme-*.log'))
     if mode in ('update-fails', 'deps-fail'):
-        assert 'sağlayıcınıza' in output
+        assert 'geliştiriciye gönderin' in output
     if mode == 'deps-fail':
         stamp = (dd / '.guncelleme-python-sha256').read_text()
         assert stamp.startswith(hashlib.sha256(b'same').hexdigest().upper())

@@ -115,9 +115,15 @@ SIGNAL_TEXT = {  # müşteriye ve admin'e sade anlatım (pakete girmez)
     "takildi": "adım 3 günden uzun süredir bekliyor",
     "taslak_son_tur_kaldi": "taslak, son düzeltme turunda da denetimi geçemedi",
     "sorunla_onaylandi": "adım, denetimde kalan bir sorunla onaylandı",
-    "kreatif_red": "kreatif, kalite kontrolünden geçemedi",
-    "arac_hatasi": "bir araç hata verdi",
+    "kreatif_red": "bir reklam son kontrolden geçemedi",
+    "arac_hatasi": "sistemde bir hata oldu",
 }
+
+
+def _stage_name(code: str) -> str:
+    """Kullanıcı özetinde aşama kodu değil adı görünür (2.9.0, K16); defterin kendisi kodu taşır."""
+    from . import stages as ST
+    return ST.STAGE_NAMES.get(code, "Bir")
 
 
 def summary_lines(rep: dict) -> list[str]:
@@ -133,7 +139,8 @@ def summary_lines(rep: dict) -> list[str]:
     if sig:
         lines.append("En sık görülenler:")
         for s in sig[:5]:
-            lines.append(f"- {s['asama']} adımında {SIGNAL_TEXT.get(s['sinyal'], s['sinyal'])} ({s['n']} kez)")
-    lines.append("Defterde adınız, markanız, ürünleriniz, tutarlarınız, dosya yollarınız ya da yazdığınız bir metin yer almaz. "
+            where = f"{_stage_name(s['asama'])} adımında " if s["asama"] not in ("-", None, "") else ""
+            lines.append(f"- {where}{SIGNAL_TEXT.get(s['sinyal'], s['sinyal'])} ({s['n']} kez)")
+    lines.append("Defterde adın, markan, ürünlerin, tutarların, dosyalarının yeri ya da yazdığın bir metin yer almaz. "
                  "Yalnızca hangi adımda ne tür bir sorun olduğu ve kaç kez olduğu yazılır.")
     return lines

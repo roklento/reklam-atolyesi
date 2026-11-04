@@ -81,6 +81,6 @@ Yok.
 - Bulgularda eşiklerin yerel olduğu yazıldı; kişi adı/yorum metni rapora girmedi.
 
 ## Kapı mesajı
-"Profil kontrolü: N paylaşım okundu, son paylaşım X gün önce; profil puanı E/K (bilinmeyen: …); bulgular: …; önce düzeltilecek: …
-(taslaklar aşağıda).
-Organik paylaşım adaylarını çıkarayım mı?"
+"Instagram profiline baktım: N paylaşımı okudum, son paylaşım X gün önce yapılmış. Profilin K üzerinden E puan aldı (bakamadığım
+konular: …). Gördüklerim: …. Önce düzeltmeni önerdiğim şey: … (hazır metinler aşağıda).
+Reklam dışındaki normal paylaşımların için fikir çıkarayım mı?"

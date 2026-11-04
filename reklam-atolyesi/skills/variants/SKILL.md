@@ -82,5 +82,6 @@ S11 taslak kapısı geçilmiş (onaylı `ready` plan ve miks).
 - Export parametreleri doğru; adlar kurala uygun; `creative_register` hash'leri dosyalarla aynı.
 
 ## Kapı mesajı
-Kapı yoktur (QC kapısı S13'te). Geçiş özeti: "N test reklamı (M dosya: 9:16/4:5), K yedek, S statik, C carousel hazır; AI'sız eşler: ….
-Bağımsız kalite kontrole gönderiyorum."
+Kapı yoktur (kalite kontrolü S13'te). Geçiş özeti: "N reklam hazır (M dosya: telefonu tam kaplayan dikey boy ve akışta görünen
+dikdörtgen boy), K tanesi yedekte. Ayrıca S tek görselli ve C kaydırmalı çoklu görselli reklam hazırladım. Yapay zekâ kullanılmadan
+hazırlanan karşılıkları: …. Şimdi hepsini ayrı bir son kontrolden geçiriyorum."
