@@ -21,7 +21,7 @@ def backup(data_dir):
     finally:
         dst.close()
         src.close()
-    print('Veritabanı yedeği: ' + str(dest))
+    print('Verilerinizin yedeği alındı: ' + str(dest))
     return dest
 
 

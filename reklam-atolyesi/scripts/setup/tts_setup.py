@@ -93,7 +93,7 @@ def library_check(data_dir: Path, gpu: dict | None = None, now: bool = False, ne
             reasons.append(f"ekran belleği yetersiz ({g['vram_total_gb']} GB; gereken ≥ {LIB_REQ['vram_total_gb']:.0f} GB)")
         cv = tuple(int(x) for x in g["cuda"].split(".")) if g.get("cuda") else None
         if cv is None or cv < LIB_REQ["cuda"]:
-            reasons.append(f"ekran kartı sürücüsü eski (CUDA {g.get('cuda') or '?'}; gereken ≥ {LIB_REQ['cuda'][0]}.{LIB_REQ['cuda'][1]}): sürücüyü güncelleyin")
+            reasons.append(f"ekran kartı sürücüsü eski (CUDA {g.get('cuda') or '?'}; gereken ≥ {LIB_REQ['cuda'][0]}.{LIB_REQ['cuda'][1]}): ekran kartı sürücüsünü güncellemek gerekir")
         if now and not reasons and g["vram_free_gb"] < LIB_REQ["vram_free_gb"]:
             reasons.append(f"ekran belleği şu an dolu ({g['vram_free_gb']} GB boş; gereken ≥ {LIB_REQ['vram_free_gb']} GB): başka uygulamalar kapatılabilir")
     disk = _disk_free_gb(Path(data_dir))

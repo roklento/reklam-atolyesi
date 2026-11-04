@@ -203,7 +203,7 @@ def test_coach_separates_scale_rows_and_proposes_move(store):
     a = an["concepts"]["A"]["totals"]
     assert a["impressions"] < 99999  # ölçekleme satırları test hesabına girmedi
     assert an["scale_layer"]["spend"] == pytest.approx(2000) and an["scale_layer"]["members"][0]["post_id"] == "123_456"
-    assert "test verisi değil" in an["scale_layer"]["label"]
+    assert "deneme verisi değil" in an["scale_layer"]["label"]
     dec = {d["concept"]: d for d in an["decisions"]}
     assert dec["A"]["decision"] == "büyüt"
     cand = {c["concept"]: c for c in an["scale_candidates"]}

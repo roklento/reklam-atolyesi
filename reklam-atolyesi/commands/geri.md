@@ -1,5 +1,5 @@
 ---
-description: "Geçmiş bir aşamaya döner; sonraki çıktılar eski işaretlenir"
+description: "Daha önceki bir adıma döner; o adımdan sonra hazırlananlar yeniden gözden geçirilmek üzere işaretlenir"
 argument-hint: "<aşama>"
 ---
 

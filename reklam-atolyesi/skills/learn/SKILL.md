@@ -66,5 +66,6 @@ sonraki tur brief taslağı, dışa aktarımlar, devam notu.
 - Üst huni bulgusu alt huni teyidi olmadan aktifleşmedi; kural kullanıcı onayı olmadan `active` olmadı.
 
 ## Kapı mesajı
-"Öğrenilenler: desteklenen … · reddedilen … · sonuçsuz …. Playbook önerisi: <kural, kanıt> (onaylarsan aktifleşir). Emekliye ayrılan: ….
-Sonraki tur için öneri: …. Onaylıyor musun?" → `gate_approve(...)`.
+"Bu turdan öğrendiklerimiz şunlar. Doğru çıkan tahminler: …. Yanlış çıkanlar: …. Veri yetmediği için karar veremediklerimiz: ….
+Bundan sonra hep uygulamayı önerdiğim kural: <kural ve dayanağı> (sen onaylarsan geçerli olur). Artık kullanmayacağımız eski
+kurallar: …. Bir sonraki tur için önerim: …. Onaylıyor musun?" → `gate_approve(...)`.

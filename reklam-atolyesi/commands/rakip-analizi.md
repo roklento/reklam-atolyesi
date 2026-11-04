@@ -1,5 +1,5 @@
 ---
-description: "Rakip analizini (S01b) çalıştırır; kampanya yoksa profil düzeyinde görüntü alır"
+description: "Rakiplerin reklamlarına bakar; kampanya yoksa marka için genel bir inceleme yapar"
 argument-hint: "[yenile]"
 ---
 

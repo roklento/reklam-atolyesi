@@ -235,8 +235,8 @@ class FeedbackMixin:
         """Paketin tam içeriği ve sade özeti; kullanıcıya gösterilir. Hiçbir şey yazılmaz."""
         rep = self._feedback_build(period_days)
         return {"report": rep, "summary": FB.summary_lines(rep),
-                "next": "Kullanıcıya sade dille sor: \"Bunu hata defterine yazıp geliştiriciye gönderelim mi? Defterde adınız, markanız, "
-                        "ürünleriniz ya da tutarlarınız yer almaz.\" Özeti madde madde göster; isterse defterin tamamını da göster. "
+                "next": "Kullanıcıya sade dille sor: \"Bunu hata defterine yazıp geliştiriciye gönderelim mi? Defterde adın, markan, "
+                        "ürünlerin ya da tutarların yer almaz.\" Özeti madde madde göster; isterse defterin tamamını da göster. "
                         "\"Evet\" derse feedback_export(approval_text=<kullanıcının sözü>). \"Hayır\" derse hiçbir şey yazma ve işe devam et. "
                         "'Paket', 'önizleme', 'dışa aktarma' gibi terimler kullanma."}
 
@@ -254,4 +254,4 @@ class FeedbackMixin:
                                  {"sha256": sha256_file(path), "approval": approval_text.strip()[:200]}, None, None)
         return {"path": str(path), "sha256": sha256_file(path), "summary": FB.summary_lines(rep),
                 "next": "Kullanıcıya şöyle söyle: \"Hata defterine yazdım. Dosya burada: <yol>. Bu dosyayı bize e-postayla ya da "
-                        "WhatsApp'tan göndermeniz yeterli.\" Dosyayı plugin kendisi göndermez; bunu da açıkça söyle."}
+                        "WhatsApp'tan göndermen yeterli.\" Dosyayı plugin kendisi göndermez; bunu da açıkça söyle."}

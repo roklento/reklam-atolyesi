@@ -81,5 +81,6 @@ QC raporu ve düzeltme listesi, `creatives.qc_status`, teknik rapor JSON'ları, 
 - Teknik kontroller bütün video üzerinde; örnek karelerden "geçti" denmedi.
 
 ## Kapı mesajı
-"QC: N test kreatifinden K'si geçti, L'si düzeltme bekliyor (… ). Yasal liste: …. İnsan kontrolü gereken maddeler: … (sen kontrol ettin
-mi?). Geçenlerle yayın paketine geçelim mi?" → açık onayda `gate_approve(...)`.
+"Son kontrolü yaptım. Deneyeceğimiz N reklamdan K tanesi hazır, L tanesinde düzeltme gerekiyor (… ). Yasal açıdan dikkat etmemiz
+gerekenler: …. Benim kontrol edemediğim, senin bakman gereken noktalar: …. Bu noktalara baktıysan, hazır olan reklamlarla yayın
+paketine geçelim mi?" → açık onayda `gate_approve(...)`.

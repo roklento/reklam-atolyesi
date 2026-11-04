@@ -103,7 +103,7 @@ function Read-EvetHayir([string]$soru) {
 }
 
 # --- 0. data_dir --------------------------------------------------------------------------------------------------------
-Write-Adim "reklam-atolyesi $Version - araç ve bağımlılık kurulumu"
+Write-Adim "Reklam Atölyesi $Version için gerekli programlar kuruluyor"
 $DataDir = [System.IO.Path]::GetFullPath($DataDir)
 Write-Host "  Plugin klasörü : $Root"
 Write-Host "  Veri klasörü   : $DataDir"
@@ -115,10 +115,10 @@ if (-not $Guncelleme) {
         Stop-Kurulum ("Veri klasörü boş değil ve bir reklam-atolyesi kurulumu da değil (" + ($extra -join ", ") + "). Boş ya da yeni bir klasör seçin.")
     }
 }
-Write-Tamam ($(if ($Guncelleme) { "Mevcut kurulum: güncelleme modu (verileriniz korunur)" } else { "Yeni kurulum" }))
+Write-Tamam ($(if ($Guncelleme) { "Önceki kurulum bulundu: güncelleniyor (verileriniz korunur)" } else { "Yeni kurulum" }))
 
 # --- 1. Araçlar ---------------------------------------------------------------------------------------------------------
-Write-Adim "1/5 Araçlar"
+Write-Adim "1/5 Gerekli programlar"
 Update-YolDegiskeni
 if ((Get-NodeMajor) -lt 22) { Install-Winget "OpenJS.NodeJS.LTS" "Node.js LTS" }
 $nm = Get-NodeMajor
@@ -152,16 +152,16 @@ if (Test-Path $marker) {
     try { $accepted = @((Get-Content $marker -Raw -Encoding UTF8 | ConvertFrom-Json).accepted_deviations) } catch { $accepted = @() }
 }
 $checks = @(
-    @{ key = "disk_data"; id = "data_drive_space"; gb = (Get-BosGB $DataDir); need = 50; label = "veri klasörünün sürücüsünde"; why = "4K ham çekim, ara dosyalar ve render için alan yetmeyebilir.";
+    @{ key = "disk_data"; id = "data_drive_space"; gb = (Get-BosGB $DataDir); need = 50; label = "veri klasörünün sürücüsünde"; why = "Çekimler ve hazırlanan videolar için yer yetmeyebilir.";
        spec = "12.1, 12.10 (data_dir sürücüsünde >= 50 GB boş)" },
-    @{ key = "disk_system"; id = "system_drive_space"; gb = (Get-BosGB ($env:SystemDrive + "\")); need = 10; label = "sistem sürücüsünde"; why = "Claude Code, plugin önbelleği, npm/uv önbellekleri ve sanal bellek için alan yetmeyebilir.";
+    @{ key = "disk_system"; id = "system_drive_space"; gb = (Get-BosGB ($env:SystemDrive + "\")); need = 10; label = "sistem sürücüsünde"; why = "Claude Code ve Windows'un çalışması için yer yetmeyebilir.";
        spec = "12.1, 12.10 (sistem sürücüsünde >= 10 GB boş; hata)" }
 )
 foreach ($c in $checks) {
     if ($c.gb -ge $c.need) { Write-Tamam ("{0} {1} GB boş" -f $c.label, $c.gb); continue }
-    if ($accepted -contains $c.key) { Write-Uyari ("{0} {1} GB boş (önerilen {2} GB) - daha önce kabul edilmiş sapma" -f $c.label, $c.gb, $c.need); continue }
+    if ($accepted -contains $c.key) { Write-Uyari ("{0} {1} GB boş (önerilen {2} GB); daha önce bununla devam etmeyi kabul ettiniz" -f $c.label, $c.gb, $c.need); continue }
     Write-Uyari ("{0} yalnızca {1} GB boş; önerilen en az {2} GB. {3}" -f $c.label, $c.gb, $c.need, $c.why)
-    if (-not (Read-EvetHayir "Yine de devam edilsin ve bu durum sapma olarak kaydedilsin mi?")) {
+    if (-not (Read-EvetHayir "Yine de devam edilsin mi? (Bu seçiminiz kaydedilir, bir daha sorulmaz.)")) {
         Stop-Kurulum "Kurulum durduruldu. Yer açıp tekrar çalıştırın ya da boş alanı fazla olan bir sürücüde veri klasörü seçin."
     }
     $deviations += [ordered]@{
@@ -177,21 +177,21 @@ if ($deviations.Count -gt 0) {
 }
 
 # --- 3. Python ortamı -----------------------------------------------------------------------------------------------------
-Write-Adim "3/5 Python 3.12 ortamı (<veri>\.venv)"
+Write-Adim "3/5 Reklam Atölyesi'nin çalışma programları (Python)"
 $env:UV_PROJECT_ENVIRONMENT = Join-Path $DataDir ".venv"
 $env:UV_LINK_MODE = "copy"
 $env:UV_PYTHON_PREFERENCE = "only-managed"
 & uv python install 3.12
 if ($LASTEXITCODE -ne 0) { Stop-Kurulum "Python 3.12 indirilemedi (uv python install). İnternet bağlantısını kontrol edin." }
 & uv sync --project (Join-Path $Root "servers\ad_memory") --frozen --no-install-project --python 3.12
-if ($LASTEXITCODE -ne 0) { Stop-Kurulum "Python bağımlılıkları kurulamadı (uv sync)." }
+if ($LASTEXITCODE -ne 0) { Stop-Kurulum "Reklam Atölyesi'nin çalışma programları kurulamadı. İnternet bağlantınızı kontrol edip yeniden deneyin." }
 $py = Join-Path $DataDir ".venv\Scripts\python.exe"
-if (-not (Test-Path $py)) { Stop-Kurulum "Sanal ortam oluşmadı: $py" }
+if (-not (Test-Path $py)) { Stop-Kurulum "Reklam Atölyesi'nin çalışma programları kurulamadı ($py). Bu mesajı geliştiriciye gönderin." }
 Write-Tamam ((& $py --version) -join " ")
 Remove-Item Env:\UV_PROJECT_ENVIRONMENT, Env:\UV_LINK_MODE, Env:\UV_PYTHON_PREFERENCE -ErrorAction SilentlyContinue
 
 # --- 4. Remotion ------------------------------------------------------------------------------------------------------------
-Write-Adim "4/5 Remotion bağımlılıkları (<veri>\.node)"
+Write-Adim "4/5 Video hazırlama programları (Remotion)"
 $nd = Join-Path $DataDir ".node"
 New-Item -ItemType Directory -Force -Path $nd | Out-Null
 $tpl = Join-Path $Root "templates\remotion"
@@ -199,7 +199,7 @@ $lockSha = (Get-FileHash (Join-Path $tpl "package-lock.json") -Algorithm SHA256)
 $stamp = Join-Path $nd ".kilit-sha256"
 $have = if (Test-Path $stamp) { (Get-Content $stamp -Raw).Trim() } else { "" }
 if ($have -eq $lockSha -and (Test-Path (Join-Path $nd "node_modules\remotion"))) {
-    Write-Tamam "Değişiklik yok (kilit dosyası aynı)"
+    Write-Tamam "Zaten güncel"
 } else {
     Copy-Item (Join-Path $tpl "package.json") (Join-Path $nd "package.json") -Force
     Copy-Item (Join-Path $tpl "package-lock.json") (Join-Path $nd "package-lock.json") -Force
@@ -208,14 +208,14 @@ if ($have -eq $lockSha -and (Test-Path (Join-Path $nd "node_modules\remotion")))
         & npm.cmd ci --no-audit --no-fund
         $code = $LASTEXITCODE
     } finally { Pop-Location }
-    if ($code -ne 0) { Stop-Kurulum "npm ci başarısız (çıkış kodu $code). İnternet bağlantısını kontrol edip tekrar çalıştırın." }
+    if ($code -ne 0) { Stop-Kurulum "Video hazırlama programları kurulamadı (hata kodu $code). İnternet bağlantınızı kontrol edip yeniden deneyin." }
     [System.IO.File]::WriteAllText($stamp, $lockSha, (New-Object System.Text.UTF8Encoding $false))
-    Write-Tamam "Remotion kuruldu"
+    Write-Tamam "Video hazırlama programları kuruldu"
 }
 
 # --- 5. Doğrulama -------------------------------------------------------------------------------------------------------
-if ($DogrulamaYok) { Write-Uyari "Doğrulama atlandı (-DogrulamaYok). Kurulum tamamlanmış sayılmaz."; exit 0 }
-Write-Adim "5/5 Bu bilgisayarda doğrulama (yaklaşık 15-20 dk; ilk render tarayıcı bileşenini indirir)"
+if ($DogrulamaYok) { Write-Uyari "Son kontrol atlandı (-DogrulamaYok). Kurulum tamamlanmış sayılmaz."; exit 0 }
+Write-Adim "5/5 Bu bilgisayarda son kontrol (yaklaşık 15-20 dakika; ilk deneme videosu hazırlanırken bir parça daha indirilir)"
 $args2 = @((Join-Path $Root "scripts\setup\kurulum_dogrula.py"), "--data-dir", $DataDir, "--etkilesimli", "--global-skills", $GlobalSkills,
            "--plugins", $Plugins)
 if ($Claude) { $args2 += @("--claude", $Claude) }
@@ -226,8 +226,8 @@ $env:PYTHONIOENCODING = "utf-8"
 $code = $LASTEXITCODE
 if ($devFile) { Remove-Item $devFile -ErrorAction SilentlyContinue }
 if ($code -ne 0) {
-    Stop-Kurulum ("Doğrulama geçmedi. Ayrıntılar: $DataDir\logs\kurulum-dogrulama-*.json (en yenisi). " +
-        "Bu dosyayı destek için sağlayıcınıza gönderebilirsiniz.")
+    Stop-Kurulum ("Son kontrol geçmedi. Ayrıntılar şu dosyada: $DataDir\logs\kurulum-dogrulama-*.json (en yenisi). " +
+        "Bu dosyayı geliştiriciye gönderin.")
 }
-Write-Tamam "Doğrulama geçti"
+Write-Tamam "Son kontrol geçti"
 exit 0

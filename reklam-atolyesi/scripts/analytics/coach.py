@@ -141,8 +141,9 @@ def stage_section(snap: dict, by_concept: dict) -> dict | None:
                     "denominators": {"impressions": imp, "video_3s": v3, "link_clicks": clicks}})
     return {"round_mode": round_mode_of(snap), "per_concept": per,
             "segments_read": bool(seg_in),
-            "rule": ("Aşama metriği teşhistir, hüküm değildir; hüküm sonuç türüyle verilir. Farklı aşamaların sonuç maliyeti karşılaştırması "
-                     "keşiftir (kısa pencere satın almaya yakın mesajı kayırabilir; beklenti, doğrulanmış bulgu değil). Huni oranları çarpılmaz.")}
+            "rule": ("Bu ölçüler yalnızca sorunun nerede olduğunu anlamak içindir; karar, kampanyanın sonuç türüne göre verilir. Farklı aşamalara "
+                     "seslenen reklamların sonuç maliyetini karşılaştırmak yalnızca bir ön bakıştır: kısa bir denemede almaya yakın olanlara "
+                     "seslenen reklam doğal olarak öne çıkabilir. Oranlar birbiriyle çarpılmaz.")}
 
 
 def priors_for(snap: dict) -> dict:
@@ -204,16 +205,16 @@ def fatigue(rows_by_creative: dict) -> list[dict]:
         hb, h7 = rate(base, "video_3s", "impressions"), rate(last7, "video_3s", "impressions")
         if hb and h7 is not None and h7 < hb * 0.8:
             alerts.append({"creative": k, "kind": "hook_decline", "base": round(hb, 4), "last7": round(h7, 4),
-                           "msg": "7 günlük hook oranı ilk 3 günlük bazın %20'den fazla altında (yorgunluk olasılığı; neden kesin değil)"})
+                           "msg": "son 7 günde videonun açılışını izleyenlerin oranı, ilk 3 güne göre %20'den fazla düştü; izleyenler reklamdan sıkılmış olabilir (kesin değil)"})
         f_first = statistics.mean([float(r.get("frequency") or 0) for r in base])
         f_last = statistics.mean([float(r.get("frequency") or 0) for r in last7])
         c_first, c_last = rate(base, "link_clicks", "impressions"), rate(last7, "link_clicks", "impressions")
         if f_last > f_first * 1.15 and c_first and c_last is not None and c_last < c_first * 0.85:
-            alerts.append({"creative": k, "kind": "freq_up_ctr_down", "msg": "frekans artarken CTR düşüyor (yorgunluk olasılığı)"})
+            alerts.append({"creative": k, "kind": "freq_up_ctr_down", "msg": "aynı kişiler reklamı daha sık görüyor ve tıklama oranı düşüyor; izleyenler reklamdan sıkılmış olabilir"})
         cpm_base = _sum(base, "spend") / _sum(base, "impressions") * 1000 if _sum(base, "impressions") else None
         for r in last7:
             if cpm_base and r.get("impressions") and float(r["spend"] or 0) / float(r["impressions"]) * 1000 > cpm_base * 1.5:
-                alerts.append({"creative": k, "kind": "cpm_spike", "date": r["date"], "msg": "CPM bazın 1,5 katına sıçradı (açık artırma/hedefleme uyarısı)"})
+                alerts.append({"creative": k, "kind": "cpm_spike", "date": r["date"], "msg": "1.000 gösterimin maliyeti ilk günlerin 1,5 katına çıktı; Meta'da rekabet artmış ya da kitle daralmış olabilir"})
                 break
     return alerts
 
@@ -260,9 +261,9 @@ def retention(snap: dict, rows_by_creative: dict) -> list[dict]:
                 scene = s
         out.append({"creative": k, "interval_s": [round(t_start, 2), round(t_end, 2)], "deviation": round(dev[i], 4),
                     "scene": scene["id"] if scene else None, "role": scene["role"] if scene else None,
-                    "statement": (f"{k} kreatifinde izleyici {round(t_start,1)}–{round(t_end,1)} sn aralığında beklenenden hızlı kayboluyor olabilir"
+                    "statement": (f"{k} reklamında izleyenler {round(t_start,1)}. ile {round(t_end,1)}. saniyeler arasında beklenenden hızlı ayrılıyor olabilir"
                                   + (f" (sahne {scene['id']}, {scene['role']})" if scene else "")
-                                  + "; 5 ölçüm noktasıyla bu bir olasılık cümlesidir, kesin neden değildir.")})
+                                  + ". Meta bunu yalnızca 5 noktada ölçtüğü için bu bir olasılıktır, kesin neden değildir.")})
     return out
 
 
@@ -283,17 +284,17 @@ def limit_alerts(snap: dict, all_rows: list[dict]) -> list[dict]:
             if per and sp >= float(per):
                 res = _sum(by_ad.get(ad, []), "results")
                 alerts.append({"kind": "risk_limit", "creative_key": ck, "meta_ad_id": ad, "spend": round(sp, 2), "limit": per, "results": res,
-                               "msg": "onaylı reklam harcama sınırına ulaşıldı/aşıldı: insan için durdurma/limit düzenleme önerisi "
-                                      "(istatistiksel 'kaybeden' kararı değildir)"})
+                               "msg": "bu reklam, onayladığın harcama sınırına ulaştı ya da geçti. Durdurmanı ya da sınırı yeniden ayarlamanı öneririm "
+                                      "(bu, reklamın kaybettiği anlamına gelmez)"})
     bt = snap["campaign"].get("budget_total")
     if bt is not None:
         total = _sum(all_rows, "spend")
         daily = float(cyc.get("adset_budget_daily") or 0)
         remaining = float(bt) - total
         if remaining <= 0:
-            alerts.append({"kind": "total_exceeded", "spend": round(total, 2), "budget_total": bt, "msg": "kampanya toplam harcama sınırı aşıldı"})
+            alerts.append({"kind": "total_exceeded", "spend": round(total, 2), "budget_total": bt, "msg": "kampanyanın toplam harcama sınırı aşıldı"})
         elif daily and remaining < daily:
-            alerts.append({"kind": "total_near", "remaining": round(remaining, 2), "msg": "kalan tutar bir sonraki günlük kontrole kadarki planlı harcamaya yetmiyor"})
+            alerts.append({"kind": "total_near", "remaining": round(remaining, 2), "msg": "kalan bütçe, yarınki kontrole kadar planlanan harcamaya yetmiyor"})
     return alerts
 
 
@@ -316,8 +317,8 @@ def scale_section(snap: dict, scale_rows: list[dict]) -> dict | None:
     return {"campaign_meta_id": layer.get("campaign_meta_id"), "adset_id": layer.get("adset_id"), "status": layer.get("status", "active"),
             "daily_budget": layer.get("daily_budget"), "min_daily": layer.get("min_daily"), "learning_warning": layer.get("learning_warning"),
             "spend": round(_sum(scale_rows, "spend"), 2), "members": members, "fatigue": fat,
-            "label": "Meta'nın dağıtımı altında · ölçekleme katmanı (test verisi değil)",
-            "rule": "Ölçekleme verisi test hükmüne, önsele ya da playbook kanıtına girmez (coach 6a)."}
+            "label": "bütçeyi Meta paylaştırıyor; deneme verisi değil",
+            "rule": "Büyütülen reklamların verisi deneme sonuçlarına, başlangıç beklentisine ya da kalıcı kurallarımıza katılmaz (coach 6a)."}
 
 
 def _days_left(snap: dict) -> int:
@@ -350,8 +351,9 @@ def scale_candidates(dec: list[dict], snap: dict, structure: str | None, test_ro
                              budget_total=snap["campaign"].get("budget_total"), spend_to_date=_sum(all_rows, "spend"),
                              other_daily=float(snap["cycle"].get("adset_budget_daily") or 0), days_left=_days_left(snap))
         out.append({"concept": d["concept"], "layer_exists": active, "source_ads": [{"creative_key": k, "meta_ad_id": a} for k, a in ads],
-                    **chk, "action": ("mevcut ölçekleme setine mevcut gönderiyle ekle" if active else "ölçekleme kampanyası aç ve mevcut gönderiyle ekle")
-                    if chk["eligible"] else "ana reklam setinde kalır; günlük bütçe en fazla %20 artırılır"})
+                    **chk, "action": ("büyütme kampanyasındaki reklam setine, mevcut gönderiyi kullanarak ekle" if active else
+                                       "iyi giden reklamlar için ayrı bir büyütme kampanyası aç ve bu reklamı mevcut gönderiyi kullanarak ekle")
+                    if chk["eligible"] else "reklam şimdiki reklam setinde kalsın; setin günlük bütçesini en fazla %20 artır"})
     return out
 
 
@@ -473,7 +475,7 @@ def ab_section(snap: dict, kpost: dict, structure: str | None) -> dict | None:
     cells = {k: v["totals"] for k, v in kpost.items() if v["totals"].get("spend") and k != UNMAPPED
              and (not study_cells or k in study_cells)}
     out = {"cells": {}, "meta_read": (snap.get("extra") or {}).get("ab_test"),
-           "rule": "Hücre başına ≥ 30 sonuç yerel eşiktir; altında yön olarak okunur."}
+           "rule": "Her grupta en az 30 sonuç olmalı (kendi kuralımız); daha azsa sonuç yalnızca bir eğilim olarak okunur."}
     if len(cells) < 2:
         out["note"] = "iki hücreden az harcama verisi: karşılaştırma yok"
         return out
@@ -588,16 +590,16 @@ def store_vs_meta(snap: dict, test_rows: list, chan: dict) -> dict | None:
     meta = _sum(test_rows, "purchases")
     if meta > store_orders * 1.1 and meta - store_orders >= 3:
         verdict = "meta_fazla"
-        msg = (f"Meta {int(meta)} satın alma sayıyor, mağazada {store_orders} ödenmiş sipariş var: çift olay, test siparişi ya da iade "
-               "edilen siparişler olabilir; piksel kurulumu kontrol edilmeli.")
+        msg = (f"Meta {int(meta)} satın alma sayıyor, mağazada ise {store_orders} ödenmiş sipariş var. Bir satış iki kez sayılıyor olabilir ya da "
+               "deneme ve iade siparişleri karışmış olabilir; satışları Meta'ya bildiren bağlantının (piksel) kontrol edilmesi gerekir.")
     elif meta == 0:
         verdict = "meta_gormuyor"
-        msg = (f"Mağazada {store_orders} ödenmiş sipariş var, Meta reklama hiç satın alma atfetmiyor: piksel/olay kurulumu eksik olabilir ya "
-               "da satışlar reklamdan gelmiyor (Meta satış sinyali: S00b 6b).")
+        msg = (f"Mağazada {store_orders} ödenmiş sipariş var ama Meta bunların hiçbirini reklama bağlamıyor. Ya satışları Meta'ya bildiren "
+               "bağlantı (piksel) eksik ya da satışlar reklamdan gelmiyor; bağlantıyı birlikte kontrol edelim.")
     else:
         verdict = "uyumlu"
-        msg = (f"Meta {int(meta)} / mağaza {store_orders}: Meta'nın atfettiği, mağaza toplamının içinde (mağaza toplamı reklam dışı "
-               "satışları da içerir).")
+        msg = (f"Meta {int(meta)} satışı reklama bağlıyor, mağazada {store_orders} ödenmiş sipariş var. Bu uyumlu: mağazadaki toplam, reklam "
+               "dışından gelen satışları da içerir.")
     return {"verdict": verdict, "meta_purchases": int(meta), "store_paid_orders": store_orders, "msg": msg}
 
 def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
@@ -616,14 +618,14 @@ def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
     for k in sorted(kpost):
         notes = []
         if hooks[k] is None:
-            notes.append("açılış için veri yetersiz (< 1.000 gösterim)")
+            notes.append("açılışı yorumlamak için veri yetersiz (1.000 gösterimden az)")
         elif hm and len([v for v in hooks.values() if v is not None]) >= 2 and hooks[k] < hm * WEAK_VS_MEDIAN:
-            notes.append("açılış (ilk 2 sn) diğer konseptlerden zayıf → reklam: hook")
+            notes.append("videonun açılışı (ilk 2 saniye) diğer fikirlerden zayıf; sorun büyük olasılıkla reklamın açılışında")
         if ctrs[k] is None:
-            notes.append("tıklama için veri yetersiz (< 3.000 gösterim)")
+            notes.append("tıklamayı yorumlamak için veri yetersiz (3.000 gösterimden az)")
         elif cm and len([v for v in ctrs.values() if v is not None]) >= 2 and ctrs[k] < cm * WEAK_VS_MEDIAN:
-            notes.append("tıklama oranı diğer konseptlerden düşük → teklif, fiyat gösterimi, son kart/CTA")
-        per.append({"concept": k, "notes": notes or ["açılış ve tıklama diğer konseptlerle benzer ya da daha iyi"]})
+            notes.append("tıklama oranı diğer fikirlerden düşük; teklife, fiyatın gösterilişine ya da videonun sonundaki çağrıya bakmak gerekir")
+        per.append({"concept": k, "notes": notes or ["açılış ve tıklama diğer fikirlerle benzer ya da daha iyi"]})
     clicks = _sum(test_rows, "link_clicks")
     pixel_purchases = _sum(test_rows, "purchases")
     web_units = sum(v["units"] for ch, v in chan["sales"].items() if ch in PIXEL_CHANNELS + ("belirtilmedi",))
@@ -631,16 +633,17 @@ def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
     sales_seen = web_units if web_units else pixel_purchases
     if clicks >= PAGE_MIN_CLICKS and sales_seen == 0:
         after = {"verdict": "reklam_sonrasi_supheli",
-                 "msg": f"{int(clicks)} bağlantı tıklaması var, görünür web satışı yok: sorun reklamdan sonra olabilir (satış sayfası, fiyat, "
-                        "kargo, güven, teklif). Bu tur 'video kötüydü' diye öğrenilmez; önce sayfa ve teklif kontrol edilir."}
+                 "msg": f"Reklamlara {int(clicks)} kez tıklandı ama sitede görünen bir satış yok. Sorun reklamdan sonra olabilir: satış sayfası, "
+                        "fiyat, kargo, güven ya da teklif. Bu yüzden bu turdan 'video kötüydü' sonucunu çıkarmıyoruz; önce sayfaya ve teklife bakalım."}
     elif clicks >= PAGE_MIN_CLICKS:
         after = {"verdict": "olculdu", "cvr": round(sales_seen / clicks, 4),
-                 "msg": f"Tıklamadan satışa oran ≈ {sales_seen / clicks:.2%} ({int(sales_seen)} satış / {int(clicks)} tıklama; elle girilen dönem "
-                        "satışı dahil, atıf varsayımlı)."}
+                 "msg": f"Tıklayanların yaklaşık %{sales_seen / clicks * 100:.2f}'i satın aldı ({int(clicks)} tıklamadan {int(sales_seen)} satış; "
+                        "elle girdiğin satışlar dahil, bu satışların reklamdan geldiğini varsayıyoruz)."}
     else:
-        after = {"verdict": "veri_yetersiz", "msg": f"Sayfa/teklif yargısı için tıklama az ({int(clicks)} < {PAGE_MIN_CLICKS})."}
+        after = {"verdict": "veri_yetersiz", "msg": f"Satış sayfası ve teklif hakkında yorum yapmak için tıklama az ({int(clicks)} tıklama; en az {PAGE_MIN_CLICKS} gerekir)."}
     return {"per_concept": per, "after_click": after, "leads": chan["leads"],
-            "rule": "Göreli eşikler yereldir (ortancanın %80'i; ≥ 100 tıklama). Teşhis hipotezdir; kesin neden değildir."}
+            "rule": ("Bu karşılaştırma kendi kuralımızdır: bir fikir diğerlerinin ortasındaki değerin %80'inin altındaysa zayıf sayılır; sayfa "
+                     "yorumu için en az 100 tıklama gerekir. Bu bir tahmindir, kesin neden değildir.")}
 
 
 # Tıklamadan sonra adım adım (2.4.0). Adımlar her ürün ve satış yeri için ORTAKTIR (Meta'nın standart olayları); platforma özel aşama
@@ -778,7 +781,7 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
     for k, c in concepts.items():
         if k == UNMAPPED:
             out.append({"concept": k, "decision": "tut", "label": "eşlenmemiş", "carry_over": False,
-                        "why": "reklam adı kreatif kaydıyla eşleşmedi; konsept bilinmediği için hüküm verilmez (veri kalitesi bölümüne bakın)"})
+                        "why": "reklamın adı kayıtlarımızla eşleşmedi; hangi fikre ait olduğunu bilmediğimiz için yorum yapmıyoruz (Veri yeterliliği bölümüne bak)"})
             continue
         hook = c["rates"].get("hook_rate")
         ctr = c["rates"].get("ctr_link")
@@ -788,18 +791,19 @@ def decisions(concepts: dict, dist: dict, snap: dict, structure: str | None, cos
                                    bool(enh and (enh["all"] or k in enh["concepts"])))
         if d.get("starved") and structure in ("bootstrap", None, "unverified"):
             out.append({"concept": k, "decision": "tut", "label": "yetersiz veri", "carry_over": True,
-                        "why": "Meta bu konsepte harcama payının %10'undan azını verdi; kaybeden sayılmaz. Sonraki turun kreatif testine "
-                               "öncelikli aday: hazır kreatifi yeni tur adıyla yeniden dışa aktarılır, yeniden çekim/render gerekmez"})
+                        "why": "Meta bu fikre bütçenin %10'undan azını verdi; bu yüzden kaybeden sayılmaz. Bir sonraki denemede öncelikli aday: "
+                               "hazır reklam yeni turun adıyla yeniden dosya olarak hazırlanır, yeniden çekim ya da yeni video gerekmez"})
             continue
         if co.get("threshold_met") and co.get("p_below_target", 0) >= 0.9 and eco_ok:
-            out.append({"concept": k, "decision": "büyüt", "label": label, "why": f"yeterli sonuç; hedef maliyet altı olasılığı {co['p_below_target']:.2f}",
-                        "ads_manager": "reklam setinin günlük bütçesini en fazla %20 artır ve konseptin yeni varyantlarını sonraki teste ekle"})
+            out.append({"concept": k, "decision": "büyüt", "label": label, "why": f"yeterli sonuç var; bir sonucun hedef maliyetin altında kalma olasılığı %{co['p_below_target'] * 100:.0f}",
+                        "ads_manager": "reklam setinin günlük bütçesini en fazla %20 artır; bu fikrin yeni sürümlerini bir sonraki denemeye ekle"})
         elif co.get("threshold_met") and co.get("p_below_target", 1) <= 0.1 and d.get("share", 0) >= 0.1:
-            out.append({"concept": k, "decision": "kapat", "label": label, "why": f"yeterli sonuç; hedef altı olasılığı {co['p_below_target']:.2f} ve Meta harcama veriyor",
-                        "ads_manager": "bu konseptin reklamlarını durdur"})
+            out.append({"concept": k, "decision": "kapat", "label": label, "why": f"yeterli sonuç var; bir sonucun hedef maliyetin altında kalma olasılığı yalnızca %{co['p_below_target'] * 100:.0f} ve Meta bu fikre bütçe veriyor",
+                        "ads_manager": "bu fikrin reklamlarını durdur"})
         else:
             out.append({"concept": k, "decision": "tut", "label": label,
-                        "why": "eşik altı ya da belirsiz: istatistiksel kazanan/kaybeden hükmü verilmez" if not (hook and hook["threshold_met"]) else "veri yeterli ama net üstünlük yok"})
+                        "why": "veri henüz yetmiyor ya da sonuç belirsiz; kazanan ya da kaybeden diyemeyiz" if not (hook and hook["threshold_met"])
+                        else "veri yeterli ama fikirler arasında belirgin bir fark yok"})
     return out
 
 
@@ -807,6 +811,8 @@ def funnel_stage_guard(dec: list[dict], smap: dict, kpost: dict, priors: dict) -
     """Huni turu (1.9.0): TOFU/MOFU mesajı yalnızca satış maliyetiyle kapatılmaz. Kendi aşama metriği de zayıfsa (aralığın üst ucu
     geçmiş ortalamanın altında) "kapat" korunur; değilse "tut" olur."""
     own = {"tofu": "hook_rate", "mofu": "ctr_link"}
+    STAGE_TR = {"tofu": "ürünü ilk kez görenlere", "mofu": "ürünü tanıyanlara"}
+    STAGE_METRIC_TR = {"hook_rate": "açılışı izleme oranı", "ctr_link": "bağlantıya tıklama oranı"}
     for d in dec:
         st = smap.get(d["concept"])
         if d["decision"] != "kapat" or st not in own:
@@ -815,11 +821,11 @@ def funnel_stage_guard(dec: list[dict], smap: dict, kpost: dict, priors: dict) -
         r = (kpost.get(d["concept"], {}).get("rates") or {}).get(m)
         pr = priors.get(m)
         if r and r.get("threshold_met") and pr and r["hi"] < pr[0] / (pr[0] + pr[1]):
-            d["why"] += f"; {st.upper()} aşama metriği ({m}) de geçmiş ortalamanın altında (aralık üst ucu {r['hi']:.4f})"
+            d["why"] += f"; bu fikrin kendi aşamasındaki ölçüsü ({STAGE_METRIC_TR[m]}) de geçmiş ortalamanın altında (en iyimser tahmin %{r['hi'] * 100:.2f})"
             continue
         d.update(decision="tut", label="huni turu", ads_manager=None, gated="funnel_stage",
-                 why=d["why"] + f"; ancak bu {st.upper()} mesajı satın almadan önceki bir karar anına seslenir: yalnızca satış "
-                                f"maliyetiyle kapatılmaz; kendi aşama metriği ({m}) zayıf değil ya da geçmiş ortalama yok")
+                 why=d["why"] + f"; ancak bu reklam {STAGE_TR[st]} sesleniyor, yani satın almadan önceki bir ana: yalnızca satış maliyetine "
+                                f"bakarak durdurulmaz; kendi ölçüsü ({STAGE_METRIC_TR[m]}) zayıf değil ya da karşılaştıracak geçmiş yok")
 
 
 def analyze(snap_path: str) -> dict:
@@ -863,8 +869,8 @@ def analyze(snap_path: str) -> dict:
     if leads is not None and (not leads.get("periods") or leads.get("outcome_coverage", 0) < LEAD_COVERAGE_MIN):
         for d in dec:  # aday sonrası kayıt yoksa ya da pencerenin çoğunu kapsamıyorsa büyütme yok (ucuz aday ≠ satış)
             if d["decision"] == "büyüt":
-                d.update(decision="tut", why=d["why"] + "; ancak aday sonrası kayıt yok ya da test penceresini kapsamıyor — nitelik ve "
-                         "satış görülmeden büyütülmez", ads_manager=None, gated="lead_outcomes")
+                d.update(decision="tut", why=d["why"] + "; ancak adaylardan sonra ne olduğunun kaydı yok ya da deneme süresinin tamamını "
+                         "kapsamıyor: adayların ciddi olup olmadığı ve satışa dönüp dönmediği görülmeden büyütülmez", ads_manager=None, gated="lead_outcomes")
     if structure == "ab_test":  # A/B testinde yalnızca çalışmanın hücreleri hüküm alır
         ev = (snap.get("cycle") or {}).get("structure_evidence_json") or {}
         if isinstance(ev, str):

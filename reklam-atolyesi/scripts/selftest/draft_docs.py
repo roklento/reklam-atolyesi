@@ -40,7 +40,7 @@ def render_s01(ctx: dict) -> str:
     eco = ctx.get("economics") or {}
     cur = _cur(ctx)
     rt = c.get("result_type")
-    lines = [f"# Brief — Örnek kampanya · tur {ctx.get('cycle_no', 1)}", "", "## Kampanya", "- Ürün: Ürün A (tanışma: tamam)",
+    lines = [f"# Reklamın özeti — Örnek kampanya · tur {ctx.get('cycle_no', 1)}", "", "## Kampanya", "- Ürün: Ürün A (tanışma: tamam)",
              "- Kampanya amacı: satış", f"- Sonuç türü: {RESULT_TR.get(rt, rt or 'bilinmiyor')}"]
     if rt == "lead":
         lines.append(f"- Müşteri adayı yolu: {c.get('lead_method') or 'bilinmiyor'}")

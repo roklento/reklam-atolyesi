@@ -75,5 +75,8 @@ miksli taslak, dinleme notu (`analysis/c<tur>-dinleme.md`: kim dinledi, hangi do
 - Efekt varsa `sfx_review.json` üretildi; 8'in altındaki eksen ya düzeltildi ya da kapı mesajında gerekçesiyle yazıldı.
 
 ## Kapı mesajı
-"Taslak: <konsept/hook>, M sn, ses: VO <kaynak>, müzik <ad>, efektler <n> (öz puan en düşük eksen: <eksen puan>); -14,0 LUFS / -1,2 dBTP; telefon testi: <sonuç | senin
-dinlemen gerekiyor>; efekt için dinle: <zaman kodları>. Referans tahtasıyla yan yana izle. Bu taslağı onaylıyor musun, neyi değiştirelim?" → açık onayda `gate_approve(...)`.
+"Videonun taslağı hazır: <reklam fikri ve açılışı>, M saniye. Seslendirme: <kimin sesi>, müzik: <ad>, ses efekti: <n> tane. Kendi
+değerlendirmemde en zayıf bulduğum yön: <yön ve puanı>. Sesin yüksekliğini Meta'nın önerdiği seviyeye ayarladım. Telefon
+hoparlöründe deneme: <sonuç | bunu senin telefonunda dinlemen gerekiyor>. Ses efektleri için şu saniyeleri dinle: <saniyeler>.
+Taslağı beğendiğin örnek reklamlarla yan yana izle. Bu taslağı onaylıyor musun, değiştirmek istediğin bir yer var mı?" → açık onayda `gate_approve(...)`.
+Ölçülen ses değerleri (-14,0 LUFS / -1,2 dBTP gibi) taslak belgesinde ve kontrol raporunda kalır; kullanıcı mesajında sayı verilmez.

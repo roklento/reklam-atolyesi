@@ -95,5 +95,6 @@ hata/kurtarma kayıtları `profile_id=None` ile yazılır. Profillere yalnızca 
 - Otomatik anlam eşleştirme iddiası yoktur; birleştirme Claude'un açık okumasıyla ve gerekiyorsa kullanıcıyla yapılır.
 
 ## Kapı mesajı
-Hafızanın kendi kapısı yoktur. Silme ve birleştirme kullanıcı onayıyla yapılır: "Şu öğeyi siliyorum: «…». Yerel kopyalar ve yedekler
-temizlenecek; Meta'daki yayın ve sağlayıcı kayıtları ayrıca senin işlemini gerektirir. Onaylıyor musun?"
+Hafızanın kendi kapısı yoktur. Silme ve birleştirme kullanıcı onayıyla yapılır: "Şu kaydı siliyorum: «…». Bilgisayarındaki kopyaları
+ve yedekleri de temizleyeceğim. Meta'daki yayınlar ve kullandığımız diğer hizmetlerdeki (ör. seslendirme hizmeti) kayıtlar bu
+silmeden etkilenmez; onları ayrıca senin silmen gerekir. Onaylıyor musun?"

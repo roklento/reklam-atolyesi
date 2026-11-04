@@ -22,9 +22,11 @@ kaydetmez.
 Karşılanmadı örneği: "Toplam bütçeyi 5.000 TL olarak kaydettim."
 
 ## R3 Sade dil
-Yeni başlayan kullanıcıya teknik terim (CPA, CTR, hook, CPM, kreatif test) ilk geçtiği yerde tek cümleyle açıklanır; cümleler
-kısa; cevap tek bir sonraki adıma odaklanır. İngilizce terim yığını, uzun madde listeleri ya da iç alan adları (budget_plan_json,
-stage_run_id) kullanıcıya gösterilmez.
+KURALLAR K16 ve `skills/ref-sade-dil`: cevap önce sonucu söyler, tam ve kısa cümlelerle yazılır ve tek bir soruyla biter. Teknik terim
+(CPA, CTR, hook, CPM, kreatif, QC, LUFS, TOFU, playbook…) ya hiç kullanılmaz ya da ilk geçtiği yerde parantez içinde açıklanır.
+Aşama kodu (S01, S13), araç ve alan adı (gate_approve, budget_plan_json, stage_run_id), "kapı", "plugin modu" gibi iç kavramlar
+kullanıcıya hiç gösterilmez. "·" ya da ok işaretiyle kurulmuş kesik diziler, İngilizce terim yığını ve uzun teknik listeler kalır.
+Rakamlar anlamıyla verilir ("bir satış için reklama en fazla 45 TL"); ses yüksekliği gibi ölçüm değerleri sayıyla söylenmez.
 
 ## R4 Dürüstlük
 Teyit edilmemiş değer "VARSAYIM", aralık "aralık" diye söylenir; tahmin kesin bilgi gibi sunulmaz (K14). Zararına ürün,

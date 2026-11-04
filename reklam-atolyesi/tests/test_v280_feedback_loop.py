@@ -77,7 +77,7 @@ def test_defter_carries_signatures_with_cell_and_stays_anonymous(store, data_dir
     assert "hata defterine" in prev["next"] and "geliştiriciye" in prev["next"]
     for word in ("paket", "önizleme", "dışa aktarma"):
         assert word not in " ".join(prev["summary"]).lower(), word
-    assert "S01 adımında" in text
+    assert "Reklamın özeti adımında" in text and "S01" not in text
     out = store.feedback_export("evet, yazalım", 30)
     assert "hata-defteri" in out["path"] and "WhatsApp" in out["next"]
     body = open(out["path"], encoding="utf-8").read()

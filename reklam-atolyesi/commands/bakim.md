@@ -1,5 +1,5 @@
 ---
-description: "Haftalık bakım (zamanlanmış): yedek, Meta senkronu, OAuth kontrolü, hafıza adayları"
+description: "Haftalık bakım (kendiliğinden çalışır): yedek alır, Meta'daki verileri günceller, Meta bağlantısını ve hafızaya eklenecek notları kontrol eder"
 argument-hint: "--profile <id>"
 ---
 

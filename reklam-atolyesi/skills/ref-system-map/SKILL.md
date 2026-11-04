@@ -40,10 +40,10 @@ kayıtla cevaplamak.
    --backup <dosya> --confirm`. Önceki veritabanı `DD/db/onceki-<zaman>/` altında kalır.
 6. **Hata defteri (2.5.0, 2.8.0'de sadeleşti; KURALLAR K15):** müşteriye "paket", "önizleme", "dışa aktarma" denmez; "hata defteri"
    denir. Bir hata olduğunda (hook bunu bir kez sorar) ya da kullanıcı "sorun var, geliştiriciye iletmek istiyorum" dediğinde sade
-   dille sorulur: "Bunu hata defterine yazıp geliştiriciye gönderelim mi? Defterde adınız, markanız, ürünleriniz ya da tutarlarınız
+   dille sorulur: "Bunu hata defterine yazıp geliştiriciye gönderelim mi? Defterde adın, markan, ürünlerin ya da tutarların
    yer almaz." → `feedback_preview(period_days=90)` özetini madde madde göster (isterse tamamını) → "evet" derse
    `feedback_export(approval_text=<kullanıcının sözü>)` → "Hata defterine yazdım. Dosya burada: <yol>. Bu dosyayı bize e-postayla ya da
-   WhatsApp'tan göndermeniz yeterli." Plugin dosyayı göndermez; kullanıcı gönderir. "Hayır" derse hiçbir şey yazılmaz. Sormadan yazılmaz.
+   WhatsApp'tan göndermen yeterli." Plugin dosyayı göndermez; kullanıcı gönderir. "Hayır" derse hiçbir şey yazılmaz. Sormadan yazılmaz.
 7. **Değişmez kurallar (2.5.0):** "kurallar ne", "neyi asla yapmazsın" sorularında `PR/KURALLAR.md` kısa listesi okunur ve sade dille
    anlatılır; her kuralın kodla zorlandığı yer de o dosyadadır.
 

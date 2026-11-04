@@ -1,35 +1,43 @@
 # Çekim rehberi — {{kampanya}} · tur {{tur}}
 
-> Şablon (spec 5.3). Hiç video çekmemiş biri için. Önce ürünün çekim tarifi, sonra genel kurallar; çatışırsa ürün tarifi geçerlidir.
+<!-- Yazım notu (belgeye kopyalanmaz): spec 5.3. Hiç video çekmemiş biri için yazılır. Önce ürünün çekim tarifi, sonra genel kurallar;
+ikisi çatışırsa ürün tarifi geçerlidir. Sade Türkçe ve tam cümle (KURALLAR K16, ref-sade-dil); iç alan adları yazılmaz. -->
 
 ## Hazırlık (bir kez)
-- Telefon ≥ %80 şarj, ≥ 20 GB boş, uçak modu açık, lens silinmiş.
-- Ayarlar — iPhone: {{adım adım}} · Android: {{adım adım}} (4K 30 fps; yavaş çekim istenende 4K 60; HDR video kapalı; dikey; filtre/güzelleştirme yok).
+- Telefonun şarjı en az %80 olsun, en az 20 GB boş yer olsun. Uçak modunu aç, kamera merceğini yumuşak bir bezle sil.
+- Kamera ayarları. iPhone: {{adım adım}}. Android: {{adım adım}}. (Videoyu 4K ve saniyede 30 kare çek; yavaş çekim istenen yerde 4K ve
+  saniyede 60 kare. HDR video kapalı olsun, telefonu dik tut, filtre ve güzelleştirme kullanma.)
 
 ## 7 altın kural
-1. Doğal ışık: gündüz, pencere yanında, tavan lambası kapalı.  2. Telefon sabit (tripod ya da kitap yığını).
-3. Odak ve ışık kilidi: ekranda ürüne basılı tut.  4. Zoom yok: telefonu yaklaştır.  5. Yavaş hareket: her hareket en az 5 sn.
-6. Boşluk bırak: kayda bas, 3 sn bekle, çek, 3 sn bekle, durdur.  7. Her çekimi en az 3 kez al.
+1. Doğal ışık kullan: gündüz, pencere yanında çek; tavan lambasını kapat.
+2. Telefonu sabit tut: tripod yoksa bir kitap yığınına yasla.
+3. Odağı ve ışığı sabitle: ekranda ürünün üstüne parmağınla basılı tut.
+4. Yakınlaştırma (zoom) kullanma: yaklaşmak istersen telefonu ürüne yaklaştır.
+5. Yavaş hareket et: her hareket en az 5 saniye sürsün.
+6. Baştan ve sondan boşluk bırak: kayda bas, 3 saniye bekle, çek, 3 saniye bekle, sonra durdur.
+7. Her çekimi en az 3 kez çek.
 
 ## Ürüne özgü tarif kartları
-{{shoot_profile_json kartları: risk · ne çekiyoruz · telefon nereye · ne yap · ne zaman dur · başardın mı · hangi genel kuralı neden değiştiriyor}}
+{{her kart için: dikkat edilecek risk, ne çekiyoruz, telefon nerede duracak, ne yapacaksın, ne zaman duracaksın, doğru çektiğini
+nasıl anlarsın, genel kurallardan hangisini neden değiştiriyoruz}}
 
-## Çekim menüsü (numaralı)
-| No | Konsept | Ne çekiyoruz | Süre | Kamera hareketi | Tek dikkat noktası | AI ile tamamlanabilir mi | Öncelikli |
+## Çekim menüsü (numaralı liste)
+| No | Hangi reklam fikri için | Ne çekiyoruz | Süre | Telefonun hareketi | Tek dikkat noktası | Yapay zekâyla tamamlanabilir mi | Önce çekilecek mi |
 |---|---|---|---|---|---|---|---|
-| S01 | {{…}} | {{… (hook ise ayrı satır)}} | | | | | |
+| S01 | {{…}} | {{… (videonun açılışı için olan çekimler ayrı satır)}} | | | | | |
 
 ## Ses
-{{yalnızca ses niyeti "çekimdeki ses" ya da "kullanıcının sesi" olan çekimler için kayıt talimatı}}
+{{yalnızca sesi kaydedilecek çekimler için (çekimdeki ses ya da senin sesin): nasıl kaydedileceği}}
 
-## Fotoğraf listesi (konsept başına 5–8, telefonun FOTOĞRAF modunda)
+## Fotoğraf listesi (her reklam fikri için 5–8 fotoğraf, telefonun FOTOĞRAF modunda)
 {{…}}
 
 ## İzin hatırlatması
-Görüntüde ya da seste tanınabilir bir kişi varsa (çekimci dahil) kullanım izni kaydı alınır.
+Görüntüde ya da seste tanınabilir bir kişi varsa (çekimi yapan kişi de dahil) o kişiden kullanım izni alıp kaydını sakla.
 
 ## Teslim
-Sıkıştırmadan (WhatsApp değil; Drive, AirDrop, kablo); dosya adı çekim numarasıyla; videolar `footage/raw/`, fotoğraflar `photos/raw/`.
+Dosyaları sıkıştırmadan gönder: WhatsApp kaliteyi düşürür; Google Drive, AirDrop ya da kablo kullan. Dosya adına çekim numarasını yaz (ör. S01-1.mp4).
+Videoları proje klasöründeki `footage/raw/` klasörüne, fotoğrafları `photos/raw/` klasörüne koy.
 
-## Üretilecek efektlerin başlangıç listesi (sfx_plan)
+## Üretilecek efektlerin başlangıç listesi (videoda kullanılacak ses efektleri)
 {{…}}

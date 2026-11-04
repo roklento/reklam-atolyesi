@@ -1,5 +1,5 @@
 ---
-description: "Aktif kampanyanın durumunu, takvimini ve bekleyen işleri gösterir"
+description: "Şu anki kampanyanın nerede olduğunu, takvimini ve bekleyen işleri gösterir"
 ---
 
 Bu komut oturumu plugin moduna alır (UserPromptSubmit/UserPromptExpansion hook'u `/reklam-atolyesi:` önekinden tanır); hook bağlamındaki `session_id`, `plugin` ve `data_dir` değerlerini kullan. Maliyet koruması ve Meta izin listesi bu oturumda geçerlidir.

@@ -1,5 +1,5 @@
 ---
-description: "S00c ürün tanışmasını başlatır"
+description: "Yeni bir ürünü tanıtmak için ürün tanışmasını başlatır"
 argument-hint: "<ürün>"
 ---
 

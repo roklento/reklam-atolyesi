@@ -51,5 +51,6 @@ Deneme raporu, kontak sayfaları ve ölçüm JSON'ları (`analysis/deneme/`), va
 - Deneme dosyaları ingest'e girmedi; ham dosyalar değiştirilmedi.
 
 ## Kapı mesajı
-Kapı yoktur. Kullanıcıya: "Denemeye baktım. 1) … 2) … 3) … Sonuç: <tam çekime geç | bir deneme daha>. Çekim bitince dosyaları
-footage/raw ve photos/raw'a koyup 'çekim tamam' yaz."
+Kapı yoktur. Kullanıcıya: "Deneme çekimine baktım. 1) … 2) … 3) …. Sonuç: <tam çekime geçebilirsin | bir deneme daha çekmeni
+öneririm>. Çekim bitince videoları proje klasöründeki footage/raw klasörüne, fotoğrafları photos/raw klasörüne koy ve bana
+'çekim tamam' yaz."

@@ -1,5 +1,5 @@
 ---
-description: "Reklam Atölyesi ana menüsünü (navigator) açar"
+description: "Reklam Atölyesi ana menüsünü açar"
 ---
 
 Bu komut oturumu plugin moduna alır (UserPromptSubmit/UserPromptExpansion hook'u `/reklam-atolyesi:` önekinden tanır); hook bağlamındaki `session_id`, `plugin` ve `data_dir` değerlerini kullan. Maliyet koruması ve Meta izin listesi bu oturumda geçerlidir.

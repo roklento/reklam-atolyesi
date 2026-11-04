@@ -65,10 +65,10 @@ def test_navigator_fixed_menu_same_in_every_session(ddir, store):
     assert m1 == m2
     lines = [ln for ln in m1.splitlines() if ln[:2] in {f"{i}." for i in range(1, 10)}]
     assert [ln.split(".")[0] for ln in lines] == [str(i) for i in range(1, 10)]
-    assert lines[0].startswith("1. Devam et → yeni kampanya brief'i: Ürün A")
-    assert lines[2] == "3. Performans ve koçluk (henüz yayında reklam yok)"
-    assert lines[7] == "8. Profiller: değiştir / yeni profil ekle" and lines[8] == "9. Sistem ve hesap durumu"
-    assert m1.startswith("**Marka A** · aktif kampanya yok")
+    assert lines[0].startswith("1. Devam et: Ürün A için yeni kampanya, reklamın özetiyle başlarız")
+    assert lines[2] == "3. Reklam sonuçları ve öneriler (henüz yayında reklam yok)"
+    assert lines[7] == "8. Başka marka seç ya da yeni marka ekle" and lines[8] == "9. Sistem ve hesap durumu"
+    assert m1.startswith("**Marka A** için çalışıyoruz. Şu an açık bir kampanya yok.")
     # sunucu aracı aynı metni verir
     r = store.menu_render("third-session-0003")
     assert r["kind"] == "menu" and r["text"] == m1
@@ -78,7 +78,7 @@ def test_navigator_number_only_on_menu_and_home(ddir, store):
     make_active_profile(store)
     enter_mode(ddir)
     c = _say(ddir, "3", pid="p2")
-    assert "ana menünün 3. maddesini seçti: «Performans ve koçluk (henüz yayında reklam yok)»" in c and "reklam-atolyesi:track" in c
+    assert "ana menünün 3. maddesini seçti: «Reklam sonuçları ve öneriler (henüz yayında reklam yok)»" in c and "reklam-atolyesi:track" in c
     # artık aşama/iş içindeyiz: aynı sayı menü maddesi sayılmaz (sorunun cevabıdır)
     c = _say(ddir, "3", pid="p3")
     assert "maddesini seçti" not in c and "son ekran: ana menü" not in c

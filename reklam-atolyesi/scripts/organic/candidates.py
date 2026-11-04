@@ -72,17 +72,17 @@ def build(assets: list[dict], analysis: dict | None = None, transcripts: list[di
             continue
         angle = next((ANGLE_BY_TAG[t] for t in tags if t in ANGLE_BY_TAG), "ürün anı")
         cands.append({"kind": "unused_clip", "asset_id": a.get("id"), "path": a.get("path"), "ranges": ranges[:3], "score": round(score, 2),
-                      "angle": angle, "format": "Reels 9:16, 7–15 sn", "why": "reklam için çekildi, reklamda kullanılmadı"})
+                      "angle": angle, "format": "Reels 9:16, 7–15 sn", "why": "reklam için çekildi ama reklamda kullanılmadı"})
     for d in (analysis or {}).get("decisions", []) or []:
         if d.get("decision") in ("büyüt", "tut") and "kanıt" in (d.get("label") or ""):
-            cands.append({"kind": "winning_ad", "concept": d["concept"], "format": "aynı kreatif (gönderi olarak) ya da sessiz/altyazılı kurgu",
-                          "why": f"reklamda {d['decision']} hükmü aldı; organikte de aynı mesaj", "note": "reklam gönderisi zaten profildeyse yeniden "
-                          "paylaşılmaz; ölçekleme için gönderi kimliğiyle taşıma ayrı iştir"})
+            cands.append({"kind": "winning_ad", "concept": d["concept"], "format": "aynı reklam videosu (normal gönderi olarak) ya da sessiz, altyazılı kısa bir kurgusu",
+                          "why": f"reklam olarak iyi sonuç verdi ({d['decision']}); normal paylaşımda da aynı mesajı kullanabiliriz", "note": "reklam gönderisi zaten "
+                          "profildeyse yeniden paylaşılmaz; reklamı büyütmek için gönderiyi taşımak ayrı bir iştir"})
     for t in transcripts or []:
         words = t.get("words") or []
         if len(words) >= 12:
-            cands.append({"kind": "talking_clip", "source": t.get("in"), "format": "konuşmalı kısa video (kurgu: asr_local.py cuts)",
-                          "words": len(words), "why": "kameraya konuşma çekimi var: ipucu / soru-cevap / kurucu anlatımı"})
+            cands.append({"kind": "talking_clip", "source": t.get("in"), "format": "konuşmalı kısa video", "tool": "asr_local.py cuts",
+                          "words": len(words), "why": "kameraya konuşulan bir çekim var: ipucu, soru-cevap ya da kurucunun anlatımı için kullanılabilir"})
     order = {"winning_ad": 0, "talking_clip": 1, "unused_clip": 2}
     cands.sort(key=lambda c: (order[c["kind"]], -(c.get("score") or 0)))
     start = start or dt.date.today()

@@ -1,5 +1,5 @@
 ---
-description: "Bu oturumun profilini ve yeni oturum varsayılanını değiştirir"
+description: "Bu konuşmada hangi markayla çalışacağımızı seçer ve sonraki konuşmalar için de hatırlar"
 argument-hint: "<profil>"
 ---
 

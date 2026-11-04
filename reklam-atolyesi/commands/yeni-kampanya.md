@@ -1,5 +1,5 @@
 ---
-description: "Ürün için yeni kampanya açar ve S01 brief'ten başlatır"
+description: "Bir ürün için yeni kampanya açar ve reklamın özetini hazırlamakla başlar"
 argument-hint: "<ürün>"
 ---
 

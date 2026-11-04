@@ -66,5 +66,6 @@ ses, kişi), devam notu; tekrarlayan çekim sorunları `memory_add(layer="proced
 - Eksik çekimler ve gerçek çekimli eş durumu açık; izinsiz kişili klip kullanılabilir listesinde değil.
 
 ## Kapı mesajı
-Kapı yoktur. Geçiş özeti: "N klip analiz edildi; menüden M/K çekim karşılandı. Eksik: … AI ile tamamlanabilecek: … (gerçek eşi: …).
-Ses kullanılabilir klipler: …. Stil yönlerine geçiyorum."
+Kapı yoktur. Geçiş özeti: "Gönderdiğin N videoyu inceledim. Planladığımız K çekimden M tanesi hazır. Eksik kalanlar: …. Bunlardan
+şunları yapay zekâyla tamamlayabiliriz: … (yerine geçecek gerçek çekim: …). Sesini kullanabileceğimiz videolar: …. Şimdi videonun
+görünümü için seçenekleri hazırlıyorum."

@@ -44,3 +44,22 @@ zaman duran metne bir satır eklenirse başka bir satır kısaltılır; CI özet
 **Sahada:** ilk defterler gelince doldurulacak.
 
 **Ders:** yok (ilk sürüm; henüz karşılaştırılacak bir önceki defter yok).
+
+---
+
+## 2.9.0 (2026-11-04): sade ve net dil
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gözlenen fark | Karar |
+|---|---|---|---|---|
+| KURALLAR K16 + `skills/ref-sade-dil` | uzman bilgisi | s02-strateji-yeni-baslayan (P1.U1), s13-son-kontrol-sade (P3.U1), hata-sonrasi-defter-sorusu | Her oturumda bağlama giren tek kural; sözlük ve örnekler skill'de | ölçülecek (vakalar yeni) |
+| 25 skill'in kapı mesajı | uzman bilgisi | bütün hücreler | Kalıp mesajlarda iç ad ve terim kalmadı (`tests/test_v290_plain_language.py::test_gate_messages_are_plain`) | yardım etti (test) |
+| `admem/stages.py`, `hooks/menu.py`, `hooks/menu.json`, `hooks/error_notify.py`, `admem/feedback.py`, `scripts/audio/tts_local.py` | işleyiş | bütün hücreler | Koddan gelen metinler taramadan bulgusuz geçiyor; menü numaraları aynı (`tests/test_hooks.py`) | yardım etti (test) |
+| `templates/reports/*.md`, `scripts/analytics/report.py`, `scripts/analytics/coach.py` | uzman bilgisi | s02-*, s14-*, koçluk | Taslak denetimi başlık ve satır adlarını aynen buluyor (`tests/test_v250_drafts.py`); rapor taramadan geçiyor | yardım etti (test) |
+| `musteri-paketi/*`, `scripts/setup/windows/kurulum.ps1` | işleyiş | U1, U5 | Kurulum ve güncelleme mesajları sade; Windows güncelleyici testi yeni ifadeyi arıyor | ölçülecek (Windows'ta) |
+
+**Sahada:** ilk defterler gelince doldurulacak. 2.8.0 defterleriyle karşılaştırırken bakılacak gösterge: "kullanıcı taslakta değişiklik
+istedi" imzasının sıklığı (anlaşılmayan mesaj çoğu zaman düzeltme isteği olarak döner).
+
+**Ders:** yok (değişiklikler aynı sürümde birlikte yapıldı; tek tek etkisini ayıran vaka henüz koşulmadı).

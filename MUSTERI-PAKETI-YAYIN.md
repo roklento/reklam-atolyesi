@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.8.0
+# Müşteri paketi — 2.9.0
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -9,7 +9,7 @@ gereken veritabanı migration'larını uygular. Smoke, pytest, render, galeri ve
 Önceden ilk kurulumu tamamlayan müşteride sonraki açılışta toplu canlı kabul testleri de tekrarlanmaz.
 Yeni test başarısı uydurulmaz; güncelleme kaydı `tests_run: false` taşır, eski doğrulama kayıtları korunur.
 
-Güncelleme hatasında işlem başarısız koduyla çıkar ve log dosyasını sağlayıcıya gönderme mesajı gösterir.
+Güncelleme hatasında işlem başarısız koduyla çıkar ve "bu mesajı ve kayıt dosyasını geliştiriciye gönderin" der (2.9.0).
 Kullanımda gerçek araç hataları Claude'un PostToolUseFailure olayıyla dosyalanır ve kullanıcıya hata defteri sorusu sorulur (2.8.0).
 Bu, çalışan bir Claude oturumundaki araç hatalarını kapsar; Python/Claude başlamıyorsa veya hook hiç yüklenmiyorsa
 otomatik bildirim üretilemez. Bu durumda kullanıcı ekrandaki hatayı iletir. Arka planda tüm disk loglarını izleyen servis yoktur.
@@ -17,10 +17,14 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.8.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.9.0**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.9.0 migration içermez, yeni bağımlılık yok; **müşteri paketi değişti, ZIP yeniden gönderilmeli** (`KULLANIM.txt`, `kur.ps1`,
+`guncelle.ps1`, `guncelle.py` mesajları sade dille yeniden yazıldı). Eski paketle güncelleme de çalışır; yalnızca ekrandaki
+mesajlar eski kalır. Plugin içinde kullanıcının gördüğü her metin sade dile geçti (KURALLAR K16): adım adları, ana menü, onay
+mesajları, belgeler ve koçluk raporu. Ana menünün numaraları değişmedi.
 2.8.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Bir hata olduğunda
 müşteriye artık tek bir soru sorulur: "Bunu hata defterine yazıp geliştiriciye gönderelim mi?" "Evet" derse defter bilgisayarına
 yazılır ve dosyayı size kendisi gönderir (e-posta ya da WhatsApp). Defter otomatik gönderilmez. Gelen defterler

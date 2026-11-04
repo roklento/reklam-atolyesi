@@ -129,8 +129,8 @@ def split_sentences(spoken_text: str) -> list[str]:
 def reading_summary(reading: dict) -> dict:
     """Okunuş raporu: belirsiz ifadeler ve yabancı görünen sözcükler kullanıcıya gösterilir; sözlükle ya da metinle düzeltilir."""
     fb, fr = reading.get("fallbacks") or [], reading.get("foreign") or []
-    lines = [f"'{x['text']}' → \"{x['read_as']}\" okunacak (emin değil)" for x in fb]
-    lines += [f"'{w}' Türkçe harflerle okunacak (yabancı görünüyor)" for w in fr]
+    lines = [f"'{x['text']}' yazısı \"{x['read_as']}\" diye okunacak; bundan emin değilim." for x in fb]
+    lines += [f"'{w}' sözcüğü yabancı görünüyor; Türkçe harflerle okunacak." for w in fr]
     return {**reading, "ok": not fb and not fr, "say": lines,
             "fix": None if not lines else ("yazımı değiştir (ör. '10x' → '10 kat') ya da okunuşu sözlüğe ekle: "
                                            "tts_local.py lexicon --profile-dir <profil> --add \"Wireless=vayırlıs\"")}
@@ -362,11 +362,13 @@ def capability(data_dir: Path) -> dict:
     if out["library"]["offer"]:
         out["library"]["how"] = f"PY PR/scripts/setup/tts_setup.py --data-dir <DD> --engine {LIBRARY_ENGINE} --yes"
         out["library"]["download_gb"] = round(pin["env_gb"] + pin["model_gb"] + 2.5, 1)
-        out["library"]["say"] = (f"Bu bilgisayarın ekran kartı ({chk['gpu']['name']}, {chk['gpu']['vram_total_gb']} GB) ses kütüphanesini "
-                                 f"çalıştırabilir: {len(lib)} ek ses (kadın/erkek, farklı tonlar). Kurulum ≈ {out['library']['download_gb']} GB "
-                                 f"indirir (diskte {chk['disk_free_gb']} GB boş). İsterseniz kurarım; istemezseniz varsayılan ses kullanılır.")
+        out["library"]["say"] = (f"Bilgisayarının ekran kartı ({chk['gpu']['name']}, {chk['gpu']['vram_total_gb']} GB) daha fazla ses seçeneğini "
+                                 f"çalıştırabilir: {len(lib)} ek ses var (kadın ve erkek, farklı tonlarda). Bunun için yaklaşık "
+                                 f"{str(out['library']['download_gb']).replace('.', ',')} GB indirmek gerekiyor; diskinde {chk['disk_free_gb']} GB boş yer var. "
+                                 f"İstersen kurarım; istemezsen hazır gelen ses kullanılır.")
     elif not chk["eligible"]:
-        out["library"]["say"] = "Bu bilgisayarda varsayılan ses (EMA) kullanılır; ses kütüphanesi için: " + "; ".join(chk["reasons"]) + "."
+        out["library"]["say"] = ("Bu bilgisayarda hazır gelen ses kullanılacak. Daha fazla ses seçeneği bu bilgisayarda çalışmıyor, çünkü "
+                                 + "; ".join(chk["reasons"]) + ".")
     return out
 
 
@@ -382,12 +384,12 @@ def install_offer(data_dir: Path) -> dict:
     if not missing:
         return {"missing": [], "say": None}
     gb = {e: round(TS.PINS[e]["env_gb"] + TS.PINS[e]["model_gb"], 1) for e in missing}
-    what = {"ema": "seslendirme (EMA", "whisper": "okunuş denetimi ve kelime zamanları (Whisper"}
-    parts = [f"{what[e]}, ≈ {str(gb[e]).replace('.', ',')} GB)" for e in missing]
+    what = {"ema": "seslendirme (yaklaşık", "whisper": "okunuş kontrolü ve altyazı zamanlaması (yaklaşık"}
+    parts = [f"{what[e]} {str(gb[e]).replace('.', ',')} GB)" for e in missing]
     return {"missing": missing, "download_gb": round(sum(gb.values()), 1),
             "how": [f"PY PR/scripts/setup/tts_setup.py --data-dir <DD> --engine {e} --yes" for e in missing],
-            "say": ("Ücretsiz ve bilgisayarınızdan çıkmayan seslendirme için " + " ve ".join(parts) + " kurulsun mu? "
-                    "İkisi birlikte önerilir: okunuş denetimi, sesin metni doğru okuyup okumadığını her alımda kontrol eder.")}
+            "say": ("Ücretsiz ve kayıtları bilgisayarından dışarı çıkmayan seslendirme için şunları kurmamız gerekiyor: " + " ve ".join(parts)
+                    + ". Kurayım mı? İkisini birlikte kurmanı öneririm: okunuş kontrolü, sesin metni doğru okuyup okumadığını her kayıtta denetler.")}
 
 
 def status(data_dir: Path) -> dict:

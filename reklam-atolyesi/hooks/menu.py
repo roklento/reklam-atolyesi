@@ -85,7 +85,7 @@ def _onboarding_next(con, p) -> str | None:
     for code in ST.ONBOARDING_STAGES:
         st = done.get(code)
         if st == "awaiting_gate":
-            return f"onay bekliyor: {_stage(code).lower()}"
+            return f"{_stage(code).lower()} için onayın bekleniyor"
         if st not in ("done", "skipped"):
             return _stage(code).lower()
     return None
@@ -96,23 +96,23 @@ def continue_target(con, p, camp) -> str:
         gate = con.execute("SELECT stage FROM stage_runs WHERE campaign_id=? AND status='awaiting_gate' AND stale=0 ORDER BY id LIMIT 1",
                            (camp["id"],)).fetchone()
         if gate:
-            return f"onay bekliyor: {_stage(gate['stage'])} ({camp['name']})"
-        return f"{camp['name']}: {_stage(camp['stage'])}"
+            return f"{camp['name']} kampanyasında {_stage(gate['stage']).lower()} için onayın bekleniyor"
+        return f"{camp['name']} kampanyası, şu adımda: {_stage(camp['stage']).lower()}"
     if p["status"] == "onboarding":
-        return "tanışma: " + (_onboarding_next(con, p) or "marka tanışması")
+        return "tanışmaya devam: " + (_onboarding_next(con, p) or "marka tanışması")
     gate = con.execute("""SELECT stage FROM stage_runs WHERE profile_id=? AND campaign_id IS NULL AND status='awaiting_gate' AND stale=0
                           ORDER BY id LIMIT 1""", (p["id"],)).fetchone()
     if gate:
-        return f"onay bekliyor: {_stage(gate['stage']).lower()}"
+        return f"{_stage(gate['stage']).lower()} için onayın bekleniyor"
     if p["brand_id"] is not None:
         prod = con.execute("SELECT name FROM products WHERE brand_id=? AND onboarding_status='done' ORDER BY id DESC LIMIT 1",
                            (p["brand_id"],)).fetchone()
         if prod:
-            return f"yeni kampanya brief'i: {prod['name']}"
+            return f"{prod['name']} için yeni kampanya, reklamın özetiyle başlarız"
         prod = con.execute("SELECT name FROM products WHERE brand_id=? ORDER BY id DESC LIMIT 1", (p["brand_id"],)).fetchone()
         if prod:
-            return f"ürün tanışması: {prod['name']}"
-    return "ilk ürünü tanıt"
+            return f"{prod['name']} ürününün tanışmasını bitirelim"
+    return "ilk ürününü tanıtalım"
 
 
 def render(data_dir: Path, sess: dict) -> dict:
@@ -126,26 +126,26 @@ def render(data_dir: Path, sess: dict) -> dict:
         if p is None:
             return {"kind": "no_profile" if how == "none" else "choose_profile"}
         camp = _campaign(con, sess, p["brand_id"])
-        head = [f"**{p['name']}**"]
+        head = [f"**{p['name']}** için çalışıyoruz."]
         warn: list[str] = []
         if camp is not None:
-            head.append(f"aktif kampanya: {camp['name']} · Tur {camp['cycle']} · {_stage(camp['stage'])}")
+            head.append(f"Şu anki kampanya: {camp['name']} ({camp['cycle']}. tur, şu adımda: {_stage(camp['stage']).lower()}).")
             n_gate = con.execute("SELECT COUNT(*) FROM stage_runs WHERE campaign_id=? AND status='awaiting_gate' AND stale=0",
                                  (camp["id"],)).fetchone()[0]
-            head.append(f"{n_gate} onay bekliyor" if n_gate else "bekleyen onay yok")
+            head.append(f"Onayını bekleyen {n_gate} adım var." if n_gate else "Onayını bekleyen bir şey yok.")
             n_ai = con.execute("SELECT COUNT(*) FROM action_items WHERE campaign_id=? AND status='approved'", (camp["id"],)).fetchone()[0]
             if n_ai:
-                warn.append(f"uygulama listesinde {n_ai} adım bekliyor")
+                warn.append(f"Meta'da senin yapman gereken {n_ai} adım bekliyor.")
             n_gen = con.execute("SELECT COUNT(*) FROM generations WHERE campaign_id=? AND status IN ('running','unknown')",
                                 (camp["id"],)).fetchone()[0]
             if n_gen:
-                warn.append(f"{n_gen} ücretli üretimin sonucu belirsiz")
+                warn.append(f"Ücretli {n_gen} üretimin sonucunu henüz bilmiyoruz; tekrar başlatmadan önce kontrol edeceğim.")
         else:
-            head.append("aktif kampanya yok")
+            head.append("Şu an açık bir kampanya yok.")
             if p["status"] == "onboarding":
-                head.append("tanışma sürüyor")
+                head.append("Tanışmayı henüz bitirmedik.")
         if not _setting(con, "setup_static_ok_at"):
-            warn.append("⚠ kurulum doğrulaması tamamlanmamış: kurulum dosyasını (kur.cmd) yeniden çalıştırın")
+            warn.append("⚠ Kurulum tam bitmemiş görünüyor. Kurulum klasöründeki kur.cmd dosyasını bir kez daha çalıştırman yeterli.")
         launched = p["brand_id"] is not None and con.execute(
             """SELECT 1 FROM cycles cy JOIN campaigns c ON c.id=cy.campaign_id WHERE c.brand_id=? AND cy.launched_at IS NOT NULL LIMIT 1""",
             (p["brand_id"],)).fetchone() is not None
@@ -156,13 +156,13 @@ def render(data_dir: Path, sess: dict) -> dict:
     for it in menu["items"]:
         lab = it["label"]
         if it["key"] == "devam":
-            lab = f"{lab} → {target}"
+            lab = f"{lab}: {target}"
         elif it["key"] == "performans" and not launched:
             lab = f"{lab} (henüz yayında reklam yok)"
         labels.append(lab)
-    lines = [" · ".join(head)]
+    lines = [" ".join(head)]
     if warn:
-        lines.append(" · ".join(warn))
+        lines.append(" ".join(warn))
     lines.append("")
     lines += [f"{i + 1}. {lab}" for i, lab in enumerate(labels)]
     lines += ["", menu["footer"]]

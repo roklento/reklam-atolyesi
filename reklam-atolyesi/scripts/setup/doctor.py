@@ -31,7 +31,7 @@ EXPECTED_SKILLS = ["navigator", "brand-onboarding", "meta-history", "product-onb
                    "shoot-guide", "shoot-feedback", "ingest", "analyze", "style-directions", "materials", "compose", "sound", "variants", "qc",
                    "launch-pack", "track", "coach", "learn", "memory", "ref-system-map", "ref-metrics-math", "ref-legal-tr-meta",
                    "ref-remotion-components", "ref-shooting-basics", "ref-production-recipes", "ref-vendor-map", "ref-creative-taxonomy",
-                   "dm-sales", "data-connection", "profile-check", "organic"]
+                   "dm-sales", "data-connection", "profile-check", "organic", "ref-sade-dil"]
 STAGE_SKILLS = EXPECTED_SKILLS[1:22]
 STAGE_HEADINGS = ["## Amaç", "## Ön koşul", "## Girdiler ve bağlam paketi", "## Kullanılan hazır skill'ler ve OVERRIDES", "## Adımlar",
                   "## Çıktılar", "## Kontroller", "## Kapı mesajı"]

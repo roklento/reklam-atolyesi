@@ -89,7 +89,7 @@ Yok.
    revenue, source_note, channel, kind)` — kanal (`shopier | site | instagram_dm | whatsapp | kurumsal | magaza | diger`) ve tür
    (`sale` | `lead`: ör. "40 adet buket" DM isteği). Atıf varsayımı ve tarih aralığı raporda; kreatiflere dağıtılmaz; DM/WhatsApp/kurumsal
    Meta'da görünmez, raporda kanala göre ayrı yazılır. Mesajla satış yapan profilde günlük takipte kullanıcıya bir kez sorulur:
-   "Dünkü mesaj toplamı?" → `dm_daily_set` (`reklam-atolyesi:dm-sales`); cevap yoksa boş bırakılır, tahmin yazılmaz. Mağaza
+   "Dün mesajla kaç sipariş ya da talep geldi?" → `dm_daily_set` (`reklam-atolyesi:dm-sales`); cevap yoksa boş bırakılır, tahmin yazılmaz. Mağaza
    sipariş dışa aktarımı geldiyse `sales_import_csv` (`reklam-atolyesi:data-connection` 7).
 10. **Uygulandı mı (6.11):** onaylı maddeler Meta'dan okunur (reklam durumu, bütçe, harcama limiti, bitiş) →
     `action_items_verify(profile_id, campaign_id, readings=[{item_id, source:"meta_mcp"|"user_evidence", observed:{…}}])`. Okunamıyorsa
@@ -110,5 +110,6 @@ Yok.
 - Eski veriyle güncel güvence verilmedi; CSV profilinde otomatik doğrulama iddiası yok.
 
 ## Kapı mesajı
-Kapı yoktur. Kullanıcıya/üst satıra: "Tur N · G<k>/<test günü> · veri: <tarih> (son 72 saat geçici). Uyarılar: … Uygulama listesi: x/y
-uygulandı. Yapı: <doğrulandı | sapma: …>."
+Kapı yoktur. Kullanıcıya ya da durum satırına: "N. turdayız ve deneme süresinin k. günü (toplam <test günü> gün). Veriler <tarih>
+tarihine kadar; son 3 günün rakamları Meta'da hâlâ değişebilir. Dikkat etmen gerekenler: …. Yapılacaklar listesindeki y adımın x
+tanesi tamam. Reklam kurulumu: <planladığımız gibi | plandan farklı: …>."

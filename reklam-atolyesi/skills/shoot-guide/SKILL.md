@@ -71,5 +71,6 @@ Ayrıca `c<tur>-hooks.csv`, `strategy_get`, `products.provable_claims_json` (ön
 - Rehber jargonsuz; teknik sorunlar (VFR, HDR) çekimciye yüklenmez (ingest çözer).
 
 ## Kapı mesajı
-"Çekim planı: N çekim (öncelikli: …), M fotoğraf; ürün tarifi kartları: …; ses kaydı gereken çekimler: …; tahmini süre: …. Rehberi
-çekimciye verebiliriz. Onaylıyor musun, neyi değiştirelim?" → `gate_approve(...)`. Onaydan sonra kısa bir **deneme** çekimi istenir (S05).
+"Çekim planı hazır: N video çekimi (önce çekilmesi gerekenler: …) ve M fotoğraf. Ürünün nasıl görüneceğini anlatan tarif kartları:
+…. Sesinin de kaydedilmesi gereken çekimler: …. Tahmini çekim süresi: …. Bu rehberi çekimi yapacak kişiye doğrudan verebilirsin.
+Onaylıyor musun, değiştirmek istediğin bir yer var mı?" → `gate_approve(...)`. Onaydan sonra kısa bir **deneme** çekimi istenir (S05).

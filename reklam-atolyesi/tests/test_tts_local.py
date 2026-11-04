@@ -212,10 +212,10 @@ def test_capability_default_is_ema_and_offer_only_when_suitable(tmp_path, monkey
     monkeypatch.setattr(S, "gpu_info", lambda: dict(GOOD_GPU))
     c = T.capability(tmp_path)
     assert c["default_voice"] == "ema-varsayilan" and c["library"]["offer"] and not c["library"]["use"]
-    assert "--engine voxcpm" in c["library"]["how"] and "İsterseniz" in c["library"]["say"] and len(c["library"]["voices"]) >= 2
+    assert "--engine voxcpm" in c["library"]["how"] and "İstersen kurarım" in c["library"]["say"] and len(c["library"]["voices"]) >= 2
     monkeypatch.setattr(S, "gpu_info", lambda: None)
     c = T.capability(tmp_path)
-    assert not c["library"]["offer"] and not c["library"]["use"] and "varsayılan ses (EMA)" in c["library"]["say"]
+    assert not c["library"]["offer"] and not c["library"]["use"] and "hazır gelen ses" in c["library"]["say"]
 
 
 def test_synth_falls_back_to_default_voice(tmp_path, monkeypatch):
@@ -341,7 +341,7 @@ def test_reading_summary_lists_what_to_fix():
 
 def test_install_offer_pairs_ema_with_whisper(tmp_path):
     o = T.install_offer(tmp_path)
-    assert o["missing"] == ["ema", "whisper"] and "Whisper" in o["say"] and len(o["how"]) == 2
+    assert o["missing"] == ["ema", "whisper"] and "okunuş kontrolü" in o["say"] and "Whisper" not in o["say"] and len(o["how"]) == 2
 
 
 def test_spoken_map_real_normalizer():

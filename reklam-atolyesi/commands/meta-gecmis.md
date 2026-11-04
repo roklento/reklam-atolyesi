@@ -1,5 +1,5 @@
 ---
-description: "Meta geçmişini (S00b) çalıştırır ya da artımlı senkron yapar"
+description: "Meta'daki geçmiş reklamlarını okur ya da yalnızca yeni verileri ekler"
 ---
 
 Bu komut oturumu plugin moduna alır (UserPromptSubmit/UserPromptExpansion hook'u `/reklam-atolyesi:` önekinden tanır); hook bağlamındaki `session_id`, `plugin` ve `data_dir` değerlerini kullan. Maliyet koruması ve Meta izin listesi bu oturumda geçerlidir.
