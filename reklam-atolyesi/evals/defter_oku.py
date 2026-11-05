@@ -85,8 +85,14 @@ def field_indicators(defters: list[dict]) -> dict[str, dict]:
     by_v: dict[str, dict] = {}
     for d in defters:
         v = str(d.get("plugin_version") or "unknown")
-        e = by_v.setdefault(v, {"defter": 0, "rates": [], "duzeltme": 0, "geri": 0, "takili": 0, "hata": 0, "son_tur_kaldi": 0})
+        e = by_v.setdefault(v, {"defter": 0, "rates": [], "duzeltme": 0, "geri": 0, "takili": 0, "hata": 0, "son_tur_kaldi": 0,
+                                "gun": 0, "kosu": 0, "asama_kosusu": {}})
         e["defter"] += 1
+        e["gun"] += int(d.get("period_days", 0) or 0)  # 2.10.2: sürümler gözlem süresi ve iş miktarıyla eşitlenerek kıyaslanır
+        for stg, s in (d.get("stages") or {}).items():
+            k = int(s.get("completed", 0) or 0) + int(s.get("skipped", 0) or 0)
+            e["kosu"] += k
+            e["asama_kosusu"][stg] = e["asama_kosusu"].get(stg, 0) + k
         r = (d.get("draft_checks") or {}).get("pass_first_round_rate")
         if isinstance(r, (int, float)):
             e["rates"].append(float(r))
@@ -126,6 +132,17 @@ def cell_sets(cell: str) -> tuple[set | None, set | None]:
 
 
 def covering_cases(sig: tuple, cases: dict) -> list[str]:
+    """Kapsayan vaka (2.10.2): imzanın bir hata kodu varsa vaka o kodu `kodlar` listesinde açıkça taşımalı; aynı aşama ve hücre tek
+    başına kapsama değildir (yalnızca ilgili olabilir, bkz. related_cases). Kodsuz davranış sinyallerinde ("-") aşama ve hücre yeterlidir."""
+    code = sig[2]
+    rel = related_cases(sig, cases)
+    if code in ("-", "", "None"):
+        return rel
+    return [n for n in rel if code in (cases[n].get("kodlar") or [])]
+
+
+def related_cases(sig: tuple, cases: dict) -> list[str]:
+    """Aynı aşama ve aynı ürün × kullanıcı hücresindeki vakalar: imzayla ilgili olabilir, onu yeniden ürettiği gösterilmedi."""
     stage, _signal, _code, cell = sig
     ps, us = cell_sets(cell)
     out = []
@@ -177,6 +194,17 @@ def write_skeleton(root: Path, sig: tuple, matrix: dict) -> Path:
     return d
 
 
+def _payda(ind_old: dict, ind_new: dict, stage: str) -> tuple[float, float, str]:
+    """Sürüm kıyasının paydası (2.10.2). Ham sayı ya da defter sayısı farklı gözlem sürelerini ve farklı kullanım yoğunluğunu
+    karşılaştırırdı. Sıra: aynı aşamanın tamamlanma sayısı → bütün aşamaların tamamlanma sayısı → gözlem günü → defter."""
+    for a, b, ad in ((ind_old["asama_kosusu"].get(stage, 0), ind_new["asama_kosusu"].get(stage, 0), f"{stage} aşaması başına"),
+                     (ind_old["kosu"], ind_new["kosu"], "aşama başına"),
+                     (ind_old["gun"], ind_new["gun"], "gün başına")):
+        if a and b:
+            return float(a), float(b), ad
+    return float(max(ind_old["defter"], 1)), float(max(ind_new["defter"], 1)), "defter başına (süre ve iş miktarı bilinmiyor)"
+
+
 def version_changes(agg: dict, ind: dict) -> list[tuple]:
     vs = sorted(ind, key=vkey)
     if len(vs) < 2:
@@ -184,14 +212,15 @@ def version_changes(agg: dict, ind: dict) -> list[tuple]:
     old, new = vs[-2], vs[-1]
     out = []
     for k, e in agg.items():
-        a = e["by_version"].get(old, 0) / max(ind[old]["defter"], 1)
-        b = e["by_version"].get(new, 0) / max(ind[new]["defter"], 1)
+        po, pn, birim = _payda(ind[old], ind[new], k[0])
+        a = e["by_version"].get(old, 0) / po
+        b = e["by_version"].get(new, 0) / pn
         if b > a * 1.5 and e["by_version"].get(new, 0) >= 2:
-            out.append(("kötüleşti", k, a, b))
+            out.append(("kötüleşti", k, a, b, birim))
         elif a > 0 and b < a * 0.5:
-            out.append(("iyileşti", k, a, b))
+            out.append(("iyileşti", k, a, b, birim))
     out.sort(key=lambda x: (x[0] != "kötüleşti", -abs(x[3] - x[2])))
-    return [(t, k, round(a, 2), round(b, 2), old, new) for t, k, a, b in out]
+    return [(t, k, round(a, 2), round(b, 2), old, new, birim) for t, k, a, b, birim in out]
 
 
 def render(defters, notes, esik, skel_root: Path | None) -> str:
@@ -221,24 +250,26 @@ def render(defters, notes, esik, skel_root: Path | None) -> str:
         skel_made = []
         for k, e in rec:
             cov = covering_cases(k, cases)
+            rel = [n for n in related_cases(k, cases) if n not in cov]
+            ilgili = f" (ilgili olabilir, hatayı ürettiği gösterilmedi: {', '.join(rel)})" if rel else ""
             cell = "—" if not cov else ", ".join(cov)
             if not cov and k[1] != "arac_hatasi":
-                cell = "YOK"
+                cell = "YOK" + ilgili
                 if skel_root is not None:
                     skel_made.append(write_skeleton(skel_root, k, matrix))
             elif not cov:
-                cell = "YOK (araç hatası: tests/ altında birim testiyle yeniden üret)"
+                cell = "YOK (araç hatası: tests/ altında birim testiyle yeniden üret)" + ilgili
             L.append(f"| {k[0]} | {SIGNAL_TEXT.get(k[1], k[1])} | {k[2]} | {k[3]} | {e['n']} | {len(e['defterler'])} | {cell} |")
         if skel_made:
             L += ["", f"Vaka iskeleti yazıldı ({len(skel_made)}):"] + [f"- {p}" for p in skel_made]
     ch = version_changes(agg, ind)
-    L += ["", "## 3. Sürüm karşılaştırması (defter başına sıklık)", ""]
+    L += ["", "## 3. Sürüm karşılaştırması (aşama, gün ya da defter başına sıklık)", ""]
     if not ch:
         L.append("Karşılaştırılacak iki sürüm yok ya da belirgin değişiklik yok.")
     else:
-        L += [f"| Sonuç | İmza | {ch[0][4]} | {ch[0][5]} |", "|---|---|---|---|"]
-        for t, k, a, b, _o, _n in ch:
-            L.append(f"| {t} | {k[0]} · {SIGNAL_TEXT.get(k[1], k[1])} · {k[2]} · {k[3]} | {a} | {b} |")
+        L += [f"| Sonuç | İmza | {ch[0][4]} | {ch[0][5]} | Ölçü |", "|---|---|---|---|---|"]
+        for t, k, a, b, _o, _n, birim in ch:
+            L.append(f"| {t} | {k[0]} · {SIGNAL_TEXT.get(k[1], k[1])} · {k[2]} · {k[3]} | {a} | {b} | {birim} |")
     L += ["", "Sıradaki adım: kapsanmayan imzalar için vaka yaz (önce kalmalı), düzelt, eski vakaların bozulmadığını kör",
           "karşılaştırmayla göster, sonucu evals/etki-defteri.md'ye yaz.", ""]
     return "\n".join(L)

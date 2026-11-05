@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.1
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.2
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,23 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.2** — ölçülmeyen değer sonuç sayılmaz (bağımsız sürüm denetiminin bulduğu açıklar)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Huni oranları:** "tıklayıp sayfayı açanlar" gibi oranlar artık pay ve paydanın ikisinin de ölçüldüğü satırlardan hesaplanır. Önceden
+  olay bazı reklamlarda gelmediğinde oran yarıya düşebiliyordu (doğrusu %80 iken %40). Rapor olayın tıklamaların ne kadarında
+  ölçüldüğünü yazar; yarısından azında ölçüldüyse oran yerine "veri yetersiz" der. Aynı düzeltme geçmişten önsel hesabında da var.
+- **Taslak kapısı:** aşama tamamlanırken belge güncel kayda karşı yeniden denetlenir. Denetimden sonra bütçe gibi bir kayıt değiştiyse
+  ve belge artık uyuşmuyorsa aşama tamamlanmaz. Başka adla denetlenmiş bir belge aşama belgesi yerine geçmez.
+- **Okunuş sözlüğü:** "WİFİ" gibi Türkçe büyük İ ya da "WIFI" gibi İngilizce büyük harfle yazılmış sözcükler seslendirmeyi artık
+  durdurmuyor; sözlükteki okunuş uygulanıyor.
+- **Efekt öz denetimi:** efekt izi okunamazsa efektin kareye oturması ve seviyesi "ölçülemedi" sayılır; sonuç "geçti" olmaz.
+- **Playbook adayı:** sunucu doğrulama turunun yapısını ve Meta iyileştirmelerini kendi kaydından okur. Tur kontrollü değilse,
+  iyileştirmeler açıksa ya da hiç kontrol edilmediyse kural aday olmaz.
+- **Admin araçları:** hata defteri sürümleri aşama, gün ya da defter başına eşitleyerek kıyaslar. Hata kodu olan bir imzayı yalnızca o
+  kodu `kodlar` listesinde taşıyan vaka kapsar; aynı aşama ve hücredeki vaka "ilgili olabilir" diye ayrı yazılır. Etki özeti kararı
+  yalnız birim testine dayanan bileşenleri ayrıca listeler.
+- `tests/test_v2102_kanit_kapilari.py`.
+
 **2.10.1** — sürüm karşılaştırması eksik ya da hatalı sonucu artık başarılı saymıyor (admin tarafı)
 - Müşterinin gördüğü hiçbir şey değişmedi. Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Eksik sonuçta durur:** `evals/kor_kiyas.py puan` ve `hazirla`, yarım kalmış değerlendirmeyi, desteklenmeyen şema sürümünü, hata

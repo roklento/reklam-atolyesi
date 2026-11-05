@@ -104,6 +104,11 @@ def review(rep: dict, plan: dict, moments: dict | None = None) -> dict:
         if total and c["start_s"] + dur > total + 0.02:
             cut_off.append(c)
             problems.append({"t": t, "axis": "cutoff", "sev": 2.5, "msg": f"'{c.get('sfx')}' videonun sonunda kesiliyor"})
+    # 2.10.2: efekt yerleştirilmiş ama efekt izi okunamıyorsa oturma ve seviye ölçülemedi; ölçülmeyen eksen "geçti" sayılmaz
+    unmeasured = ["sync", "level"] if placed and sfx is None else []
+    if unmeasured:
+        problems.append({"t": 0.0, "axis": "olculemedi", "sev": 10.0,
+                         "msg": "efekt izi (stems.sfx) okunamadı: efektin kareye oturması ve ses seviyesi ölçülemedi; miksi yeniden çalıştır"})
     from admem.editplan import sfx_density
     dens = sfx_density(plan.get("scenes", []), plan.get("effects"))
     uncovered = [m for m in (moments or {}).get("moments", []) if not m.get("covered") and m.get("strength", 0) >= 0.5]
@@ -126,7 +131,8 @@ def review(rep: dict, plan: dict, moments: dict | None = None) -> dict:
         if len(listen) < 5 and all(abs(t - x["t"]) > 0.5 for x in listen):
             listen.append({"t": round(t, 3), "tc": seconds_to_tc(t), "why": why})
     for p in worst:
-        add(p["t"], p["msg"])
+        if p["axis"] != "olculemedi":
+            add(p["t"], p["msg"])
     by_role = {}
     for c in placed:
         by_role.setdefault(c.get("role") or "?", c)
@@ -136,7 +142,8 @@ def review(rep: dict, plan: dict, moments: dict | None = None) -> dict:
     for c in placed:
         add(c["at_s"], f"'{c.get('sfx')}' görüntüye uyuyor mu")
     scored = [v for v in axes.values() if v is not None]
-    return {"axes": axes, "pass": bool(scored) and min(scored) >= PASS, "pass_threshold": PASS, "worst": worst,
+    return {"axes": axes, "pass": bool(scored) and min(scored) >= PASS and not unmeasured, "unmeasured": unmeasured,
+            "pass_threshold": PASS, "worst": worst,
             "listen": listen, "density_issues": dens, "cues": len(placed),
             "note": "Ölçülen eksenlerdir; karakter uyumu, temizlik ve zevk kulakla dinlenir. Listedeki anları telefon hoparlöründe ve "
                     "kulaklıkla dinlet; yalnız en kötü üç sorunu düzelt, yeniden miksle, tekrar puanla."}

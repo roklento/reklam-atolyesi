@@ -59,6 +59,9 @@ içerir (U8 toplam sınırı yetmeyen kullanıcı, K04 yayındaki tur, K12 kanı
   yazılır.
 - `defter_oku.py` "bu imzayı kapsayan vaka var mı" sorusuna yalnızca açık vakalara bakarak cevap verir. Sahadan gelen hata için
   her zaman açık bir vaka yazılır.
+- Kapsama (2.10.2): imzanın bir hata kodu varsa onu yalnızca `eval_cases` içinde o kodu `"kodlar": ["<kod>"]` listesinde taşıyan vaka
+  kapsar. Bunu vakanın hatayı düzeltmeden önce yeniden ürettiği (kaldığı) görüldükten sonra yazın. Aynı aşama ve hücredeki öteki
+  vakalar raporda "ilgili olabilir" diye ayrı yazılır. Kodsuz sinyallerde ("-") aşama ve hücre yeterlidir.
 - Bu kural teknik olarak kilitlenemez (vakalar aynı depoda). Depo kökündeki `CLAUDE.md` onu bu depoda çalışan her Claude oturumuna
   hatırlatır; ezber denetimi kapalı vakalardan yapılan kopyayı da yakalar.
 
@@ -165,7 +168,9 @@ python evals/defter_oku.py <defter-dosyaları-ya-da-klasörü> --out /tmp/defter
 ```
 
 Rapor üç şey verir: sürüm başına saha göstergeleri (etki defterinin "sahada" kısmına), tekrarlayan imzalar ve onları kapsayan vaka
-olup olmadığı, önceki sürüme göre kötüleşen ya da iyileşen imzalar. Kapsanmayan imza için iskelet yazılır.
+olup olmadığı, önceki sürüme göre kötüleşen ya da iyileşen imzalar. Kapsanmayan imza için iskelet yazılır. Sürüm kıyası (2.10.2)
+ham sayıyla değil, sırasıyla aynı aşamanın tamamlanma sayısına, bütün aşamaların tamamlanma sayısına, gözlem gününe ya da defter
+sayısına bölünerek yapılır; hangisinin kullanıldığı tabloda yazar.
 
 Döngü: imza → iskelet doldurulur → vaka düzeltmeden **önce** kalmalı (hata yeniden üretildi) → düzeltme → vaka geçer, eski vakalar
 bozulmaz (kör karşılaştırma) → `etki-defteri.md` → sonraki sürümün defterleri düzeltmenin sahada tuttuğunu gösterir. Araç hatası
@@ -178,7 +183,9 @@ Hangi hücre nasıl çıkarılır: ürün P8 (katkı ≤ 0) → P4 (hizmet ya da
 ## Revizeye başlarken (2.10.0)
 
 `python evals/etki_ozeti.py` çalıştırılır. Etki defterinden iki liste verir: en az iki sürümdür "etkisiz" olup hiç işe yaramamış
-bileşenler (silmeye aday) ve üç sürümdür "ölçülecek" diye bekleyenler. Betik hiçbir şeyi silmez; karar admin'indir.
+bileşenler (silmeye aday) ve üç sürümdür "ölçülecek" diye bekleyenler. 2.10.2'den beri üçüncü bir liste de verir: kararı yalnız
+birim testine ("yardım etti (test)") ya da bekleyen ölçüme dayanan bileşenler. "Ölçülmemiş: yok" bütün bileşenlerin ölçüldüğü anlamına
+gelmez; bu üçüncü liste eval ya da sahayla henüz ölçülmemiş olanları gösterir. Betik hiçbir şeyi silmez; karar admin'indir.
 
 ## Yeni vaka ya da senaryo ekleme
 

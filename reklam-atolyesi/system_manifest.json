@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.10.1",
+ "plugin_version": "2.10.2",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -916,14 +916,14 @@
  },
  "tests": {
   "pytest": {
-   "passed": 643,
+   "passed": 662,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "643 passed, 0 failed, 6 skipped (2.10.1, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v2101_eval_gate.py (sürüm karşılaştırması eksik ya da geçersiz sonucu reddeder: partial, şema sürümü, hatalı/durdurulan koşu, atlanan hakem, okunamayan ya da geçersiz puan, NaN, yinelenen vaka, eksik vaka/koşu, deney kaydı ve parmak izi, 0,8 eşiği, harcama kapsamı ve %20 payı, cevap okuyucusunun yalnızca eklentili kolu okuması, hazırlığın eksikte durması ve boş klasör istemesi); test_v2100_overfit alıntı izninin cümleyle sınırlanması.",
+   "summary": "662 passed, 0 failed, 6 skipped (2.10.2, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v2102_kanit_kapilari.py (huni oranında pay ve paydanın aynı satırlardan toplanması ve kapsama sınırı; taslak denetiminin başka adla kullanılamaması ve güncel kayda karşı yeniden denetlenmesi; okunuş sözlüğünde Türkçe ve İngilizce büyük harf; efekt izi yokken 'ölçülemedi'; playbook adayında tur yapısı ve Meta iyileştirmelerinin sunucu kaydından okunması; hata defterinde gün/aşama başına kıyas ve koda bağlı kapsama; etki özetinde eval kanıtı olmayan bileşenler); test_analytics playbook testi bootstrap turunu reddeder.",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
-   "at": "2026-11-04",
+   "at": "2026-11-05",
    "platform": "linux"
   },
   "smoke": {
@@ -1685,6 +1685,13 @@
     "kusur": 0,
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; alinti listesindeki cümleler plugin'in kendi genel cümleleridir; testlerdeki puan ve harcama değerleri uydurmadır"
+   },
+   {
+    "scope": "2.10.2: ölçülmeyen değer sonuç sayılmaz (scripts/analytics/coach.py, report.py, admem/s_meta.py önsel, admem/s_draft.py ve s_stage.py taslak kapısı, scripts/audio/tts_worker.py, scripts/qc/sfx_review.py, admem/s_coach.py playbook, evals/defter_oku.py, evals/etki_ozeti.py, evals/README, etki defteri, testler, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 19,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; testlerdeki sayılar ve sözlük örnekleri ('wifi', 'Işık', 'İnce') genel sözcüklerdir"
    }
   ],
   "remaining_defects": [],
@@ -1695,19 +1702,19 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "273f0ed5915475151e3d48fbb3de4d75de84006a115308ca04330db445dbde6a",
+   "plugin_json": "170fa570c8689fc60274dd12bed1d5d8c07a240186b783ca28a9d39fabf52b00",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
    "skills": "2479718354ca98c51c382526ae9f6a9aa633feea7eb9663fe5d10d16f30c9eac",
    "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
    "commands": "f27cb19532ea412d43e08c02a222944a4342eb7b86a282b080900a68b5f54cde",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "cf58fe083079ed5179e6e1ae3a56a49cf83ce5043c99d38061bb9316240cb1e7",
-   "ad_memory": "deccde11e2f35e36a3d159a043692e4d3d599178025338bac15cc400834c6ab2",
-   "scripts": "95935559933e321fb870b921ded10757e4e27169916e123066bc1ae2272cb5e1",
+   "ad_memory": "f18bdd206bbf146a096ad9ab015078856d4b902cc38c5459503e5d05bf517cca",
+   "scripts": "10e496db57e1c3c5fad407fe54254f0a384a92934867fcd89736b300e384894d",
    "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
    "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
    "rules": "f2e2f1fe950351c92fe52c4da70ad3462e223d66741a641c823b90db55b0835c",
-   "evals": "044465125cf460e39bc1dc9d39668443f0e1f73ca78e6a96426c57738730f699"
+   "evals": "61bcf3fb997bbdd1c1fb6d52ed701cf38bae0677f578e229b0219001d84e9f8a"
   },
   "checked_at": "2026-11-05"
  },
@@ -1866,19 +1873,19 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "273f0ed5915475151e3d48fbb3de4d75de84006a115308ca04330db445dbde6a",
+  "plugin_json": "170fa570c8689fc60274dd12bed1d5d8c07a240186b783ca28a9d39fabf52b00",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
   "skills": "2479718354ca98c51c382526ae9f6a9aa633feea7eb9663fe5d10d16f30c9eac",
   "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
   "commands": "f27cb19532ea412d43e08c02a222944a4342eb7b86a282b080900a68b5f54cde",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "cf58fe083079ed5179e6e1ae3a56a49cf83ce5043c99d38061bb9316240cb1e7",
-  "ad_memory": "deccde11e2f35e36a3d159a043692e4d3d599178025338bac15cc400834c6ab2",
-  "scripts": "95935559933e321fb870b921ded10757e4e27169916e123066bc1ae2272cb5e1",
+  "ad_memory": "f18bdd206bbf146a096ad9ab015078856d4b902cc38c5459503e5d05bf517cca",
+  "scripts": "10e496db57e1c3c5fad407fe54254f0a384a92934867fcd89736b300e384894d",
   "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
   "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
   "rules": "f2e2f1fe950351c92fe52c4da70ad3462e223d66741a641c823b90db55b0835c",
-  "evals": "044465125cf460e39bc1dc9d39668443f0e1f73ca78e6a96426c57738730f699"
+  "evals": "61bcf3fb997bbdd1c1fb6d52ed701cf38bae0677f578e229b0219001d84e9f8a"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }

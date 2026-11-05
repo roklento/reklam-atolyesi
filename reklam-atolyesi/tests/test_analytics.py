@@ -224,6 +224,9 @@ def test_playbook_requires_independent_validation(store):
     with pytest.raises(AdMemoryError):
         store.playbook_propose(pid, "kural", ev)  # üst huni: alt huni teyidi yok
     ev["lower_funnel"] = {"metric": "ctr_link", "same_direction": True, "sufficient": True, "preselected": True}
+    with pytest.raises(AdMemoryError, match="bootstrap"):
+        store.playbook_propose(pid, "kural", ev)  # 2.10.2: tur kaydı bootstrap; çağıranın beyanı yetmez
+    store.ex("UPDATE cycles SET structure_detected='creative_test' WHERE id=?", (cyid,))
     r = store.playbook_propose(pid, "kural", ev)
     assert r["status"] == "proposed"
     store.playbook_activate(pid, r["id"], "onaylıyorum")

@@ -217,10 +217,13 @@ class MetaMixin:
         """Aynı profil ve objective için, test başlamadan önceki uygun geçmişten Beta önselleri (6.6)."""
         bid = self._brand_id(profile_id)
         cutoff = _date(cutoff_at[:10])
+        # 2.10.2: payda yalnızca payın ölçüldüğü günlerden toplanır (pay ölçülmeyen günün paydası oranı düşürmez)
+        paired = ", ".join(f"SUM(CASE WHEN m.{num} IS NOT NULL THEN m.{den} END) AS pd_{metric}"
+                           for metric, (num, den) in self.PRIOR_METRICS.items())
         rows = self.qa("""SELECT a.id AS ad_id, SUM(m.impressions) AS impressions, SUM(m.video_3s) AS video_3s, SUM(m.thruplay) AS thruplay,
                                  SUM(m.link_clicks) AS link_clicks, SUM(m.purchases) AS purchases,
                                  SUM(m.landing_page_views) AS landing_page_views, SUM(m.view_content) AS view_content,
-                                 SUM(m.add_to_cart) AS add_to_cart, SUM(m.initiate_checkout) AS initiate_checkout
+                                 SUM(m.add_to_cart) AS add_to_cart, SUM(m.initiate_checkout) AS initiate_checkout, """ + paired + """
                           FROM metrics_daily m JOIN ads a ON a.id=m.ad_id
                           LEFT JOIN meta_entities e ON e.level='ad' AND e.meta_id=a.meta_ad_id
                           LEFT JOIN meta_entities ad_set ON ad_set.level='adset' AND ad_set.meta_id=e.parent_meta_id
@@ -233,7 +236,7 @@ class MetaMixin:
             for r in rows:
                 if (r["impressions"] or 0) < min_impressions:
                     continue
-                n, d = r[num], r[den]
+                n, d = r[num], r[f"pd_{metric}"]
                 if n is None or not d or n > d:
                     continue
                 if metric.startswith("step_") and d < self.STEP_MIN_DEN:

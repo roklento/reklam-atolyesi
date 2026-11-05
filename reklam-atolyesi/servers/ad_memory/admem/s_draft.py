@@ -91,16 +91,9 @@ class DraftMixin:
             raise AdMemoryError("S00c taslak denetimi scope_key='product:<id>' ister")
         return self._scope_key(profile_id, campaign_id, cycle_id, scope_key)
 
-    # ------------------------------------------------------------------ araçlar
-    def draft_check(self, profile_id: int, stage: str, path: str, campaign_id: int | None = None, cycle_id: int | None = None,
-                    scope_key: str | None = None) -> dict:
-        """Metin aşaması belgesini denetler ve kaydeder. Tur sunucuda sayılır; değişmemiş içerik yeni tur değildir."""
-        self._profile(profile_id)
-        sk = self._draft_scope(profile_id, stage, campaign_id, cycle_id, scope_key)
-        out = self._resolve_output(profile_id, {"path": path})
-        p = Path(out["path"])
-        if p.suffix.lower() not in DR.DRAFT_SUFFIXES:
-            raise AdMemoryError("taslak denetimi .md belgeler içindir (tablo/veri dosyaları kendi araçlarıyla denetlenir)")
+    def _draft_evaluate(self, profile_id: int, stage: str, p: Path, campaign_id: int | None,
+                        cycle_id: int | None) -> tuple[dict, str | None]:
+        """Belgeyi şablonuna ve GÜNCEL kayda karşı denetler (kaydetmez). draft_check ve stage_complete kapısı aynı yolu kullanır."""
         text = p.read_bytes().decode("utf-8", errors="replace")
         tname = DR.template_for(stage, str(p))
         tmd = None
@@ -115,6 +108,19 @@ class DraftMixin:
         if stage == "S14" and tmd and ctx.get("meta_text_warnings") is None:
             res["issues"].append({"code": "meta_text", "severity": "warn", "message": "Meta reklam standartları metin taraması yüklenemedi; "
                                   "checks.py meta-text elle çalıştırılmalı"})
+        return res, tname
+
+    # ------------------------------------------------------------------ araçlar
+    def draft_check(self, profile_id: int, stage: str, path: str, campaign_id: int | None = None, cycle_id: int | None = None,
+                    scope_key: str | None = None) -> dict:
+        """Metin aşaması belgesini denetler ve kaydeder. Tur sunucuda sayılır; değişmemiş içerik yeni tur değildir."""
+        self._profile(profile_id)
+        sk = self._draft_scope(profile_id, stage, campaign_id, cycle_id, scope_key)
+        out = self._resolve_output(profile_id, {"path": path})
+        p = Path(out["path"])
+        if p.suffix.lower() not in DR.DRAFT_SUFFIXES:
+            raise AdMemoryError("taslak denetimi .md belgeler içindir (tablo/veri dosyaları kendi araçlarıyla denetlenir)")
+        res, tname = self._draft_evaluate(profile_id, stage, p, campaign_id, cycle_id)
         with self.tx():
             prev = self.qa("SELECT id, sha256, round FROM draft_checks WHERE scope_key=? AND stage=? AND consumed_by_run_id IS NULL "
                            "ORDER BY id", (sk, stage))
@@ -150,8 +156,11 @@ class DraftMixin:
                 "round": max((r["round"] for r in rows), default=0)}
 
     # ------------------------------------------------------------------ stage_complete kapısı
-    def _draft_gate(self, profile_id: int, stage: str, sk: str, resolved: list[dict]) -> dict | None:
-        """stage_complete içinde (işlem öncesi) çağrılır. Metin aşaması değilse None. Geçmezse AdMemoryError."""
+    def _draft_gate(self, profile_id: int, stage: str, sk: str, resolved: list[dict], campaign_id: int | None = None,
+                    cycle_id: int | None = None) -> dict | None:
+        """stage_complete içinde (işlem öncesi) çağrılır. Metin aşaması değilse None. Geçmezse AdMemoryError.
+        2.10.2: denetim belgenin bugünkü adıyla (aynı şablonla) yapılmış olmalı ve belge güncel kayda karşı yeniden denetlenir; denetimden
+        sonra kayıt değiştiği için yeni kritik sorun çıktıysa aşama tamamlanmaz."""
         if stage not in DR.DRAFT_STAGES:
             return None
         docs = [r for r in resolved if Path(r["path"]).suffix.lower() in DR.DRAFT_SUFFIXES]
@@ -165,8 +174,19 @@ class DraftMixin:
             if not chk:
                 raise AdMemoryError(f"taslak denetimi yapılmadı ya da belge denetimden sonra değişti: draft_check(profile_id, '{stage}', "
                                     f"path='{r['path']}', …) çağrılmalı (KURALLAR K10)")
+            if chk["template"] != DR.template_for(stage, r["path"]):
+                raise AdMemoryError(f"bu belge başka bir adla denetlendi ('{Path(chk['path']).name}'); aşama belgesi kendi adıyla ve "
+                                    f"şablonuyla denetlenmeli: draft_check(profile_id, '{stage}', path='{r['path']}', …) çağrılmalı (KURALLAR K10)")
             issues = jload(chk["issues_json"], []) or []
             crit = [i for i in issues if i.get("severity") == "critical"]
+            now, _ = self._draft_evaluate(profile_id, stage, Path(r["path"]), campaign_id, cycle_id)
+            known = {(i.get("code"), i.get("message")) for i in crit}
+            fresh = [i for i in now["issues"] if i.get("severity") == "critical" and (i.get("code"), i.get("message")) not in known]
+            if fresh:
+                raise AdMemoryError("belge denetlendikten sonra kayıt değişti ve belge artık kayıtla uyuşmuyor: "
+                                    + "; ".join(i["message"] for i in fresh[:6])
+                                    + f" — belgeyi güncel kayda göre düzeltip draft_check(profile_id, '{stage}', path='{r['path']}', …) "
+                                    "yeniden çağrılmalı (KURALLAR K10)")
             if chk["verdict"] == "fail" and chk["round"] < DR.MAX_DRAFT_ROUNDS:
                 raise AdMemoryError(f"taslak denetimi geçmedi (tur {chk['round']}/{DR.MAX_DRAFT_ROUNDS}): "
                                     + "; ".join(i["message"] for i in crit[:6])

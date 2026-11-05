@@ -101,6 +101,32 @@ def _ratio(num, den):
     return round(num / den, 4) if den else None
 
 
+PAIRED_MIN_COVERAGE = 0.5
+
+
+def paired_totals(rows: list[dict], num: str, den: str) -> tuple[float | None, float | None, float | None]:
+    """Oranın payı ve paydası yalnızca ikisinin birden ölçüldüğü satırlardan toplanır (2.10.2). Bir satırda pay ölçülmemişse o satırın
+    paydası da oranın dışında kalır: ölçülmemiş değer sıfır sayılmaz, paydayı da şişirmez. Dönen: (pay, payda, kapsama). Kapsama, oranın
+    dayandığı paydanın bütün ölçülmüş paydaya oranıdır. Pay hiç ölçülmemişse (None, None, None)."""
+    n = d = 0.0
+    seen = False
+    d_all = 0.0
+    for r in rows:
+        dv = r.get(den)
+        if dv is None:
+            continue
+        d_all += float(dv)
+        nv = r.get(num)
+        if nv is None:
+            continue
+        seen = True
+        n += float(nv)
+        d += float(dv)
+    if not seen:
+        return None, None, None
+    return n, d, (round(d / d_all, 4) if d_all else None)
+
+
 def stage_section(snap: dict, by_concept: dict) -> dict | None:
     """Huni aşaması teşhisi (1.9.0). Her konsept KENDİ aşamasının metriğiyle okunur; hüküm yine sonuç türüyle verilir. Piksel bir olayı
     göndermiyorsa o metrik okunamadı yazılır (sıfır sayılmaz). Kitle segmenti dökümü (yeni / etkileşime geçmiş / mevcut müşteri) yalnızca
@@ -117,15 +143,18 @@ def stage_section(snap: dict, by_concept: dict) -> dict | None:
         def tot(col):
             vals = [r.get(col) for r in rows if r.get(col) is not None]
             return sum(float(v) for v in vals) if vals else None
+        def prate(col):  # 2.10.2: tıklama başına oran yalnızca olayın ölçüldüğü satırlardan; kapsama yetmezse okunamadı
+            n, d, cov = paired_totals(rows, col, "link_clicks")
+            return _ratio(n, d) if n is not None and cov is not None and cov >= PAIRED_MIN_COVERAGE else None
         imp, v3, thru, clicks = tot("impressions"), tot("video_3s"), tot("thruplay"), tot("link_clicks")
         lpv, vc, atc, ic, pur, spend = (tot(c) for c in ("landing_page_views", "view_content", "add_to_cart", "initiate_checkout",
                                                           "purchases", "spend"))
         m = {"tofu": {"hook_rate": _ratio(v3 or 0, imp), "hold_rate": _ratio(thru or 0, v3) if v3 else None,
                       "spend_per_3s_view": round(spend / v3, 4) if (spend and v3) else None},
-             "mofu": {"ctr_link": _ratio(clicks or 0, imp), "landing_page_view_rate": _ratio(lpv, clicks) if lpv is not None else None,
-                      "view_content_rate": _ratio(vc, clicks) if vc is not None else None},
-             "bofu": {"add_to_cart_rate": _ratio(atc, clicks) if atc is not None else None,
-                      "checkout_rate": _ratio(ic, clicks) if ic is not None else None,
+             "mofu": {"ctr_link": _ratio(clicks or 0, imp), "landing_page_view_rate": prate("landing_page_views"),
+                      "view_content_rate": prate("view_content")},
+             "bofu": {"add_to_cart_rate": prate("add_to_cart"),
+                      "checkout_rate": prate("initiate_checkout"),
                       "cost_per_purchase": round(spend / pur, 2) if (spend and pur) else None}}[st]
         unread = [n for n, v in m.items() if v is None]
         seg = None
@@ -648,7 +677,8 @@ def funnel_diagnosis(kpost: dict, test_rows: list[dict], chan: dict) -> dict:
 
 # Tıklamadan sonra adım adım (2.4.0). Adımlar her ürün ve satış yeri için ORTAKTIR (Meta'nın standart olayları); platforma özel aşama
 # eklenmez. Platform yalnızca hangi olayın geldiğini belirler: gelmeyen olay "okunamadı" kalır, sıfır sayılmaz. Her adım bir önceki
-# adıma bölünür; önceki adım okunamadıysa en yakın okunan adıma bölünür ve geçmişle kıyaslanmaz (tanım farklıdır).
+# adıma bölünür; önceki adım okunamadıysa en yakın okunan adıma bölünür ve geçmişle kıyaslanmaz (tanım farklıdır). 2.10.2: pay ve payda
+# yalnızca ikisinin birden ölçüldüğü satırlardan toplanır; olay paydanın yarısından azında ölçüldüyse oran hesaplanmaz (paired_totals).
 FUNNEL_STEPS = (
     ("step_landing", "landing_page_views", "link_clicks", "Sayfaya ulaşma",
      "tıklayan sayfaya ulaşmadan çıkıyor: sayfanın açılış hızı, bağlantı/yönlendirme, mobil uyum"),
@@ -689,11 +719,14 @@ def funnel_steps(test_rows: list[dict]) -> dict | None:
         counts[num] = tot(num)
         base = den if counts.get(den) is not None else next(
             (c for c in reversed(list(counts)[:-1]) if counts[c] is not None), "link_clicks")
-        n, d = counts[num], counts[base]
+        n, d, cov = paired_totals(test_rows, num, base) if counts[num] is not None else (None, counts[base], None)
         st = {"step": metric, "label": label, "event": num, "count": n, "denominator": base, "denominator_count": d,
-              "denominator_label": STEP_LABELS[base], "canonical": base == den, "cause": cause}
+              "denominator_label": STEP_LABELS[base], "canonical": base == den, "cause": cause, "coverage": cov}
         if n is None:
             st.update(status="okunamadi", msg=f"{label}: olay gelmiyor (piksel bu olayı göndermiyor ya da satış Meta'nın göremediği yerde)")
+        elif cov is not None and cov < PAIRED_MIN_COVERAGE:
+            st.update(status="veri_yetersiz", msg=f"{label}: bu olay {STEP_LABELS[base]} sayısının yalnızca %{cov * 100:.0f}'inde ölçüldü; "
+                                                  "oran hesaplanmaz (olay bazı reklamlarda ya da günlerde gelmiyor)")
         elif n > d:
             st.update(status="ic_ice_degil", msg=f"{label}: {int(n)} > {int(d)} {STEP_LABELS[base]}; adımlar iç içe değil "
                                                  "(atıf penceresi, adım atlayan ödeme akışı ya da olay kurulumu): oran hesaplanmaz")

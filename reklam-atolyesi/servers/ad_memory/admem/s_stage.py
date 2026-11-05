@@ -423,7 +423,7 @@ class StageMixin:
         sk = self._scope_key(profile_id, campaign_id, cycle_id, scope_key)
         gated = ST.is_gated(stage) and not skipped
         # 2.5.0 (KURALLAR K10): metin aşamasının belgesi taslak denetiminden geçmiş (ya da tur sınırı dolmuş) olmalı
-        draft = None if skipped else self._draft_gate(profile_id, stage, sk, resolved)
+        draft = None if skipped else self._draft_gate(profile_id, stage, sk, resolved, campaign_id, cycle_id)
         with self.tx():
             if c and (self.q1("SELECT stage FROM campaigns WHERE id=?", (c["id"],)) or {}).get("stage") != stage:
                 raise AdMemoryError("kampanya bu arada başka aşamaya geçti (başka oturum); aşama tamamlanmadı")  # 2.0.0: işlem içinde yeniden
