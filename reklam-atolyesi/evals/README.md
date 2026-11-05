@@ -75,32 +75,64 @@ hangi satırın hangi vakaya benzediğini yazar. Yapılacak iş, düzeltmeyi vak
 yazmaktır.
 
 Bir vaka plugin'in mevcut bir cümlesini bilerek alıntılıyorsa (ör. müşteriye sorulan hata defteri sorusu, sözlükteki bir açıklama)
-matristeki kaydına `"alinti": true` yazılır. O vakadan gelen eşleşmeler raporda görünür ama CI'ı durdurmaz. Bugün iki vaka böyledir:
+matristeki kaydına `"alinti": [...]` ile alıntılanan plugin cümleleri tek tek yazılır. Yalnızca bu cümlelerin içindeki eşleşmeler
+raporda görünür ama CI'ı durdurmaz; aynı vakadan gelen başka her parça ve vaka adı yine durdurur (2.10.1). Bugün iki vaka böyledir:
 `hata-sonrasi-defter-sorusu` ve `s02-strateji-yeni-baslayan`.
 
 Denetim yalnızca kelime kopyasını yakalar; "fiyat 100 TL ise şunu yap" gibi bir vakaya özgü mantığı yakalayamaz. Bunun için
 `etki-defteri.md`'deki "Gerekçe" sütunu kullanılır: gerekçe bir vaka adıysa düzeltmenin hangi başka hücrelere de uyduğu yazılır.
 
-## Puan farkı ve harcama (2.10.0, yayın öncesi, ücretsiz)
+## Puan farkı ve harcama (2.10.0; 2.10.1'de sıkılaştı, yayın öncesi, ücretsiz)
+
+İki sürüm **aynı vaka setiyle** (matristeki açık ve kapalı vakaların hepsi), **aynı koşu sayısıyla** ve **aynı Claude sürümüyle**
+çalıştırılır. Eski yayının eski vaka setiyle alınmış JSON'u kullanılamaz: eski sürümün klasörüne güncel `evals/vakalar` ve
+`evals/kapali` kopyalanır ve eski sürüm yeniden çalıştırılır. Her çıktı klasörü yeni olmalıdır.
 
 ```
+claude plugin eval <eski-plugin> --trust-plugin --runs 3 --threshold 0.8 --ablation with-without --json /tmp/eski.json
+python evals/kor_kiyas.py kayit --json /tmp/eski.json --plugin-root <eski-plugin>
 claude plugin eval ./reklam-atolyesi --trust-plugin --runs 3 --threshold 0.8 --ablation with-without --json /tmp/yeni.json
+python evals/kor_kiyas.py kayit --json /tmp/yeni.json --plugin-root ./reklam-atolyesi
 python evals/kor_kiyas.py puan --eski /tmp/eski.json --yeni /tmp/yeni.json
 ```
 
-`eski.json` önceki yayının aynı komutla alınmış çıktısıdır (yayın testinde saklanır; yoksa önceki sürümün etiketinden alınır). Yeni bir
-koşu gerekmez.
+`kayit`, sonucun yanına `<json>.kayit.json` yazar: plugin sürümü, commit, Claude sürümü, koşu sayısı ve vaka dosyalarının parmak izi
+(dosyalar kimse tarafından okunmaz, yalnızca bayt özeti alınır). `puan` iki kayıt yoksa ya da tutmuyorsa karşılaştırma yapmaz.
+
+**Eksik sonuçta durur.** `puan` aşağıdakilerden biri varsa karşılaştırma yapmadan başarısız biter ve nedenini yazar. Hatalı koşu
+ayıklanıp geri kalanla devam edilmez:
+
+- şema sürümü 1 değil, ya da değerlendirme yarım kalmış (`partial`);
+- bir eklentili koşuda `error`, `aborted` ya da `skippedPaidGraders` dolu;
+- bir koşunun puanı okunamıyor, bir hakemin puanı eksik, ya da puan 0 ile 1 arasında bir sayı değil (NaN, sonsuz dahil);
+- aynı vaka iki kez geçiyor, matristeki bir vaka eksik ya da matriste olmayan bir vaka var, ya da koşu sayısı `--kosu` (varsayılan
+  3) ile tutmuyor;
+- deney kaydı yok, ya da iki kayıtta vaka parmak izi, Claude sürümü veya koşu sayısı tutmuyor.
+
+Sonuç tamsa:
 
 - **Oynama payı:** eski sürümün kendi koşuları arasındaki en büyük puan farkı. Yeni ortalama eskisinden bu paydan fazla yüksekse
-  "iyileşti", fazla düşükse "geriledi", aradaysa "fark yok" yazılır. Eski koşuların hepsi aynı puanı aldıysa oynama payı sıfırdır ve
-  her fark sayılır. Gerileyen vaka varsa çıkış kodu 1 (sürüm durur).
-- **Harcama:** JSON'daki harcama okunur, varsa vaka başına, yoksa yalnızca toplam. Yeni sürüm %20 ya da daha fazla harcıyorsa ve
+  "iyileşti", fazla düşükse "geriledi", aradaysa "fark yok" yazılır. Bu kaba bir karar kuralıdır, istatistiksel güven aralığı
+  değildir: "fark yok" iki sürümün eşit olduğunu kanıtlamaz. Eski koşuların hepsi aynı puanı aldıysa oynama payı sıfırdır ve her
+  fark sayılır.
+- **Eşik:** her vakanın yeni ortalaması en az 0,8 olmalı. "Fark yok" çıksa bile eşiğin altındaki vaka sürümü durdurur.
+- Gerileyen ya da eşiğin altında kalan vaka varsa çıkış kodu 1 (sürüm durur). Kapalı vakada gerileme "ezbere kayma şüphesi" diye
+  işaretlenir; bu ezberin kanıtı değildir, genel bir gerileme ya da oynama da olabilir.
+- **Harcama:** iki tarafta da her vakanın her koşusunda harcama varsa vaka başına toplam karşılaştırılır; yoksa iki belgenin
+  toplamı (eklentisiz kol ve hakem dahil olabilir); o da yoksa "ölçülemedi" yazılır. Yeni sürüm %20 ya da daha fazla harcıyorsa ve
   hiçbir vaka iyileşmediyse uyarı verilir. Uyarı sürümü durdurmaz (bazı kurallar bilerek harcama artırır), ama etki defterine
-  gerekçe yazılır.
-- JSON'da koşu puanı bulunamazsa betik bunu söyler. O zaman puanlar HTML rapordan okunur ve
-  `{"puanlar": {"<vaka>": [0.8, 1.0, 1.0]}, "harcama_usd": 1.23}` biçiminde bir dosyaya yazılıp betiğe verilir.
+  gerekçe yazılır. Bu sayı değerlendirmenin harcamasıdır, müşterinin kullanım maliyeti değildir.
+- JSON'da koşu puanı bulunamazsa puanlar HTML rapordan okunur ve `{"puanlar": {"<vaka>": [0.8, 1.0, 1.0]}, "harcama_usd": 1.23}`
+  biçiminde bir dosyaya yazılıp betiğe verilir. Bu dosya da aynı kapsam ve sayı denetiminden geçer.
 - Kör karşılaştırma (aşağıda) aynen kalır. İkisi birlikte okunur: puan "fark yok" diyorsa hakemin tercihi etki defterine
   "yardım etti" olarak yazılmaz.
+
+**Henüz doğrulanmayan:** koşu başına puan, harcama ve cevap alanlarının gerçek JSON'daki kesin yolu. Okuyucu bilinen birkaç adı
+dener; bulamazsa durur. Kesin yollar küçük bir gerçek koşuyla (ücretli, ayrıca onay ister) belirlenince okuyucu yalnızca onları
+okuyacak şekilde daraltılır. Bu yapılana kadar "sürüm eval ile doğrulandı" denmez.
+
+**Yayın kararı** hepsinin birlikte geçmesidir: `claude plugin eval` çıkış kodu 0, `puan` çıkış kodu 0, kör karşılaştırma
+`sonuc` çıkış kodu 0. CI model değerlendirmesini çalıştırmaz; yeşil CI bunun yerine geçmez.
 
 ## Önceki sürümle kör karşılaştırma (2.8.0, yayın öncesi)
 
@@ -113,9 +145,10 @@ python evals/kor_kiyas.py hakem --dir /tmp/kor          # isteğe bağlı, ücre
 python evals/kor_kiyas.py sonuc --dir /tmp/kor          # regresyon varsa çıkış kodu 1
 ```
 
-Cevaplar `<vaka>/<n>.md` düzeninde bir klasör ya da `claude plugin eval --json` çıktısıdır (eski sürüm için önceki yayının
-etiketinden ya da kurulu kopyasından aynı komutla alınır). JSON'dan cevap çıkarma en iyi çabadır: bulunamazsa betik söyler ve
-cevaplar HTML rapordan klasör düzenine kaydedilir. "Eski daha iyi" çıkan her vaka regresyondur: değişiklik düzeltilir ya da geri
+Cevaplar `<vaka>/<n>.md` düzeninde bir klasör ya da `claude plugin eval --json` çıktısıdır (yukarıdaki gibi iki sürüm aynı vaka
+setiyle çalıştırılır). JSON'dan yalnızca eklentili koldaki cevaplar alınır ve belge `puan` ile aynı denetimden geçer; bir koşunun
+cevabı bulunamazsa betik durur ve cevaplar HTML rapordan klasör düzenine kaydedilir. İki tarafta da matrisin bütün vakaları ve
+aynı sayıda koşu olmalıdır. `--out` her seferinde yeni, boş bir klasördür; eski `karar.md` dosyaları yeniden kullanılmaz. "Eski daha iyi" çıkan her vaka regresyondur: değişiklik düzeltilir ya da geri
 alınır ve `etki-defteri.md`'ye "bozdu" diye yazılır. Çıktı klasörünü `evals/` altına koymayın (`claude plugin eval` oradaki her
 `prompt.md`'yi vaka sayar).
 

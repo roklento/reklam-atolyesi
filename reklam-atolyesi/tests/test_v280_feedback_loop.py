@@ -122,13 +122,13 @@ def test_defter_oku_aggregates_finds_gaps_and_compares_versions(tmp_path):
 def test_kor_kiyas_hides_versions_and_flags_regression(tmp_path):
     old, new = tmp_path / "eski", tmp_path / "yeni"
     for root, txt in ((old, "eski cevap"), (new, "yeni cevap")):
-        for case in ("s02-zararina-urun", "geri-bildirim-paketi"):
+        for case in sorted(KK.expected_cases()):  # 2.10.1: matrisin bütün vakaları iki tarafta da olmalı
             (root / case).mkdir(parents=True)
             (root / case / "1.md").write_text(f"{txt} {case}", encoding="utf-8")
     out = tmp_path / "kor"
     assert KK.main(["hazirla", "--eski", str(old), "--yeni", str(new), "--out", str(out)]) == 0
     key = json.loads((out / ".anahtar.json").read_text(encoding="utf-8"))
-    assert set(key) == {"s02-zararina-urun", "geri-bildirim-paketi"}
+    assert set(key) == KK.expected_cases()
     hp = (out / "s02-zararina-urun" / "hakem.md").read_text(encoding="utf-8")
     assert "eski cevap" in hp and "yeni cevap" in hp and "hangi sürümden geldiğini bilmiyorsun" in hp
     assert KK.main(["sonuc", "--dir", str(out)]) == 1  # karar yok → eksik

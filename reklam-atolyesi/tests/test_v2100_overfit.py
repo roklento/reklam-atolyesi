@@ -18,7 +18,7 @@ MATRIX = json.loads((ROOT / "evals" / "senaryo-matrisi.json").read_text(encoding
 
 # ---------- ezber denetimi ----------
 
-def _fake_cases(tmp_path: Path, alinti: bool = False) -> Path:
+def _fake_cases(tmp_path: Path, alinti: list | bool = False) -> Path:
     root = tmp_path / "plugin"
     case = root / "evals" / "vakalar" / "ornek-vaka"
     (case / "graders").mkdir(parents=True)
@@ -26,7 +26,7 @@ def _fake_cases(tmp_path: Path, alinti: bool = False) -> Path:
                                     "lütfen hemen.\"\n", encoding="utf-8")
     (case / "graders" / "r1.md").write_text("---\ntype: llm\nweight: 1\n---\n\nGeçer: teslim tarihini uydurmuyor.\n",
                                             encoding="utf-8")
-    m = {"eval_cases": {"ornek-vaka": {"product": "P1", "user": "U1", "rubric": ["R1"], **({"alinti": True} if alinti else {})}}}
+    m = {"eval_cases": {"ornek-vaka": {"product": "P1", "user": "U1", "rubric": ["R1"], **({"alinti": alinti} if alinti else {})}}}
     (root / "evals" / "senaryo-matrisi.json").write_text(json.dumps(m), encoding="utf-8")
     return root
 
@@ -54,9 +54,20 @@ def test_ezber_turkish_case_folding_and_line_wrap(tmp_path):
 
 
 def test_ezber_quoting_case_is_reported_but_not_blocking(tmp_path):
-    cases = EZ.load_cases(_fake_cases(tmp_path, alinti=True))
+    cases = EZ.load_cases(_fake_cases(tmp_path, alinti=["Kırmızı kupa bardağı İstanbul'a yarın teslim edin."]))
     hits = EZ.find([("hooks/e.py", 1, "kırmızı kupa bardağı istanbul'a yarın teslim")], cases)
     assert hits and all(h["alinti"] for h in hits)
+
+
+def test_ezber_quoting_only_frees_listed_sentences(tmp_path):
+    """2.10.1: alıntı izni yalnızca listelenen cümleyi kapsar; aynı vakanın başka parçası ve vaka adı yine engeller."""
+    cases = EZ.load_cases(_fake_cases(tmp_path, alinti=["Kırmızı kupa bardağı İstanbul'a yarın teslim edin."]))
+    hits = EZ.find([("hooks/e.py", 1, "istanbul'a yarın teslim edin lütfen hemen"), ("KURALLAR.md", 2, "ornek-vaka")], cases)
+    assert hits and not any(h["alinti"] for h in hits)
+    # Eski toptan izin (true) artık hiçbir şeyi serbest bırakmaz.
+    cases = EZ.load_cases(_fake_cases(tmp_path / "eski", alinti=True))
+    hits = EZ.find([("hooks/e.py", 1, "kırmızı kupa bardağı istanbul'a yarın teslim")], cases)
+    assert hits and not any(h["alinti"] for h in hits)
 
 
 def test_ezber_watches_behaviour_files_only():
@@ -80,6 +91,9 @@ def test_known_quoting_cases_are_marked():
     hits = EZ.find(EZ.all_lines(), EZ.load_cases())
     assert {h["vaka"] for h in hits} <= {"hata-sonrasi-defter-sorusu", "s02-strateji-yeni-baslayan"}
     assert all(h["alinti"] for h in hits)
+    for key in ("eval_cases", "kapali_cases"):
+        for name, case in MATRIX[key].items():
+            assert "alinti" not in case or isinstance(case["alinti"], list), name
 
 
 # ---------- kapalı vakalar ----------
@@ -138,7 +152,7 @@ def _eval_json(path: Path, scores: dict[str, list[float]], cost_per_run: float |
                      **({"cost_usd": cost_per_run} if cost_per_run is not None else {})} for s in sc]
             cases.append({"case": name, "arms": {"with": {"runs": runs}, "baseline": {"runs": [{"score": 0}]}}})
     total = (cost_per_run or 0) * sum(len(v) for v in scores.values())
-    path.write_text(json.dumps({"costUsd": total, "cases": cases}), encoding="utf-8")
+    path.write_text(json.dumps({"schemaVersion": 1, "costUsd": total, "cases": cases}), encoding="utf-8")
     return str(path)
 
 
@@ -151,7 +165,7 @@ def test_noise_band_separates_real_change_from_noise(tmp_path):
     assert res["a"] == ("fark yok", "açık")  # +0,17 < oynama 0,5
     assert res["b"] == ("geriledi", "açık")  # oynama 0: her düşüş sayılır
     assert res[closed] == ("geriledi", "kapalı")
-    assert KK.main(["puan", "--eski", old, "--yeni", new]) == 1
+    assert KK.run_puan(old, new, beklenen={"a", "b", closed}, kayit=False) == 1
 
 
 def test_cost_increase_warns_but_does_not_block(tmp_path, capsys):
@@ -160,7 +174,7 @@ def test_cost_increase_warns_but_does_not_block(tmp_path, capsys):
     s_old, s_new = KK.load_scores(old), KK.load_scores(new)
     assert abs(s_old["harcama"]["a"] - 0.3) < 1e-9  # yalnızca eklentili kolun harcaması
     assert s_old["puanlar"]["a"] == [1.0, 1.0, 1.0]
-    assert KK.main(["puan", "--eski", old, "--yeni", new]) == 0
+    assert KK.run_puan(old, new, beklenen={"a"}, kayit=False) == 0
     out = capsys.readouterr().out
     assert "harcama %50 arttı" in out and "durdurmaz" in out
 
