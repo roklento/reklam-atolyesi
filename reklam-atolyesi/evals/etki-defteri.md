@@ -101,3 +101,18 @@ istedi" imzasının sıklığı (anlaşılmayan mesaj çoğu zaman düzeltme ist
 **Sahada:** müşteri akışı değişmedi; gösterge beklenmez.
 
 **Ders:** yok (yalnızca admin tarafı ölçüm araçları).
+
+---
+
+## 2.10.1 (2026-11-05): karşılaştırma eksik sonucu reddeder
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `evals/kor_kiyas.py` (`puan`, `hazirla`, yeni `kayit`) | işleyiş (admin) | bütün vakalar | Dış inceleme: yarım, hatalı ya da eksik eval sonucu başarılı sayılıyordu; 2.9.0 sonucu kapalı vakaları içermiyordu | Sahte JSON'larla her olumsuz durum sınandı (`tests/test_v2101_eval_gate.py`); gerçek koşu yapılmadı | yok | ölçülecek (alan yolları gerçek koşuyla) |
+| `evals/ezber_denetimi.py`, `senaryo-matrisi.json` → `alinti` | işleyiş (admin) | hata-sonrasi-defter-sorusu, s02-strateji-yeni-baslayan | Toptan izin, aynı vakadan gelen gerçek bir kopyayı da gizleyebiliyordu | Bugünkü 8 eşleşmenin hepsi listelenen cümlelerin içinde | yok | — |
+
+**Sahada:** müşteri akışı değişmedi; gösterge beklenmez.
+
+**Ders:** karşılaştırma aracı da bir yayın kapısıdır; "hiç sonuç yoksa dur" yetmez, "sonucun bir kısmı eksikse de dur" gerekir.

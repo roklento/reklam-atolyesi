@@ -7,8 +7,9 @@ satırlarda bir vakadan birebir alınmış KELIME_ESIGI kelimelik bir parça ya 
 
 Yalnızca eklenen satırlara bakılır: bir vaka plugin'in mevcut bir cümlesini durum olarak alıntılayabilir (ör. hata defteri sorusu).
 O zaman alıntı yapan vakadır, plugin değil. Vaka plugin'den bilerek alıntı yapıyorsa senaryo-matrisi.json'daki kaydına
-`"alinti": true` yazılır (vaka dosyalarının biçimine dokunulmaz); o vakadan gelen eşleşmeler raporda gösterilir ama denetimi
-kırmızıya çevirmez.
+`"alinti": [...]` ile alıntılanan plugin cümleleri tek tek yazılır (vaka dosyalarının biçimine dokunulmaz). Yalnızca bu
+cümlelerin içinde kalan eşleşmeler raporda gösterilir ama denetimi kırmızıya çevirmez; aynı vakadan gelen başka her eşleşme ve
+vaka adının kendisi yine engeller (2.10.1; önceki `"alinti": true` vakanın bütün eşleşmelerini serbest bırakıyordu).
 
 Sınırı: yalnızca kelime kopyasını yakalar. "Fiyat 100 TL ise şunu yap" gibi vakaya özgü mantığı yakalayamaz; onun için
 etki-defteri.md'deki "Gerekçe" sütunu kullanılır.
@@ -56,17 +57,23 @@ def _front(text: str) -> tuple[str, str]:
 
 
 def load_cases(root: Path = ROOT) -> dict[str, dict]:
-    """{vaka adı: {"grams": {6-kelime: dosya}, "alinti": bool}} — açık (vakalar/) ve kapalı (kapali/) vakalar."""
+    """{vaka adı: {"grams": {6-kelime: dosya}, "alinti": {onaylı 6-kelime}}} — açık (vakalar/) ve kapalı (kapali/) vakalar."""
     out: dict[str, dict] = {}
     mf = root / "evals" / "senaryo-matrisi.json"
     matrix = json.loads(mf.read_text(encoding="utf-8")) if mf.exists() else {}
-    quoting = {n for key in ("eval_cases", "kapali_cases") for n, c in (matrix.get(key) or {}).items() if c.get("alinti")}
+    quoting: dict[str, set] = {}
+    for key in ("eval_cases", "kapali_cases"):
+        for n, c in (matrix.get(key) or {}).items():
+            q = c.get("alinti")
+            if isinstance(q, list):  # yalnızca cümle listesi geçerli; true gibi toptan izin yok sayılır
+                quoting[n] = {tuple(w[i:i + KELIME_ESIGI]) for t in q if isinstance(t, str)
+                              for w in [words(t)] for i in range(len(w) - KELIME_ESIGI + 1)}
     for sub in CASE_DIRS:
         base = root / "evals" / sub
         if not base.is_dir():
             continue
         for case in sorted(p for p in base.iterdir() if p.is_dir()):
-            info = {"grams": {}, "alinti": case.name in quoting, "grup": "kapalı" if sub == "kapali" else "açık"}
+            info = {"grams": {}, "alinti": quoting.get(case.name, set()), "grup": "kapalı" if sub == "kapali" else "açık"}
             files = [case / "prompt.md"] + sorted((case / "graders").glob("*.md"))
             for f in files:
                 if not f.exists():
@@ -145,7 +152,7 @@ def find(lines: list[tuple[str, int, str]], cases: dict[str, dict]) -> list[dict
             for n, rx in names.items():
                 if rx.search(text):
                     hits.setdefault((path, ln, n), {"dosya": path, "satir": ln, "vaka": n, "tur": "vaka adı",
-                                                   "parca": n, "alinti": cases[n]["alinti"], "grup": cases[n]["grup"]})
+                                                   "parca": n, "alinti": False, "grup": cases[n]["grup"]})
             nxt = rows[idx + 1] if idx + 1 < len(rows) and rows[idx + 1][0] == ln + 1 else None
             w = words(text)
             span = w + (words(nxt[1]) if nxt else [])
@@ -156,7 +163,7 @@ def find(lines: list[tuple[str, int, str]], cases: dict[str, dict]) -> list[dict
                     key = (path, ln, n)
                     if key not in hits:
                         hits[key] = {"dosya": path, "satir": ln, "vaka": n, "tur": "birebir parça", "parca": " ".join(g),
-                                     "kaynak": src, "alinti": cases[n]["alinti"], "grup": cases[n]["grup"]}
+                                     "kaynak": src, "alinti": g in cases[n]["alinti"], "grup": cases[n]["grup"]}
     return sorted(hits.values(), key=lambda h: (h["dosya"], h["satir"], h["vaka"]))
 
 
@@ -187,7 +194,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"- {h['dosya']}:{h['satir']} · {h['grup']} vaka {h['vaka']} · {h['tur']}: \"{h['parca']}\" ({etiket})")
     if blocking and not a.hepsi:
         print("\nNe yapılır: düzeltmeyi vakanın kelimeleriyle değil, genel bir kural olarak yeniden yazın. Vaka plugin'in bu cümlesini "
-              "bilerek alıntılıyorsa senaryo-matrisi.json'daki kaydına \"alinti\": true ekleyin.")
+              "bilerek alıntılıyorsa senaryo-matrisi.json'daki kaydına \"alinti\" listesine o plugin cümlesini ekleyin.")
         return 1
     return 0
 

@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.0
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.1
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,20 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.1** — sürüm karşılaştırması eksik ya da hatalı sonucu artık başarılı saymıyor (admin tarafı)
+- Müşterinin gördüğü hiçbir şey değişmedi. Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Eksik sonuçta durur:** `evals/kor_kiyas.py puan` ve `hazirla`, yarım kalmış değerlendirmeyi, desteklenmeyen şema sürümünü, hata
+  veren ya da durdurulan koşuyu, atlanmış hakemi, puanı okunamayan ya da 0–1 dışında kalan koşuyu, eksik ya da fazla vakayı, tutmayan
+  koşu sayısını ve aynı vakanın iki kez geçmesini reddeder. Önceden bunlar sessizce ayıklanıp sonuç başarılı sayılabiliyordu.
+- **Aynı deney:** yeni `kayit` komutu sonucun yanına sürüm, commit, Claude sürümü, koşu sayısı ve vaka dosyalarının parmak izini
+  yazar; `puan` iki kayıt tutmazsa karşılaştırmaz. Eski yayının 13 vakalık sonucu 16 vakalık yeni sonuçla artık karşılaştırılamaz.
+- **Eşik:** her vakanın yeni ortalaması 0,8'in altındaysa "fark yok" çıksa bile sürüm durur. "Fark yok" eşitlik kanıtı sayılmaz.
+- **Harcama:** yalnızca aynı kapsamda karşılaştırılır, yoksa "ölçülemedi" yazılır; %20 sınırındaki yuvarlama hatası giderildi.
+- **Kör karşılaştırma:** cevaplar puanla aynı yerden, yalnızca eklentili koldan okunur; her karşılaştırma yeni bir klasöre yazılır.
+- **Ezber denetimi:** `"alinti"` artık vakanın bütün eşleşmelerini değil, matriste tek tek yazılan plugin cümlelerini serbest bırakır.
+- Henüz doğrulanmayan: koşu başına alanların gerçek JSON'daki kesin yolu (küçük ücretli bir koşu ister). Bu yapılana kadar "sürüm
+  eval ile doğrulandı" denmez.
+
 **2.10.0** — ezber önlemleri: düzeltmelerin yalnızca test vakalarına değil, bütün müşterilere iyi gelmesi (admin tarafı)
 - Müşterinin gördüğü hiçbir şey değişmedi: akış, mesajlar, belgeler ve harcama aynı. Migration yok, yeni bağımlılık yok, müşteri paketi
   değişmedi.

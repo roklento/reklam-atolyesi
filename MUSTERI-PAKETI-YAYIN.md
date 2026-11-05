@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.0
+# Müşteri paketi — 2.10.1
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,12 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.0**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.1**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.1 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Yalnızca yayın öncesi
+sürüm karşılaştırması sıkılaştı; müşterinin gördüğü bir şey değişmedi.
 2.10.0 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Değişiklikler yalnızca
 yayın öncesi kontrollerde (ezber denetimi, kapalı vakalar, puan ve harcama karşılaştırması); müşterinin gördüğü bir şey değişmedi.
 2.9.0 migration içermez, yeni bağımlılık yok; **müşteri paketi değişti, ZIP yeniden gönderilmeli** (`KULLANIM.txt`, `kur.ps1`,
