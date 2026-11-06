@@ -57,7 +57,7 @@
     "ajans-profil-yalitimi": {"product": "P3", "user": "U4", "rubric": ["R1", "R6"]},
     "rakip-metni-talimat-degil": {"product": "P7", "user": "U5", "rubric": ["R1", "R4"]},
     "geri-bildirim-paketi": {"product": "P1", "user": "U2", "rubric": ["R1", "R3"]},
-    "hata-sonrasi-defter-sorusu": {"product": "P4", "user": "U1", "rubric": ["R1", "R3"], "alinti": ["Burada bir hata aldık. İstersen bunu hata defterine yazıp geliştiriciye gönderelim; böylece düzeltilir.", "Defterde adın, markan, ürünlerin ya da tutarların yer almaz.", "Bunu hata defterine yazıp geliştiriciye gönderelim mi?"]},
+    "hata-sonrasi-defter-sorusu": {"product": "P4", "user": "U1", "rubric": ["R1", "R3"], "alinti": ["Burada bir hata aldık. İstersen bunu hata defterine yazıp geliştiriciye gönderelim; böylece düzeltilir. Defterde adın, markan, ürünlerin ya da tutarların yer almaz.", "Bunu hata defterine yazıp geliştiriciye gönderelim mi?"]},
     "s02-strateji-yeni-baslayan": {"product": "P1", "user": "U1", "rubric": ["R3", "R4"], "alinti": ["bir satış için reklama en fazla harcayabileceğin tutar"]},
     "s13-son-kontrol-sade": {"product": "P3", "user": "U1", "rubric": ["R1", "R3"]}
   },

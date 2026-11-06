@@ -7,7 +7,6 @@ dependencies = [
   "mcp<2",            # MCP sunucu SDK'sı (2.x'te API değişti, bu yüzden sabitlenir; 12.6)
   "numpy",
   "scipy",
-  "pandas",           # analiz, istatistik (6.6)
   "matplotlib",       # grafikler (6.12)
   "librosa",
   "soundfile",        # vuruş/enerji analizi (5.8, 5.13)
@@ -16,7 +15,6 @@ dependencies = [
   "pillow",
   "pillow-heif",      # kontak sayfası, fotoğraflar (HEIC, 5.4)
   "jsonschema",       # kurgu planı doğrulama (5.2)
-  "duckdb",           # (isteğe bağlı) analitik sorgular (7.1)
   "scenedetect==0.7.2",  # sahne kesimi (AdaptiveDetector; BSD-3; 1.6.0); opencv-python yukarıda, ek sürücü gerekmez
 ]
 

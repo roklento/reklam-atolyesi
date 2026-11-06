@@ -161,9 +161,11 @@ def find(lines: list[tuple[str, int, str]], cases: dict[str, dict]) -> list[dict
                 if g in gram_owner:
                     n, src = gram_owner[g]
                     key = (path, ln, n)
-                    if key not in hits:
+                    allowed = g in cases[n]["alinti"]
+                    # 2.10.6: izinli bir alıntı aynı satırdaki yasaklı kopyayı gizlemez (önceden ilk eşleşme kaydediliyordu)
+                    if key not in hits or (hits[key].get("alinti") and not allowed):
                         hits[key] = {"dosya": path, "satir": ln, "vaka": n, "tur": "birebir parça", "parca": " ".join(g),
-                                     "kaynak": src, "alinti": g in cases[n]["alinti"], "grup": cases[n]["grup"]}
+                                     "kaynak": src, "alinti": allowed, "grup": cases[n]["grup"]}
     return sorted(hits.values(), key=lambda h: (h["dosya"], h["satir"], h["vaka"]))
 
 

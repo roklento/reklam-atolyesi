@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.10.5",
+ "plugin_version": "2.10.6",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -916,14 +916,14 @@
  },
  "tests": {
   "pytest": {
-   "passed": 706,
+   "passed": 715,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "706 passed, 0 failed, 6 skipped (2.10.5, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v2105_medya_denetimi.py (okunamayan videoda ölçülemedi; sonuna kadar donma; aynı adlı fotoğraflar; titreme yönü; içerik özetli ara dosya adları; bileşen ayarındaki dosyanın önbellek anahtarına girmesi).",
+   "summary": "715 passed, 0 failed, 6 skipped (2.10.6, Linux bulut ortamı). Atlanan 5 test Windows müşteri güncelleyicisinin PowerShell akışıdır; 1 test normalizer-tr bu ortamda kurulu olmadığı için atlandı. Yeni test: tests/test_v2106_eval_araclari.py (deney kaydının ham sonuç dosyasına bağlı olması; ham koşu puanlarının raporda görünmesi; hakem metninin cevap sanılmaması; birden çok aday cevapta durma; izinli alıntının izinsiz kopyayı gizlememesi; kullanılmayan bağımlılıkların kaldırılması).",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
-   "at": "2026-11-05",
+   "at": "2026-11-06",
    "platform": "linux"
   },
   "smoke": {
@@ -1713,6 +1713,13 @@
     "kusur": 0,
     "not": 0,
     "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; testlerdeki dosya adları uydurmadır"
+   },
+   {
+    "scope": "2.10.6: eval araçları (evals/kor_kiyas.py, evals/ezber_denetimi.py, evals/senaryo-matrisi.json, servers/ad_memory/pyproject.toml ve uv.lock, etki defteri, testler, README, MUSTERI-PAKETI-YAYIN)",
+    "files_reviewed": 12,
+    "kusur": 0,
+    "not": 0,
+    "method": "marka/ürün/hesap kimliği, kişi adı, makine yolu ve e-posta için otomatik tarama (eşleşme yok); fark satır satır okundu; testlerdeki sürüm ve dosya adları uydurmadır"
    }
   ],
   "remaining_defects": [],
@@ -1723,19 +1730,19 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "89f0317a618f923b6077d35a70c2fbf7ea62ed99a1e90b8234e651d3c28247cf",
+   "plugin_json": "51a6ccfde60898c5196451e68ca99d66b6dfd7dca578a82750d8318ec5e802ac",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
    "skills": "6c377a48414e22359724fd4411665685b52df8f8b930a857ce704b12cb81bf39",
    "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
    "commands": "f27cb19532ea412d43e08c02a222944a4342eb7b86a282b080900a68b5f54cde",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
    "hooks": "78871d7e65ec90cb6089d71586507114555c251fc82a62cffd6fb4a8792c0910",
-   "ad_memory": "6e5b6f72f27ca7bb0f08dfa00f65ecb57e4d9e4fac10d603f821669b332be68d",
+   "ad_memory": "2832183ee9580da265c08dff897c8d79243b0ad4767f7ee5a8290a03f198ebe9",
    "scripts": "aa443e8e8e8dc6dcd66eb34b375df6440d21ba3af3a01ca3ce44ae74bb662883",
    "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
    "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
    "rules": "f2e2f1fe950351c92fe52c4da70ad3462e223d66741a641c823b90db55b0835c",
-   "evals": "1dd8e844211862c5b5083741f13618fbc778f5da3378ffa76045ad4babdfa6ce"
+   "evals": "e87218df3fecc105e3f4e605193ed94112fef1167b4bcc963a3ed1dabfaf7a49"
   },
   "checked_at": "2026-11-06"
  },
@@ -1894,19 +1901,19 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "89f0317a618f923b6077d35a70c2fbf7ea62ed99a1e90b8234e651d3c28247cf",
+  "plugin_json": "51a6ccfde60898c5196451e68ca99d66b6dfd7dca578a82750d8318ec5e802ac",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
   "skills": "6c377a48414e22359724fd4411665685b52df8f8b930a857ce704b12cb81bf39",
   "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
   "commands": "f27cb19532ea412d43e08c02a222944a4342eb7b86a282b080900a68b5f54cde",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
   "hooks": "78871d7e65ec90cb6089d71586507114555c251fc82a62cffd6fb4a8792c0910",
-  "ad_memory": "6e5b6f72f27ca7bb0f08dfa00f65ecb57e4d9e4fac10d603f821669b332be68d",
+  "ad_memory": "2832183ee9580da265c08dff897c8d79243b0ad4767f7ee5a8290a03f198ebe9",
   "scripts": "aa443e8e8e8dc6dcd66eb34b375df6440d21ba3af3a01ca3ce44ae74bb662883",
   "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
   "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
   "rules": "f2e2f1fe950351c92fe52c4da70ad3462e223d66741a641c823b90db55b0835c",
-  "evals": "1dd8e844211862c5b5083741f13618fbc778f5da3378ffa76045ad4babdfa6ce"
+  "evals": "e87218df3fecc105e3f4e605193ed94112fef1167b4bcc963a3ed1dabfaf7a49"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }
