@@ -41,7 +41,10 @@ def lock_versions(node_dir: Path | None) -> dict:
 
 def scene_key(plan: dict, index: int, *, source_hashes: dict[str, str], style_sha: str | None, quality: str, scale: float,
               font_hashes: dict[str, str] | None = None, lut_sha: str | None = None, component_sha: str | None = None,
-              render_versions: dict | None = None, audio_sha: str | None = None, beats_sha: str | None = None) -> str:
+              render_versions: dict | None = None, audio_sha: str | None = None, beats_sha: str | None = None,
+              captions_sha: str | None = None) -> str:
+    """captions_sha (2.10.12 sonrası, 2.10.13): sahnenin kare aralığına düşen altyazı girdilerinin özeti (captions_in_range). Altyazı
+    metni çizime girer; anahtarda yalnızca plandaki altyazı ayarı olunca düzeltilen fiyat eski sahneden tekrar kullanılıyordu."""
     scenes = plan["scenes"]
     s = scenes[index]
     prev_t = scenes[index - 1].get("transition_out") if index > 0 else None
@@ -54,8 +57,24 @@ def scene_key(plan: dict, index: int, *, source_hashes: dict[str, str], style_sh
         "style_sha": style_sha, "fonts": font_hashes or {}, "lut": lut_sha, "components": component_sha or tree_hash(COMPONENTS_DIR),
         "render_versions": render_versions or {}, "audio": audio_sha if _audio_affects(s) else None, "beats": beats_sha if s.get("beat_lock") not in (None, "none") else None,
     }
+    if captions_sha is not None:  # altyazısız sahnelerin eski anahtarı değişmez (önbellek boşuna geçersizleşmesin)
+        payload["caption_text"] = captions_sha
     raw = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
+
+
+def captions_in_range(captions: list | None, t0: float, t1: float) -> str | None:
+    """[t0, t1) aralığına değen altyazı girdilerinin (metin, kelimeler, zamanlar) özeti; aralıkta altyazı yoksa None. Zamanı
+    okunamayan girdi varsa bütün liste özetlenir (güvenli taraf: her sahne yeniden çizilir)."""
+    if not captions:
+        return None
+    try:
+        hit = [c for c in captions if float(c["start"]) < t1 and float(c["end"]) > t0]
+    except (KeyError, TypeError, ValueError):
+        hit = list(captions)
+    if not hit:
+        return None
+    return hashlib.sha256(json.dumps(hit, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
 
 
 def _ref(v) -> str | None:

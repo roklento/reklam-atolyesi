@@ -190,6 +190,23 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.13 (2026-11-06): video ve ölçüm doğruluğu
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/compose/scene_cache.py` (`scene_key`, `captions_in_range`), `scripts/render/render.py` | işleyiş (render) | altyazılı, fiyat ya da indirim söyleyen her reklam | 2.10.10 bağımsız denetimi B10: altyazı metni anahtarda yoktu, final eski metni teslim ediyordu | Değişen altyazının sahnesi yeniden çiziliyor, diğerleri yeniden kullanılıyor (`tests/test_v21013_video_olcum.py`) | yok | yardım etti (test) |
+| `scripts/audio/mix.py`, `skills/sound/SKILL.md` | işleyiş (ses) | kendi sesini ya da üretilmiş anlatıcıyı kullanan marka | B20: eksik ses dosyasıyla anlatıcısız miks "uygun" çıkıyordu | Eksik ya da sessiz konuşmada miks duruyor | yok | yardım etti (test) |
+| `admem/s_meta.py` (`_count`, `metrics_import_csv`) | işleyiş (ölçüm) | İngilizce dökümle çalışan marka | B7: "1,250" gösterim 1'e düşüyordu | Sayım sütunları ayrıştırıcıdan bağımsız; kesirli sayım reddediliyor | yok | yardım etti (test) |
+| `scripts/analytics/coach.py` (`posteriors`, `ab_section`, `cost_measured`), `report.py` | işleyiş (koç) | A/B testi yapan, ölçümü kesilen hesap | B8: ölçülmeyen sonuç sıfır sayılıyor, öteki hücre kesin kazanan çıkıyordu | Ölçülmeyen hücrede kazanan ve olasılık yok | yok | yardım etti (test) |
+
+**Sahada:** henüz yok. Altyazılı sahneler ilk renderda bir kez yeniden çizilir.
+
+**Ders:** *Ne zaman:* bir önbellek ya da ortak ayrıştırıcı, çıktıyı etkileyen bir girdiyi dolaylı görüyorsa. *Ne yap:* çizime giren her
+girdiyi anahtara koy; sayıyı türüne göre (sayım / para) ayrı oku; "ölçülmedi"yi her hesapta aynı yardımcıyla taşı. *Dayanak:* bu sürümün
+altyazı ve sayım satırları. *Güven:* orta.
+
 ## 2.10.12 (2026-11-06): dosya izni ve araç sınırı
 
 **Değişiklikler**

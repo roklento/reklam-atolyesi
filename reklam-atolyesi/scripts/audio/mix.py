@@ -80,8 +80,33 @@ def speech_activity(y: np.ndarray, frame_s: float = 0.02, thresh: float = 0.005,
     return np.repeat(active, f)[:n]
 
 
+class MissingVoice(ValueError):
+    """Planın istediği konuşma (anlatıcı ya da sahnenin kendi sesi) bulunamadı ya da o aralıkta sessiz (2.10.13)."""
+
+
+SILENT_PEAK = 1e-4  # bu tepe değerin altındaki konuşma aralığı sessiz sayılır (≈ -80 dBFS)
+
+
+def _need_voice(plan: dict, scene_audio: dict, vo: str | None) -> list[str]:
+    """Miksten önce: planın konuşma beklediği her sahne için ses dosyası var mı. Eksikte miks yapılmaz; aksi hâlde müzik doğru
+    seviyedeyken anlatıcısız reklam 'ses seviyesi uygun' diye teslim edilebiliyordu."""
+    out = []
+    needs_vo = [s["id"] for s in plan["scenes"] if s["audio"]["mode"] in ("generated", "user_vo")]
+    if needs_vo and (not vo or not Path(vo).is_file()):
+        out.append(f"anlatıcı sesi dosyası bulunamadı ({vo or 'verilmedi'}); bekleyen sahneler: {', '.join(needs_vo)}")
+    for s in plan["scenes"]:
+        if s["audio"]["mode"] in ("original", "original_clean"):
+            p = scene_audio.get(s["id"])
+            if not p or not Path(p).is_file():
+                out.append(f"{s['id']}: sahnenin kendi sesi bulunamadı ({p or 'kayıt yok'})")
+    return out
+
+
 def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: dict[str, str], out_dir: Path,
         duck_db: float = 4.5, sfx_duck_db: float = 6.0) -> dict:
+    missing = _need_voice(plan, scene_audio, vo)
+    if missing:
+        raise MissingVoice("miks yapılmadı: " + "; ".join(missing) + ". Dosyanın yerini kontrol edip yeniden çalıştır")
     out_dir.mkdir(parents=True, exist_ok=True)
     total = float(plan["duration_s"])
     n = int(total * SR)
@@ -119,6 +144,11 @@ def mix(plan: dict, scene_audio: dict, music: str | None, vo: str | None, sfx: d
     vo_track = np.zeros((n, 2), np.float32)
     vo_clip = _read(vo, total) if vo and any(s["audio"]["mode"] in ("generated", "user_vo") for s in plan["scenes"]) else None
     if vo_clip is not None:
+        silent = [s["id"] for s in plan["scenes"] if s["audio"]["mode"] in ("generated", "user_vo")
+                  and float(np.abs(vo_clip[int(s["start_s"] * SR):int((s["start_s"] + s["dur_s"]) * SR)]).max(initial=0.0)) < SILENT_PEAK]
+        if silent:
+            raise MissingVoice(f"miks yapılmadı: anlatıcı sesi şu sahnelerde sessiz ya da dosya kısa: {', '.join(silent)}. Ses dosyasını "
+                               "kontrol et (doğru kayıt mı, süresi plana yetiyor mu)")
         for s in plan["scenes"]:
             if s["audio"]["mode"] in ("generated", "user_vo"):
                 a, b = int(s["start_s"] * SR), int((s["start_s"] + s["dur_s"]) * SR)
@@ -163,7 +193,11 @@ def main() -> None:
     a = ap.parse_args()
     sa = read_json(a.scene_audio)
     sa = sa.get("audio_segments", sa)
-    rep = mix(read_json(a.plan), sa, a.music, a.vo, read_json(a.sfx_map) if a.sfx_map else {}, Path(a.out_dir), a.duck_db)
+    try:
+        rep = mix(read_json(a.plan), sa, a.music, a.vo, read_json(a.sfx_map) if a.sfx_map else {}, Path(a.out_dir), a.duck_db)
+    except MissingVoice as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(2)
     emit(rep)
 
 

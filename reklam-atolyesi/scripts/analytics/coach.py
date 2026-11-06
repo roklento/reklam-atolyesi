@@ -138,7 +138,10 @@ def cost_measured(rows: list[dict], target, verified: bool) -> dict:
     spend_all = _sum(rows, "spend")
     if n_res is None:  # sonuç hiç ölçülmemiş (ör. pikselsiz hesap): eskisi gibi sonuçsuz, eşik altı
         out = B.cost_posterior(spend_all, 0, target, verified)
-        out.update(coverage=None, measured=False)
+        # 2.10.13: ölçülmemiş sonuç sıfır değildir; hedefin altına inme olasılığı verilmez
+        out.update(coverage=None, measured=False, threshold_met=False, label="ölçülmedi", gated="measurement_coverage",
+                   note="sonuç bu dönemde hiç ölçülmedi; maliyet hükmü verilmez")
+        out.pop("p_below_target", None)
         return out
     cov = (d_spend / spend_all) if spend_all else None
     out = B.cost_posterior(d_spend, n_res, target, verified)
@@ -236,6 +239,11 @@ def posteriors(groups: dict, priors: dict) -> dict:
     out = {}
     for k, rows in groups.items():
         tot = {c: _sum(rows, c) for c in ("impressions", "video_3s", "thruplay", "link_clicks", "purchases", "spend", "results", "revenue")}
+        # 2.10.13: sonucun ölçüldüğü günler (A/B ve maliyet aynı "ölçülmedi" kuralını kullanır; _sum ölçülmeyeni 0 sayar)
+        n_res, d_sp, _ = paired_totals(rows, "results", "spend")
+        tot["results_measured"] = n_res
+        tot["spend_measured"] = d_sp
+        tot["results_coverage"] = (d_sp / tot["spend"]) if (n_res is not None and tot["spend"]) else None
         d = {"totals": tot, "rates": {}}
         for m in METRICS:
             num, den = B.RATE_DEF[m]
@@ -578,6 +586,26 @@ def ab_section(snap: dict, kpost: dict, structure: str | None) -> dict | None:
     if len(cells) < 2:
         out["note"] = "iki hücreden az harcama verisi: karşılaştırma yok"
         return out
+    # 2.10.13: bir hücrede sonuç ölçülmemişse (piksel kesintisi, eksik sütun) ya da ölçülen günler harcamanın COST_MIN_COVERAGE'ını
+    # kapsamıyorsa sıralama ve olasılık verilmez. Önceden ölçülmeyen sonuç 0 sayılıyor, öteki hücre "%100 en ucuz" çıkıyordu.
+    def measured(c: dict) -> tuple[float, float] | None:
+        if "results_measured" in c:
+            if c["results_measured"] is None or (c.get("results_coverage") or 0) < COST_MIN_COVERAGE:
+                return None
+            return float(c["results_measured"]), float(c["spend_measured"])
+        return (float(c["results"]), float(c["spend"])) if c.get("results") is not None else None
+    m = {k: measured(c) for k, c in cells.items()}
+    unmeasured = sorted(k for k, v in m.items() if v is None)
+    if unmeasured:
+        for k, c in cells.items():
+            out["cells"][k] = {"spend": round(c["spend"], 2), "results": int(m[k][0]) if m[k] else None,
+                               "cost_per_result": round(m[k][1] / m[k][0], 2) if m[k] and m[k][0] else None,
+                               "p_lowest_cost": None, "threshold_met": False, "measured": m[k] is not None}
+        out["note"] = ("sonuç şu hücrelerde ölçülmedi ya da harcamanın çoğunda ölçülmedi: " + ", ".join(unmeasured)
+                       + ". Karşılaştırma yapılmaz, önde olan hücre söylenmez; ölçüm düzelince yeniden bakılır")
+        out["gated"] = "measurement_coverage"
+        return out
+    cells = {k: {**c, "results": m[k][0], "spend": m[k][1]} for k, c in cells.items()}
     total_spend = sum(c["spend"] for c in cells.values())
     total_res = sum(c["results"] or 0 for c in cells.values())
     unit = (total_spend / total_res) if total_res else (total_spend / max(1, len(cells)))

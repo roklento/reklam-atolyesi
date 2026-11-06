@@ -165,7 +165,9 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
                 ca = dm["campaign_attributed"]
                 lines.append(f"  - Bu kampanyaya kanıtla bağlı konuşma {ca['threads']}, satış {ca['won']} (günlük toplamlar kampanyaya bölünmez).")
         ab = an.get("ab_test")
-        if ab and ab.get("cells"):
+        if ab and ab.get("cells") and ab.get("gated") == "measurement_coverage":
+            lines.append("- Meta A/B testi: " + (ab.get("note") or "sonuç bir grupta ölçülmedi; karşılaştırma yapılmadı") + ".")
+        elif ab and ab.get("cells"):
             lines.append("- Meta A/B testi (kitle rastgele ve eşit bölündü): " + "; ".join(
                 f"{k}: {v['results']} sonuç" + (f", sonuç başı {v['cost_per_result']}" if v.get("cost_per_result") else "")
                 + f", en düşük maliyetli olma olasılığı %{v['p_lowest_cost'] * 100:.0f}" + ("" if v["threshold_met"] else " (yön)")

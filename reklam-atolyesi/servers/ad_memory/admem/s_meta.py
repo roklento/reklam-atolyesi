@@ -61,6 +61,33 @@ def _num(v: Any, decimal: str | None = None) -> float | None:
         return None
 
 
+_GROUPED = re.compile(r"\d{1,3}(?:([.,])\d{3})(?:\1\d{3})*")
+MONEY_COLS = ("spend", "cpm", "cost_per_video_view", "revenue", "ctr_link", "frequency", "avg_watch_s")
+
+
+def _count(v: Any, decimal: str | None, strict: bool) -> int | None:
+    """2.10.13: sayım sütunu (gösterim, tıklama, sonuç…) ondalık ayırıcı tahmininden bağımsız okunur. "1,250" ve "1.250" binlik
+    gruplu 1250'dir; düz rakam tamsayıdır. Kesirli sayım dosyada (strict) hatadır: sayının yanlış okunduğunu gösterir."""
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return int(round(float(v)))
+    s = str(v).strip().replace(" ", "").replace("\u00a0", "").replace("\u202f", "")
+    if s in ("", "-", "—", "N/A", "n/a"):
+        return None
+    if s.isdigit():
+        return int(s)
+    if _GROUPED.fullmatch(s):
+        return int(re.sub(r"[.,]", "", s))
+    f = _num(s, decimal)
+    if f is None:
+        return None
+    if strict and abs(f - round(f)) > 1e-9:
+        raise AdMemoryError(f"sayım sütununda kesirli ya da okunamayan değer: {v!r}. Hiçbir satır yazılmadı. Dökümün sayı biçimini "
+                            "kontrol edin (binlik ayırıcı) ya da measurement_context.csv_decimal ile ondalık ayırıcıyı belirtin")
+    return int(round(f))
+
+
 def detect_decimal(values: list[str]) -> str:
     """Dosya için ondalık ayırıcı: iki ayırıcı birlikteyse sondaki; yoksa 1-2 haneli kesir; yoksa 3 haneli grup binliktir
     ("1,250" → İngilizce 1250, "1.250" → Türkçe 1250)."""
@@ -322,8 +349,10 @@ class MetaMixin:
                     if k == "result_type":
                         vals[k] = r.get(k)
                         continue
-                    v = _num(r.get(k), decimal)
-                    vals[k] = (int(round(v)) if (v is not None and k in INT_COLS) else v)
+                    if k in INT_COLS:
+                        vals[k] = _count(r.get(k), decimal, strict=(source == "csv"))
+                        continue
+                    vals[k] = _num(r.get(k), decimal)
                 derived = 0
                 if vals.get("video_3s") is None:
                     cpvv = _num(r.get("cost_per_video_view"), decimal)
@@ -434,7 +463,9 @@ class MetaMixin:
                     continue
                 row[k] = r.get(real)
             rows.append(row)
-        dec = (measurement_context or {}).get("csv_decimal") or detect_decimal([r.get("spend") for r in rows][:200])
+        # 2.10.13: ondalık ayırıcı yalnızca para/oran sütunlarından tahmin edilir (sayım sütunları ayrı okunur, _count); harcama tam
+        # sayıysa diğer para sütunları ipucu verir
+        dec = (measurement_context or {}).get("csv_decimal") or detect_decimal([r.get(k) for r in rows[:200] for k in MONEY_COLS if r.get(k)])
         order = (measurement_context or {}).get("csv_date_order")
         if order not in (None, "dmy", "mdy"):
             raise AdMemoryError("csv_date_order: dmy | mdy")

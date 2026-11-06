@@ -46,6 +46,9 @@ S10 tamam: `ready` üretim planı ve öz denetimden geçmiş önizleme.
    → stem'ler (diyalog, VO, müzik, efekt) ayrı; müzik VO/konuşmanın 4–5 dB altında + konuşma anlarında ek kısma; çekim sesi ↔ üretilmiş
    ses geçişleri kısa çapraz geçişle; efektler kare hassasiyetinde (kesimler ve reveal anı); iki geçişli `loudnorm` → **-14 LUFS entegre,
    ≤ -1 dBTP**, `pyloudnorm` doğrulaması (`mix_report.json`; `sfx_placed`: her efektin türü, oturma noktası, kaydırması, kazancı).
+   **Eksik konuşma (2.10.13):** planın anlatıcı (`generated`, `user_vo`) ya da sahnenin kendi sesini (`original`) beklediği yerde dosya
+   yoksa ya da o aralık sessizse miks yapılmaz (çıkış 2, neden ekranda). Kullanıcıya hangi kaydın eksik olduğunu sade dille söyle; sesi
+   olmayan reklamı teslime götürme.
    **Efekt öz puanlaması (2.7.0):** `PY PR/scripts/qc/sfx_review.py --mix-report audio/stems/mix_report.json --plan <plan.json>
    --moments analysis/sfx_moments.json --out audio/stems/sfx_review.json` → senkron, seviye, konuşma üstü, yoğunluk, kapsama, kesilme
    eksenleri (1–10, geçme 8) ve en kötü üç sorun. Yalnız bu üçü düzeltilir, yeniden miks, tekrar puan. `listen` listesindeki en fazla 5

@@ -294,8 +294,9 @@ def render_plan(data_dir: Path, project: Path, plan: dict, out: Path, style: dic
         a = round(s["start_s"] * fps)
         b = round((s["start_s"] + s["dur_s"]) * fps) - 1
         nxt = plan["scenes"][i + 1]["id"] if i + 1 < len(plan["scenes"]) else None
+        cap_sha = SC.captions_in_range(captions, a / fps, (b + 1) / fps) if (plan.get("captions") or {}).get("on") else None
         key = SC.scene_key(plan, i, source_hashes=_merge_hashes(per_scene.get(s["id"]), per_scene.get(nxt)), style_sha=style_sha, quality=quality, scale=scale, render_versions=lock,
-                           component_sha=code_sha, audio_sha=None, beats_sha=None)
+                           component_sha=code_sha, audio_sha=None, beats_sha=None, captions_sha=cap_sha)
         seg = seg_dir / f"{s['id']}_{quality}_{key[:20]}.mp4"
         segments.append(seg)
         if use_cache and SC.cached(seg):
