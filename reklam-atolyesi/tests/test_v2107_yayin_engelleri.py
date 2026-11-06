@@ -62,7 +62,7 @@ def test_not_an_approval(text):
 
 
 @pytest.mark.parametrize("text", ["evet", "Onaylıyorum.", "evet onaylıyorum", "tamam, devam", "120 kredi için onaylıyorum",
-                                  "/reklam-atolyesi:onayla not", "kabul ediyorum"])
+                                  "/reklam-atolyesi:onayla", "/onayla 120 kredi", "kabul ediyorum"])
 def test_explicit_approval(text):
     assert AP.check(text, 120)[0]
 

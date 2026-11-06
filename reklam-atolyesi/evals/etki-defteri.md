@@ -190,6 +190,24 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.11 (2026-11-06): onay ve silme
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `servers/ad_memory/server.py` (`approval_call`), `admem/s_base.py` (`_user_approval`), `hooks/navigator.py` (`record_prompt`) | işleyiş (onay) | ücretli üretim, kapı ve silme onayı; çok markalı ajans | 2.10.10 bağımsız denetimi B1: boş oturumla modelin metni, başka markanın oturumundaki "evet" onay sayılıyordu | Boş oturum araçta reddediliyor; başka markaya bağlı oturumdaki mesaj geçmiyor (`tests/test_v21011_onay_silme.py`) | yok | yardım etti (test) |
+| `admem/approval.py` (`check`) | işleyiş (onay biçimi) | bütün onaylar | B2: komut öneki, emoji, başka alfabe ve kesik kayıt reddi ya da şartı gizliyordu | Komut tam eşleşiyor ve ekleri denetleniyor; işaret, uzunluk ve kesik kayıt reddediliyor; başka dil yönlendiriliyor | yok | yardım etti (test) |
+| `admem/s_memory.py` (`memory_forget`), `skills/memory/SKILL.md` | işleyiş (silme), skill | hafıza silme isteği | B4–B5: ret cümlesi siliyordu; günlük ayrıntısı ve oturum kopyası kalıyordu; yarım silme sürdürülemiyordu | Onay kullanıcının cevabından; ayrıntı ve oturum temizleniyor; kalan yerler içeriksiz kaydedilip yeniden deneniyor | yok | yardım etti (test) |
+| `admem/s_meta.py` (`metrics_import_csv`) | işleyiş (profil ayrımı) | çok markalı ajans | B6: başka markanın klasöründeki döküm içe alınıyordu | Reddediliyor, sıfır satır yazılıyor | yok | yardım etti (test) |
+| `commands/onayla.md` | komut | onay komutu | B2 | Komutun arkasına şart yazılmayacağı söyleniyor | ölçülmedi | ölçülmedi |
+
+**Sahada:** henüz yok.
+
+**Ders:** *Ne zaman:* bir onay serbest metinle ya da birden çok bağlamdan gelebiliyorsa. *Ne yap:* onayı kullanıcının kendi mesajına ve
+mesajın yazıldığı bağlama bağla; komut biçimini önekle değil tam eşleşmeyle tanı; ret ve şart için izin listesi dışındaki her işareti
+yeniden sorma nedeni say. *Dayanak:* bu sürümün onay satırları. *Güven:* orta.
+
 ## 2.10.10 (2026-11-06): bağımlılık güncellemesi
 
 **Değişiklikler**

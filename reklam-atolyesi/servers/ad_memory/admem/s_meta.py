@@ -371,6 +371,13 @@ class MetaMixin:
             p = self.data_dir / p
         if not p.exists():
             raise AdMemoryError(f"CSV bulunamadı: {p}")
+        # 2.10.11: başka bir markanın klasöründeki döküm bu markaya alınmaz (ajans: iki marka aynı bilgisayarda). Genel klasörler
+        # (İndirilenler, Masaüstü) ve bu markanın kendi klasörü serbest.
+        profiles_root = (self.data_dir / "profiles").resolve()
+        rp = p.resolve()
+        if rp.is_relative_to(profiles_root) and not rp.is_relative_to(self.profile_dir(profile_id).resolve()):
+            raise AdMemoryError(f"Bu CSV başka bir markanın klasöründe ({rp.parent}). Hiçbir satır yazılmadı. Doğru markayı seç ya da "
+                                "dosyayı bu markanın klasöründen veya İndirilenler gibi genel bir klasörden ver")
         raw = p.read_bytes()
         for enc in ("utf-8-sig", "utf-16", "cp1254", "latin-1"):
             try:

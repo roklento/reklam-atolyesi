@@ -338,7 +338,7 @@ class CoachMixin:
                 raise AdMemoryError("yalnızca önerilen madde onaylanır")
             if not session_id and not (approval_text and approval_text.strip()):
                 raise AdMemoryError("onay kullanıcının açık ifadesini ister")
-            approval_text = self._user_approval(session_id, approval_text, it.get("created_at"))  # 2.10.7
+            approval_text = self._user_approval(session_id, approval_text, it.get("created_at"), profile_id=profile_id)  # 2.10.7
             with self.tx():
                 did = decision_id or self._decision_insert(profile_id, it["campaign_id"], it["cycle_id"], None, None, None, None,
                                                            f"action:{it['id']}:approved", f"kullanıcı: «{approval_text.strip()}»", "user")
@@ -543,7 +543,7 @@ class CoachMixin:
             raise AdMemoryError(f"kural {r['status']} durumunda")
         if not session_id and not (approval_text and approval_text.strip()):
             raise AdMemoryError("playbook kuralı kullanıcı onayıyla aktifleşir (S17 kapısı, 8.6)")
-        approval_text = self._user_approval(session_id, approval_text, None)  # 2.10.7
+        approval_text = self._user_approval(session_id, approval_text, None, profile_id=profile_id)  # 2.10.7
 
         with self.tx():
             self.ex("UPDATE playbook_rules SET status='active', last_validated_at=?, rounds_since_validation=0 WHERE id=?", (now_iso(), r["id"]))

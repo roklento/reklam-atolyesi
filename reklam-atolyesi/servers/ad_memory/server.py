@@ -33,6 +33,15 @@ def _s() -> Store:
     return _store
 
 
+def approval_call(session_id: str, fn: Callable[[Store], Any]) -> Any:
+    """2.10.11: onay isteyen araçlar müşteri yolunda oturum kimliği olmadan çalışmaz. Boş session_id ile onay modelin yazdığı metinden
+    alınırdı; o yol yalnızca doğrudan (test) çağrısı için Store'da kalır."""
+    if not (session_id or "").strip():
+        raise ToolError("session_id gerekli: onay yalnızca kullanıcının bu oturumdaki kendi mesajından alınır. Oturum kimliğini "
+                        "navigator hook'unun bağlamından al, onaylanacak şeyi kullanıcıya göster ve cevabını bekle")
+    return call(fn)
+
+
 def call(fn: Callable[[Store], Any]) -> Any:
     with _lock:
         try:
@@ -487,7 +496,7 @@ def feedback_preview(period_days: int = 90) -> dict:
 def feedback_export(session_id: str, approval_text: str = "", period_days: int = 90) -> dict:
     """Kullanıcının AÇIK onayıyla paketi data_dir/logs/geri-bildirim/ altına yazar. Plugin dosyayı göndermez; kullanıcı iletir.
     Onay, kullanıcının bu oturumdaki son mesajından alınır (session_id; 2.10.7)."""
-    return call(lambda s: s.feedback_export(approval_text, period_days, session_id=session_id))
+    return approval_call(session_id, lambda s: s.feedback_export(approval_text, period_days, session_id=session_id))
 
 
 @mcp.tool()
@@ -502,7 +511,7 @@ def gate_approve(session_id: str, profile_id: int, stage_run_id: int, output_ver
                  cycle_id: int | None = None, note: str | None = None, checkpoint: dict | None = None) -> dict:
     """Kapıyı kullanıcının AÇIK onayıyla geçer. Onay stage_run+cycle+sürüme bağlıdır ve kullanıcının belge gösterildikten sonra
     yazdığı son mesajından alınır (session_id; 2.10.7): onay dışında söz içeren ya da ret bildiren mesaj geçmez, model metin yazamaz."""
-    return call(lambda s: s.gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, note, checkpoint,
+    return approval_call(session_id, lambda s: s.gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, note, checkpoint,
                                          session_id=session_id))
 
 
@@ -822,7 +831,7 @@ def generation_approve(session_id: str, profile_id: int, generation_id: int, app
     """Kullanıcının açık maliyet onayı (tek kullanımlık): adet, azami kredi, lisans kontrolü (kaynak/tarih/kapsam), kişisel veri dayanağı.
     2.10.7: onay kullanıcının tahmin gösterildikten sonra yazdığı son mesajından alınır (session_id); mesajda sayı varsa azami kredi
     olmalı. Onay 30 dakika geçerlidir ve okunan fiyata bağlıdır; fiyat değişirse yeniden sorulur."""
-    return call(lambda s: s.generation_approve(profile_id, generation_id, approved_max_credits, count, approval_text, approval_scope,
+    return approval_call(session_id, lambda s: s.generation_approve(profile_id, generation_id, approved_max_credits, count, approval_text, approval_scope,
                                                session_id=session_id))
 
 
@@ -924,7 +933,7 @@ def action_item_set_status(session_id: str, profile_id: int, item_id: int, statu
                            decision_id: int | None = None) -> dict:
     """Maddeyi kullanıcı onayıyla 'approved' yapar (uygulanma yalnızca action_items_verify ile). 'approved' için onay kullanıcının son
     mesajından alınır (session_id; 2.10.7)."""
-    return call(lambda s: s.action_item_set_status(profile_id, item_id, status, approval_text, decision_id, session_id=session_id))
+    return approval_call(session_id, lambda s: s.action_item_set_status(profile_id, item_id, status, approval_text, decision_id, session_id=session_id))
 
 
 @mcp.tool()
@@ -989,7 +998,7 @@ def playbook_propose(profile_id: int, rule: str, evidence: dict, scope: dict | N
 @mcp.tool()
 def playbook_activate(session_id: str, profile_id: int, rule_id: int, approval_text: str = "") -> dict:
     """Kuralı kullanıcı onayıyla aktifleştirir; onay kullanıcının son mesajından alınır (session_id; 2.10.7)."""
-    return call(lambda s: s.playbook_activate(profile_id, rule_id, approval_text, session_id=session_id))
+    return approval_call(session_id, lambda s: s.playbook_activate(profile_id, rule_id, approval_text, session_id=session_id))
 
 
 
@@ -1059,9 +1068,11 @@ def memory_merge(keep_id: int, merge_ids: list[int], profile_id: int | None = No
 
 
 @mcp.tool()
-def memory_forget(item_id: int, confirm_text: str, profile_id: int | None = None) -> dict:
-    """'Bunu unut': öğe, FTS, kullanım/kanıt, türeyen özet/dışa aktarım ve öğeyi içeren yerel yedekler temizlenir."""
-    return call(lambda s: s.memory_forget(item_id, confirm_text, profile_id))
+def memory_forget(session_id: str, item_id: int, profile_id: int | None = None, confirm_text: str = "") -> dict:
+    """'Bunu unut': öğe, FTS, kullanım/kanıt, günlük ayrıntısı, oturumdaki mesaj kopyaları, türeyen özet/dışa aktarım ve öğeyi içeren
+    yerel yedekler temizlenir. 2.10.11: önce silinecek öğeyi kullanıcıya göster; onay kullanıcının ardından yazdığı mesajdan alınır
+    (session_id; "evet, sil" geçer, "hayır, silme" geçmez). Yarım kalan silme aynı item_id ile yeniden çağrılınca kaldığı yerden sürer."""
+    return approval_call(session_id, lambda s: s.memory_forget(item_id, confirm_text, profile_id, session_id=session_id))
 
 
 @mcp.tool()

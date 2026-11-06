@@ -40,7 +40,8 @@ def record_prompt(sess: dict, event: str, prompt: str, command_name: str, prompt
         text = f"/{command_name} {text}".strip()
     rid = prompt_id or hashlib.sha256(f"{_now()}|{text}".encode("utf-8")).hexdigest()[:16]
     ups = [u for u in (sess.get("user_prompts") or []) if u.get("id") != rid]
-    ups.append({"id": rid, "text": text[:500], "at": _now()})
+    # 2.10.11: mesajın yazıldığı andaki marka da saklanır (onay yalnızca o markanın işine geçer); kesilen mesaj onay sayılmaz
+    ups.append({"id": rid, "text": text[:500], "at": _now(), "profile_id": sess.get("profile_id"), "truncated": len(text) > 500})
     sess["user_prompts"] = ups[-PROMPTS_KEPT:]
 
 
