@@ -27,17 +27,22 @@ const RESULT = {
   },
 }
 
+// 2.10.12: görev metnine giren her alan tek satıra indirilir (satır sonu ve denetim karakterleri boşluk olur); serbest metin alanları
+// (ad, tür) tırnak içinde veri olarak verilir. Rakip adına gömülü "yeni satır + yönerge" ayrı bir görev satırı olamaz (K08).
+const one = v => String(v ?? '').replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').trim().slice(0, 300)
+const q = v => JSON.stringify(one(v))
+
 const promptFor = c => [
   'reklam-atolyesi S13 bağımsız kalite kontrol. Yalnızca aşağıdaki dosya ve kayıtlara bak; kullanıcıya soru sorma; veritabanına yazma.',
   `Önce ${a.plugin_root}/skills/qc/SKILL.md ve ${a.plugin_root}/skills/ref-legal-tr-meta/SKILL.md dosyalarını oku.`,
-  `profile_id=${a.profile_id} campaign_id=${a.campaign_id} creative_id=${c.creative_id}`,
-  `teslim_dosyası=${c.file} plan=${c.plan_path} format=${c.format ?? ''} beklenen_süre=${c.expect_duration ?? ''}`,
-  `teknik_rapor=${c.tech_report ?? 'yok — checks.py tech ile üret'}`,
+  `profile_id=${a.profile_id} campaign_id=${a.campaign_id} creative_id=${one(c.creative_id)}`,
+  `teslim_dosyası=${one(c.file)} plan=${one(c.plan_path)} format=${one(c.format)} beklenen_süre=${one(c.expect_duration)}`,
+  `teknik_rapor=${c.tech_report ? one(c.tech_report) : 'yok — checks.py tech ile üret'}`,
   `plugin_root=${a.plugin_root} data_dir=${a.data_dir} python=${a.py}`,
-  `Rapor: ${a.campaign_dir}/reports/qc/${c.creative_id}.json (geçici ad → atomik).`,
+  `Rapor: ${a.campaign_dir}/reports/qc/${one(c.creative_id)}.json (geçici ad → atomik).`,
   'Yorum ve kişi izinlerini review_query / consent_query ile eşle; eşleşmeyen ReviewCard ya da izinsiz kişili klip = failed.',
   `Font glif kapsamı: python ${a.plugin_root}/scripts/qc/font_coverage.py --plan <plan> --project ${a.campaign_dir}/src --data-dir ${a.data_dir} (çıkış 1 → fixes).`,
-  `Yazı şeritleri: python ${a.plugin_root}/scripts/analyze/contact_sheet.py --video <teslim_dosyası> --out ${a.campaign_dir}/reports/qc/${c.creative_id}_bands.jpg --text-bands --plan <plan>; küçültmeden bak (kontak sayfasında 32 px yazı 8 px kalır).`,
+  `Yazı şeritleri: python ${a.plugin_root}/scripts/analyze/contact_sheet.py --video <teslim_dosyası> --out ${a.campaign_dir}/reports/qc/${one(c.creative_id)}_bands.jpg --text-bands --plan <plan>; küçültmeden bak (kontak sayfasında 32 px yazı 8 px kalır).`,
   'Seyrek karelerden hareket akıcılığı, kısa ürün bozulması ve ses için onay verme: human_check_required içine yaz.',
 ].join('\n')
 
@@ -45,7 +50,7 @@ log(`qc-review: ${a.creatives.length} kreatif · ${a.now_iso ?? ''}`)
 phase('Bağımsız QC')
 const results = await pipeline(a.creatives, c =>
   agent(promptFor(c), {
-    label: `QC ${c.creative_id}`,
+    label: `QC ${one(c.creative_id)}`,
     phase: 'Bağımsız QC',
     agentType: 'reklam-atolyesi:qc-reviewer',
     schema: RESULT,

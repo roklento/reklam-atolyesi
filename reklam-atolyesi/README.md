@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.11
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.12
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,22 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.12** — dosya izni ve araç sınırı (2.10.10 bağımsız denetimi B3, B11, B12)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Kişisel dosya yalnızca izinli dosyadan gider:** `creative_create_asset_upload` sonrası baytları `scripts/ingest/izinli_yukleme.py`
+  gönderir; betik izin kaydındaki dosyayı kendisi açar, içerik özetini ve kişi iznini yeniden denetler. Sağlayıcının verdiği yükleme
+  kimliği ve adresi yeni `hooks/upload_guard.py` (PostToolUse) ile kaydedilir; tamamlama yalnızca aynı kimlikle ve betikle gönderilmiş
+  dosyada geçer. Bekleyen yükleme adresine komutla ya da dosya yazarak doğrudan gönderim reddedilir. Kimliği okunamayan kişisel yükleme
+  tamamlanmaz.
+- **Meta koruması bütün araçlarda:** hook eşleşmesi plugin'in Meta sunucusunun bütün araçlarını (adı `ads_` ile başlamasa da) ve adında
+  Meta reklam sunucusu geçen bağlantıları kapsar; izin listesinde olmayan reddedilir.
+- **Tahmin desteği kanıtla:** `el_estimate_schema` "geçti" kaydı, data_dir altına kaydedilmiş canlı şema dosyası ister; şemada
+  `estimate_only` görünmeyen araç reddedilir. Kayıt ElevenLabs araç sınıflarına bağlıdır. Eski (kanıtsız) kayıtla tahmin kapalıdır:
+  kurulum kontrolünün ElevenLabs adımı bir kez yeniden yapılır.
+- **Alt ajan görevinde serbest metin veri:** iş akışları rakip adı, dosya yolu gibi alanları tek satıra indirir, serbest metni tırnak
+  içinde verir; rakip analistinde dosya yazma araçları kapalı.
+- `tests/test_v21012_dosya_arac_siniri.py` (iş akışları node ile çalıştırılarak denenir).
+
 **2.10.11** — onay ve silme (2.10.10 bağımsız denetimi B1, B2, B4, B5, B6)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Onay oturumsuz alınmaz:** onay isteyen MCP araçları (`gate_approve`, `generation_approve`, `action_item_set_status`, `playbook_activate`,

@@ -726,6 +726,8 @@ class BaseStore:
         for k in ("token", "access_token", "secret", "password"):
             if note and k in note.lower():
                 raise AdMemoryError("canlı kayıt kimlik bilgisi/token içeremez (12.13)")
+        if item_id == "el_estimate_schema" and status == "passed":
+            component_hashes = self._estimate_schema_evidence(evidence_ref, component_hashes)
         with self.tx():
             cur = self.q1("SELECT value FROM settings WHERE key='runtime_verification_json'")
             data = jload(cur["value"], {}) if cur else {}
@@ -740,6 +742,46 @@ class BaseStore:
                     (jdump(data), now_iso()))
         view = self.mark_verified_if_ready()
         return {"recorded": items[key], "live": view["live"]}
+
+    def _estimate_schema_evidence(self, evidence_ref: str | None, component_hashes: dict | None) -> dict:
+        """2.10.12: "estimate_only destekleniyor" kaydı kanıt ister. evidence_ref, canlı araç listesinden kaydedilmiş şema dosyasıdır
+        (data_dir altında JSON: {"tools": {"<araç>": <inputSchema>}}); listelenen her aracın şemasında estimate_only alanı bulunmalı.
+        Kayıt ElevenLabs araç sınıfları dosyasının (hooks/elevenlabs_tools.json) özetine bağlıdır; sınıflar değişince hook kaydı
+        geçersiz sayar (her güncellemede değil). Yanlış "geçti" kaydı ücretli çağrının ücretsiz
+        fiyat sorgusu sanılmasına yol açardı."""
+        import hashlib
+        tools = (component_hashes or {}).get("tools_with_estimate_only")
+        if not isinstance(tools, list) or not tools:
+            raise AdMemoryError("el_estimate_schema için component_hashes.tools_with_estimate_only listesi gerekli")
+        if not evidence_ref:
+            raise AdMemoryError("el_estimate_schema 'passed' kanıt ister: canlı araç şemalarını data_dir altında bir JSON dosyasına "
+                                "({\"tools\": {\"<araç>\": <inputSchema>}}) kaydedip yolunu evidence_ref olarak ver")
+        p = Path(evidence_ref)
+        if not p.is_absolute():
+            p = self.data_dir / p
+        try:
+            p.resolve().relative_to(self.data_dir.resolve())
+            raw = p.read_bytes()
+            schemas = json.loads(raw.decode("utf-8")).get("tools") or {}
+        except (ValueError, OSError, AttributeError) as e:
+            raise AdMemoryError(f"şema kanıt dosyası okunamadı ya da data_dir altında değil: {p} ({type(e).__name__})") from None
+
+        def has_field(obj, depth=0) -> bool:
+            if depth > 8 or not isinstance(obj, (dict, list)):
+                return False
+            if isinstance(obj, dict):
+                props = obj.get("properties")
+                if isinstance(props, dict) and "estimate_only" in props:
+                    return True
+                return any(has_field(v, depth + 1) for v in obj.values())
+            return any(has_field(v, depth + 1) for v in obj)
+        missing = [t for t in tools if not has_field(schemas.get(t))]
+        if missing:
+            raise AdMemoryError("şema kanıtında estimate_only alanı görünmeyen araç(lar): " + ", ".join(missing)
+                                + ". Bu araçlar için fiyat sorgusu ücretsiz sayılmaz; listeden çıkar")
+        classes = PLUGIN_ROOT / "hooks" / "elevenlabs_tools.json"
+        return {**(component_hashes or {}), "schema_sha256": hashlib.sha256(raw).hexdigest(),
+                "classes_sha256": hashlib.sha256(classes.read_bytes()).hexdigest() if classes.exists() else None}
 
     def mark_verified_if_ready(self) -> dict:
         """setup_verified_at yalnızca statik kontrol (doctor --write-ok → setup_static_ok_at) VE ortak zorunlu canlı maddeler geçince

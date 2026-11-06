@@ -190,6 +190,23 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.12 (2026-11-06): dosya izni ve araç sınırı
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `hooks/upload_guard.py` (yeni), `hooks/cost_guard.py` (`_finalize_decision`), `scripts/ingest/izinli_yukleme.py` (yeni), `skills/materials/SKILL.md` | hook, betik, skill | kişi sesi ya da görüntüsü yükleyen marka | 2.10.10 bağımsız denetimi B3: aynı ad ve boyuttaki başka dosya ve ilgisiz yükleme kimliği geçiyordu | Baytlar izin kaydındaki dosyadan; tamamlama kimlik ve betikle gönderim istiyor; doğrudan gönderim reddediliyor (`tests/test_v21012_dosya_arac_siniri.py`) | yok | yardım etti (test) |
+| `scripts/setup/gen_config.py`, `hooks/hooks.json` | yapılandırma | Meta bağlı her kullanıcı | B12a: `ads_` ile başlamayan Meta aracı korumaya girmiyordu (canlı sunucuda böyle bir araç var) | Kendi Meta sunucusunun bütün araçları eşleşiyor, listede olmayan reddediliyor | yok | yardım etti (test) |
+| `admem/s_base.py` (`runtime_record`), `hooks/cost_guard.py`, `commands/kurulum-kontrol.md` | işleyiş, hook | ücretli üretim | B12b: kanıtsız "geçti" kaydı tahmin çağrısını açıyordu | Şema kanıtı ve araç sınıfı özeti isteniyor; eski kayıt kapalı | yok | yardım etti (test) |
+| `workflows/analyze-competitors.js`, `analyze-footage.js`, `qc-review.js`, `agents/competitor-analyst.md` | iş akışı, ajan | rakip analizi, klip ve kalite denetimi | B11: rakip adındaki satır sonu görev metnine ayrı yönerge satırı ekliyordu; ajanda yazma araçları açıktı | Alanlar tek satır ve tırnaklı; rakip analistinde Write/Edit kapalı | ölçülmedi | yardım etti (test) |
+
+**Sahada:** henüz yok. İlk ücretli üretimden önce ElevenLabs şema kaydı yeniden yapılır.
+
+**Ders:** *Ne zaman:* bir izin araç çağrısının taşımadığı bir şeye (bayt, dosya içeriği) bağlıysa. *Ne yap:* o şeyi plugin'in kendi
+betiğine taşı ve sonraki adımı betiğin kaydına bağla; araç adının kalıbına değil sunucunun kendisine göre eşleştir; "geçti" kaydını
+kanıtsız kabul etme. *Dayanak:* bu sürümün yükleme ve eşleşme satırları. *Güven:* orta.
+
 ## 2.10.11 (2026-11-06): onay ve silme
 
 **Değişiklikler**

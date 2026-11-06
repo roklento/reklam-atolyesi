@@ -52,7 +52,10 @@ planda `audio.decision_id`. Tercih gözlemi `memory_add(layer="preference", kind
    purpose, contains_personal_data=True, data_kinds, session_id, consent_ids, files=[gönderilecek dosyalar])`; dayanak yoksa
    gönderim yok. İzin yalnızca `files` içindeki dosyalar için geçer; başka bir dosya için yeniden çalıştırılır. Yükleme araçları
    (`creative_create_asset_upload`, `creative_attach_reference_file`…) hook tarafından bu kayıt olmadan, başka bir dosyada ya da
-   kişi izni geri çekildiyse reddedilir.
+   kişi izni geri çekildiyse reddedilir. **Yerel dosya yüklemesi (2.10.12):** `creative_create_asset_upload` çağrısından sonra
+   baytları kendin gönderme (curl vb. reddedilir); `<python> PR/scripts/ingest/izinli_yukleme.py --data-dir DD --session <session_id>
+   --asset-id <dönen asset_id>` çalıştır. Betik izin kaydındaki dosyayı kendisi açıp gönderir (kişisel olmayan izinde `--file <yol>`
+   eklenir). Ardından `creative_finalize_asset_upload(asset_id, …)`; betikle gönderilmemiş ya da başka kimlikli yükleme tamamlanmaz.
 5. **Fiyat:** aynı çağrı `estimate_only: true` ile (ücretsiz; flow'a boş düğüm ekleyebilir).
 6. **Kayıt:** `generation_log(profile_id, campaign_id, cycle_id, tool_name, params, estimate_credits, model, kind, input_file_hashes?,
    flow_snapshot_sha256?)` — `params` gerçek çağrıyla **birebir** aynı olmalı (`context`, `estimate_only`, arayüz alanları hash'e girmez;

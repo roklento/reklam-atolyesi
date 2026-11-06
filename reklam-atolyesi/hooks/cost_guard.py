@@ -85,6 +85,14 @@ def _file_changed(f: dict) -> str | None:
     return None
 
 
+def _classes_sha() -> str | None:
+    import hashlib
+    try:
+        return hashlib.sha256((pm.HOOKS_DIR / "elevenlabs_tools.json").read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
 def _now_s() -> float:
     import time
     return time.time()
@@ -96,7 +104,7 @@ def upload_decision(perms: list[dict], tin: dict, data_dir: Path, bare: str = ""
     her yükleme oturuma yazılır ve tamamlama adımı yalnızca böyle bir kayıtla, izin ve dosya hâlâ geçerliyse geçer. Kişisel veri içeren
     izin her zaman dosyaya bağlıdır. Dosyasız eski tip izin yalnızca kişisel veri içermeyen gönderim içindir."""
     if bare in NO_FILE_STEP:
-        return _finalize_decision(data_dir, sid)
+        return _finalize_decision(data_dir, sid, tin)
     strs: set = set()
     nums: set = set()
     _input_values(tin, strs, nums)
@@ -127,25 +135,56 @@ def _record_upload(data_dir: Path, sid: str | None, perm: dict | None, f: dict |
         return
 
     def add(s: dict) -> None:
+        import uuid
         pend = [u for u in (s.get("pending_uploads") or []) if _now_s() - float(u.get("t") or 0) < UPLOAD_TTL_S]
-        pend.append({"t": _now_s(), "perm_at": (perm or {}).get("at"), "file": f})
+        # 2.10.12: başlatma kaydı sağlayıcının yükleme kimliği ve adresiyle (PostToolUse, upload_guard.py) tamamlanır; dosyaya bağlı
+        # izinde baytlar yalnızca scripts/ingest/izinli_yukleme.py ile, izin kaydındaki yoldan gönderilir (uploaded=True).
+        pend.append({"id": uuid.uuid4().hex[:12], "t": _now_s(), "perm_at": (perm or {}).get("at"), "file": f,
+                     "asset_id": None, "url": None, "uploaded": False})
         s["pending_uploads"] = pend[-20:]
     pm.update_session(data_dir, sid, add)
 
 
-def _finalize_decision(data_dir: Path, sid: str | None) -> tuple[str, str | None]:
-    """Tamamlama adımı: süresi geçmemiş, izinle başlatılmış bir yükleme olmalı; izin ve dosya hâlâ geçerli olmalı (2.10.7)."""
+def pending_uploads(s: dict) -> list[dict]:
+    return [u for u in (s.get("pending_uploads") or []) if _now_s() - float(u.get("t") or 0) < UPLOAD_TTL_S]
+
+
+def url_key(url: str | None) -> str | None:
+    """İmzalı yükleme adresinin sorgu kısmı atılmış hâli (komut ya da dosya içinde aranır)."""
+    if not url:
+        return None
+    return str(url).split("?", 1)[0].split("#", 1)[0]
+
+
+def _finalize_decision(data_dir: Path, sid: str | None, tin: dict | None = None) -> tuple[str, str | None]:
+    """Tamamlama adımı: süresi geçmemiş, izinle başlatılmış bir yükleme olmalı; izin ve dosya hâlâ geçerli olmalı (2.10.7).
+    2.10.12: tamamlanan yükleme kimliği (asset_id) başlatma adımında sağlayıcının verdiği kimlikle aynı olmalı; dosyaya bağlı izinde
+    baytlar plugin'in yükleme betiğiyle gönderilmiş olmalı. Kimliği okunamamış dosyaya bağlı yükleme tamamlanmaz."""
     if not sid:
         return "deny", "yükleme tamamlama adımı oturum kaydı ister"
+    asset = str((tin or {}).get("asset_id") or "").strip()
     out: dict = {}
 
     def take(s: dict) -> None:
-        pend = [u for u in (s.get("pending_uploads") or []) if _now_s() - float(u.get("t") or 0) < UPLOAD_TTL_S]
+        pend = pending_uploads(s)
         if not pend:
             out["err"] = "bu oturumda izinle başlatılmış ve süresi geçmemiş bir yükleme yok; tamamlama adımı engellendi (bölüm 10)"
             s["pending_uploads"] = pend
             return
-        u = pend.pop(0)
+        i = next((k for k, u in enumerate(pend) if asset and u.get("asset_id") == asset), None)
+        if i is None:
+            # kimliği yakalanmamış eski tip kayıt yalnızca dosyaya bağlı olmayan (kişisel olmayan) izinde kullanılabilir
+            i = next((k for k, u in enumerate(pend) if not u.get("asset_id") and not u.get("file")), None)
+        if i is None:
+            out["err"] = ("bu yükleme kimliği bu oturumda izinle başlatılmış bir yüklemeye ait değil (ya da sağlayıcının verdiği kimlik "
+                          "okunamadı); tamamlama adımı engellendi (bölüm 10)")
+            return
+        u = pend[i]
+        if u.get("file") and not u.get("uploaded"):
+            out["err"] = ("kişisel dosya plugin'in yükleme betiğiyle gönderilmedi: önce scripts/ingest/izinli_yukleme.py --asset-id "
+                          f"{u.get('asset_id') or '<kimlik>'} ile gönder, sonra tamamla (bölüm 10)")
+            return
+        pend.pop(i)
         s["pending_uploads"] = pend
         out["u"] = u
         perms = {p.get("at"): p for p in (s.get("upload_permissions") or [])}
@@ -199,10 +238,14 @@ def decide(data: dict, argv: list[str] | None = None) -> tuple[str, str | None]:
     if tin.get("estimate_only") is True:
         rec = pm.runtime_item(data_dir, "el_estimate_schema")
         tools = (rec or {}).get("component_hashes", {}).get("tools_with_estimate_only") if rec else None
-        if rec and rec.get("status") == "passed" and isinstance(tools, list) and bare in tools:
+        # 2.10.12: kayıt şema kanıtıyla yazılmış (schema_sha256) ve bugünkü araç sınıflarıyla alınmış olmalı
+        ch = (rec or {}).get("component_hashes") or {}
+        fresh = bool(ch.get("schema_sha256")) and ch.get("classes_sha256") == _classes_sha()
+        if rec and rec.get("status") == "passed" and isinstance(tools, list) and bare in tools and fresh:
             return "allow", None
-        return "deny", ("estimate_only desteği bu araç için canlı şemada doğrulanmadı; üretim kapalı kalır (9.1). "
-                        "Kurulum kontrolünde araç şeması okunup runtime_record('el_estimate_schema') kaydedilmeli.")
+        return "deny", ("estimate_only desteği bu araç için bu sürümde canlı şemadan doğrulanmadı; üretim kapalı kalır (9.1). "
+                        "Kurulum kontrolünde araç şeması dosyaya kaydedilip runtime_record('el_estimate_schema', evidence_ref=<dosya>) "
+                        "yazılmalı (araç sınıfları değiştiyse yeniden).")
     pid, cid = sess.get("profile_id"), sess.get("campaign_id")
     if not pid or not cid:
         return "deny", "ücretli çağrı oturuma bağlı profil ve kampanya ister (session_bind)"

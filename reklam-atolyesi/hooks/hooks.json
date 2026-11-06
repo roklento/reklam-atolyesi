@@ -53,7 +53,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "^mcp__.*__ads_[a-z0-9_]+$",
+        "matcher": "^mcp__plugin_reklam-atolyesi_meta-ads__.*$|^mcp__.*([Mm]eta[-_][Aa]ds|[Ff]acebook).*__.*$|^mcp__.*__ads_[a-z0-9_]+$",
         "hooks": [
           {
             "type": "command",
@@ -83,6 +83,21 @@
             "onFailure": "block"
           }
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/upload_guard.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -94,6 +109,21 @@
             "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/render_qc.py",
+              "--data-dir",
+              "${user_config.data_dir}"
+            ],
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "^mcp__plugin_reklam-atolyesi_ElevenLabs__creative_create_asset_upload$|^mcp__.*__creative_create_asset_upload$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${user_config.data_dir}/.venv/Scripts/python.exe",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/upload_guard.py",
               "--data-dir",
               "${user_config.data_dir}"
             ],

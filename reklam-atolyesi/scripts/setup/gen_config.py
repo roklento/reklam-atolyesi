@@ -17,7 +17,11 @@ import sys
 from pathlib import Path
 
 ELEVEN_MATCHER = r"^mcp__plugin_reklam-atolyesi_ElevenLabs__.*$|^mcp__.*__(creative_[a-z0-9_]+|agents_[a-z0-9_]+|get_more_tools)$"
-META_MATCHER = r"^mcp__.*__ads_[a-z0-9_]+$"
+# 2.10.12: plugin'in kendi Meta sunucusunun BÜTÜN araçları (adı ads_ ile başlamasa da; ör. canlı sunucuda offer_report) ve adında
+# Meta reklam sunucusu geçen başka bağlantıların araçları koruma hook'una girer; izin listesinde olmayan reddedilir.
+META_MATCHER = r"^mcp__plugin_reklam-atolyesi_meta-ads__.*$|^mcp__.*([Mm]eta[-_][Aa]ds|[Ff]acebook).*__.*$|^mcp__.*__ads_[a-z0-9_]+$"
+UPLOAD_START_MATCHER = r"^mcp__plugin_reklam-atolyesi_ElevenLabs__creative_create_asset_upload$|^mcp__.*__creative_create_asset_upload$"
+BYTE_TOOLS_MATCHER = "Bash|PowerShell|Write|Edit|NotebookEdit"
 TIMEOUT = 10
 
 
@@ -47,8 +51,11 @@ def hooks_json(target_os: str) -> dict:
             "PreToolUse": [
                 {"matcher": META_MATCHER, "hooks": [hook("meta_guard.py", target_os, block_on_failure=True)]},
                 {"matcher": ELEVEN_MATCHER, "hooks": [hook("cost_guard.py", target_os, block_on_failure=True)]},
+                # 2.10.12: bekleyen yükleme adresine bayt gönderimi yalnızca izinli_yukleme.py ile (kendi hatası komutu durdurmaz)
+                {"matcher": BYTE_TOOLS_MATCHER, "hooks": [hook("upload_guard.py", target_os)]},
             ],
-            "PostToolUse": [{"matcher": "Bash|PowerShell", "hooks": [hook("render_qc.py", target_os)]}],
+            "PostToolUse": [{"matcher": "Bash|PowerShell", "hooks": [hook("render_qc.py", target_os)]},
+                            {"matcher": UPLOAD_START_MATCHER, "hooks": [hook("upload_guard.py", target_os)]}],
             "PostToolUseFailure": [{"hooks": [hook("error_notify.py", target_os)]}],
             "Stop": [{"hooks": [hook("stop_check.py", target_os)]}],
         },

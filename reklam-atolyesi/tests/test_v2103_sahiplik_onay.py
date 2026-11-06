@@ -164,7 +164,11 @@ def test_guard_hooks_block_when_they_cannot_run():
     import gen_config
     for target in ("windows", "posix"):
         pre = gen_config.hooks_json(target)["hooks"]["PreToolUse"]
-        assert all(h.get("onFailure") == "block" for g in pre for h in g["hooks"])
+        # 2.10.12: upload_guard her Bash/Write çağrısında çalışır ve plugin dışı oturumlara da dokunur; başlayamazsa bütün komutları
+        # durdurmasın diye engellemez. Bayt adımının asıl kapısı tamamlama denetimidir (cost_guard, engelleyen).
+        guards = [h for g in pre for h in g["hooks"] if not h["args"][0].endswith("upload_guard.py")]
+        assert guards and all(h.get("onFailure") == "block" for h in guards)
+        assert all(not h.get("onFailure") for g in pre for h in g["hooks"] if h["args"][0].endswith("upload_guard.py"))
     on_disk = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     assert on_disk == gen_config.hooks_json("windows")
 
