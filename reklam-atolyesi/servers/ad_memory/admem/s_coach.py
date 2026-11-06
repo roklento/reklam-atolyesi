@@ -85,8 +85,12 @@ class CoachMixin:
                     pj = jload(pr["plan_json"], {})
                     plans[pr["id"]] = {"sha256": pr["sha256"], "duration_s": pj.get("duration_s"),
                                        "scenes": [{"id": s["id"], "role": s["role"], "start_s": s["start_s"], "dur_s": s["dur_s"]} for s in pj.get("scenes", [])]}
+        over = (extra or {}).get("params") or {}
+        fixed = [k for k in ("seed", "draws", "interval") if k in over and over[k] != DEFAULT_PARAMS[k]]
+        if fixed:  # 2.10.3: kayda yazılan ayar hesapta kullanılan ayar olmalı; bu üçü sabittir
+            raise AdMemoryError("bu ayarlar bu sürümde değiştirilemez (hesap sabit değerle çalışır): " + ", ".join(fixed))
         payload = {
-            "model_version": MODEL_VERSION, "params": {**DEFAULT_PARAMS, **((extra or {}).get("params") or {})},
+            "model_version": MODEL_VERSION, "params": {**DEFAULT_PARAMS, **over},
             "kind": kind, "profile_id": int(profile_id),
             "campaign": {k: c[k] for k in ("id", "name", "result_type", "lead_method", "budget_total", "mode", "test_structure")},
             "product_kind": (prod or {}).get("kind") or "product",

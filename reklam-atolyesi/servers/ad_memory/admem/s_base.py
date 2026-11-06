@@ -361,25 +361,34 @@ class BaseStore:
     @staticmethod
     def economics(prod: dict) -> dict:
         """Başa baş CPA / ROAS ve hedef CPA (6.2). Katkı bilinmiyorsa/aralıksa sonuç da varsayım/aralıktır."""
-        eco = jload(prod.get("economics_json"), {}) if isinstance(prod.get("economics_json"), str) else (prod.get("economics_json") or {})
-        sf = float(prod.get("safety_factor") or 0.7)
-        out: dict[str, Any] = {"basis": eco.get("basis"), "status": "unknown", "safety_factor": sf}
-        contrib = eco.get("contribution")
-        low, high = eco.get("contribution_low"), eco.get("contribution_high")
-        basket = eco.get("net_basket") or prod.get("aov") or prod.get("price")
+        import math
 
         def num(v) -> float | None:
+            """Sonlu sayı ya da None (2.10.3: "NaN", "inf" ve metin sayı sayılmaz; kesin ekonomi üretmezdi)."""
             if isinstance(v, bool) or v is None:
                 return None
             try:
-                return float(v)
+                f = float(v)
             except (TypeError, ValueError):
                 return None
+            return f if math.isfinite(f) else None
+
+        eco = jload(prod.get("economics_json"), {}) if isinstance(prod.get("economics_json"), str) else (prod.get("economics_json") or {})
+        sf = num(prod.get("safety_factor"))
+        sf = sf if sf is not None and 0 < sf <= 1 else 0.7
+        out: dict[str, Any] = {"basis": eco.get("basis"), "status": "unknown", "safety_factor": sf}
+        invalid = sorted(k for k in ("contribution", "contribution_low", "contribution_high", "net_basket")
+                         if eco.get(k) is not None and num(eco.get(k)) is None)
+        if invalid:  # geçersiz değer bilinmiyor sayılır; hesap varsayımsal kalır ve kullanıcıya sorulur
+            out["invalid_values"] = invalid
+        contrib = num(eco.get("contribution"))
+        low, high = num(eco.get("contribution_low")), num(eco.get("contribution_high"))
+        basket = num(eco.get("net_basket")) or num(prod.get("aov")) or num(prod.get("price"))
 
         vc = eco.get("variable_costs")
         # Kalemlerden katkı yalnızca açık katkı ya da aralık verilmemişse ve bütün kalemler sayıysa hesaplanır (1.4.1): bilinmeyen kalem
         # (ör. iade oranı null/metin) sıfır sayılmaz; aralık verildiyse kalemlerden çıkan tek sayı aralığı ezmez.
-        if contrib is None and low is None and high is None and eco.get("net_basket") is not None and isinstance(vc, dict):
+        if contrib is None and low is None and high is None and num(eco.get("net_basket")) is not None and isinstance(vc, dict):
             vals = {k: num(v) for k, v in vc.items()}
             unknown = sorted(k for k, v in vals.items() if v is None)
             if unknown:
@@ -405,7 +414,8 @@ class BaseStore:
                        note="Katkı aralık: kesin kârlılık veya büyütme hükmü verilmez (6.2)")
         else:
             out["note"] = "Katkı bilinmiyor: ekonomi VARSAYIMSAL; kesin kârlılık hükmü verilmez (6.2)" + (
-                f" · bilinmeyen kalemler: {', '.join(out['unknown_costs'])} (contribution_low/high ile aralık verilebilir)" if out.get("unknown_costs") else "")
+                f" · bilinmeyen kalemler: {', '.join(out['unknown_costs'])} (contribution_low/high ile aralık verilebilir)" if out.get("unknown_costs") else "") + (
+                f" · geçerli sayı olmayan alanlar: {', '.join(invalid)} (kullanıcıya sorulmalı)" if invalid else "")
         if eco.get("lead_close_rate") is not None:  # aday sonucu: başa baş aday maliyeti (1.5.0); satış hesabından bağımsız eklenir
             from .s_lead import lead_economics
             rng = out.get("contribution_range")

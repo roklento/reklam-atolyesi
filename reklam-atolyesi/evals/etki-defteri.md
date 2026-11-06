@@ -156,3 +156,20 @@ satırlardan topla, kapsamayı yaz, kapsama yetmezse hüküm verme. *Dayanak:* b
 **Ders:** *Ne zaman:* bir onay ya da izin, sonradan değişebilen bir kayda (tutar, dosya, tur) bağlıysa. *Ne yap:* onayı verildiği anki
 içeriğe (özet, alanlar, dosya) bağla; içerik değişince onayı düşür ve yeniden sor. *Dayanak:* bu sürümün onay, kapı ve yükleme
 satırları. *Güven:* orta (birim testi; saha verisi yok).
+
+## 2.10.4 (2026-11-06): karar verisi
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/analytics/coach.py` (`analyze`, ölçüm tanımı ve ayarlar), `admem/s_coach.py` (anlık görüntü ayarları) | işleyiş | koçluk raporu alan bütün hücreler; U3 | Dış kod denetimi: karışık ölçüm tanımından üstünlük olasılığı üretiliyordu; kayda yazılan aralık uygulanmıyordu | Karışık tanımda hüküm ve tahmin yok; uygulanmayan ayar reddediliyor (`tests/test_v2104_karar_verisi.py`) | yok | yardım etti (test) |
+| `scripts/analytics/coach.py` (`channel_summary`), `scripts/analytics/report.py` | işleyiş | U6 (USD hesap) ve birden çok para birimiyle satan hücreler | Dış kod denetimi: TRY ve USD aynı gelire toplanıyordu | Farklı para birimi ayrı yazılıyor, tek para biriminde sonuç aynı | yok | yardım etti (test) |
+| `admem/s_conn.py` (`sales_import_csv`) | işleyiş | mağaza dışa aktarımı kullanan hücreler | Dış kod denetimi: yalnız adet düzeltmesi aktarılmıyordu | Adet ve para birimi düzeltmesi güncelleme sayılıyor | yok | yardım etti (test) |
+| `admem/s_base.py` (`economics`), `scripts/analytics/budget.py` (`plan`) | işleyiş | P6, P7 (katkısı bilinmeyen/aralık), U8 (toplam sınır) | Dış kod denetimi: "NaN" katkı kesin ekonomi, eksi bütçe sığan plan üretiyordu | Geçersiz değer bilinmiyor sayılıyor; eksi/sonsuz bütçe reddediliyor | yok | yardım etti (test) |
+
+**Sahada:** henüz defter yok.
+
+**Ders:** *Ne zaman:* bir hesap farklı kaynaklardan gelen sayıları topluyorsa (birim, para birimi, ölçüm tanımı). *Ne yap:* toplamadan
+önce birimin aynı olduğunu denetle; değilse ayrı göster ve hüküm verme. *Dayanak:* bu sürümün ölçüm tanımı ve para birimi satırları.
+*Güven:* orta (birim testi).

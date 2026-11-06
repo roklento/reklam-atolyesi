@@ -281,10 +281,20 @@ def plan(inp: dict) -> dict:
     cutoff = dt.date.fromisoformat(inp["data_cutoff"][:10]) if inp.get("data_cutoff") else (launch or dt.date.today())
     horizon_end = (launch + dt.timedelta(days=cycle_days)) if launch else cutoff + dt.timedelta(days=cycle_days)
     days = max(0, (horizon_end - cutoff).days)
-    others = sum(float(x) for x in inp.get("other_daily_budgets", []) or [])
-    scale_daily = float(inp.get("scale_layer_daily") or 0)
-    if scale_daily < 0:
-        raise SystemExit("scale_layer_daily ≥ 0")
+    # 2.10.3: harcama girdileri sonlu ve eksi olmayan sayılar olmalı (eksi bir bütçe toplam sınırı aşan planı sığıyor gösteriyordu)
+    def _nonneg(v, name: str) -> float:
+        f = _finite(v, name)
+        if f < 0:
+            raise SystemExit(f"{name} eksi olamaz")
+        return f
+    if bt is not None:
+        bt = _nonneg(bt, "budget_total")
+    if inp.get("spend_to_date") is not None:
+        _nonneg(inp["spend_to_date"], "spend_to_date")
+    others = sum(_nonneg(x, "other_daily_budgets") for x in inp.get("other_daily_budgets", []) or [])
+    scale_daily = _nonneg(inp.get("scale_layer_daily") or 0, "scale_layer_daily")
+    for c in inp.get("planned_changes", []) or []:
+        _nonneg(c.get("daily"), "planned_changes.daily")
     others += scale_daily
     changes = sorted(inp.get("planned_changes", []) or [], key=lambda c: c["from"])
     proj = 0.0

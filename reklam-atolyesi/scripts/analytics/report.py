@@ -138,6 +138,10 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
             parts = [f"{k}: {v['units']} adet" + (f" / {v['revenue']}" if v.get("revenue") else "") for k, v in ch["sales"].items()]
             parts += [f"{k}: {n} talep" for k, n in ch["leads"].items()]
             lines.append("- Satış kanalları: " + ", ".join(parts) + ". Instagram mesajı, WhatsApp ve kurumsal satışlar Meta'da görünmez.")
+        for chn, curs in (ch.get("other_currency") or {}).items():  # 2.10.3: farklı para birimi toplanmaz
+            for cur, v in curs.items():
+                lines.append(f"- ⚠ {chn} kanalında {cur} cinsinden {v['units']} adet / {v['revenue']} {cur} satış var. Para birimi "
+                             f"{ch.get('currency') or 'esas para birimi'} olmadığı için gelire eklenmedi.")
         for ex in ch.get("excluded_manual") or []:
             lines.append(f"- ⚠ Elle girilen {ex['channel']} satışı ({ex['period'][0]}–{ex['period'][1]}, {ex['units']} adet): {ex['why']}.")
         svm = an.get("store_vs_meta")
