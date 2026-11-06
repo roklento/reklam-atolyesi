@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.3
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.4
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,16 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.4** — karar verisi (bağımsız kod denetiminin ikinci dalgası)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Farklı ölçüm ayarları karıştırılmaz:** deneme süresinde Meta'daki ölçüm ayarı (ör. atıf penceresi) değiştiyse koçluk raporu fikirleri
+  karşılaştırmaz, "büyüt" ya da "kapat" demez ve tahmin kaydı açmaz.
+- **Kaydedilen ayar uygulanan ayardır:** hesapta kullanılmayan bir aralık, tohum ya da örnek sayısı anlık görüntüye yazılamaz.
+- **Para birimleri toplanmaz:** ürünün para biriminden farklı satışlar raporda ayrıca gösterilir; gelire ve maliyet hesabına eklenmez.
+- **Sipariş düzeltmesi:** yalnızca adedi ya da para birimi düzeltilen sipariş de yeniden içe aktarılınca güncellenir.
+- **Sonlu sayılar:** ekonomi hesabı "NaN" gibi değerleri bilinmiyor sayar; bütçe planı eksi ya da sonsuz bütçeyi kabul etmez.
+- `tests/test_v2104_karar_verisi.py`.
+
 **2.10.3** — sahiplik, onay ve silme (bağımsız kod denetiminin ilk dalgası)
 - Migration 010 (sahne önbelleği tablosu yeniden kurulur, kayıtlar korunur). Yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Onaylanan adım değişirse yeniden onay:** onaylanmış bir öneride bütçe, hedef ya da eylem değişirse öneri yeniden onay bekler.

@@ -284,9 +284,12 @@ class ConnMixin:
                                VALUES(?,?,?,?,?,?,?,?,?,?,?)""", (bid, None, iid, h, o["date"], o["amount"], units, o["currency"], o["status"],
                                                                  channel, now))
                     new += 1
-                elif (cur["status"], cur["amount"]) != (o["status"], o["amount"]):
-                    self.ex("UPDATE sales_orders SET status=?, amount=COALESCE(?, amount), units=COALESCE(?, units), import_id=? WHERE id=?",
-                            (o["status"], o["amount"], units, iid, cur["id"]))
+                elif (cur["status"], cur["amount"]) != (o["status"], o["amount"]) or \
+                        (units is not None and cur["units"] != units) or (o["currency"] and cur["currency"] != o["currency"]):
+                    # 2.10.3: yalnız adet ya da para birimi düzeltilen sipariş de güncellenir (önceden kopya sayılıp eski adet kalıyordu)
+                    self.ex("""UPDATE sales_orders SET status=?, amount=COALESCE(?, amount), units=COALESCE(?, units),
+                               currency=COALESCE(?, currency), import_id=? WHERE id=?""",
+                            (o["status"], o["amount"], units, o["currency"], iid, cur["id"]))
                     upd += 1
                 else:
                     dup += 1

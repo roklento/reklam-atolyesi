@@ -11,7 +11,7 @@ import json
 import math
 import statistics
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
@@ -417,7 +417,28 @@ def channel_summary(snap: dict, days: list) -> dict:
     excluded = []
     imported = defaultdict(lambda: {"orders": 0, "units": 0, "units_unknown": 0, "revenue": 0.0})
     by_day = defaultdict(lambda: {"units": 0, "revenue": 0.0})  # (kanal, gün) → öncelikli kaynaklardaki satış (elle girişle kıyas)
+    # 2.10.3: farklı para birimindeki gelir toplanmaz (100 TRY + 100 USD "200" oluyordu). Esas para birimi ürününki; ürününki yoksa
+    # kayıtlarda en sık görülen. Farklı para birimindeki satış ayrı listelenir, gelir ve maliyet hesabına girmez; kur dönüşümü yapılmaz.
+    base = snap.get("currency")
+    if not base:
+        seen = Counter([o.get("currency") for o in snap.get("sales_orders") or [] if o.get("currency")] +
+                       [t.get("currency") for t in (snap.get("dm") or {}).get("threads") or [] if t.get("currency")])
+        base = seen.most_common(1)[0][0] if seen else None
+    other_cur: dict = defaultdict(lambda: defaultdict(lambda: {"units": 0, "revenue": 0.0}))
+
+    def foreign(ch, cur, units, revenue, day) -> bool:
+        if not (base and cur and cur != base):
+            return False
+        if _in_days(day, days):
+            b = other_cur[ch][cur]
+            b["units"] += units
+            b["revenue"] += revenue
+        return True
+
     for o in snap.get("sales_orders") or []:
+        if o["status"] == "paid" and foreign(o["channel"], o.get("currency"), int(o["units"] or 0) + int(o.get("units_unknown") or 0),
+                                             float(o["amount"] or 0), o.get("date")):
+            continue
         if o["status"] == "paid":
             d = by_day[(o["channel"], o.get("date"))]
             d["units"] += int(o["units"] or 0) + int(o.get("units_unknown") or 0)
@@ -442,6 +463,8 @@ def channel_summary(snap: dict, days: list) -> dict:
             continue
         day = t.get("closed_date") or (t.get("closed_at") or "")[:10]  # markanın günü (koçluk kopyası verir)
         ch = DM_TO_SALES.get(t["channel"], "diger")
+        if foreign(ch, t.get("currency"), int(t.get("quantity") or 1), float(t.get("won_amount") or 0), day):
+            continue
         d = by_day[(ch, day)]
         d["units"] += int(t.get("quantity") or 1)
         d["revenue"] += float(t.get("won_amount") or 0)
@@ -482,7 +505,11 @@ def channel_summary(snap: dict, days: list) -> dict:
             "leads": dict(sorted(leads.items())),
             "imported": {k: {**v, "revenue": round(v["revenue"], 2)} for k, v in imported.items()},
             "excluded_manual": excluded,
-            "note": "Tek satış defteri: reklamın yarattığı satış sayılmaz, kreatiflere dağıtılmaz. DM/WhatsApp/kurumsal Meta'da görünmez; "
+            "currency": base,
+            "other_currency": {ch: {cur: {"units": v["units"], "revenue": round(v["revenue"], 2)} for cur, v in sorted(m.items())}
+                               for ch, m in sorted(other_cur.items())},
+            "note": ("Farklı para birimindeki satışlar ayrı yazıldı; gelire ve maliyet hesabına eklenmedi. " if other_cur else "") +
+                    "Tek satış defteri: reklamın yarattığı satış sayılmaz, kreatiflere dağıtılmaz. DM/WhatsApp/kurumsal Meta'da görünmez; "
                     "mağaza bağlantısıyla ödenen DM satışı mağaza siparişindedir. Kurumsal fırsat yalnızca site satışına bakılarak "
                     "başarısız sayılmaz."}
 
@@ -861,8 +888,22 @@ def funnel_stage_guard(dec: list[dict], smap: dict, kpost: dict, priors: dict) -
                                 f"bakarak durdurulmaz; kendi ölçüsü ({STAGE_METRIC_TR[m]}) zayıf değil ya da karşılaştıracak geçmiş yok")
 
 
+APPLIED_PARAMS = {"seed": B.SEED, "draws": B.DRAWS, "interval": B.INTERVAL}
+
+
+def check_params(snap: dict) -> None:
+    """2.10.3: kayda yazılan ayar hesapta gerçekten kullanılandır. Hesap sabit tohum, örnek sayısı ve %90 aralıkla çalışır; anlık
+    görüntüde farklı bir değer yazılıysa hesap yapılmaz (önceden yazılan değer görmezden gelinip sabit değerle hesaplanıyordu)."""
+    p = snap.get("params") or {}
+    bad = [f"{k}={p[k]!r} (hesap {v!r} kullanır)" for k, v in APPLIED_PARAMS.items() if k in p and p[k] != v]
+    if bad:
+        raise SystemExit("anlık görüntüdeki ayar bu sürümde uygulanmıyor: " + ", ".join(bad)
+                         + ". Ayarı değiştirmeden yeni bir decision_input_snapshot alın.")
+
+
 def analyze(snap_path: str) -> dict:
     snap = read_json(snap_path)
+    check_params(snap)
     main_rows, scale_rows = scale_split(snap)
     parts = split_rows(snap, main_rows)
     cmap = concept_of(snap)
@@ -895,6 +936,17 @@ def analyze(snap_path: str) -> dict:
     lim = limit_alerts(snap, all_rows)
     enh = enhancement_scope(snap, cmap)
     dec = decisions(kpost, dist, snap, structure, cost, enh)
+    # 2.10.3: test penceresinde farklı ölçüm tanımları (atıf penceresi gibi) varsa fikirler aynı ölçüyle karşılaştırılmaz: hüküm ve
+    # üstünlük olasılığı üretilmez. Önceden yalnızca not düşülüp karışık veriden "A önde" deniyordu.
+    test_fps = sorted({r.get("measurement_fingerprint") for r in test_rows if r.get("measurement_fingerprint")})
+    mixed = len(test_fps) > 1
+    if mixed:
+        for d in dec:
+            if d["decision"] in ("büyüt", "kapat"):
+                d.update(decision="tut", ads_manager=None, gated="mixed_definitions",
+                         why=d["why"] + "; ancak deneme süresinde Meta'daki ölçüm ayarı değişmiş (ör. atıf penceresi): iki farklı ölçü "
+                                        "karıştırıldığı için hüküm verilmez")
+        sup = {k: {**v, "p_best": None, "p_above_history": None, "gated": "mixed_definitions"} for k, v in sup.items()}
     stg = stage_section(snap, by_concept)
     if stg and stg["round_mode"] == "funnel":
         funnel_stage_guard(dec, stage_of_concept(snap), kpost, priors)
