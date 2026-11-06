@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.5
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.6
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,16 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.6** — eval araçları (bağımsız kod denetiminin dördüncü dalgası)
+- Migration yok, müşteri paketi değişmedi. Kullanılmayan iki bağımlılık (`pandas`, `duckdb`) kaldırıldı.
+- **Deney kaydı ham sonuca bağlı:** `kor_kiyas.py kayit` ham sonuç dosyasının özetini yazar. Kayıt başka bir dosyaya taşınırsa ya da
+  dosya kayıttan sonra değişirse karşılaştırma durur. Ham dosyadaki Claude sürümü de kayıtla karşılaştırılır.
+- **Ham puanlar raporda:** karşılaştırma tablosu her vakanın tek tek koşu puanlarını da gösterir (ör. `1.00 (1.00/1.00/1.00)`).
+- **Cevap okuyucu:** hakem metni model cevabı sanılmaz; iç içe kayıtta birden çok aday varsa tahmin edilmez, elle dışa aktarma istenir.
+- **Ezber denetimi:** izinli bir alıntı aynı satırdaki izinsiz kopyayı artık gizlemez. Bu düzeltme `hooks/error_notify.py`'deki iki
+  cümlelik alıntının cümle sınırını aşan parçasını ortaya çıkardı; `senaryo-matrisi.json`'da iki cümle tek alıntı olarak yazıldı.
+- `tests/test_v2106_eval_araclari.py`.
+
 **2.10.5** — video ve görsel denetimi (bağımsız kod denetiminin üçüncü dalgası)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Siyah kare ve donma denetimi:** dosya okunamazsa sonuç "temiz" değil "ölçülemedi" olur. Videonun sonuna kadar süren donma da

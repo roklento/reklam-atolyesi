@@ -189,3 +189,20 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
+
+## 2.10.6 (2026-11-06): eval araçları
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `evals/kor_kiyas.py` (`kayit`, kayıt denetimi) | admin aracı | bütün karşılaştırmalar | Dış kod denetimi: kayıt hangi ham dosyaya ait olduğunu taşımıyordu | Ham dosya özeti ve Claude sürümü denetleniyor (`tests/test_v2106_eval_araclari.py`) | yok | yardım etti (test) |
+| `evals/kor_kiyas.py` (rapor) | admin aracı | bütün karşılaştırmalar | Dış kod denetimi: bant ortalaması tek koşudaki düşüşü gizleyebiliyordu | Her vakanın ham koşu puanları tabloda | yok | yardım etti (test) |
+| `evals/kor_kiyas.py` (`load_answers`) | admin aracı | kör kıyas | Dış kod denetimi: hakem metni cevap sanılabiliyordu | Hakem anahtarları atlanıyor; birden çok aday varsa durur | yok | yardım etti (test) |
+| `evals/ezber_denetimi.py` (`find`), `evals/senaryo-matrisi.json` | admin aracı | alıntı izinli vakalar | Dış kod denetimi: aynı satırda izinli alıntı izinsiz kopyayı gizliyordu | Gizli kalan bir cümle-sınırı parçası çıktı; iki cümle tek alıntı yapıldı (plugin metni değişmedi) | yok | yardım etti (test) |
+| `servers/ad_memory/pyproject.toml`, `uv.lock` | bağımlılık | yok | `pandas` ve `duckdb` hiçbir yerde içe aktarılmıyordu | Kurulum küçüldü; 715 test geçti | yok | yardım etti |
+
+**Sahada:** müşteri tarafında değişiklik yok.
+
+**Ders:** *Ne zaman:* bir denetim izin listesiyle çalışıyorsa. *Ne yap:* izin, aynı yerdeki başka bir bulguyu örtmesin; her bulgu ayrı
+değerlendirilsin. *Dayanak:* bu sürümün ezber denetimi satırı. *Güven:* orta.

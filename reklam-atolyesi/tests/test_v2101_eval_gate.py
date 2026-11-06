@@ -42,8 +42,10 @@ def _doc(path: Path, scores: dict | None = None, *, without=True, claude="2.5.0"
 
 
 def _kayit(json_path: str, *, iz="abc", claude="2.5.0", kosu=3) -> None:
+    import hashlib  # 2.10.6: kayıt ham sonucun özetini taşır
     KK.kayit_yolu(json_path).write_text(json.dumps({"plugin_surumu": "x", "commit": "0" * 40, "vaka_parmak_izi": iz,
-                                                    "vaka_sayisi": len(CASES), "claudeVersion": claude, "kosu": kosu}),
+                                                    "vaka_sayisi": len(CASES), "claudeVersion": claude, "kosu": kosu,
+                                                    "ham_sha256": hashlib.sha256(Path(json_path).read_bytes()).hexdigest()}),
                                         encoding="utf-8")
 
 

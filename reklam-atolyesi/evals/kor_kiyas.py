@@ -65,7 +65,17 @@ def _answers_from_dir(d: Path) -> dict[str, list[str]]:
     return out
 
 
+# 2.10.6: okuyucu önceden bütün belgeyi gezip ilk "text" alanını alıyordu; hakemin gerekçesi model cevabı sanılabiliyordu.
+SKIP_KEY_PARTS = ("grad", "judge", "score", "rubric", "assert", "evaluat", "critique", "verdict", "hakem", "puan")
+
+
+def _skip_key(k) -> bool:
+    k = str(k).lower()
+    return any(part in k for part in SKIP_KEY_PARTS)
+
+
 def _find_strings(obj, depth=0) -> list[str]:
+    """Cevap adayları: bilinen cevap alanları; puanlama/hakem bölümleri hiç gezilmez."""
     if depth > 6:
         return []
     if isinstance(obj, dict):
@@ -74,8 +84,8 @@ def _find_strings(obj, depth=0) -> list[str]:
             if isinstance(v, str) and v.strip():
                 return [v.strip()]
         found: list[str] = []
-        for v in obj.values():
-            if isinstance(v, (dict, list)):
+        for k, v in obj.items():
+            if isinstance(v, (dict, list)) and not _skip_key(k):
                 found += _find_strings(v, depth + 1)
         return found
     if isinstance(obj, list):
@@ -86,6 +96,13 @@ def _find_strings(obj, depth=0) -> list[str]:
     return []
 
 
+def _answer_of(run: dict) -> str | None:
+    """Koşunun son cevabı: üst düzeyde bilinen bir alan ya da iç içe yapıda TEK bir aday. Birden çok farklı aday varsa hangisinin
+    cevap olduğu bilinemez: None (elle aktarım istenir)."""
+    c = _find_strings(run)
+    return c[0] if len(set(c)) == 1 else None
+
+
 def _answers_from_json(f: Path) -> dict[str, list[str]]:
     """Yalnızca eklentili koldaki koşuların cevabı. Sonuç belgesi puan okuyucusuyla aynı denetimden geçer (2.10.1)."""
     doc = load_eval(f)
@@ -94,11 +111,11 @@ def _answers_from_json(f: Path) -> dict[str, list[str]]:
     for name, runs in doc["vakalar"].items():
         got = []
         for i, r in enumerate(runs, 1):
-            s = _find_strings(r)
-            if s:
-                got.append(s[0])
+            ans = _answer_of(r)
+            if ans:
+                got.append(ans)
             else:
-                sorun.append(f"{name} {i}. koşu: cevap metni okunamadı")
+                sorun.append(f"{name} {i}. koşu: cevap metni okunamadı ya da birden çok aday var")
         out[name] = got
     if sorun:
         _dur(f, sorun, "Cevapları HTML rapordan <vaka>/<n>.md düzeninde bir klasöre kaydedip o klasörü verin.")
@@ -482,6 +499,7 @@ def cmd_kayit(a) -> int:
         commit = None
     iz, n = parmak_izi(root)
     k = {"plugin_surumu": surum, "commit": commit, "vaka_parmak_izi": iz, "vaka_sayisi": n,
+         "ham_sha256": hashlib.sha256(Path(a.json).read_bytes()).hexdigest(),
          "claudeVersion": d.get("claudeVersion"), "schemaVersion": d.get("schemaVersion"), "kosu": a.kosu,
          "komut": a.komut or ""}
     kayit_yolu(a.json).write_text(json.dumps(k, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -496,7 +514,19 @@ def _kayit_sorunlari(eski: str, yeni: str, kosu: int) -> tuple[list[str], dict]:
         if not f.exists():
             sorun.append(f"{taraf}: deney kaydı yok ({f.name}); `kor_kiyas.py kayit` ile yazılmalı")
         else:
-            ks[taraf] = json.loads(f.read_text(encoding="utf-8"))
+            k = json.loads(f.read_text(encoding="utf-8"))
+            ks[taraf] = k
+            # 2.10.6: kayıt bu ham sonuca ait olmalı. Önceden eski bir yan kayıt başka bir ham dosyanın yanında da geçiyordu.
+            ham = Path(p).read_bytes()
+            if k.get("ham_sha256") != hashlib.sha256(ham).hexdigest():
+                sorun.append(f"{taraf}: deney kaydı bu sonuç dosyasına ait değil ya da dosya sonradan değişti (özet tutmuyor); "
+                             "`kor_kiyas.py kayit` yeniden çalıştırılmalı")
+            try:
+                raw_ver = json.loads(ham.decode("utf-8")).get("claudeVersion")
+            except (ValueError, AttributeError):
+                raw_ver = None
+            if raw_ver is not None and raw_ver != k.get("claudeVersion"):
+                sorun.append(f"{taraf}: sonuç dosyasındaki Claude sürümü ({raw_ver!r}) kayıttakiyle ({k.get('claudeVersion')!r}) aynı değil")
     if len(ks) == 2:
         e, y = ks["eski"], ks["yeni"]
         if e.get("vaka_parmak_izi") != y.get("vaka_parmak_izi"):
@@ -525,6 +555,7 @@ def compare_scores(old: dict, new: dict, closed: set[str]) -> dict:
             res = "fark yok"
         grup = "kapalı" if case in closed else "açık"
         rows.append({"vaka": case, "grup": grup, "eski": om, "yeni": nm, "oynama": band, "sonuc": res,
+                     "eski_puanlar": list(o), "yeni_puanlar": list(n),
                      "esik_alti": nm < ESIK - PAY,
                      "eski_harcama": old["harcama"].get(case), "yeni_harcama": new["harcama"].get(case)})
     # Harcama yalnızca aynı kapsamda karşılaştırılır: iki tarafta da her vakanın harcaması varsa vaka başına toplam,
@@ -563,12 +594,15 @@ def run_puan(eski: str, yeni: str, kosu: int = KOSU, beklenen: set[str] | None =
               f"{k.get('vaka_sayisi')} vaka × {k.get('kosu')} koşu · vaka parmak izi {k.get('vaka_parmak_izi')}")
     if ks:
         print()
-    print("| Vaka | Grup | Eski ort. | Yeni ort. | Oynama payı | Sonuç | Harcama eski → yeni |\n|---|---|---|---|---|---|---|")
+    print("| Vaka | Grup | Eski ort. (koşular) | Yeni ort. (koşular) | Oynama payı | Sonuç | Harcama eski → yeni |\n"
+          "|---|---|---|---|---|---|---|")
     for x in r["rows"]:
         res = x["sonuc"] + (" (ezbere kayma şüphesi)" if x["sonuc"] == "geriledi" and x["grup"] == "kapalı" else "")
         if x["esik_alti"]:
             res += f" · EŞİK ALTI (<{ESIK})"
-        print(f"| {x['vaka']} | {x['grup']} | {x['eski']:.2f} | {x['yeni']:.2f} | {x['oynama']:.2f} | {res} | "
+        ko = "/".join(f"{v:.2f}" for v in x["eski_puanlar"])
+        kn = "/".join(f"{v:.2f}" for v in x["yeni_puanlar"])
+        print(f"| {x['vaka']} | {x['grup']} | {x['eski']:.2f} ({ko}) | {x['yeni']:.2f} ({kn}) | {x['oynama']:.2f} | {res} | "
               f"{usd(x['eski_harcama'])} → {usd(x['yeni_harcama'])} |")
     reg = [x for x in r["rows"] if x["sonuc"] == "geriledi"]
     imp = [x for x in r["rows"] if x["sonuc"] == "iyileşti"]
@@ -576,7 +610,8 @@ def run_puan(eski: str, yeni: str, kosu: int = KOSU, beklenen: set[str] | None =
     print(f"\nİyileşen: {len(imp)} · gerileyen: {len(reg)} · fark yok: {len(r['rows']) - len(imp) - len(reg)} · "
           f"eşik altı: {len(low)}")
     print("Not: \"fark yok\", iki sürümün eşit olduğunu kanıtlamaz; yalnızca farkın eski sürümün kendi oynamasından büyük "
-          "olmadığını söyler.")
+          "olmadığını söyler. Oynama payı 3 koşunun en büyüğü ile en küçüğü arasındaki farktır; güven aralığı değildir, bu yüzden "
+          "koşuların kendisi de yazıldı.")
     print(f"Harcama ({r['harcama_kaynak']}): {usd(r['harcama_eski'])} → {usd(r['harcama_yeni'])}"
           + (f" ({r['harcama_artis']:+.0f}%)" if r["harcama_artis"] is not None else ""))
     print("Bu, değerlendirmenin harcamasıdır; müşterinin kullanım maliyeti değildir.")
