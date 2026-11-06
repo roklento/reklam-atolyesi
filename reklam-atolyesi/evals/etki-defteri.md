@@ -190,6 +190,21 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.10 (2026-11-06): bağımlılık güncellemesi
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `servers/ad_memory/uv.lock` (Pillow 13, certifi) | bağımlılık | fotoğraf yükleyen her kullanıcı | Dış ürün denetimi B9: Pillow 12.3.0'da 39, certifi'de 2 güvenlik bildirimi | pip-audit temiz; fotoğraf ve HEIC testleri geçiyor (`tests/test_v21010_bagimliliklar.py`) | yok | yardım etti (test) |
+| `templates/remotion/package.json`, `package-lock.json` (Remotion 4.0.540, zod 4.6.7) | bağımlılık | render eden her kullanıcı | Dış ürün denetimi B9: npm audit 10 yüksek, 1 orta | npm audit temiz; tür denetimi geçti, örnek render alındı | yok | yardım etti |
+| `scripts/setup/bagimlilik_denetimi.py`, CI adımı | yayın denetimi | yok | B9: bildirimler yayından önce görülmüyordu | Her CI koşusunda rapor, yüksek bildirimde uyarı | yok | ölçülmedi |
+
+**Sahada:** henüz yok. Müşteri güncellemesi değişen Python ve npm bağımlılıklarını indirir.
+
+**Ders:** *Ne zaman:* kilitli bağımlılık uzun süre değişmiyorsa. *Ne yap:* güvenlik raporunu her CI koşusunda üret, büyük sürüm
+yükseltmesini ayrı sürümde ve gerçek dosya yollarıyla dene. *Dayanak:* bu sürümün Pillow ve Remotion satırları. *Güven:* orta.
+
 ## 2.10.9 (2026-11-06): kişisel içerik, silme ve profil ayrımı
 
 **Değişiklikler**

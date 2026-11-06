@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.9
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.10
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,16 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.10** — bağımlılık güncellemesi (bağımsız ürün denetimi B9)
+- Migration yok, müşteri paketi değişmedi. Güncellenen bağımlılıklar: Pillow 12.3.0 → 13.0.0, certifi 2026.7.22 → 2026.10.23, Remotion
+  paketleri 4.0.532 → 4.0.540, zod 4.5.4 → 4.6.7 (alt bağımlılık fast-uri de güncellendi). pip-audit ve `npm audit --omit=dev`
+  bildirim bulmadı.
+- Fotoğraf (HEIC dahil) ve EXIF yönü testleri eklendi. Remotion şablonu tür denetiminden geçti; örnek video (9:16, 90 kare) ve galeri
+  görüntüsü bu sürümle render edildi.
+- **Bağımlılık raporu:** `scripts/setup/bagimlilik_denetimi.py` Python ve npm kilitlerini tarar. CI'da her çalıştırmada rapor verir,
+  yüksek ya da kritik bildirimde uyarı basar, yayını durdurmaz.
+- `tests/test_v21010_bagimliliklar.py`.
+
 **2.10.9** — kişisel içerik, silme ve profil ayrımı (bağımsız ürün denetimi B4, B7, B8, B11, B12)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Yorum kartı kayıttan çizilir:** `ReviewCard` katmanındaki metin, puan ve gösterilen ad yorum kaydıyla aynı olmalı; farklıysa plan
