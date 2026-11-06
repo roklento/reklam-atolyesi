@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.6
+# Müşteri paketi — 2.10.7
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,14 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.6**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.7**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.7 migration içermez; yeni bağımlılık: saat dilimi verisi (tzdata). Müşteri paketi değişmedi (ZIP yeniden gönderilmez).
+Müşterinin gördüğü değişiklik: Windows'ta ilk marka kaydı yeniden çalışır; onay sorulan yerde "evet" ya da "onaylıyorum" gibi açık bir
+cevap gerekir, şartlı ya da olumsuz cevap onay sayılmaz; fiyat değişirse yeniden sorulur. Bu sürüm temiz bir Windows'ta `kur.cmd` ile
+kurulup bir örnek reklam üretilerek doğrulanmalıdır (bulut ortamında yapılamaz).
 2.10.6 migration içermez; iki kullanılmayan bağımlılık (pandas, duckdb) kaldırıldı, kurulum biraz kısalır. Müşteri paketi
 değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik yok; değişiklikler yalnızca yayın öncesi denetim araçlarında.
 2.10.5 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:

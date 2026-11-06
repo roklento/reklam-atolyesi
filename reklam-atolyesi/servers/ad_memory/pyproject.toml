@@ -16,6 +16,8 @@ dependencies = [
   "pillow-heif",      # kontak sayfası, fotoğraflar (HEIC, 5.4)
   "jsonschema",       # kurgu planı doğrulama (5.2)
   "scenedetect==0.7.2",  # sahne kesimi (AdaptiveDetector; BSD-3; 1.6.0); opencv-python yukarıda, ek sürücü gerekmez
+  "tzdata",           # 2.10.7: Windows'ta işletim sisteminin saat dilimi verisi yok; zoneinfo bu pakete düşer (2.10.6'da pandas'la gitmişti)
+
 ]
 
 [project.scripts]

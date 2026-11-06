@@ -128,7 +128,7 @@ Yok.
     önerisi ya da neden önerilmediği) · Uygulama listesi ve durumu · Rekabet bağlamı · Öğrenilenler · Sonraki tur ·
     Veri yeterliliği · Koçluğun isabeti. Dil sade; her hükmün yanında veri yeterliliği.
 11. **Taslak denetimi (2.5.0, KURALLAR K10):** her .md belge (koçluk raporu (.md)) için `draft_check(profile_id, "S16", path, campaign_id, cycle_id)`; kritik sorun varsa belgeyi kullanıcıya GÖSTERMEDEN düzelt (veri eksikse önce kaydı düzelt ya da kullanıcıya sor) ve yeniden denetle — en fazla 2 tur, turu sunucu sayar; tur sınırı dolarsa kalan sorunları belgeyle birlikte sade dille söyle. Uyarılar kısaca söylenir. Denetlenmemiş ya da denetimden sonra değişmiş belgeyi `stage_complete` reddeder. Sonra `stage_complete(profile_id, "S16", outputs=[{path: rapor}, {path: kopya}, {path: analysis}], summary, campaign_id, cycle_id)` → `awaiting_gate`.
-12. Onaydan sonra kararlar `decision_log` ile; maddeler `action_item_set_status(item_id, "approved", approval_text, decision_id)`.
+12. Onaydan sonra kararlar `decision_log` ile; maddeler `action_item_set_status(session_id, profile_id, item_id, "approved", decision_id=…)`.
     Uygulamayı insan yapar; gerçekleşme `track` 6.11 ile doğrulanır. Kapalı turun verisi sonradan değişirse yeni rapor sürümü
     (yeniden değerlendirme adayı); eski karar ve kopyası değişmez.
 

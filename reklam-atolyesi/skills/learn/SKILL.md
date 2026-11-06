@@ -34,7 +34,7 @@ Yok.
    ilgili hipotezler `inconclusive`, gerekçe "sayfa/teklif ayrıştırılamadı" (1.4.7). Mesajla satışın kayıp nedenleri (1.4.8) brief
    taslağına "teklif/süreç" maddesi olarak girer; kreatife hüküm yazılmaz.
    Koşulu sağlayan → `playbook_propose(profile_id, rule, evidence, scope, season, confidence)` (`proposed`); kullanıcı onaylarsa
-   `playbook_activate(profile_id, rule_id, approval_text)`. Her bulguya sezon etiketi.
+   `playbook_activate(session_id, profile_id, rule_id)`. Her bulguya sezon etiketi.
 4. **Yeniden doğrulama ve emeklilik (8.6):** `playbook_round_tick(profile_id)`; `due_revalidation` kurallar bu turun verisiyle
    `playbook_revalidate(profile_id, rule_id, outcome=consistent|contradicted|inconclusive, evidence)`; art arda iki turda çelişen →
    `playbook_retire(profile_id, rule_id, reason)` (silinmez).

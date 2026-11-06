@@ -159,7 +159,9 @@ class LegalMixin:
                 fp = self.data_dir / fp
             if not fp.is_file():
                 raise AdMemoryError(f"izin verilecek dosya yok: {fp}")
-            bound.append({"name": fp.name, "size": fp.stat().st_size, "sha256": sha256_file(fp)})
+            # 2.10.7: yol da saklanır; maliyet koruması yükleme ve tamamlama anında içeriğin özetini yeniden hesaplar
+            bound.append({"name": fp.name, "size": fp.stat().st_size, "sha256": sha256_file(fp), "path": str(fp.resolve())})
+
         if contains_personal_data and session_id and not bound:
             raise AdMemoryError("kişisel veri içeren gönderimde izin dosyaya bağlanır: gönderilecek dosyaları files ile verin "
                                 "(başka bir dosya bu izinle gönderilemez)")

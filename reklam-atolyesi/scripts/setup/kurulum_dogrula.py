@@ -43,6 +43,21 @@ def say(msg: str) -> None:
     print(msg, flush=True)
 
 
+def tz_check() -> tuple[bool, dict]:
+    """2.10.7: saat dilimi verisi. Windows'ta işletim sistemi IANA verisi vermez; zoneinfo kurulumdaki tzdata paketine düşer.
+    Yoksa ilk marka kaydı 'geçersiz saat dilimi' ile durur (2.10.6'da kilitten düşmüştü)."""
+    import importlib.util
+    import zoneinfo
+    detail: dict = {"tzdata_paketi": importlib.util.find_spec("tzdata") is not None}
+    try:
+        for name in ("Europe/Istanbul", "America/New_York"):
+            zoneinfo.ZoneInfo(name)
+        return True, detail
+    except Exception as e:
+        detail["hata"] = f"{type(e).__name__}: {e}"
+        return False, detail
+
+
 def run_py(args: list[str], timeout: int) -> subprocess.CompletedProcess:
     env = dict(os.environ, PYTHONIOENCODING="utf-8")
     return subprocess.run([sys.executable, *args], capture_output=True, timeout=timeout, env=env, cwd=str(ROOT))
@@ -274,8 +289,14 @@ def main() -> None:
         summary["steps"].append({"step": name, "ok": bool(ok), "detail": detail})
         say(f"{'✔' if ok else '✘'} {name}")
 
+    tz_ok, tz_detail = tz_check()
+    step("Saat dilimi verisi", tz_ok, tz_detail)
+    if not tz_ok:  # marka kaydı saat dilimi olmadan çalışmaz; sonraki adımlar boşuna beklenmez
+        finish(summary, a, t_all, ok=False)
+
     if a.guncelleme:
         say("• Veritabanı yedeği alınıyor…")
+
         try:
             b = backup_before_update(data_dir, version)
             step("Güncelleme öncesi veritabanı yedeği", True, b)

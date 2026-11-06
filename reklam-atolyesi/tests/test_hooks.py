@@ -213,6 +213,9 @@ def test_cost_paid_requires_single_use_reservation(ddir, store):
     assert deny_of(run_hook("cost_guard.py", call, ddir))  # tahmin/onay yok
     g = store.generation_log(pid, cid, cyid, "creative_generate_speech", P, 120)
     store.generation_approve(pid, g["id"], 120, 4, "onaylıyorum", {"license": {"source": "s", "checked_at": "t", "scope": "reklam"}})
+    # hook ayrı süreçte gerçek saatle çalışır; testin sabit saatiyle yazılan onay 30 dakikalık süreyi geçmiş görünmesin (2.10.7)
+    import datetime as _dt
+    store.ex("UPDATE generations SET approved_at=? WHERE id=?", (_dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), g["id"]))
     assert run_hook("cost_guard.py", call, ddir) is None  # rezervasyon alındı
     assert store.q1("SELECT status FROM generations WHERE id=?", (g["id"],))["status"] == "running"
     assert deny_of(run_hook("cost_guard.py", call, ddir))  # ikinci çağrı: süren talep, otomatik tekrar yok

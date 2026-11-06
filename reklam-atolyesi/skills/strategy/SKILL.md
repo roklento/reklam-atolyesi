@@ -150,4 +150,4 @@ belgesi, hipotez adayları, devam notu.
 satış hunisi turu: ürünü ilk kez görenler yerine … kişilere odaklanıyoruz, çünkü …>. Toplam N reklam deneyeceğiz: … tanesi daha
 önce işe yaramış fikirler, … tanesi rakiplerin boş bıraktığı fikirler, … tanesi serbest denemeler. Fiyat ve kampanya teklifi
 konusundaki tutumumuz: …. Önerdiğim yayın tarihi: <tarih>. Deneme süresi <7|14> gün, turun tamamı <14|21> gün. Günlük bütçe ve bir
-reklama en fazla harcanacak tutar: …. Toplam plan … TL, kalan … TL. Onaylıyor musun, değiştirmek istediğin bir yer var mı?" → açık onayda `gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, checkpoint=…)`.
+reklama en fazla harcanacak tutar: …. Toplam plan … TL, kalan … TL. Onaylıyor musun, değiştirmek istediğin bir yer var mı?" → açık onayda `gate_approve(session_id, profile_id, stage_run_id, output_version, cycle_id=…, checkpoint=…)`.
