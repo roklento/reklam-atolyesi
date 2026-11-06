@@ -70,7 +70,7 @@ def test_failure_notification_scope_and_redaction(data_dir):
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='Windows müşteri paketi')
-@pytest.mark.parametrize('mode', ['same', 'changed', 'update-fails', 'deps-fail', 'missing'])
+@pytest.mark.parametrize('mode', ['same', 'changed', 'update-fails', 'deps-fail', 'missing', 'no-backup'])
 def test_windows_updater_flow(tmp_path, mode):
     """Gerçek PS 5.1 kontrol akışı; dış servis/kurulum çağrıları sahte, müşteri verisine erişim yok."""
     dd = tmp_path / 'müşteri veri'
@@ -107,6 +107,12 @@ function uv { }
 function npm.cmd { }
 function Invoke-Adim([string]$exe, [string[]]$argv) {
     ConvertTo-Json -Compress @{exe=$exe;argv=$argv} | Add-Content -LiteralPath CALLS -Encoding UTF8
+    if ($argv[1] -eq 'backup' -and 'MODE' -ne 'no-backup') {
+        # guncelle.py backup gibi: backups altına boş olmayan yedek yazar (2.10.14: güncelleyici yedeği dosyadan doğrular)
+        $b = Join-Path DD 'backups'
+        New-Item -ItemType Directory -Force -Path $b | Out-Null
+        [IO.File]::WriteAllText((Join-Path $b 'guncelleme-test.sqlite'), 'yedek')
+    }
     if ($argv[0] -eq 'plugin' -and $argv[1] -eq 'update') {
         if ('MODE' -eq 'update-fails') { throw 'SIMULATED UPDATE ERROR' }
         $script:moved = $true
@@ -135,6 +141,12 @@ function Invoke-Adim([string]$exe, [string[]]$argv) {
         assert not entries
         return
     assert entries[0]['argv'][1] == 'backup'
+    if mode == 'no-backup':
+        # 2.10.14 (B15): yedek yoksa güncellemeye başlanmaz ve "yedeklendi" denmez
+        assert len(entries) == 1 and 'yedeği alınamadı' in output and 'yedeği şurada' not in output
+        return
+    if mode in ('update-fails', 'deps-fail'):
+        assert 'yedeği şurada' in output and 'guncelleme-test.sqlite' in output
     assert entries[1]['argv'] == ['plugin', 'marketplace', 'update', 'reklam-atolyesi']
     assert entries[2]['argv'] == ['plugin', 'update', 'reklam-atolyesi@reklam-atolyesi', '--scope', 'user']
     assert any(e['exe'] == 'uv' for e in entries) == (mode in ('changed', 'deps-fail'))
