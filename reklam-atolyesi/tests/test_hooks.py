@@ -197,7 +197,12 @@ def test_cost_estimate_requires_verified_schema(ddir, store):
     store.plugin_root = ddir / "plug"
     store.plugin_root.mkdir()
     (store.plugin_root / "system_manifest.json").write_text(json.dumps({"live_checks": [{"id": "el_estimate_schema"}]}), encoding="utf-8")
-    store.runtime_record("el_estimate_schema", "passed", component_hashes={"tools_with_estimate_only": ["creative_generate_speech"]})
+    sch = ddir / "logs" / "el-sema.json"  # 2.10.12: kayıt canlı şema kanıtı ister
+    sch.parent.mkdir(exist_ok=True)
+    sch.write_text(json.dumps({"tools": {"creative_generate_speech": {"type": "object", "properties": {"estimate_only": {"type": "boolean"}}}}}),
+                   encoding="utf-8")
+    store.runtime_record("el_estimate_schema", "passed", evidence_ref=str(sch),
+                         component_hashes={"tools_with_estimate_only": ["creative_generate_speech"]})
     assert run_hook("cost_guard.py", est, ddir) is None
 
 

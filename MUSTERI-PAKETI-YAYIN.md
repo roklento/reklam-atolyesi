@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.11
+# Müşteri paketi — 2.10.12
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.11**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.12**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.12 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
+güncellemeden sonraki ilk ücretli ses ya da görsel üretiminden önce Reklam Atölyesi ElevenLabs bağlantısını bir kez yeniden kontrol eder
+(birkaç dakika, ücretsiz). Kişinin sesi ya da görüntüsü olan dosya yalnızca izin verilen dosyadan gönderilir.
 2.10.11 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
 onay için kısa ve net bir cevap gerekir ("evet", "onaylıyorum"); şart, soru ya da emoji içeren cevapta Reklam Atölyesi yeniden sorar.
 Bir hafıza kaydını silmeden önce kaydı gösterip "sileyim mi?" diye sorar. Başka bir markanın klasöründeki rapor dosyası bu markaya

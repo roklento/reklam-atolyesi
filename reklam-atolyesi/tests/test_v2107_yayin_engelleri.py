@@ -244,6 +244,19 @@ def _finish(data_dir, asset="a1"):
     return run_hook("cost_guard.py", {"session_id": SID, "tool_name": FIN, "tool_input": {"asset_id": asset, "flow_id": "f"}}, data_dir)
 
 
+def _started(data_dir, asset):
+    """PostToolUse: sağlayıcının yanıtındaki kimlik ve adres başlatma kaydına yazılır (2.10.12)."""
+    run_hook("upload_guard.py", {"session_id": SID, "hook_event_name": "PostToolUse", "tool_name": UP, "tool_input": {},
+                                 "tool_response": {"asset_id": asset, "upload_url": f"https://yukleme.example/{asset}?imza=1"}}, data_dir)
+
+
+def _sent(data_dir, asset):
+    sys.path.insert(0, str(ROOT / "scripts" / "ingest"))
+    import izinli_yukleme as IY
+    out = IY.run(data_dir, SID, asset, None, put=lambda url, body, mime: 200)
+    assert out["ok"], out
+
+
 def test_changed_content_with_same_name_and_size_is_refused(store, data_dir):
     pid, ok, _, cid = _personal_upload_setup(store, data_dir)
     store.processing_permission_check(pid, "elevenlabs", "seslendirme", True, ["voice"], SID, [cid], files=[str(ok)])
@@ -257,11 +270,15 @@ def test_finish_step_needs_a_started_upload_and_valid_permission(store, data_dir
     store.processing_permission_check(pid, "elevenlabs", "seslendirme", True, ["voice"], SID, [cid], files=[str(ok)])
     assert deny_of(_finish(data_dir))  # başlatılmış yükleme yok
     assert _create(data_dir, ok, 64) is None
-    assert _finish(data_dir) is None  # olağan akış
+    _started(data_dir, "a1")
+    _sent(data_dir, "a1")
+    assert _finish(data_dir) is None  # olağan akış (2.10.12: kimlik yakalandı, baytlar betikle gitti)
     assert deny_of(_finish(data_dir, "baska"))  # bir başlatma bir tamamlama
     assert _create(data_dir, ok, 64) is None
+    _started(data_dir, "a2")
+    _sent(data_dir, "a2")
     store.consent_withdraw(pid, cid, "kişi vazgeçti")
-    out = _finish(data_dir, "baska")
+    out = _finish(data_dir, "a2")
     assert deny_of(out) and "geri çekildi" in out["hookSpecificOutput"]["permissionDecisionReason"]
 
 

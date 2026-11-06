@@ -18,8 +18,10 @@ Canlı kurulum kontrolünü yürüt (spec 12.10 canlı liste, 16.5, 12.13). Stat
 4. **PreToolUse (Meta) gerçekten tetikleniyor:** izin listesinde **olmayan ama zararsız bir okuma aracı** (`ads_get_ad_account_custom_audiences`)
    plugin'in `meta-ads` sunucusunda çağrılır ve hook'un reddettiği görülür. Yazan ya da harcama başlatan araçla bu test **yapılmaz**.
 5. **ElevenLabs:** bağlı; araç listesi `hooks/elevenlabs_tools.json` sınıflarıyla karşılaştırılır (sınıflandırılmamış ücretli araç bildirilir;
-   liste insan onayıyla güncellenir). Her ücretli aracın canlı şemasında `estimate_only` desteği okunur ve
-   `runtime_record("el_estimate_schema", "passed", component_hashes={"tools_with_estimate_only": [...]})` yazılır. Desteklenen bir araçta
+   liste insan onayıyla güncellenir). Her ücretli aracın canlı şemasında `estimate_only` desteği okunur; okunan şemalar
+   `<data_dir>/logs/el-sema-<tarih>.json` dosyasına `{"tools": {"<araç>": <inputSchema>}}` olarak yazılır ve
+   `runtime_record("el_estimate_schema", "passed", evidence_ref=<dosya>, component_hashes={"tools_with_estimate_only": [...]})`
+   kaydedilir. Sunucu şemada alanı görmediği aracı reddeder; plugin'in ElevenLabs araç sınıfları değişirse kayıt yeniden yapılır. Desteklenen bir araçta
    `estimate_only: true` ile fiyat dönüyor mu (ücretsiz). Maliyet korumasının gerçek host tetiklenmesi ücretsiz bir listeleme çağrısında
    geçici deny testiyle sınanır; geçici kural test sonunda kaldırılır.
 6. **Meta veri yolu:** MCP'de salt okuma ve `ads_get_ad_accounts` → `is_queryable`; `ads_get_field_context` ile `meta_fields.json` alanları;

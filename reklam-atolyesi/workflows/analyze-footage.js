@@ -29,21 +29,26 @@ const RESULT = {
   },
 }
 
+// 2.10.12: görev metnine giren her alan tek satıra indirilir (satır sonu ve denetim karakterleri boşluk olur); serbest metin alanları
+// (ad, tür) tırnak içinde veri olarak verilir. Rakip adına gömülü "yeni satır + yönerge" ayrı bir görev satırı olamaz (K08).
+const one = v => String(v ?? '').replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').trim().slice(0, 300)
+const q = v => JSON.stringify(one(v))
+
 const promptFor = clip => [
   'reklam-atolyesi S07 klip analizi. Tek bir klibi analiz et; kullanıcıya soru sorma, veritabanına yazma, ücretli araç çağırma.',
   `Önce ${a.plugin_root}/skills/analyze/SKILL.md dosyasını oku.`,
   `profile_id=${a.profile_id} campaign_id=${a.campaign_id} cycle_id=${a.cycle_id ?? 'null'}`,
-  `asset_id=${clip.asset_id}`,
-  `proxy=${clip.proxy}`,
-  `wav=${clip.wav ?? 'yok'}`,
+  `asset_id=${one(clip.asset_id)}`,
+  `proxy=${one(clip.proxy)}`,
+  `wav=${one(clip.wav ?? 'yok')}`,
   `shake_permille=${clip.shake_permille ?? 'bilinmiyor'}`,
-  `shot_hint=${clip.shot_hint ?? 'yok'}`,
-  `shoot_menu_path=${a.shoot_menu_path}`,
-  `campaign_dir=${a.campaign_dir}`,
+  `shot_hint=${one(clip.shot_hint ?? 'yok')}`,
+  `shoot_menu_path=${one(a.shoot_menu_path)}`,
+  `campaign_dir=${one(a.campaign_dir)}`,
   `plugin_root=${a.plugin_root}`,
   `data_dir=${a.data_dir}`,
   `python=${a.py}`,
-  `Çıktı: ${a.campaign_dir}/analysis/clips/clip_${clip.asset_id}.json (zaten varsa ve girdiyle uyumluysa yeniden işleme, status=already_done).`,
+  `Çıktı: ${one(a.campaign_dir)}/analysis/clips/clip_${one(clip.asset_id)}.json (zaten varsa ve girdiyle uyumluysa yeniden işleme, status=already_done).`,
   'Kontak sayfasına gerçekten bak; görmediğin içeriği "belirsiz" yaz.',
 ].join('\n')
 
@@ -51,7 +56,7 @@ log(`analyze-footage: ${a.clips.length} klip · ${a.now_iso ?? ''}`)
 phase('Klip analizi')
 const results = await pipeline(a.clips, clip =>
   agent(promptFor(clip), {
-    label: `klip ${clip.asset_id}`,
+    label: `klip ${one(clip.asset_id)}`,
     phase: 'Klip analizi',
     agentType: 'reklam-atolyesi:footage-analyst',
     schema: RESULT,
