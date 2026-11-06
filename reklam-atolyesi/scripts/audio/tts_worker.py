@@ -28,6 +28,11 @@ def fold(s: str) -> str:
     return WORDCHARS.sub("", s.replace("İ", "i").replace("I", "ı").lower()).strip("'")
 
 
+def tr_lower(s: str) -> str:
+    """Türkçe küçültme: İ→i, I→ı, sonra lower()."""
+    return s.replace("İ", "i").replace("I", "ı").lower()
+
+
 def apply_lexicon(text: str, lexicon: list[dict] | None) -> tuple[str, list[tuple[int, int]], list[dict]]:
     """Okunuş sözlüğü (2.1.0): yazılı biçim okunuşla değişir ("Wireless'ı" → "vayırlısı"); kesme işaretinden sonraki ek okunuşa
     bitişir. Dönen eşlem okunacak metnin her karakterini özgün metindeki karakter aralığına bağlar: altyazı özgün yazımla kalır."""
@@ -35,14 +40,19 @@ def apply_lexicon(text: str, lexicon: list[dict] | None) -> tuple[str, list[tupl
     entries = [e for e in (lexicon or []) if e.get("written") and e.get("spoken")]
     if not entries:
         return text, cmap, []
-    by = {e["written"].lower(): e for e in entries}
+    # 2.10.2: anahtar Türkçe küçültmeyle (str.lower() "İ"yi iki karaktere böler ve KeyError verirdi); İngilizce büyük yazım ("WIFI")
+    # için düz küçültme de denenir
+    by = {tr_lower(e["written"]): e for e in entries}
+    by_plain = {e["written"].lower(): e for e in entries}
     alts = "|".join(re.escape(e["written"]) for e in sorted(entries, key=lambda e: -len(e["written"])))
     rx = re.compile(rf"(?<!\w)({alts})(?:['’](\w+))?(?!\w)", re.I)
     out, omap, applied, pos = [], [], [], 0
     for m in rx.finditer(text):
+        e = by.get(tr_lower(m.group(1))) or by_plain.get(m.group(1).lower())
+        if e is None:  # hiçbir küçültmede eşleşmedi: girdi uygulanmaz, okuma bozulmaz (metin olduğu gibi kalır)
+            continue
         out.append(text[pos:m.start()])
         omap += cmap[pos:m.start()]
-        e = by[m.group(1).lower()]
         rep = e["spoken"] + (m.group(2) or "")
         out.append(rep)
         omap += [(m.start(), m.end())] * len(rep)

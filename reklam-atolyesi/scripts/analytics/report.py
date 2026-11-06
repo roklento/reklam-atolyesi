@@ -119,6 +119,9 @@ def build(an: dict, snap: dict, charts: dict, calibration: dict | None, actions:
                 if st.get("rate") is not None:
                     txt = (f"%{st['rate'] * 100:.1f} ({int(st['count'])} / {int(st['denominator_count'])} {st['denominator_label']}"
                            + ("" if st["canonical"] else "; önceki adım okunamadı, geçmişle kıyaslanmaz") + ")")
+                    if st.get("coverage") is not None and st["coverage"] < 0.995:  # 2.10.2: olay her satırda gelmedi
+                        txt += (f"; bu olay {st['denominator_label']} sayısının yalnızca %{st['coverage'] * 100:.0f}'inde ölçüldü, "
+                                "oran o kısımdan hesaplandı")
                     if st["status"] == "veri_yetersiz":
                         txt += "; veri yetersiz"
                     if st.get("history_mean") is not None:

@@ -475,6 +475,23 @@ class CoachMixin:
                 raise AdMemoryError("üst huni bulgusu, önceden seçilmiş alt huni metriğiyle aynı yönde ve yeterli veriyle desteklenmeden playbook'a girmez; 'dikkat bulgusu' olarak hipotez defterinde kalır (6.14)")
         if evidence.get("structure_verified") is False or evidence.get("bootstrap"):
             raise AdMemoryError("bootstrap/doğrulanmamış yapı turu kontrollü doğrulama sayılmaz (6.6)")
+        # 2.10.2: çağıranın beyanı yetmez; doğrulama turunun yapısı ve Meta iyileştirmeleri sunucu kaydından okunur
+        vcy = self.q1("SELECT cy.structure_detected, cy.enhancements_json FROM cycles cy JOIN campaigns c ON c.id=cy.campaign_id "
+                      "JOIN profiles p ON p.brand_id=c.brand_id WHERE cy.id=? AND p.id=?", (val, profile_id))
+        if not vcy:
+            raise AdMemoryError("doğrulama turu bu profilin kayıtlarında yok")
+        if vcy["structure_detected"] in ("bootstrap", "deviated", "unverified"):
+            raise AdMemoryError(f"doğrulama turunun kayıtlı yapısı '{vcy['structure_detected']}': kontrollü kreatif testi sayılmaz; kural "
+                                "aday olmaz, hipotez defterinde kalır (6.6)")
+        enh = jload(vcy["enhancements_json"], None) if isinstance(vcy["enhancements_json"], str) else vcy["enhancements_json"]
+        if enh:
+            if not enh.get("checked"):
+                raise AdMemoryError("doğrulama turunda Meta'nın kreatif iyileştirmeleri kontrol edilmemiş: Meta reklamı değiştirmiş olabilir, "
+                                    "sonuç yalnızca kreatife bağlanamaz. Ads Manager'dan bakılıp cycle_set ile kaydedilmeden kural aday olmaz")
+            if enh.get("on"):
+                names = ", ".join(str(i.get("name")) for i in enh["on"])
+                raise AdMemoryError(f"doğrulama turunda Meta iyileştirmeleri açıktı ({names}): kreatif testi ikinci bir değişkenle karıştı. "
+                                    "Kural aday olmaz; iyileştirmeler kapalıyken yeni bir doğrulama turu gerekir")
         with self.tx():
             rid = self.ex("""INSERT INTO playbook_rules(profile_id,rule,scope_json,season,evidence_json,confidence,status,created_at)
                              VALUES(?,?,?,?,?,?, 'proposed', ?)""",

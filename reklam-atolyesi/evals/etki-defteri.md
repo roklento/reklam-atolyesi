@@ -116,3 +116,23 @@ istedi" imzasının sıklığı (anlaşılmayan mesaj çoğu zaman düzeltme ist
 **Sahada:** müşteri akışı değişmedi; gösterge beklenmez.
 
 **Ders:** karşılaştırma aracı da bir yayın kapısıdır; "hiç sonuç yoksa dur" yetmez, "sonucun bir kısmı eksikse de dur" gerekir.
+
+---
+
+## 2.10.2 (2026-11-05): ölçülmeyen değer sonuç sayılmaz
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/analytics/coach.py` (huni adımları, aşama oranları), `scripts/analytics/report.py`, `admem/s_meta.py` (önsel) | işleyiş | bütün ürünler; olayın bazı reklamlarda gelmediği her kullanıcı | Dış sürüm denetimi: pay ve payda farklı satırlardan toplanıyordu | Yarım ölçülen olayda oran doğru, kapsama yazılıyor (`tests/test_v2102_kanit_kapilari.py`) | yok | yardım etti (test) |
+| `admem/s_draft.py`, `admem/s_stage.py` (taslak kapısı) | işleyiş | metin aşaması olan bütün hücreler | Dış sürüm denetimi: eski denetim kayıt değişince ve başka adla geçerli kalıyordu | Bütçe değişince ve ad değişince aşama durur; normal akış aynı | yok | yardım etti (test) |
+| `scripts/audio/tts_worker.py` (okunuş sözlüğü) | işleyiş | seslendirme kullanan bütün hücreler | Dış sürüm denetimi: Türkçe büyük İ seslendirmeyi durduruyordu | İ, I, ı, i ve İngilizce büyük yazım sınandı | yok | yardım etti (test) |
+| `scripts/qc/sfx_review.py` | işleyiş | ses efekti kullanan hücreler | Dış sürüm denetimi: ölçülmeyen eksen "geçti"ye karışıyordu | Efekt izi yokken sonuç "ölçülemedi" | yok | yardım etti (test) |
+| `admem/s_coach.py` (`playbook_propose`) | işleyiş | 2. tur ve sonrası (U3) | Dış sürüm denetimi: çağıranın beyanına güveniliyordu | Kontrolsüz, sapmış ya da iyileştirmesi açık turda aday yok | yok | yardım etti (test) |
+| `evals/defter_oku.py`, `evals/etki_ozeti.py` | işleyiş (admin) | — | Dış sürüm denetimi: farklı gözlem süreleri kıyaslanıyordu; aynı hücre kapsama sayılıyordu; "ölçülmemiş yok" yanıltıcıydı | Sentetik defterlerle sınandı | yok | yardım etti (test) |
+
+**Sahada:** henüz defter yok. Beklenen: huni adımlarında "veri yetersiz" satırı biraz artabilir (önceden yanlış bir oran gösteriliyordu).
+
+**Ders:** *Ne zaman:* iki toplamın oranı hesaplanırken satırların bir kısmında değerlerden biri yoksa. *Ne yap:* pay ve paydayı aynı
+satırlardan topla, kapsamayı yaz, kapsama yetmezse hüküm verme. *Dayanak:* bu sürümün huni satırı. *Güven:* yüksek.
