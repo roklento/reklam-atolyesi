@@ -22,6 +22,72 @@ def load_classes() -> dict:
     return json.loads((pm.HOOKS_DIR / "elevenlabs_tools.json").read_text(encoding="utf-8"))
 
 
+def _input_values(obj, strs: set, nums: set, depth: int = 0) -> None:
+    if depth > 4:
+        return
+    if isinstance(obj, dict):
+        for v in obj.values():
+            _input_values(v, strs, nums, depth + 1)
+    elif isinstance(obj, list):
+        for v in obj:
+            _input_values(v, strs, nums, depth + 1)
+    elif isinstance(obj, bool):
+        return
+    elif isinstance(obj, int):
+        nums.add(obj)
+    elif isinstance(obj, str):
+        strs.add(obj.replace("\\", "/").rsplit("/", 1)[-1].split("?", 1)[0])
+
+
+def _withdrawn(perm: dict, data_dir: Path) -> list[str]:
+    """İzin alındıktan sonra geri çekilen kişi/yorum izinleri (yükleme anında veritabanından yeniden okunur)."""
+    ids = [("person_consents", "kişi izni", i) for i in perm.get("consent_ids") or []] + \
+          [("reviews", "yorum", i) for i in perm.get("review_ids") or []]
+    if not ids:
+        return []
+    if not pm.db_path(data_dir).exists():
+        return ["izin kayıtları okunamadı (veritabanı yok)"]
+    from admem.store import Store
+    st = Store(pm.db_path(data_dir), data_dir)
+    try:
+        out = []
+        for table, label, i in ids:
+            r = st.q1(f"SELECT withdrawn_at FROM {table} WHERE id=?", (int(i),))
+            if not r or r["withdrawn_at"]:
+                out.append(f"{label} #{i}")
+        return out
+    finally:
+        st.close()
+
+
+NO_FILE_STEP = {"creative_finalize_asset_upload"}  # yüklemeyi tamamlama adımı dosya adı taşımaz; başlatan adım denetlenmiştir
+
+
+def upload_decision(perms: list[dict], tin: dict, data_dir: Path, bare: str = "") -> tuple[str, str | None]:
+    """2.10.3: izin dosyaya bağlıysa gönderilen dosyanın adı (araç boyut veriyorsa boyutu da) izindeki dosyalardan biriyle eşleşmeli ve
+    verilen kişi/yorum izinleri hâlâ geçerli olmalı. Kişisel veri içeren izin her zaman dosyaya bağlıdır (processing_permission_check
+    files ister). Dosyasız eski tip izin yalnızca kişisel veri içermeyen gönderim içindir."""
+    if bare in NO_FILE_STEP:
+        return "allow", None
+    strs: set = set()
+    nums: set = set()
+    _input_values(tin, strs, nums)
+    for perm in perms:
+        files = perm.get("files") or []
+        if not files:
+            if not perm.get("personal"):
+                return "allow", None
+            continue
+        if any(f.get("name") in strs and (not nums or f.get("size") in nums) for f in files):
+            gone = _withdrawn(perm, data_dir)
+            if gone:
+                return "deny", ("bu dosya için alınan izin artık geçerli değil (geri çekilmiş ya da bulunamadı: " + ", ".join(gone)
+                                + "); dosya gönderilmez (bölüm 10)")
+            return "allow", None
+    return "deny", ("bu dosya için yükleme izni alınmadı: izin başka dosya(lar) için verildi. Gönderilecek dosyayla "
+                    "processing_permission_check(..., files=[dosya]) yeniden çalıştırılmalı (bölüm 10)")
+
+
 def decide(data: dict, argv: list[str] | None = None) -> tuple[str, str | None]:
     tool = data.get("tool_name") or ""
     own = tool.startswith(pm.OWN_ELEVEN_PREFIX)
@@ -42,11 +108,11 @@ def decide(data: dict, argv: list[str] | None = None) -> tuple[str, str | None]:
         return "allow", None
     if bare in set(classes.get("upload", [])):
         pid = sess.get("profile_id")
-        ok = any(u.get("provider") == "elevenlabs" and u.get("profile_id") == pid for u in (sess.get("upload_permissions") or []))
-        if not pid or not ok:
+        perms = [u for u in (sess.get("upload_permissions") or []) if u.get("provider") == "elevenlabs" and u.get("profile_id") == pid]
+        if not pid or not perms:
             return "deny", ("dosya dış sağlayıcıya gönderilmeden önce yükleme öncesi izin kapısı gerekir: processing_permission_check "
                             "(provider='elevenlabs', session_id ile) çalıştırılmalı (bölüm 10)")
-        return "allow", None
+        return upload_decision(perms, data.get("tool_input") or {}, data_dir, bare)
     paid = classes.get("paid", {})
     if bare not in paid:
         return "deny", f"'{bare}' sınıflandırılmamış ElevenLabs aracı; plugin modunda varsayılan olarak engellenir (9.1). Liste insan onayıyla güncellenir."

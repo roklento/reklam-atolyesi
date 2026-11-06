@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .util import AdMemoryError, jdump, jload, now_iso
+from .util import AdMemoryError, jdump, jload, now_iso, sha256_file
 
 
 class LegalMixin:
@@ -146,9 +146,23 @@ class LegalMixin:
     # --- yükleme öncesi izin kapısı ---------------------------------------------------
     def processing_permission_check(self, profile_id: int, provider: str, purpose: str, contains_personal_data: bool,
                                     data_kinds: list[str] | None = None, session_id: str | None = None,
-                                    consent_ids: list[int] | None = None, review_ids: list[int] | None = None) -> dict:
-        """Tanınabilir görüntü/ses, yorum ya da kişisel veri dış sağlayıcıya gitmeden ÖNCE (bölüm 10)."""
+                                    consent_ids: list[int] | None = None, review_ids: list[int] | None = None,
+                                    files: list[str] | None = None) -> dict:
+        """Tanınabilir görüntü/ses, yorum ya da kişisel veri dış sağlayıcıya gitmeden ÖNCE (bölüm 10).
+        2.10.3: kişisel veri içeren gönderimde izin dosyaya bağlıdır (files): yükleme anında maliyet koruması gönderilen dosyanın adını ve
+        boyutunu bu listeyle, kişi/yorum izinlerinin geri çekilip çekilmediğini de veritabanıyla yeniden karşılaştırır."""
         bid = self._brand_id(profile_id)
+        bound: list[dict] = []
+        for f in files or []:
+            fp = Path(f)
+            if not fp.is_absolute():
+                fp = self.data_dir / fp
+            if not fp.is_file():
+                raise AdMemoryError(f"izin verilecek dosya yok: {fp}")
+            bound.append({"name": fp.name, "size": fp.stat().st_size, "sha256": sha256_file(fp)})
+        if contains_personal_data and session_id and not bound:
+            raise AdMemoryError("kişisel veri içeren gönderimde izin dosyaya bağlanır: gönderilecek dosyaları files ile verin "
+                                "(başka bir dosya bu izinle gönderilemez)")
         brand = self.q1("SELECT processing_permissions_json FROM brands WHERE id=?", (bid,))
         perms = brand["processing_permissions_json"] or {}
         if isinstance(perms, str):
@@ -178,13 +192,16 @@ class LegalMixin:
                     allowed = False
                     reasons.append(f"yorum #{rid}: {provider} aktarım kapsamı yok ya da geri çekilmiş")
         result = {"allowed": allowed, "provider": provider, "purpose": purpose, "contains_personal_data": contains_personal_data,
+                  "files": [{"name": b["name"], "size": b["size"]} for b in bound],
                   "reasons": reasons,
                   "fallback": None if allowed else "Kişisel veri dışarı aktarılmaz; yerelde kimliksizleştirilmiş malzeme ya da kişisel veri içermeyen ürün çekimi kullanılır.",
                   "note": "Bu kayıt yalnızca izin/kanıt takibi yapar; plugin hukuki uygunluğu kendiliğinden belgeleyemez."}
         if session_id and allowed:
             def grant(s: dict) -> None:
                 ups = s.get("upload_permissions") or []
-                ups.append({"profile_id": profile_id, "provider": provider, "purpose": purpose, "personal": contains_personal_data, "at": now_iso()})
+                ups.append({"profile_id": profile_id, "provider": provider, "purpose": purpose, "personal": contains_personal_data,
+                            "files": bound, "consent_ids": [int(c) for c in consent_ids or []],
+                            "review_ids": [int(r) for r in review_ids or []], "at": now_iso()})
                 s["upload_permissions"] = ups[-20:]
             self._session_update(session_id, grant)
             result["session_recorded"] = True

@@ -890,10 +890,12 @@ def consent_query(profile_id: int, include_withdrawn: bool = False) -> dict:
 
 @mcp.tool()
 def processing_permission_check(profile_id: int, provider: str, purpose: str, contains_personal_data: bool, data_kinds: list[str] | None = None,
-                                session_id: str | None = None, consent_ids: list[int] | None = None, review_ids: list[int] | None = None) -> dict:
-    """Yükleme öncesi izin kapısı: kişisel veri dış sağlayıcıya gitmeden önce dayanak ve kapsam. Geçerse oturuma kaydedilir."""
+                                session_id: str | None = None, consent_ids: list[int] | None = None, review_ids: list[int] | None = None,
+                                files: list[str] | None = None) -> dict:
+    """Yükleme öncesi izin kapısı: kişisel veri dış sağlayıcıya gitmeden önce dayanak ve kapsam. Geçerse oturuma kaydedilir.
+    Kişisel veri içeren gönderimde files (gönderilecek dosyalar) zorunludur; izin yalnızca bu dosyalar için geçer."""
     return call(lambda s: s.processing_permission_check(profile_id, provider, purpose, contains_personal_data, data_kinds, session_id,
-                                                        consent_ids, review_ids))
+                                                        consent_ids, review_ids, files))
 
 
 # ---------------------------------------------------------------- koçluk (bölüm 6)

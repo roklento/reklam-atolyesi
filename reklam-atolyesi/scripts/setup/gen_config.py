@@ -25,9 +25,14 @@ def py_command(target_os: str) -> str:
     return "${user_config.data_dir}/.venv/Scripts/python.exe" if target_os == "windows" else "${user_config.data_dir}/.venv/bin/python"
 
 
-def hook(script: str, target_os: str) -> dict:
-    return {"type": "command", "command": py_command(target_os),
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/" + script, "--data-dir", "${user_config.data_dir}"], "timeout": TIMEOUT}
+def hook(script: str, target_os: str, block_on_failure: bool = False) -> dict:
+    h = {"type": "command", "command": py_command(target_os),
+         "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/" + script, "--data-dir", "${user_config.data_dir}"], "timeout": TIMEOUT}
+    if block_on_failure:
+        # 2.10.3: koruma hook'u hiç başlayamazsa (yorumlayıcı yok) ya da süresi dolarsa çağrı normal izin akışına düşmez, durur.
+        # Claude Code 2.1.295+ ister; plugin'in iş akışları zaten bu sürümü istiyor.
+        h["onFailure"] = "block"
+    return h
 
 
 def hooks_json(target_os: str) -> dict:
@@ -40,8 +45,8 @@ def hooks_json(target_os: str) -> dict:
             "UserPromptExpansion": [{"matcher": "^reklam-atolyesi:.*$", "hooks": [hook("navigator.py", target_os)]}],
             "SessionStart": [{"matcher": "resume|compact", "hooks": [hook("session_start.py", target_os)]}],
             "PreToolUse": [
-                {"matcher": META_MATCHER, "hooks": [hook("meta_guard.py", target_os)]},
-                {"matcher": ELEVEN_MATCHER, "hooks": [hook("cost_guard.py", target_os)]},
+                {"matcher": META_MATCHER, "hooks": [hook("meta_guard.py", target_os, block_on_failure=True)]},
+                {"matcher": ELEVEN_MATCHER, "hooks": [hook("cost_guard.py", target_os, block_on_failure=True)]},
             ],
             "PostToolUse": [{"matcher": "Bash|PowerShell", "hooks": [hook("render_qc.py", target_os)]}],
             "PostToolUseFailure": [{"hooks": [hook("error_notify.py", target_os)]}],

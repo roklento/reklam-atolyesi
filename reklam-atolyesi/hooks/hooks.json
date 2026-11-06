@@ -63,7 +63,8 @@
               "--data-dir",
               "${user_config.data_dir}"
             ],
-            "timeout": 10
+            "timeout": 10,
+            "onFailure": "block"
           }
         ]
       },
@@ -78,7 +79,8 @@
               "--data-dir",
               "${user_config.data_dir}"
             ],
-            "timeout": 10
+            "timeout": 10,
+            "onFailure": "block"
           }
         ]
       }

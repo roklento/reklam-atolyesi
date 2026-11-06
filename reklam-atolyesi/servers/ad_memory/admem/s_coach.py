@@ -157,7 +157,7 @@ class CoachMixin:
         c = self._campaign(profile_id, campaign_id)
         if cycle_id is not None:
             self._cycle(profile_id, cycle_id, campaign_id)
-        created, refreshed = [], []
+        created, refreshed, reapproval = [], [], []
         per_adset_day: dict[tuple, int] = {}
         today = utcnow().date().isoformat()
         for it in items:
@@ -192,7 +192,21 @@ class CoachMixin:
                     if ex:
                         evs = ex["evidence_json"] if isinstance(ex["evidence_json"], list) else jload(ex["evidence_json"], []) or []
                         evs.append({**(it.get("evidence") or {}), "at": now_iso()})
-                        self.ex("UPDATE action_items SET evidence_json=?, after_json=? WHERE id=?", (jdump(evs), jdump(it.get("after")), ex["id"]))
+                        # 2.10.3: kullanıcının onayı onayladığı adıma bağlıdır. Eylem, hedef, önceki değer, hedef nesne ya da gerekçe
+                        # değişirse madde yeniden öneriye döner ve yeni onay ister; yalnızca kanıt eklenmesi onayı bozmaz.
+                        new_vals = (it["action"], canonical_json(it.get("before") or {}), canonical_json(it.get("after") or {}),
+                                    it.get("target_meta_id"), it.get("reason_kind", "performance"))
+                        old_vals = (ex["action"], canonical_json(jload(ex["before_json"], {}) or {}),
+                                    canonical_json(jload(ex["after_json"], {}) or {}), ex["target_meta_id"], ex["reason_kind"])
+                        changed = new_vals != old_vals
+                        if changed and ex["status"] == "approved":
+                            evs[-1]["approval_reset"] = "onaylanan adım değişti; yeni onay gerekir"
+                            reapproval.append(ex["id"])
+                        self.ex("""UPDATE action_items SET evidence_json=?, action=?, before_json=?, after_json=?, target_meta_id=?, reason_kind=?,
+                                   status=CASE WHEN ? THEN 'proposed' ELSE status END,
+                                   decision_id=CASE WHEN ? THEN NULL ELSE decision_id END WHERE id=?""",
+                                (jdump(evs), it["action"], jdump(it.get("before")), jdump(it.get("after")), it.get("target_meta_id"),
+                                 it.get("reason_kind", "performance"), int(changed), int(changed), ex["id"]))
                         refreshed.append(ex["id"])
                         continue
                 aid = self.ex("""INSERT INTO action_items(campaign_id,cycle_id,decision_id,action,target_meta_id,reason_kind,before_json,after_json,status,
@@ -201,8 +215,13 @@ class CoachMixin:
                                jdump(it.get("before")), jdump(it.get("after")), dk, jdump([{**(it.get("evidence") or {}), "at": now_iso()}]),
                                now_iso())).lastrowid
                 created.append(aid)
-        return {"created": created, "refreshed": refreshed,
-                "note": "Zamanlanmış iş onay vermez; uyarının görülmesi/onaylanması reklamın durduğu anlamına gelmez (6.10)."}
+        out = {"created": created, "refreshed": refreshed,
+               "note": "Zamanlanmış iş onay vermez; uyarının görülmesi/onaylanması reklamın durduğu anlamına gelmez (6.10)."}
+        if reapproval:
+            out["needs_reapproval"] = reapproval
+            out["note"] += (" Onaylanmış bir adım değişti: bu maddeler yeniden öneri oldu. Yeni hâlini kullanıcıya göster ve yeniden onay iste; "
+                            "eski onay yeni adım için kullanılmaz.")
+        return out
 
     @staticmethod
     def _scale_item_ok(it: dict, rk: str, after: dict, ev: dict) -> None:
@@ -342,12 +361,21 @@ class CoachMixin:
                 if src not in ("meta_mcp", "user_evidence"):
                     res.append({"item_id": it["id"], "status": it["status"], "note": "kanıt yok: uygulanma doğrulanmış sayılmaz"})
                     continue
-                after = it["after_json"] or {}
+                after = it["after_json"] if isinstance(it["after_json"], dict) else (jload(it["after_json"], {}) or {})
                 obs = r.get("observed") or {}
-                matched = all(str(obs.get(k)) == str(v) for k, v in after.items() if k in obs) and any(k in obs for k in after)
-                new = "applied" if matched else "not_applied"
+                # 2.10.3: hedefteki her alan gözlenmeli. Görülmeyen alan varsa madde ne "uygulandı" ne "uygulanmadı" sayılır; onaylı kalır.
+                unseen = sorted(k for k in after if k not in obs)
                 evs = it["evidence_json"] if isinstance(it["evidence_json"], list) else jload(it["evidence_json"], []) or []
-                evs.append({"verify": {"source": src, "observed": obs, "at": now_iso(), "ref": r.get("evidence_ref")}})
+                evs.append({"verify": {"source": src, "observed": obs, "at": now_iso(), "ref": r.get("evidence_ref"),
+                                       **({"unseen": unseen} if unseen or not after else {})}})
+                if unseen or not after:
+                    self.ex("UPDATE action_items SET evidence_json=? WHERE id=?", (jdump(evs), it["id"]))
+                    res.append({"item_id": it["id"], "status": it["status"], "unseen": unseen,
+                                "note": ("şu alanlar okunmadı: " + ", ".join(unseen) if unseen else "maddenin hedef değeri yok")
+                                + "; uygulanma doğrulanmış sayılmaz, eksik alan okununca yeniden denetlenir"})
+                    continue
+                matched = all(str(obs.get(k)) == str(v) for k, v in after.items())
+                new = "applied" if matched else "not_applied"
                 self.ex("UPDATE action_items SET status=?, verified_at=?, evidence_json=? WHERE id=?", (new, now_iso(), jdump(evs), it["id"]))
                 res.append({"item_id": it["id"], "status": new})
         counts = {r["status"]: r["n"] for r in self.qa("SELECT status, COUNT(*) AS n FROM action_items WHERE campaign_id=? GROUP BY status", (campaign_id,))}

@@ -549,19 +549,29 @@ class CreativeMixin:
         p = Path(r["path"])
         if not p.exists() or sha256_file(p) != r["sha256"]:
             with self.tx():
-                self.ex("DELETE FROM scene_cache WHERE key=?", (key,))
+                self.ex("DELETE FROM scene_cache WHERE key=? AND profile_id=?", (key, profile_id))
             return {"hit": False, "note": "önbellek dosyası yok ya da hash uyuşmuyor; kısmi dosya kullanılmaz"}
         return {"hit": True, "path": r["path"], "sha256": r["sha256"], "meta": r["meta_json"]}
 
     def scene_cache_put(self, profile_id: int, key: str, path: str, campaign_id: int | None = None, meta: dict | None = None) -> dict:
         self._profile(profile_id)
+        if campaign_id is not None:
+            self._campaign(profile_id, campaign_id)
         p = Path(path)
+        if not p.is_absolute():
+            p = self.data_dir / p
         if not p.exists() or p.stat().st_size == 0:
             raise AdMemoryError("yalnızca bitmiş ve doğrulanmış dosya önbelleğe alınır")
+        try:  # 2.10.3: başka profilin dosyası bu profilin önbelleğine yazılmaz (profil yalıtımı, 2.3)
+            p.resolve().relative_to(self.profile_dir(profile_id).resolve())
+        except ValueError:
+            raise AdMemoryError(f"önbellek dosyası bu profilin klasöründe değil: {p}") from None
         sha = sha256_file(p)
         with self.tx():
+            # anahtar profil kapsamında tekildir (migration 010): aynı anahtarı yazan başka profil bu kaydı değiştirmez
             self.ex("""INSERT INTO scene_cache(key,profile_id,campaign_id,path,sha256,meta_json,created_at) VALUES(?,?,?,?,?,?,?)
-                       ON CONFLICT(key) DO UPDATE SET path=excluded.path, sha256=excluded.sha256, meta_json=excluded.meta_json, created_at=excluded.created_at""",
+                       ON CONFLICT(profile_id, key) DO UPDATE SET campaign_id=excluded.campaign_id, path=excluded.path, sha256=excluded.sha256,
+                       meta_json=excluded.meta_json, created_at=excluded.created_at""",
                     (key, profile_id, campaign_id, str(p), sha, jdump(meta), now_iso()))
         return {"key": key, "sha256": sha}
 

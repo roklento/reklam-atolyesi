@@ -23,6 +23,18 @@ def _recipes() -> dict:
     return json.loads((SERVER_DIR / "memory_recipes.json").read_text(encoding="utf-8"))
 
 
+SHORT_FORGET_CHARS = 8  # 2.10.3: bundan kısa içerik başka kelimelerin içinde aranmaz (ör. tek "%" her yüzdeyi silerdi)
+
+
+def _mentions(text: str, frag: str) -> bool:
+    """Unutulan içeriğin bir metinde geçip geçmediği: düz metin; kısa içerik yalnızca kendi başına (kelime sınırlarıyla) geçerse."""
+    if not frag or frag not in (text or ""):
+        return False
+    if len(frag.strip()) >= SHORT_FORGET_CHARS:
+        return True
+    return re.search(r"(?<![\w%])" + re.escape(frag.strip()) + r"(?![\w%])", text) is not None
+
+
 class MemoryMixin:
     # --- FTS ------------------------------------------------------------------
     def _fts_put(self, kind: str, ref_id: int, profile_id: int | None, text: str) -> None:
@@ -599,18 +611,22 @@ class MemoryMixin:
             self.ex("UPDATE memory_items SET superseded_by=NULL WHERE superseded_by=?", (it["id"],))
             self._fts_del("memory", it["id"])
             self.ex("DELETE FROM memory_items WHERE id=?", (it["id"],))
-            touched = self.qa("SELECT id, summary FROM journal WHERE profile_id IS ? AND summary LIKE ?", (profile_id, f"%{frag}%"))
+            # 2.10.3: düz metin eşleşmesi (LIKE'ta % ve _ joker sayılıyor, ilgisiz kayıtlar siliniyordu); çok kısa içerik tek kelime olarak aranır
+            touched = [j for j in self.qa("SELECT id, summary FROM journal WHERE profile_id IS ? AND instr(summary, ?) > 0", (profile_id, frag))
+                       if _mentions(j["summary"], frag)]
             for j in touched:
                 self.ex("UPDATE journal SET summary='[unutma isteğiyle kaldırıldı]', detail_json=NULL WHERE id=?", (j["id"],))
                 self._fts_del("journal", j["id"])
-            self.ex("DELETE FROM journal_rollups WHERE profile_id IS ? AND summary LIKE ?", (profile_id, f"%{frag}%"))
+            for r in self.qa("SELECT id, summary FROM journal_rollups WHERE profile_id IS ? AND instr(summary, ?) > 0", (profile_id, frag)):
+                if _mentions(r["summary"], frag):
+                    self.ex("DELETE FROM journal_rollups WHERE id=?", (r["id"],))
             self.ex("""INSERT INTO journal(profile_id,campaign_id,ts,type,summary,rolled) VALUES(?,NULL,?, 'forget', 'bir hafıza öğesi kullanıcı isteğiyle silindi', 0)""",
                     (profile_id, now_iso()))
         exports_removed = []
         for d in self._export_dirs(profile_id):
             for f in d.glob("*.md"):
                 try:
-                    if frag in f.read_text(encoding="utf-8"):
+                    if _mentions(f.read_text(encoding="utf-8"), frag):
                         f.unlink()
                         exports_removed.append(f.name)
                 except OSError:

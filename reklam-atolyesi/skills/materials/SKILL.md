@@ -49,8 +49,10 @@ planda `audio.decision_id`. Tercih gözlemi `memory_add(layer="preference", kind
    URL, kontrol tarihi, kapsam). Belirsizse o ücretli üretim **durur**; hakları belgeli mevcut malzeme seçilebilir. Beta çıktıları
    kullanılmaz. Müzik için `ref-legal-tr-meta`'daki Eleven Music özetine bak (plan/kuruluş büyüklüğü/kullanım türü).
 4. **Kişisel veri:** girdi tanınabilir kişi/ses içeriyorsa önce `processing_permission_check(profile_id, provider="elevenlabs",
-   purpose, contains_personal_data=True, data_kinds, session_id, consent_ids)`; dayanak yoksa gönderim yok. Yükleme araçları
-   (`creative_create_asset_upload`, `creative_attach_reference_file`…) hook tarafından bu kayıt olmadan reddedilir.
+   purpose, contains_personal_data=True, data_kinds, session_id, consent_ids, files=[gönderilecek dosyalar])`; dayanak yoksa
+   gönderim yok. İzin yalnızca `files` içindeki dosyalar için geçer; başka bir dosya için yeniden çalıştırılır. Yükleme araçları
+   (`creative_create_asset_upload`, `creative_attach_reference_file`…) hook tarafından bu kayıt olmadan, başka bir dosyada ya da
+   kişi izni geri çekildiyse reddedilir.
 5. **Fiyat:** aynı çağrı `estimate_only: true` ile (ücretsiz; flow'a boş düğüm ekleyebilir).
 6. **Kayıt:** `generation_log(profile_id, campaign_id, cycle_id, tool_name, params, estimate_credits, model, kind, input_file_hashes?,
    flow_snapshot_sha256?)` — `params` gerçek çağrıyla **birebir** aynı olmalı (`context`, `estimate_only`, arayüz alanları hash'e girmez;

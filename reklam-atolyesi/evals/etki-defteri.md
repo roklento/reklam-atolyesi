@@ -136,3 +136,23 @@ istedi" imzasının sıklığı (anlaşılmayan mesaj çoğu zaman düzeltme ist
 
 **Ders:** *Ne zaman:* iki toplamın oranı hesaplanırken satırların bir kısmında değerlerden biri yoksa. *Ne yap:* pay ve paydayı aynı
 satırlardan topla, kapsamayı yaz, kapsama yetmezse hüküm verme. *Dayanak:* bu sürümün huni satırı. *Güven:* yüksek.
+
+## 2.10.3 (2026-11-06): sahiplik, onay ve silme
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `admem/s_coach.py` (`action_items_set`, `action_items_verify`) | işleyiş | koçluk turu olan bütün hücreler (U2, U3 en çok) | Dış kod denetimi: onaylı adım değişince onay taşınıyordu; tek alan okununca "uygulandı" deniyordu | Değişen adım yeniden öneri olur; okunmayan alan yazılır (`tests/test_v2103_sahiplik_onay.py`) | yok | yardım etti (test) |
+| `admem/s_stage.py` (`gate_approve`, `checkpoint_close`, `cycle_set`) | işleyiş | kapılı aşaması olan bütün hücreler; çok profilli U4 | Dış kod denetimi: değişmiş belge onaylanabiliyordu; başka profilin notu kapanabiliyordu; tur durumu geri alınıp önsel değişiyordu | Üç durum da duruyor; normal akış aynı | yok | yardım etti (test) |
+| `admem/s_creative.py` (sahne önbelleği), migration 010 | işleyiş | U4 (aynı kurulumda birden çok marka) | Dış kod denetimi: iki profil aynı anahtarı yazınca dosya karışıyordu | Her profil kendi dosyasını alıyor; eski kayıtlar taşınıyor | yok | yardım etti (test) |
+| `admem/s_memory.py` (`memory_forget`) | işleyiş | hafıza kullanan bütün hücreler | Dış kod denetimi: `%` joker sayılıp ilgisiz kayıtlar siliniyordu | Düz metin eşleşmesi; kısa içerik yalnız kendi başına geçerse | yok | yardım etti (test) |
+| `hooks/hooks.json`, `scripts/setup/gen_config.py` (`onFailure`) | işleyiş | Meta ve ElevenLabs kullanan bütün hücreler | Dış kod denetimi + Claude Code hook belgesi: koruma çalışamazsa çağrı izin akışına düşüyordu | Üretici ve dosya aynı; gerçek host'ta eksik yorumlayıcı denemesi yapılmadı | yok | ölçülecek (host denemesi) |
+| `hooks/cost_guard.py`, `admem/s_legal.py` (yükleme izni), `skills/materials`, `skills/brand-onboarding` | işleyiş | kişi ya da ses içeren malzemeyle çalışan hücreler | Dış kod denetimi: izin profil ve sağlayıcıya bağlıydı, dosyaya değil | Başka dosya ve geri çekilmiş izin reddediliyor; ElevenLabs aracının gerçek alan adlarıyla denenmedi | yok | ölçülecek (canlı şema) |
+| `scripts/setup/db_restore.py` | işleyiş | yedekten dönen her kurulum | Dış kod denetimi: kopya yarıda kalırsa veritabanı kayboluyordu | Bozuk kopyada mevcut veritabanı yerinde | yok | yardım etti (test) |
+
+**Sahada:** henüz defter yok. Beklenen: onaylanmış bir bütçe önerisi değiştiğinde kullanıcıya yeniden soru sorulur.
+
+**Ders:** *Ne zaman:* bir onay ya da izin, sonradan değişebilen bir kayda (tutar, dosya, tur) bağlıysa. *Ne yap:* onayı verildiği anki
+içeriğe (özet, alanlar, dosya) bağla; içerik değişince onayı düşür ve yeniden sor. *Dayanak:* bu sürümün onay, kapı ve yükleme
+satırları. *Güven:* orta (birim testi; saha verisi yok).
