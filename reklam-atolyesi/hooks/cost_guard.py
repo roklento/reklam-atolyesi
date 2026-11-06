@@ -60,32 +60,111 @@ def _withdrawn(perm: dict, data_dir: Path) -> list[str]:
         st.close()
 
 
-NO_FILE_STEP = {"creative_finalize_asset_upload"}  # yüklemeyi tamamlama adımı dosya adı taşımaz; başlatan adım denetlenmiştir
+NO_FILE_STEP = {"creative_finalize_asset_upload"}  # yüklemeyi tamamlama adımı dosya adı taşımaz; başlatan adımın kaydına bağlanır
+UPLOAD_TTL_S = 30 * 60  # başlatılan yüklemenin tamamlanabileceği süre
 
 
-def upload_decision(perms: list[dict], tin: dict, data_dir: Path, bare: str = "") -> tuple[str, str | None]:
-    """2.10.3: izin dosyaya bağlıysa gönderilen dosyanın adı (araç boyut veriyorsa boyutu da) izindeki dosyalardan biriyle eşleşmeli ve
-    verilen kişi/yorum izinleri hâlâ geçerli olmalı. Kişisel veri içeren izin her zaman dosyaya bağlıdır (processing_permission_check
-    files ister). Dosyasız eski tip izin yalnızca kişisel veri içermeyen gönderim içindir."""
+def _sha256(path: Path) -> str | None:
+    import hashlib
+    try:
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    except OSError:
+        return None
+
+
+def _file_changed(f: dict) -> str | None:
+    """2.10.7: izin anındaki içerik özeti karar anında yeniden hesaplanır (aynı ad ve boyutta başka içerik geçmez)."""
+    if not f.get("path"):
+        return "izin kaydında dosya yolu yok (2.10.7 öncesi izin); processing_permission_check yeniden çalıştırılmalı"
+    if _sha256(Path(f["path"])) != f.get("sha256"):
+        return f"{f.get('name')} izin verildikten sonra değişmiş ya da silinmiş; yeni içerik için izin yeniden alınmalı"
+    return None
+
+
+def _now_s() -> float:
+    import time
+    return time.time()
+
+
+def upload_decision(perms: list[dict], tin: dict, data_dir: Path, bare: str = "", sid: str | None = None) -> tuple[str, str | None]:
+    """2.10.3: izin dosyaya bağlıysa gönderilen dosyanın adı ve boyutu izindeki dosyalardan biriyle eşleşmeli ve verilen kişi/yorum
+    izinleri hâlâ geçerli olmalı. 2.10.7: ad ve boyut birlikte eşleşmeli, dosyanın içerik özeti izin anındakiyle aynı olmalı; başlatılan
+    her yükleme oturuma yazılır ve tamamlama adımı yalnızca böyle bir kayıtla, izin ve dosya hâlâ geçerliyse geçer. Kişisel veri içeren
+    izin her zaman dosyaya bağlıdır. Dosyasız eski tip izin yalnızca kişisel veri içermeyen gönderim içindir."""
     if bare in NO_FILE_STEP:
-        return "allow", None
+        return _finalize_decision(data_dir, sid)
     strs: set = set()
     nums: set = set()
     _input_values(tin, strs, nums)
-    for perm in perms:
+    for i, perm in enumerate(perms):
         files = perm.get("files") or []
         if not files:
             if not perm.get("personal"):
+                _record_upload(data_dir, sid, None, None)
                 return "allow", None
             continue
-        if any(f.get("name") in strs and (not nums or f.get("size") in nums) for f in files):
-            gone = _withdrawn(perm, data_dir)
-            if gone:
-                return "deny", ("bu dosya için alınan izin artık geçerli değil (geri çekilmiş ya da bulunamadı: " + ", ".join(gone)
-                                + "); dosya gönderilmez (bölüm 10)")
-            return "allow", None
-    return "deny", ("bu dosya için yükleme izni alınmadı: izin başka dosya(lar) için verildi. Gönderilecek dosyayla "
-                    "processing_permission_check(..., files=[dosya]) yeniden çalıştırılmalı (bölüm 10)")
+        for f in files:
+            if f.get("name") in strs and f.get("size") in nums:
+                gone = _withdrawn(perm, data_dir)
+                if gone:
+                    return "deny", ("bu dosya için alınan izin artık geçerli değil (geri çekilmiş ya da bulunamadı: " + ", ".join(gone)
+                                    + "); dosya gönderilmez (bölüm 10)")
+                changed = _file_changed(f)
+                if changed:
+                    return "deny", changed + " (bölüm 10)"
+                _record_upload(data_dir, sid, perm, f)
+                return "allow", None
+    return "deny", ("bu dosya için yükleme izni alınmadı: izin başka dosya(lar) için verildi ya da ad ve boyut eşleşmedi. Gönderilecek "
+                    "dosyayla processing_permission_check(..., files=[dosya]) yeniden çalıştırılmalı (bölüm 10)")
+
+
+def _record_upload(data_dir: Path, sid: str | None, perm: dict | None, f: dict | None) -> None:
+    if not sid:
+        return
+
+    def add(s: dict) -> None:
+        pend = [u for u in (s.get("pending_uploads") or []) if _now_s() - float(u.get("t") or 0) < UPLOAD_TTL_S]
+        pend.append({"t": _now_s(), "perm_at": (perm or {}).get("at"), "file": f})
+        s["pending_uploads"] = pend[-20:]
+    pm.update_session(data_dir, sid, add)
+
+
+def _finalize_decision(data_dir: Path, sid: str | None) -> tuple[str, str | None]:
+    """Tamamlama adımı: süresi geçmemiş, izinle başlatılmış bir yükleme olmalı; izin ve dosya hâlâ geçerli olmalı (2.10.7)."""
+    if not sid:
+        return "deny", "yükleme tamamlama adımı oturum kaydı ister"
+    out: dict = {}
+
+    def take(s: dict) -> None:
+        pend = [u for u in (s.get("pending_uploads") or []) if _now_s() - float(u.get("t") or 0) < UPLOAD_TTL_S]
+        if not pend:
+            out["err"] = "bu oturumda izinle başlatılmış ve süresi geçmemiş bir yükleme yok; tamamlama adımı engellendi (bölüm 10)"
+            s["pending_uploads"] = pend
+            return
+        u = pend.pop(0)
+        s["pending_uploads"] = pend
+        out["u"] = u
+        perms = {p.get("at"): p for p in (s.get("upload_permissions") or [])}
+        out["perm"] = perms.get(u.get("perm_at")) if u.get("perm_at") else None
+    pm.update_session(data_dir, sid, take)
+    if "err" in out:
+        return "deny", out["err"]
+    u, perm = out["u"], out.get("perm")
+    if u.get("perm_at") and perm is None:
+        return "deny", "yüklemeyi başlatan izin artık oturumda yok; dosya tamamlanmaz (bölüm 10)"
+    if perm:
+        gone = _withdrawn(perm, data_dir)
+        if gone:
+            return "deny", "izin yükleme sırasında geri çekildi (" + ", ".join(gone) + "); dosya tamamlanmaz (bölüm 10)"
+    if u.get("file"):
+        changed = _file_changed(u["file"])
+        if changed:
+            return "deny", changed + " (bölüm 10)"
+    return "allow", None
 
 
 def decide(data: dict, argv: list[str] | None = None) -> tuple[str, str | None]:
@@ -112,7 +191,7 @@ def decide(data: dict, argv: list[str] | None = None) -> tuple[str, str | None]:
         if not pid or not perms:
             return "deny", ("dosya dış sağlayıcıya gönderilmeden önce yükleme öncesi izin kapısı gerekir: processing_permission_check "
                             "(provider='elevenlabs', session_id ile) çalıştırılmalı (bölüm 10)")
-        return upload_decision(perms, data.get("tool_input") or {}, data_dir, bare)
+        return upload_decision(perms, data.get("tool_input") or {}, data_dir, bare, sid)
     paid = classes.get("paid", {})
     if bare not in paid:
         return "deny", f"'{bare}' sınıflandırılmamış ElevenLabs aracı; plugin modunda varsayılan olarak engellenir (9.1). Liste insan onayıyla güncellenir."

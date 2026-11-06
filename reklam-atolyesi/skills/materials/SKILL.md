@@ -59,8 +59,9 @@ planda `audio.decision_id`. Tercih gözlemi `memory_add(layer="preference", kind
    `generations_count` varsayılanı doldurulur). `creative_run_flow_nodes` için `creative_get_flow` görüntüsünün hash'i zorunlu.
    Sonuç `blocked` ise (aynı talep sürüyor/belirsiz/tamamlanmış) yeni çağrı yapılmaz; uzlaştırma ya da yeniden indirme.
 7. **Onay:** kullanıcıya araç, model, adet, tahmini kredi, ne üretileceği ve lisans notu söylenir; **açık onay** alınca
-   `generation_approve(profile_id, generation_id, approved_max_credits, count, approval_text, approval_scope={license:{source,
-   checked_at, scope}, purpose, contains_personal_data, processing_permission_ref?})`. Parametre ya da fiyat değişirse yeni onay.
+   `generation_approve(session_id, profile_id, generation_id, approved_max_credits, count, approval_scope={license:{source,
+   checked_at, scope}, purpose, contains_personal_data, processing_permission_ref?})`. Onay kullanıcının kendi son mesajından alınır;
+   mesaj yalnızca onay olmalı, sayı yazdıysa azami krediyle aynı olmalı. Onay 30 dakika geçerlidir. Parametre ya da fiyat değişirse yeni onay.
 8. **Çağrı:** gerçek çağrı yapılır; `cost_guard` aynı Store koduyla `estimated → running` rezervasyonunu atomik alır ve onayı tüketir.
    Reddedilirse sebebi okunur; **yeniden onaylatılıp körlemesine yürütülmez**, önce neden düzeltilir.
 9. **İzleme:** sağlayıcı kimliği/flow oturumları gelir gelmez `generation_update(profile_id, generation_id, provider_request_id,

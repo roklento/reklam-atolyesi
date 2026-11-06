@@ -484,7 +484,47 @@ class BaseStore:
             out = fn(s)
             return self._session_write(session_id, s if out is None else out)
 
+    def _user_approval(self, session_id: str | None, approval_text: str | None, since: str | None,
+                       number: float | None = None) -> str:
+        """2.10.7: onay ifadesinin kaynağı ve biçimi (admem/approval.py). session_id verilirse onay, navigator hook'unun bu oturuma
+        yazdığı SON kullanıcı mesajıdır: onaylanan şey (tahmin, belge sürümü) gösterildikten sonra yazılmış, süresi geçmemiş ve
+        daha önce başka bir onay için kullanılmamış olmalı. Model metni kendi yazamaz. session_id yoksa (doğrudan çağrı, test)
+        verilen metin aynı biçim denetiminden geçer. Dönen değer kayda yazılacak onay metnidir."""
+        from . import approval as AP
+        if not session_id:
+            return AP.require(approval_text, number)
+        out: dict = {}
+
+        def take(s: dict) -> None:
+            prompts = s.get("user_prompts") or []
+            if not prompts:
+                out["err"] = "bu oturumda kaydedilmiş kullanıcı mesajı yok (onay yalnızca plugin modunda kullanıcının kendi mesajından alınır)"
+                return
+            last = prompts[-1]
+            used = set(s.get("consumed_prompts") or [])
+            at = parse_iso(last.get("at"))
+            ref = parse_iso(since) if since else None
+            now = parse_iso(now_iso())
+            if last.get("id") in used:
+                out["err"] = "kullanıcının son mesajı başka bir onay için kullanıldı; yeni onay için kullanıcıya yeniden sor"
+            elif at is None or (ref is not None and at < ref):
+                out["err"] = "kullanıcının son mesajı, onaylanacak şey gösterilmeden önce yazılmış; kullanıcıya göster ve onayını iste"
+            elif now is not None and (now - at).total_seconds() > AP.APPROVAL_TTL_MIN * 60:
+                out["err"] = f"kullanıcının son mesajı {AP.APPROVAL_TTL_MIN} dakikadan eski; onayı yeniden iste"
+            else:
+                ok, why = AP.check(last.get("text"), number)
+                if not ok:
+                    out["err"] = f"kullanıcının son mesajı onay sayılmaz: {why}"
+                    return
+                s["consumed_prompts"] = (list(used) + [last.get("id")])[-50:]
+                out["text"] = (last.get("text") or "").strip()
+        self._session_update(session_id, take)
+        if "err" in out:
+            raise AdMemoryError(out["err"] + ". Kullanıcıya ne onayladığını (tutar, sürüm) gösterip açık onayını iste, mesajı gelince yeniden çağır")
+        return out["text"]
+
     def _session_write(self, session_id: str, data: dict) -> dict:
+
         data["session_id"] = session_id
         data["updated_at"] = now_iso()
         atomic_write(self._session_path(session_id), json.dumps(data, ensure_ascii=False, indent=1))

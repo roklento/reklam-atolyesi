@@ -326,7 +326,7 @@ class CoachMixin:
         return {"scale_layer": rec, "linked": [m["meta_ad_id"] for m in clean]}
 
     def action_item_set_status(self, profile_id: int, item_id: int, status: str, approval_text: str | None = None,
-                               decision_id: int | None = None) -> dict:
+                               decision_id: int | None = None, session_id: str | None = None) -> dict:
         it = self.q1("SELECT * FROM action_items WHERE id=?", (int(item_id),))
         if not it:
             raise AdMemoryError("madde yok")
@@ -336,8 +336,9 @@ class CoachMixin:
         if status == "approved":
             if it["status"] != "proposed":
                 raise AdMemoryError("yalnızca önerilen madde onaylanır")
-            if not (approval_text and approval_text.strip()):
+            if not session_id and not (approval_text and approval_text.strip()):
                 raise AdMemoryError("onay kullanıcının açık ifadesini ister")
+            approval_text = self._user_approval(session_id, approval_text, it.get("created_at"))  # 2.10.7
             with self.tx():
                 did = decision_id or self._decision_insert(profile_id, it["campaign_id"], it["cycle_id"], None, None, None, None,
                                                            f"action:{it['id']}:approved", f"kullanıcı: «{approval_text.strip()}»", "user")
@@ -536,12 +537,14 @@ class CoachMixin:
             raise AdMemoryError("kural bu profile ait değil")
         return r
 
-    def playbook_activate(self, profile_id: int, rule_id: int, approval_text: str) -> dict:
+    def playbook_activate(self, profile_id: int, rule_id: int, approval_text: str, session_id: str | None = None) -> dict:
         r = self._rule(profile_id, rule_id)
         if r["status"] not in ("proposed", "due_revalidation"):
             raise AdMemoryError(f"kural {r['status']} durumunda")
-        if not (approval_text and approval_text.strip()):
+        if not session_id and not (approval_text and approval_text.strip()):
             raise AdMemoryError("playbook kuralı kullanıcı onayıyla aktifleşir (S17 kapısı, 8.6)")
+        approval_text = self._user_approval(session_id, approval_text, None)  # 2.10.7
+
         with self.tx():
             self.ex("UPDATE playbook_rules SET status='active', last_validated_at=?, rounds_since_validation=0 WHERE id=?", (now_iso(), r["id"]))
             self._decision_insert(profile_id, None, None, None, None, "S17", "playbook", f"playbook:{r['id']}:active",

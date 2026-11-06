@@ -484,9 +484,10 @@ def feedback_preview(period_days: int = 90) -> dict:
 
 
 @mcp.tool()
-def feedback_export(approval_text: str, period_days: int = 90) -> dict:
-    """Kullanıcının AÇIK onayıyla paketi data_dir/logs/geri-bildirim/ altına yazar. Plugin dosyayı göndermez; kullanıcı iletir."""
-    return call(lambda s: s.feedback_export(approval_text, period_days))
+def feedback_export(session_id: str, approval_text: str = "", period_days: int = 90) -> dict:
+    """Kullanıcının AÇIK onayıyla paketi data_dir/logs/geri-bildirim/ altına yazar. Plugin dosyayı göndermez; kullanıcı iletir.
+    Onay, kullanıcının bu oturumdaki son mesajından alınır (session_id; 2.10.7)."""
+    return call(lambda s: s.feedback_export(approval_text, period_days, session_id=session_id))
 
 
 @mcp.tool()
@@ -497,10 +498,12 @@ def draft_status(profile_id: int, stage: str, campaign_id: int | None = None, cy
 
 
 @mcp.tool()
-def gate_approve(profile_id: int, stage_run_id: int, output_version: int, approval_text: str, cycle_id: int | None = None,
-                 note: str | None = None, checkpoint: dict | None = None) -> dict:
-    """Kapıyı kullanıcının AÇIK onayıyla geçer (approval_text = kullanıcının ifadesi). Onay stage_run+cycle+sürüme bağlıdır."""
-    return call(lambda s: s.gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, note, checkpoint))
+def gate_approve(session_id: str, profile_id: int, stage_run_id: int, output_version: int, approval_text: str = "",
+                 cycle_id: int | None = None, note: str | None = None, checkpoint: dict | None = None) -> dict:
+    """Kapıyı kullanıcının AÇIK onayıyla geçer. Onay stage_run+cycle+sürüme bağlıdır ve kullanıcının belge gösterildikten sonra
+    yazdığı son mesajından alınır (session_id; 2.10.7): onay dışında söz içeren ya da ret bildiren mesaj geçmez, model metin yazamaz."""
+    return call(lambda s: s.gate_approve(profile_id, stage_run_id, output_version, approval_text, cycle_id, note, checkpoint,
+                                         session_id=session_id))
 
 
 @mcp.tool()
@@ -814,10 +817,13 @@ def generation_log(profile_id: int, campaign_id: int, cycle_id: int | None, tool
 
 
 @mcp.tool()
-def generation_approve(profile_id: int, generation_id: int, approved_max_credits: float, count: int, approval_text: str,
-                       approval_scope: dict) -> dict:
-    """Kullanıcının açık maliyet onayı (tek kullanımlık): adet, azami kredi, lisans kontrolü (kaynak/tarih/kapsam), kişisel veri dayanağı."""
-    return call(lambda s: s.generation_approve(profile_id, generation_id, approved_max_credits, count, approval_text, approval_scope))
+def generation_approve(session_id: str, profile_id: int, generation_id: int, approved_max_credits: float, count: int,
+                       approval_scope: dict, approval_text: str = "") -> dict:
+    """Kullanıcının açık maliyet onayı (tek kullanımlık): adet, azami kredi, lisans kontrolü (kaynak/tarih/kapsam), kişisel veri dayanağı.
+    2.10.7: onay kullanıcının tahmin gösterildikten sonra yazdığı son mesajından alınır (session_id); mesajda sayı varsa azami kredi
+    olmalı. Onay 30 dakika geçerlidir ve okunan fiyata bağlıdır; fiyat değişirse yeniden sorulur."""
+    return call(lambda s: s.generation_approve(profile_id, generation_id, approved_max_credits, count, approval_text, approval_scope,
+                                               session_id=session_id))
 
 
 @mcp.tool()
@@ -914,9 +920,11 @@ def action_items_set(profile_id: int, campaign_id: int, items: list[dict], cycle
 
 
 @mcp.tool()
-def action_item_set_status(profile_id: int, item_id: int, status: str, approval_text: str | None = None, decision_id: int | None = None) -> dict:
-    """Maddeyi kullanıcı onayıyla 'approved' yapar (uygulanma yalnızca action_items_verify ile)."""
-    return call(lambda s: s.action_item_set_status(profile_id, item_id, status, approval_text, decision_id))
+def action_item_set_status(session_id: str, profile_id: int, item_id: int, status: str, approval_text: str | None = None,
+                           decision_id: int | None = None) -> dict:
+    """Maddeyi kullanıcı onayıyla 'approved' yapar (uygulanma yalnızca action_items_verify ile). 'approved' için onay kullanıcının son
+    mesajından alınır (session_id; 2.10.7)."""
+    return call(lambda s: s.action_item_set_status(profile_id, item_id, status, approval_text, decision_id, session_id=session_id))
 
 
 @mcp.tool()
@@ -979,9 +987,10 @@ def playbook_propose(profile_id: int, rule: str, evidence: dict, scope: dict | N
 
 
 @mcp.tool()
-def playbook_activate(profile_id: int, rule_id: int, approval_text: str) -> dict:
-    """Kuralı kullanıcı onayıyla aktifleştirir."""
-    return call(lambda s: s.playbook_activate(profile_id, rule_id, approval_text))
+def playbook_activate(session_id: str, profile_id: int, rule_id: int, approval_text: str = "") -> dict:
+    """Kuralı kullanıcı onayıyla aktifleştirir; onay kullanıcının son mesajından alınır (session_id; 2.10.7)."""
+    return call(lambda s: s.playbook_activate(profile_id, rule_id, approval_text, session_id=session_id))
+
 
 
 @mcp.tool()

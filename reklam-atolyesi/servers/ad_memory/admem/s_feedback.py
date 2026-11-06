@@ -240,10 +240,12 @@ class FeedbackMixin:
                         "\"Evet\" derse feedback_export(approval_text=<kullanıcının sözü>). \"Hayır\" derse hiçbir şey yazma ve işe devam et. "
                         "'Paket', 'önizleme', 'dışa aktarma' gibi terimler kullanma."}
 
-    def feedback_export(self, approval_text: str, period_days: int = 90) -> dict:
+    def feedback_export(self, approval_text: str, period_days: int = 90, session_id: str | None = None) -> dict:
         """Kullanıcının açık onayıyla paketi <data_dir>/logs/geri-bildirim/ altına yazar (atomik). Gönderim yapılmaz."""
-        if not approval_text or not approval_text.strip():
+        if not session_id and (not approval_text or not approval_text.strip()):
             raise AdMemoryError("geri bildirim paketi yalnızca kullanıcının açık onayıyla yazılır (approval_text boş olamaz)")
+        approval_text = self._user_approval(session_id, approval_text, None)  # 2.10.7
+
         rep = self._feedback_build(period_days)
         out_dir = self.data_dir / "logs" / "hata-defteri"  # 2.8.0: müşterinin göreceği ad ("hata defteri"); eski klasör okunur kalır
         out_dir.mkdir(parents=True, exist_ok=True)

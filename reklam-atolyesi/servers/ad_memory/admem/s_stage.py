@@ -605,10 +605,12 @@ class StageMixin:
         return out
 
     def gate_approve(self, profile_id: int, stage_run_id: int, output_version: int, approval_text: str,
-                     cycle_id: int | None = None, note: str | None = None, checkpoint: dict | None = None) -> dict:
-        """Onay stage_run_id + cycle_id + output_version'a bağlıdır (4.2); kullanıcının açık ifadesi zorunlu."""
+                     cycle_id: int | None = None, note: str | None = None, checkpoint: dict | None = None,
+                     session_id: str | None = None) -> dict:
+        """Onay stage_run_id + cycle_id + output_version'a bağlıdır (4.2); kullanıcının açık ifadesi zorunlu. 2.10.7: session_id ile
+        onay kullanıcının belge gösterildikten sonra yazdığı son mesajından alınır (_user_approval); "hayır" gibi bir ifade geçmez."""
         self._profile(profile_id)
-        if not approval_text or not approval_text.strip():
+        if not session_id and (not approval_text or not approval_text.strip()):
             raise AdMemoryError("kapı yalnızca kullanıcının açık onayıyla geçilir; onay ifadesi (approval_text) boş olamaz")
         run = self.q1("SELECT * FROM stage_runs WHERE id=?", (int(stage_run_id),))
         if not run or run["profile_id"] != int(profile_id):
@@ -632,6 +634,8 @@ class StageMixin:
         blockers = self._gate_blockers(profile_id, run)
         if blockers:
             raise AdMemoryError("kapı geçilemez: " + "; ".join(blockers))
+        approval_text = self._user_approval(session_id, approval_text, run["finished_at"])
+
         c = self.q1("SELECT * FROM campaigns WHERE id=?", (run["campaign_id"],)) if run["campaign_id"] else None
         cy = self.q1("SELECT * FROM cycles WHERE id=?", (run["cycle_id"],)) if run["cycle_id"] else None
         with self.tx():

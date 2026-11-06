@@ -193,7 +193,8 @@ def test_action_items_guardrails(store):
     assert r["created"] and r2["refreshed"] == r["created"]  # açık madde kopyalanmaz
     with pytest.raises(AdMemoryError):
         store.action_item_set_status(pid, r["created"][0], "applied")
-    store.action_item_set_status(pid, r["created"][0], "approved", approval_text="durduracağım")
+    store.action_item_set_status(pid, r["created"][0], "approved", approval_text="tamam, durduracağım")
+
     v = store.action_items_verify(pid, cid, [{"item_id": r["created"][0]}])
     assert v["results"][0]["status"] == "approved"  # kanıt yok: doğrulanmış sayılmaz
 

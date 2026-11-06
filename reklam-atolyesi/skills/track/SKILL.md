@@ -79,7 +79,7 @@ Yok.
    hatta sıfır olsa da **beklemeden** `action_items_set(profile_id, campaign_id, items=[{action:"<Ads Manager adımı>", reason_kind:"limit",
    target_meta_id, before, after, evidence:{input_snapshot:<yol/hash>}}], cycle_id)` (`proposed`) + bildirim + navigator üst satırı.
    Bu "istatistiksel kaybeden" değildir; ölçüm sorunu varsa "zarar kesin" denmez. Aynı hedef/sınır/onay sürümü için açık madde kopyalanmaz.
-   Zamanlanmış iş onay vermez; kullanıcı onaylarsa `decision_log` + `action_item_set_status(item_id, "approved", approval_text)`.
+   Zamanlanmış iş onay vermez; kullanıcı onaylarsa `decision_log` + `action_item_set_status(session_id, profile_id, item_id, "approved")`.
 8b. **Müşteri adayı sonrası (1.5.0, `result_type='lead'`):** haftada bir kullanıcıya: "Geçen hafta gelen adaylardan kaçına ulaştınız,
    kaçı nitelikli, kaçı satın aldı (varsa ciro)?" → `lead_outcome_set(profile_id, campaign_id, period_start, period_end, leads,
    reached?, qualified?, won?, revenue?, currency?, source=crm_export|meta_leads_center|manual)`. Bilinmeyen aşama boş bırakılır (sıfır

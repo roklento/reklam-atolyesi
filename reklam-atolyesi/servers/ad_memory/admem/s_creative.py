@@ -772,13 +772,13 @@ class CreativeMixin:
         return self.q1("SELECT * FROM generations WHERE id=?", (gid,))
 
     def generation_approve(self, profile_id: int, generation_id: int, approved_max_credits: float, count: int,
-                           approval_text: str, approval_scope: dict) -> dict:
+                           approval_text: str, approval_scope: dict, session_id: str | None = None) -> dict:
         g = self.q1("SELECT * FROM generations WHERE id=?", (int(generation_id),))
         if not g or g["profile_id"] != int(profile_id):
             raise AdMemoryError("üretim kaydı bu profile ait değil")
         if g["status"] != "estimated":
             raise AdMemoryError(f"yalnızca tahmin aşamasındaki kayıt onaylanır (durum: {g['status']})")
-        if not approval_text or not approval_text.strip():
+        if not session_id and (not approval_text or not approval_text.strip()):
             raise AdMemoryError("maliyet onayı kullanıcının açık ifadesini ister")
         params = jload(g["params_json"], {}) if isinstance(g["params_json"], str) else g["params_json"]
         n = hashing.generation_count(g["tool_name"], {k: v for k, v in params.items() if not k.startswith("__")})
@@ -791,11 +791,20 @@ class CreativeMixin:
             raise AdMemoryError("ticari kullanım hakkı kontrolü (kaynak, tarih, kapsam) onay kapsamına yazılmalı (bölüm 10)")
         if (approval_scope or {}).get("contains_personal_data") and not (approval_scope or {}).get("processing_permission_ref"):
             raise AdMemoryError("kişisel veri içeren girdi için işleme/aktarım dayanağı referansı gerekir (yükleme öncesi izin kapısı, bölüm 10)")
+        # 2.10.7: onay kullanıcının tahmin gösterildikten sonra yazdığı mesajından alınır; mesajda sayı varsa azami krediyle aynı olmalı
+        approval_text = self._user_approval(session_id, approval_text, g["updated_at"], number=float(approved_max_credits))
         scope = {**approval_scope, "approved_max_credits": float(approved_max_credits), "count": int(count),
-                 "approval_text": approval_text.strip(), "params_hash": g["params_hash"], "request_no": g["request_no"]}
+                 "approval_text": approval_text, "params_hash": g["params_hash"], "request_no": g["request_no"],
+                 "estimate_credits": float(g["estimate_credits"] or 0)}
         with self.tx():
-            self.ex("UPDATE generations SET estimate_approved=1, approved_at=?, approval_scope_json=?, updated_at=? WHERE id=?",
-                    (now_iso(), jdump(scope), now_iso(), g["id"]))
+            # 2.10.7: onay okunan tahmine bağlıdır. Bu arada başka bir oturum fiyatı değiştirdiyse (updated_at/estimate_credits farklı)
+            # onay yazılmaz; önceden yeni fiyatın üstüne eski tavanla onay yazılabiliyordu.
+            cur = self.ex("""UPDATE generations SET estimate_approved=1, approved_at=?, approval_scope_json=?, updated_at=?
+                             WHERE id=? AND status='estimated' AND estimate_credits IS ? AND updated_at IS ?""",
+                          (now_iso(), jdump(scope), now_iso(), g["id"], g["estimate_credits"], g["updated_at"]))
+            if cur.rowcount != 1:
+                raise AdMemoryError("tahmin bu arada değişti (başka bir oturum yeni fiyat yazmış olabilir); yeni fiyatı kullanıcıya göster "
+                                    "ve yeniden onay al")
         return {**self.q1("SELECT * FROM generations WHERE id=?", (g["id"],)),
                 "note": "Onay tek kullanımlıktır; gerçek çağrıdan hemen önce cost_guard rezervasyonu alır."}
 
@@ -814,6 +823,20 @@ class CreativeMixin:
                 return {"ok": False, "reason": "aynı talep tamamlanmış; yeni alım için yeni tahmin ve onay"}
             if g["status"] != "estimated" or not g["estimate_approved"]:
                 return {"ok": False, "reason": "onay yok ya da tüketilmiş"}
+            # 2.10.7: onay fiyata, süreye ve tek bir tahmine bağlıdır
+            scope = jload(g["approval_scope_json"], {}) if isinstance(g["approval_scope_json"], str) else (g["approval_scope_json"] or {})
+            cap = scope.get("approved_max_credits")
+            if cap is None or float(g["estimate_credits"] or 0) > float(cap):
+                return {"ok": False, "reason": f"güncel tahmin ({g['estimate_credits']}) onaylanan üst sınırı ({cap}) aşıyor: yeni onay gerekir"}
+            from .approval import APPROVAL_TTL_MIN
+            at, now = parse_iso(g["approved_at"]), parse_iso(now_iso())
+            if at is None or (now - at).total_seconds() > APPROVAL_TTL_MIN * 60:
+                return {"ok": False, "reason": f"onayın süresi doldu ({APPROVAL_TTL_MIN} dakika): fiyat yeniden alınıp kullanıcıya sorulmalı"}
+            others = [r for r in rows[1:] if r["status"] == "estimated"]
+            if others:
+                return {"ok": False, "reason": "bu çağrı için birden çok açık fiyat kaydı var; hangisinin geçerli olduğu belli değil. Eski kayıtları "
+                                               "generation_update(status='failed') ile kapatıp tek tahminle yeniden onay alın"}
+
             cur = self.ex("UPDATE generations SET status='running', estimate_approved=0, tool_use_id=?, updated_at=? WHERE id=? AND status='estimated' AND estimate_approved=1",
                           (tool_use_id, now_iso(), g["id"]))
             if cur.rowcount != 1:

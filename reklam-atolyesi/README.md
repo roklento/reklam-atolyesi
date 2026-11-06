@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.6
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.7
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,20 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.7** — yayın engelleri (bağımsız ürün denetimi B1–B3)
+- Migration yok. Yeni bağımlılık: `tzdata` (Windows'ta saat dilimi verisi; 2.10.6'da pandas'la birlikte kilitten düşmüştü ve ilk
+  marka kaydı "geçersiz saat dilimi" ile duruyordu). Kurulum doğrulamasının ilk adımı saat dilimi verisini denetler. CI'a Windows işi
+  eklendi; müşteri paketi testleri orada gerçek PowerShell ile çalışır.
+- **Onay kullanıcının kendi mesajından:** navigator hook'u plugin modundaki kullanıcı mesajlarını oturuma yazar. `gate_approve`,
+  `generation_approve`, `action_item_set_status`, `playbook_activate` ve `feedback_export` `session_id` ister ve onayı modelin yazdığı
+  metinden değil, kullanıcının onaylanan şey gösterildikten sonra yazdığı son mesajından alır. Mesaj yalnızca onaydan oluşmalı (izin
+  listesi; "hayır", şart ya da değişiklik isteği geçmez), 30 dakikadan eski olmamalı ve bir kez kullanılır.
+- **Ücretli onay fiyata bağlı:** onay okunan tahmine koşullu yazılır (başka oturum fiyatı değiştirirse onay yazılmaz). Rezervasyon
+  tahmini onaylanan üst sınırla yeniden karşılaştırır; onay 30 dakika geçerlidir; aynı çağrı için iki açık fiyat kaydı varsa durur.
+- **Dosya izni içeriğe bağlı:** izin dosyanın yolunu ve içerik özetini saklar; yükleme başlatılırken ve tamamlanırken içerik yeniden
+  hesaplanır, ad ve boyut birlikte eşleşmeli. Tamamlama adımı yalnızca izinle başlatılmış bir yüklemeyle ve izin hâlâ geçerliyse geçer.
+- `tests/test_v2107_yayin_engelleri.py`.
+
 **2.10.6** — eval araçları (bağımsız kod denetiminin dördüncü dalgası)
 - Migration yok, müşteri paketi değişmedi. Kullanılmayan iki bağımlılık (`pandas`, `duckdb`) kaldırıldı.
 - **Deney kaydı ham sonuca bağlı:** `kor_kiyas.py kayit` ham sonuç dosyasının özetini yazar. Kayıt başka bir dosyaya taşınırsa ya da

@@ -28,6 +28,23 @@ def _now() -> str:
     return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+PROMPTS_KEPT = 10
+
+
+def record_prompt(sess: dict, event: str, prompt: str, command_name: str, prompt_id: str | None) -> None:
+    """2.10.7: kullanıcının kendi mesajı oturuma yazılır; onay isteyen araçlar (gate_approve, generation_approve…) onayı modelin
+    yazdığı metinden değil buradan alır. Komutla gelen mesajda komut adı da saklanır (/reklam-atolyesi:onayla)."""
+    import hashlib
+    text = prompt or ""
+    if event == "UserPromptExpansion" and command_name and not text.lstrip().startswith("/"):
+        text = f"/{command_name} {text}".strip()
+    rid = prompt_id or hashlib.sha256(f"{_now()}|{text}".encode("utf-8")).hexdigest()[:16]
+    ups = [u for u in (sess.get("user_prompts") or []) if u.get("id") != rid]
+    ups.append({"id": rid, "text": text[:500], "at": _now()})
+    sess["user_prompts"] = ups[-PROMPTS_KEPT:]
+
+
+
 def status_lines(data_dir, sess: dict) -> list[str]:
     lines: list[str] = []
     con = pm.ro_db(data_dir)
@@ -157,6 +174,8 @@ def main() -> int:
         sess.update({"plugin_mode": True, "entered_at": _now(), "entered_by": "command" if cmd else "name"})
     sess["last_prompt_id"] = pid
     sess["last_prompt_at"] = _now()
+    record_prompt(sess, event, prompt, data.get("command_name") or "", pid)
+
     low = pm.fold(prompt)
     if any(pm.fold(h) in low for h in DECISION_HINTS) or re.fullmatch(r"\s*\d{1,2}\s*", prompt or ""):
         turns = sess.get("decision_turns") or []

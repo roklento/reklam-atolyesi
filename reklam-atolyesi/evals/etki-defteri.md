@@ -190,6 +190,24 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.7 (2026-11-06): yayın engelleri
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `servers/ad_memory/pyproject.toml`, `uv.lock` (`tzdata`), `scripts/setup/kurulum_dogrula.py` (`tz_check`), CI Windows işi | bağımlılık, kurulum | her ürün × her kullanıcı (Windows) | Dış ürün denetimi B3: 2.10.6'da saat dilimi verisi kilitten düştü | Sistem verisi olmadan marka kaydı geçiyor (`tests/test_v2107_yayin_engelleri.py`) | yok | yardım etti (test) |
+| `servers/ad_memory/admem/approval.py`, `s_base.py::_user_approval`, `hooks/navigator.py` (`record_prompt`), onay araçları (`session_id`) | işleyiş (kapı) | bütün kapılar, ücretli üretim, koç maddeleri, playbook, hata defteri | Dış ürün denetimi B1: olumsuz ya da modelin yazdığı metin onay sayılıyordu | Onay kullanıcının son mesajından; ret, şart ve eski mesaj geçmiyor | yok | yardım etti (test) |
+| `servers/ad_memory/admem/s_creative.py` (`generation_approve`, `generation_reserve`) | işleyiş (maliyet) | ücretli üretim kullanan her kullanıcı, iki oturumlu ajans | Dış ürün denetimi B1: iki bağlantıda 120 onayı 900'lük fiyatı geçiriyordu | Koşullu onay yazımı, rezervasyonda üst sınır, 30 dk süre, tek açık fiyat | ölçülmedi | yardım etti (test) |
+| `hooks/cost_guard.py` (`upload_decision`, `_finalize_decision`), `s_legal.py` (izinde yol) | hook | kişi sesi/yüzü/yorumu kullanan marka | Dış ürün denetimi B2: aynı ad ve boyutta başka içerik ve geri çekilen izinle tamamlama geçiyordu | İçerik özeti yükleme ve tamamlama anında yeniden hesaplanıyor | yok | yardım etti (test) |
+| `KURALLAR.md` K02, K05; ilgili skill satırları ve `commands/onayla.md` | kural | bütün kapılar | B1 | Araç imzaları ve kural metni `session_id`'yi söylüyor | ölçülmedi | ölçülmedi |
+
+**Sahada:** henüz yok. Temiz Windows kurulumu ve bir örnek reklam bu sürümün kabul koşulu.
+
+**Ders:** *Ne zaman:* bir koruma kullanıcının iznine dayanıyorsa. *Ne yap:* izni modelin aktardığı metinden değil, kullanıcının kendi
+eyleminin kaydından al ve izin verilen şeye (fiyat, sürüm, dosya içeriği) bağla. *Dayanak:* bu sürümün onay ve dosya izni satırları.
+*Güven:* orta.
+
 ## 2.10.6 (2026-11-06): eval araçları
 
 **Değişiklikler**

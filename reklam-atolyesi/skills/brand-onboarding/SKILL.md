@@ -85,4 +85,4 @@ Yok.
 "Markanı şöyle kaydettim. Marka adı: <ad>. Reklam hesabı: <hesabın adı> (Facebook sayfası ve Instagram: …). Saat dilimi: ….
 Konuşma tarzımız: …. Reklamın sonunda izleyene ne yapmasını söyleyeceğiz: …. Kaçınacağımız şeyler: …. Renkler: yazı rengi …,
 vurgu rengi …, arka plan rengi …. Reklamda kullanmamıza izin verilen müşteri yorumu: N tane. Bunları onaylıyor musun, düzeltmemi
-istediğin bir yer var mı?" → açık onayda `gate_approve(profile_id, stage_run_id, output_version, approval_text, checkpoint=…)`.
+istediğin bir yer var mı?" → açık onayda `gate_approve(session_id, profile_id, stage_run_id, output_version, checkpoint=…)`.
