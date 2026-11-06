@@ -67,8 +67,9 @@ Yok.
    (`memory_search` katman `preference`) + bekleyen doğrulamalar. Sade bir liste olarak göster.
 2. Kullanıcı düzeltirse `memory_update(item_id, content=…, by_user=True)`.
 3. Silme: önce neyin silineceğini göster, açık onay al → `memory_forget(item_id, confirm_text, profile_id)`. Araç öğeyi, FTS kaydını,
-   kullanım/kanıt kopyalarını, türeyen özet ve dışa aktarımları temizler; öğeyi içeren yerel yedekleri silip temiz yedek alır; günlükte
-   içerik taşımayan iz kalır. Meta'da yayınlanmış içerik, kullanıcının harici kopyaları ve sağlayıcı kayıtları yerel silmeyle yok
+   kullanım/kanıt kopyalarını, türeyen özet ve dışa aktarımları temizler; öğeyi içeren yerel yedekleri (güncelleme yedekleri ve geri
+   dönüşte kenara alınan eski veritabanları dahil) silip temiz yedek alır; günlükte içerik taşımayan iz kalır. Sonuçta
+   `local_copies_complete` false ise açılamayan dosyaları kullanıcıya söyle; silme tamamlandı deme. Meta'da yayınlanmış içerik, kullanıcının harici kopyaları ve sağlayıcı kayıtları yerel silmeyle yok
    olmuş sayılmaz: yerel tamamlananlar ile insan/sağlayıcı tarafında bekleyenler ayrı raporlanır. Kişisel medya/yorum için
    `consent_withdraw` / `review_withdraw` (bölüm 10).
 

@@ -1,6 +1,8 @@
 """Veritabanı sağlık denetimi ve yedekten geri dönüş (2.0.0).
 
-Haftalık ve her migration öncesi yedekler `<data_dir>/backups/ad-memory-<zaman>-<neden>.sqlite` olarak alınır (son 8). Bu araç:
+Haftalık ve her migration öncesi yedekler `<data_dir>/backups/ad-memory-<zaman>-<neden>.sqlite`, müşteri güncelleyicisinin yedekleri
+`<data_dir>/backups/guncelleme-<zaman>.sqlite` olarak alınır (ikisi birlikte son 8). 2.10.9: liste ad-memory'nin yedek envanterinden
+gelir (admem.util.backup_inventory) ve geri dönüşte kenara alınan eski veritabanlarını da gösterir. Bu araç:
   check   --data-dir DD                         veritabanının ve her yedeğin bütünlüğü (salt okuma)
   restore --data-dir DD --backup <dosya> --confirm
           seçilen yedeği geri koyar. Önce Claude Code kapatılır (açık veritabanı Windows'ta taşınamaz; araç bunu söyler ve durur).
@@ -17,7 +19,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "servers" / "ad_memory"))
 from common import emit  # noqa: E402
+from admem.util import backup_inventory  # noqa: E402  (yalnızca standart kütüphane)
 
 
 def quick_check(path: Path) -> str:
@@ -46,10 +50,18 @@ def schema_version(path: Path) -> int | None:
 
 def check(data_dir: Path) -> dict:
     db = data_dir / "db" / "ad-memory.sqlite"
-    backups = sorted((data_dir / "backups").glob("ad-memory-*.sqlite"), reverse=True)
+    inv = backup_inventory(data_dir)
+
+    def row(r: dict) -> dict:
+        b = r["db"]
+        ok = b.exists()
+        return {"path": str(r["path"]), "kind": r["kind"],
+                "taken": dt.datetime.fromtimestamp(r["mtime"]).strftime("%Y-%m-%d %H:%M"),
+                "bytes": b.stat().st_size if ok else None, "check": quick_check(b) if ok else "veritabanı dosyası yok",
+                "schema_version": schema_version(b) if ok else None, "restorable": r["kind"] != "previous"}
     return {"db": {"path": str(db), "exists": db.exists(), "check": quick_check(db) if db.exists() else None},
-            "backups": [{"path": str(b), "taken": b.name[10:26], "bytes": b.stat().st_size, "check": quick_check(b),
-                         "schema_version": schema_version(b)} for b in backups],
+            "backups": [row(r) for r in inv if r["kind"] != "previous"],
+            "previous_databases": [row(r) for r in inv if r["kind"] == "previous"],
             "note": "Geri dönüş: restore --backup <dosya> --confirm (önce Claude Code kapatılır)."}
 
 
@@ -65,7 +77,8 @@ def restore(data_dir: Path, backup: Path, confirm: bool) -> dict:
     if st != "ok":
         raise SystemExit(f"yedek bütünlük denetiminden geçmedi ({st}); başka bir yedek seçin (check)")
     if not confirm:
-        return {"dry_run": True, "backup": str(backup), "taken": backup.name[10:26],
+        return {"dry_run": True, "backup": str(backup),
+                "taken": dt.datetime.fromtimestamp(backup.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
                 "note": "Bu yedekten sonra yapılan kayıtlar geri gelmez. Kullanıcı onaylarsa --confirm ile yeniden çalıştırın."}
     # 2.10.3: yedek önce geçici dosyaya kopyalanır ve denetlenir; mevcut veritabanı ancak bundan sonra kenara alınır. Önceden kopyalama
     # (ör. disk dolu) yarıda kalırsa çalışma yerinde veritabanı kalmıyordu.

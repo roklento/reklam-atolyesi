@@ -32,6 +32,7 @@ def main() -> int:
         return 0
     if not sess or not sess.get("plugin_mode") or not sess.get("profile_id"):
         return 0
+    before = json.loads(json.dumps(sess))
     con = pm.ro_db(data_dir)
     if con is None:
         return 0
@@ -69,7 +70,7 @@ def main() -> int:
     finally:
         con.close()
     if msgs:
-        pm.save_session(data_dir, sid, sess)
+        pm.save_changes(data_dir, sid, before, sess)
         pm.emit({"decision": "block", "reason": "[reklam-atolyesi] " + " ".join(msgs)})
     return 0
 

@@ -5,11 +5,12 @@ import datetime as dt
 import json
 import math
 import re
+import shutil
 import sqlite3
 from pathlib import Path
 from typing import Any
 
-from .util import (AdMemoryError, atomic_write, est_tokens, fts_body, fts_query, jdump, jload, now_iso, parse_iso,
+from .util import (AdMemoryError, backup_inventory, atomic_write, est_tokens, fts_body, fts_query, jdump, jload, now_iso, parse_iso,
                    tr_fold, trigram_similarity, utcnow)
 
 SERVER_DIR = Path(__file__).resolve().parents[1]
@@ -631,23 +632,39 @@ class MemoryMixin:
                         exports_removed.append(f.name)
                 except OSError:
                     continue
-        backups_removed = []
-        bdir = self.data_dir / "backups"
-        for b in sorted(bdir.glob("ad-memory-*.sqlite")) if bdir.exists() else []:
+        # 2.10.9: sunucu yedekleri, güncelleme yedekleri ve geri dönüşte kenara alınan eski veritabanları tek envanterden taranır.
+        # Okunamayan bir kopya varsa silme "tamamlandı" sayılmaz.
+        backups_removed, unreadable = [], []
+        for rec in backup_inventory(self.data_dir):
+            b = rec["db"]
+            if rec["kind"] == "previous" and not b.exists():
+                continue
             try:
-                con = sqlite3.connect(f"file:{b}?mode=ro", uri=True)
-                hit = con.execute("SELECT 1 FROM memory_items WHERE id=? OR content=? LIMIT 1", (it["id"], content)).fetchone()
-                con.close()
+                con = sqlite3.connect(f"file:{b.as_posix()}?mode=ro", uri=True, timeout=3)
+                try:
+                    hit = con.execute("SELECT 1 FROM memory_items WHERE id=? OR content=? LIMIT 1", (it["id"], content)).fetchone()
+                finally:
+                    con.close()
             except sqlite3.Error:
-                hit = None
+                unreadable.append(str(rec["path"]))
+                continue
             if hit:
-                b.unlink()
-                backups_removed.append(b.name)
+                try:
+                    if rec["kind"] == "previous":
+                        shutil.rmtree(rec["path"])
+                    else:
+                        b.unlink()
+                    backups_removed.append(rec["path"].name)
+                except OSError:
+                    unreadable.append(str(rec["path"]))
         new_backup = self.backup(reason="forget") if backups_removed else None
         if exports_removed:
             self.export_markdown(profile_id)
         return {"forgotten": item_id, "journal_scrubbed": len(touched), "exports_removed": exports_removed,
                 "backups_removed": backups_removed, "new_backup": new_backup["path"] if new_backup else None,
+                "local_copies_complete": not unreadable, "backups_unreadable": unreadable,
+                **({"warning": "bazı yerel yedekler açılamadı ya da silinemedi; silme bu kopyalar için tamamlanmadı. Kullanıcıya bu dosyaları "
+                               "söyle; elle silinene ya da açılabilene kadar silme tamamlandı deme"} if unreadable else {}),
                 "pending_outside": "Meta'da yayınlanmış içerik, kullanıcının haricî kopyaları ve sağlayıcı kayıtları yerel silmeyle yok olmuş sayılmaz."}
 
     def _export_dirs(self, profile_id: int | None) -> list[Path]:

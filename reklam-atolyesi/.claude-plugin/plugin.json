@@ -36,16 +36,6 @@
       ],
       "default": "TRY"
     },
-    "language": {
-      "type": "string",
-      "title": "Dil",
-      "description": "Arayüz ve rapor dili (tr, en).",
-      "options": [
-        "tr",
-        "en"
-      ],
-      "default": "tr"
-    },
     "exploration_share": {
       "type": "number",
       "title": "Kreatif test bütçesi payı",
