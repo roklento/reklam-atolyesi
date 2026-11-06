@@ -127,7 +127,50 @@ def paired_totals(rows: list[dict], num: str, den: str) -> tuple[float | None, f
     return n, d, (round(d / d_all, 4) if d_all else None)
 
 
+COST_MIN_COVERAGE = 0.8  # 2.10.8: sonuç sayısının ölçüldüğü günlerin harcamadaki payı bu eşiğin altındaysa maliyet hükmü verilmez
+
+
+def cost_measured(rows: list[dict], target, verified: bool) -> dict:
+    """2.10.8: sonuç başı maliyet yalnızca sonucun ölçüldüğü günlerin harcamasıyla hesaplanır (oranlardaki 2.10.2 kuralı). Önceden
+    ölçülmemiş satış 0 sayılıyor, bütün günlerin harcaması tek günün satışına bölünüp 'kapat · kanıt' çıkıyordu. Ölçülen günler
+    harcamanın COST_MIN_COVERAGE kadarını kapsamıyorsa eşik geçilmiş sayılmaz: ne kapat ne büyüt, etiket 'yetersiz ölçüm'."""
+    n_res, d_spend, _ = paired_totals(rows, "results", "spend")
+    spend_all = _sum(rows, "spend")
+    if n_res is None:  # sonuç hiç ölçülmemiş (ör. pikselsiz hesap): eskisi gibi sonuçsuz, eşik altı
+        out = B.cost_posterior(spend_all, 0, target, verified)
+        out.update(coverage=None, measured=False)
+        return out
+    cov = (d_spend / spend_all) if spend_all else None
+    out = B.cost_posterior(d_spend, n_res, target, verified)
+    out.update(coverage=round(cov, 4) if cov is not None else None, measured=True)
+    if cov is None or cov < COST_MIN_COVERAGE:
+        out.update(threshold_met=False, label="yetersiz ölçüm", gated="measurement_coverage",
+                   note=f"sonuç sayısı harcamanın yalnızca %{(cov or 0) * 100:.0f}'inin yapıldığı günlerde ölçülmüş; maliyet hükmü verilmez")
+        out.pop("p_below_target", None)
+    return out
+
+
+def budget_gate(dec: list[dict], lim: list[dict], cmap: dict) -> None:
+    """2.10.8: harcama sınırları öneriden önce tek yerde uygulanır. Kampanyanın toplam sınırı aşıldıysa ya da kalan bütçe yetmiyorsa,
+    ya da bir reklam onaylanan reklam başı sınıra ulaştıysa o fikir için 'büyüt' önerilmez; iyi giden fikir 'tut' olarak kalır."""
+    total = next((a for a in lim if a["kind"] in ("total_exceeded", "total_near")), None)
+    capped = {cmap.get(a.get("creative_key")) for a in lim if a["kind"] == "risk_limit"}
+    for d in dec:
+        if d["decision"] != "büyüt":
+            continue
+        if total:
+            why = ("kampanyanın toplam harcama sınırı aşıldı" if total["kind"] == "total_exceeded"
+                   else "kalan bütçe yarınki kontrole kadar planlanan harcamaya yetmiyor")
+        elif d["concept"] in capped:
+            why = "bu fikrin bir reklamı onayladığın reklam başı harcama sınırına ulaştı"
+        else:
+            continue
+        d.update(decision="tut", ads_manager=None, gated="budget_limit",
+                 why=d["why"] + f"; fikir iyi gidiyor ama {why}: bütçe artırılmaz, önce sınırı birlikte konuşalım")
+
+
 def stage_section(snap: dict, by_concept: dict) -> dict | None:
+
     """Huni aşaması teşhisi (1.9.0). Her konsept KENDİ aşamasının metriğiyle okunur; hüküm yine sonuç türüyle verilir. Piksel bir olayı
     göndermiyorsa o metrik okunamadı yazılır (sıfır sayılmaz). Kitle segmenti dökümü (yeni / etkileşime geçmiş / mevcut müşteri) yalnızca
     girdi olarak verildiyse kullanılır; aşama bir kitle değildir, reklamı kimin gördüğü bu dökümle okunur."""
@@ -927,7 +970,8 @@ def analyze(snap_path: str) -> dict:
     sup = B.superiority(hook_posts, hist_mean)
     from admem.s_lead import target_for
     target, verified = target_for(snap["campaign"].get("result_type"), snap.get("economics"))
-    cost = {k: B.cost_posterior(v["totals"]["spend"], v["totals"]["results"], target, verified) for k, v in kpost.items()}
+    cost = {k: cost_measured(by_concept[k], target, verified) for k in kpost}
+
     dist = spend_distribution(by_concept)
     all_rows = snap["rows"]
     rows_main_by_creative = aggregate(main_rows, lambda r: r.get("creative_key") or r["meta_ad_id"])
@@ -956,7 +1000,13 @@ def analyze(snap_path: str) -> dict:
             if d["decision"] == "büyüt":
                 d.update(decision="tut", why=d["why"] + "; ancak adaylardan sonra ne olduğunun kaydı yok ya da deneme süresinin tamamını "
                          "kapsamıyor: adayların ciddi olup olmadığı ve satışa dönüp dönmediği görülmeden büyütülmez", ads_manager=None, gated="lead_outcomes")
+    budget_gate(dec, lim, cmap)
+    for d in dec:  # 2.10.8: sonucu yeterince ölçülmemiş fikre maliyet hükmü verilmez; nedeni kullanıcıya söylenir
+        if cost.get(d["concept"], {}).get("gated") == "measurement_coverage" and not d.get("gated"):
+            d.update(gated="measurement_coverage", label="yetersiz ölçüm",
+                     why=d["why"] + "; satış sayısı günlerin bir kısmında ölçülmemiş, bu yüzden maliyet hükmü vermiyoruz")
     if structure == "ab_test":  # A/B testinde yalnızca çalışmanın hücreleri hüküm alır
+
         ev = (snap.get("cycle") or {}).get("structure_evidence_json") or {}
         if isinstance(ev, str):
             try:

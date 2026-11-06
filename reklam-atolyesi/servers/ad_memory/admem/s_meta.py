@@ -23,6 +23,15 @@ SERVER_DIR = Path(__file__).resolve().parents[1]
 # oran: (pay, payda); ölçülmemiş pay 0 sayılmaz — ThruPlay sütunu olmayan dışa aktarımda tutma oranı %0 değil, yoktur (2.0.0)
 RATE_PAIRS = {"hook_rate": ("video_3s", "impressions"), "hold_rate": ("thruplay", "video_3s"),
               "ctr_link": ("link_clicks", "impressions"), "cvr": ("purchases", "link_clicks")}
+# 2.10.8: para oranları (pay, payda). Ölçülmemiş gelir/sonuç sıfır sayılmaz; iki alanın birlikte ölçüldüğü günler harcamanın en az
+# MONEY_MIN_COVERAGE kadarını kapsamıyorsa değer boş kalır (koçtaki maliyet kapısıyla aynı eşik)
+MONEY_PAIRS = {"roas": ("revenue", "spend"), "cost_per_result": ("spend", "results")}
+MONEY_MIN_COVERAGE = 0.8
+END_HEADERS = frozenset({"reporting ends", "raporlama bitişi", "raporlama bitisi", "date_stop"})
+BREAKDOWN_HEADERS = frozenset({"placement", "platform", "age", "gender", "region", "country", "device platform", "impression device",
+                               "yerleşim", "yerlesim", "yaş", "yas", "cinsiyet", "bölge", "bolge", "ülke", "ulke", "cihaz platformu"})
+
+
 
 
 def measurement_fingerprint(ctx: dict) -> str:
@@ -295,12 +304,18 @@ class MetaMixin:
         fetched = ctx.get("fetched_at") or now_iso()
         ctx_store = {**ctx, "source": source, "fetched_at": fetched}
         inserted = updated = 0
+        seen: set = set()
         with self.tx():
             for r in rows:
                 mid = r.get("meta_ad_id") or r.get("ad_id")
                 if not mid:
                     raise AdMemoryError("her satır meta_ad_id taşımalı")
                 day = _date(r["date"])
+                if (str(mid), day) in seen:  # 2.10.8: aynı çağrıda ikinci satır öncekinin üstüne yazılıyordu (kırılımlı veri)
+                    raise AdMemoryError(f"aynı reklam ({mid}) ve gün ({day}) için birden çok satır geldi; içe alma tamamen geri alındı. "
+                                        "Kırılımsız (yerleşim/yaş/cinsiyet olmadan), günlük reklam düzeyi veri gerekir")
+                seen.add((str(mid), day))
+
                 ad = self._ad_row(bid, str(mid), r.get("ad_name"))
                 vals: dict[str, Any] = {}
                 for k in METRIC_COLS:
@@ -381,10 +396,31 @@ class MetaMixin:
         if absent:
             raise AdMemoryError("CSV'de zorunlu sütunlar bulunamadı: " + ", ".join(absent)
                                 + f". Başlıklar: {headers[:20]}. Reklam düzeyi, günlük, video sütunlu dışa aktarım gerekir (9.2).")
+        # 2.10.8: dönem, para birimi ve kırılım denetimi; yanlış biçimli dosya "başarılı" içe alınıp yanlış kayıt üretmesin
+        end_col = next((h for h in headers if h and h.strip().lower() in END_HEADERS), None)
+        cur = ((measurement_context or {}).get("currency") or "").upper()
+        for h in headers:
+            m = re.search(r"\(([A-Za-z]{3})\)", h or "")
+            if m and cur and m.group(1).upper() != cur:
+                raise AdMemoryError(f"CSV'deki '{h}' sütunu {m.group(1).upper()} para biriminde, ölçüm bağlamı {cur}. Hiçbir satır yazılmadı. "
+                                    "Reklam hesabının para birimiyle alınmış dökümü verin ya da bağlamın para birimini düzeltin")
+        breakdown = [h for h in headers if h and h.strip().lower() in BREAKDOWN_HEADERS]
         rows = []
+        seen_keys: set = set()
         for r in reader:
             if not r.get(cmap["ad_id"]):
                 continue
+            if end_col and (r.get(end_col) or "").strip() and (r.get(end_col) or "").strip() != (r.get(cmap["date"]) or "").strip():
+                raise AdMemoryError(f"CSV satırı tek bir günü değil bir dönemi gösteriyor ({r.get(cmap['date'])} – {r.get(end_col)}). Hiçbir satır "
+                                    "yazılmadı. Ads Manager'da Dışa aktar'dan önce Kırılım > Zaman > Gün seçilmiş, reklam düzeyinde bir döküm gerekir")
+            k = (r[cmap["ad_id"]].strip(), (r.get(cmap["date"]) or "").strip())
+            if k in seen_keys:
+                raise AdMemoryError("CSV'de aynı reklam ve gün için birden çok satır var"
+                                    + (f" ({', '.join(breakdown)} kırılımı)" if breakdown else "")
+                                    + ". Hiçbir satır yazılmadı. Yerleşim, yaş, cinsiyet gibi kırılımlar olmadan, yalnızca gün kırılımıyla alınmış "
+                                    "reklam düzeyinde bir döküm verin")
+            seen_keys.add(k)
+
             row = {"meta_ad_id": r[cmap["ad_id"]].strip(), "date": r[cmap["date"]], "ad_name": r.get(cmap.get("ad_name", ""), None)}
             for k, real in cmap.items():
                 if k in ("ad_id", "date", "ad_name"):
@@ -487,12 +523,13 @@ class MetaMixin:
                 key = concept_of.get(r["creative_key"] or "", "(konseptsiz)")
             else:
                 key = str(r["campaign_id"])
+            # 2.10.8: toplamlar None'dan başlar; hiç ölçülmemiş alan 0 değil "bilinmiyor"dur (gelir sütunu yokken ROAS 0 çıkıyordu)
             g = groups.setdefault(key, {"key": key, "days": set(), "ads": set(), "fingerprints": set(),
-                                        **{k: 0.0 for k in ("impressions", "spend", "video_3s", "thruplay", "link_clicks", "results",
-                                                            "purchases", "revenue", "add_to_cart", "p25", "p50", "p75", "p95", "p100",
-                                                            "landing_page_views", "view_content", "initiate_checkout")}})
-            pairs = g.setdefault("_pairs", {m: [0.0, 0.0, 0] for m in RATE_PAIRS})
-            for m, (num, den) in RATE_PAIRS.items():  # oran yalnızca payı ve paydası birlikte ölçülmüş satırlardan (2.0.0)
+                                        **{k: None for k in ("impressions", "spend", "video_3s", "thruplay", "link_clicks", "results",
+                                                             "purchases", "revenue", "add_to_cart", "p25", "p50", "p75", "p95", "p100",
+                                                             "landing_page_views", "view_content", "initiate_checkout")}})
+            pairs = g.setdefault("_pairs", {m: [0.0, 0.0, 0] for m in {**RATE_PAIRS, **MONEY_PAIRS}})
+            for m, (num, den) in {**RATE_PAIRS, **MONEY_PAIRS}.items():  # oran yalnızca payı ve paydası birlikte ölçülmüş satırlardan (2.0.0)
                 if r.get(num) is not None and r.get(den) is not None:
                     pairs[m][0] += float(r[num])
                     pairs[m][1] += float(r[den])
@@ -503,18 +540,31 @@ class MetaMixin:
             for k in ("impressions", "spend", "video_3s", "thruplay", "link_clicks", "results", "purchases", "revenue",
                       "add_to_cart", "p25", "p50", "p75", "p95", "p100", "landing_page_views", "view_content", "initiate_checkout"):
                 if r.get(k) is not None:
-                    g[k] += float(r[k])
+                    g[k] = (g[k] or 0.0) + float(r[k])
         out = []
         for g in groups.values():
             imp = g["impressions"]
             pairs = g.pop("_pairs")
-            rate = {m: (n / d if d else None) for m, (n, d, _) in pairs.items()}
+            rate = {m: (n / d if d else None) for m, (n, d, _) in pairs.items() if m in RATE_PAIRS}
+            money = {}
+            for m, (n, d, _) in pairs.items():  # 2.10.8: maliyet ve ROAS da yalnızca iki alanın birlikte ölçüldüğü satırlardan
+                if m not in MONEY_PAIRS:
+                    continue
+                cov = (d / g["spend"]) if (g["spend"] and m == "roas") else None
+                if m == "cost_per_result":  # pay harcama, payda sonuç: kapsama sonucun ölçüldüğü günlerin harcama payıdır
+                    cov = (n / g["spend"]) if g["spend"] else None
+                    val = (n / d) if d else None
+                else:
+                    val = (n / d) if d else None
+                ok = cov is not None and cov >= MONEY_MIN_COVERAGE
+                money[m] = val if ok else None
+                money[f"{m}_coverage"] = round(cov, 4) if cov is not None else None
             out.append({**{k: v for k, v in g.items() if k not in ("days", "ads", "fingerprints")},
                         "n_days": len(g["days"]), "n_ads": len(g["ads"]), "mixed_definitions": len(g["fingerprints"]) > 1,
                         **rate,
-                        "cpm": (g["spend"] / imp * 1000) if imp else None,
-                        "cost_per_result": (g["spend"] / g["results"]) if g["results"] else None,
-                        "roas": (g["revenue"] / g["spend"]) if g["spend"] else None,
+                        "cpm": (g["spend"] / imp * 1000) if (imp and g["spend"] is not None) else None,
+                        **money,
+
                         "reach_note": "erişim reklam/gün toplanmaz; dönem frekansı yalnızca Meta'nın tekilleştirilmiş erişimiyle"})
         return {"level": level, "window": window, "excluded_boundary_days": excluded, "fingerprints": fps,
                 "groups": sorted(out, key=lambda x: str(x["key"]))}

@@ -190,6 +190,22 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.8 (2026-11-06): koç ve rapor doğruluğu
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/analytics/coach.py` (`cost_measured`) | işleyiş (koç) | eksik sonuçlu kampanya × koç | Dış ürün denetimi B6: ölçülmemiş sonuç 0 sayılıp "kapat" öneriliyordu | Harcama yalnızca sonucun ölçüldüğü günlerden; kapsama yetmezse "yetersiz ölçüm" (`tests/test_v2108_koc_rapor.py`) | yok | yardım etti (test) |
+| `scripts/analytics/coach.py` (`budget_gate`) | işleyiş (koç) | harcama sınırı dolu marka × koç | Dış ürün denetimi B6: sınır uyarısı varken "büyüt" öneriliyordu | Sınır dolu ya da yakınsa "büyüt" → "tut" | yok | yardım etti (test) |
+| `servers/ad_memory/admem/s_meta.py` (`metrics_query`) | işleyiş (rapor) | gelir ya da sonuç ölçülmemiş rapor | Dış ürün denetimi B5: gelir yokken ROAS 0 yazılıyordu | Eşli toplam ve kapsama; ölçülmeyen değer boş | yok | yardım etti (test) |
+| `servers/ad_memory/admem/s_meta.py` (`metrics_import_csv`, `metrics_ingest`) | işleyiş (içe alma) | Meta CSV yükleyen her kullanıcı | Dış ürün denetimi B5: aynı reklam-gün son satır kazanıyor, aylık satır ve para birimi denetlenmiyordu | Dönem satırı, para birimi uyuşmazlığı ve yinelenen satır reddediliyor | yok | yardım etti (test) |
+
+**Sahada:** henüz yok.
+
+**Ders:** *Ne zaman:* bir oran ya da karar iki ölçüme dayanıyorsa. *Ne yap:* ikisinin de ölçüldüğü satırları eşle, kapsamayı göster;
+ölçülmemişi sıfır sayma. *Dayanak:* bu sürümün koç ve rapor satırları. *Güven:* orta.
+
 ## 2.10.7 (2026-11-06): yayın engelleri
 
 **Değişiklikler**

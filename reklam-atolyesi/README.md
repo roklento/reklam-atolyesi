@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.7
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.8
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,18 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.8** — koç ve rapor doğruluğu (bağımsız ürün denetimi B5–B6)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Eksik ölçüm sıfır sayılmaz:** `metrics_query` toplamları ölçülmemiş alanlarda boş döner. ROAS ve sonuç başı maliyet yalnızca
+  pay ve paydanın birlikte ölçüldüğü satırlardan hesaplanır (`*_coverage`); kapsama %80'in altındaysa boş kalır, 0 yazılmaz.
+- **Koç:** maliyet harcamayı yalnızca sonucun ölçüldüğü günlerden alır. Kapsama yetmezse "kapat" ya da "büyüt" denmez, etiket
+  "yetersiz ölçüm" olur. Toplam ya da reklam başı harcama sınırı doluysa ya da yaklaştıysa "büyüt" önerisi "tut"a döner
+  (`gated: budget_limit`).
+- **CSV içe alma:** bitişi başlangıçtan farklı (dönem toplamı) satır, başlıktaki para birimi ölçüm bağlamıyla uyuşmayan dosya ve aynı
+  reklam-gün için ikinci satır içeren dosya reddedilir; hata mesajı hangi dışa aktarımın alınacağını söyler. `metrics_ingest` de aynı
+  çağrıdaki yinelenen reklam-gün satırını reddeder. Aynı dosyayı yeniden yüklemek eskisi gibi çalışır.
+- `tests/test_v2108_koc_rapor.py`.
+
 **2.10.7** — yayın engelleri (bağımsız ürün denetimi B1–B3)
 - Migration yok. Yeni bağımlılık: `tzdata` (Windows'ta saat dilimi verisi; 2.10.6'da pandas'la birlikte kilitten düşmüştü ve ilk
   marka kaydı "geçersiz saat dilimi" ile duruyordu). Kurulum doğrulamasının ilk adımı saat dilimi verisini denetler. CI'a Windows işi
