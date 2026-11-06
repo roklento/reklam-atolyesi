@@ -11,14 +11,14 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from . import db
-from .util import (AdMemoryError, atomic_write, canonical_json, file_lock, jdump, jload, now_iso, parse_iso, sha256_file,
+from .util import (AdMemoryError, backup_inventory, atomic_write, canonical_json, file_lock, jdump, jload, now_iso, parse_iso, sha256_file,
                    sha256_text, slugify, utcnow)
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[3]
 SERVER_DIR = Path(__file__).resolve().parents[1]
 
 VALID_CURRENCIES = ("TRY", "USD", "EUR")
-VALID_LANGUAGES = ("tr", "en")
+VALID_LANGUAGES = ("tr",)  # 2.10.9: İngilizce seçeneği hiçbir yerde uygulanmıyordu; kaldırıldı (gerçek destek ayrı iş)
 SETTINGS_KEYS = {"active_profile_id", "setup_verified_at", "setup_static_ok_at", "runtime_verification_json",
                  "meta_data_mode_default", "last_backup_at", "currency", "language", "exploration_share",
                  "consolidation_threshold", "render_timings_json", "mcp_deferred_loading", "env_id",
@@ -145,7 +145,7 @@ class BaseStore:
         if key == "currency" and value not in VALID_CURRENCIES:
             raise AdMemoryError(f"geçersiz para birimi: {value} (geçerli: {', '.join(VALID_CURRENCIES)})")
         if key == "language" and value not in VALID_LANGUAGES:
-            raise AdMemoryError(f"geçersiz dil: {value} (geçerli: {', '.join(VALID_LANGUAGES)})")
+            raise AdMemoryError(f"geçersiz dil: {value}. Plugin şu an yalnızca Türkçe çalışır")
         if key == "exploration_share":
             v = float(value)
             if not (0.05 <= v <= 0.2):
@@ -676,9 +676,12 @@ class BaseStore:
             part.unlink(missing_ok=True)
             raise AdMemoryError(f"yedek bütünlük denetiminden geçmedi ({ok}); eski yedekler silinmedi")
         os.replace(part, target)
-        files = sorted(bdir.glob("ad-memory-*.sqlite"))
+        # 2.10.9: sınır sunucu yedekleri ile güncelleme yedeklerini birlikte sayar (tek envanter); eski veritabanı klasörleri sayılmaz
+        files = [r["path"] for r in backup_inventory(self.data_dir) if r["kind"] in ("backup", "update")]
         removed = []
-        for old in files[:-keep]:
+        for old in files[keep:]:
+            if old == target:
+                continue
             old.unlink()
             removed.append(old.name)
         self.ex("INSERT INTO settings(key,value,updated_at) VALUES('last_backup_at',?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",

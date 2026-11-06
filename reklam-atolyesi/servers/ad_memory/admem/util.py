@@ -84,8 +84,9 @@ def sha256_file(path: str | os.PathLike) -> str:
 
 def file_lock(path: str | os.PathLike, timeout: float = 3.0, stale: float = 10.0):
     """Süreçler arası kısa kilit (oturum dosyası oku-değiştir-yaz için; hook ve MCP sunucusu aynı dosyayı yazar). O_EXCL kilit dosyası
-    her işletim sisteminde aynı davranır. 10 sn'den eski kilit ölü sayılır; 3 sn içinde alınamazsa kilitsiz devam edilir (hook süresi
-    sınırlı; en kötü durum 2.0.0 öncesi davranıştır)."""
+    her işletim sisteminde aynı davranır. 10 sn'den eski kilit ölü sayılır. 2.10.9: süre içinde alınamazsa LockBusy yükselir ve
+    değişiklik yazılmaz (eskiden kilitsiz yazılıyordu; iki yazar birbirinin onayını ya da iznini silebiliyordu). Hook'lar da bu
+    uygulamayı kullanır (hooks/plugin_mode.py), tek kopya."""
     import contextlib
     import time
 
@@ -105,10 +106,11 @@ def file_lock(path: str | os.PathLike, timeout: float = 3.0, stale: float = 10.0
                 except OSError:
                     continue
                 if time.monotonic() - t0 > timeout:
-                    break
+                    raise LockBusy("oturum kaydı şu an başka bir işlem tarafından yazılıyor; değişiklik yazılmadı, birkaç saniye "
+                                   "sonra yeniden dene")
                 time.sleep(0.02)
         try:
-            yield fd is not None
+            yield True
         finally:
             if fd is not None:
                 os.close(fd)
@@ -224,5 +226,34 @@ def slugify(s: str, maxlen: int = 40) -> str:
     return (f or "x")[:maxlen].strip("-") or "x"
 
 
+BACKUP_PATTERNS = ("ad-memory-*.sqlite", "guncelleme-*.sqlite")
+
+
+def backup_inventory(data_dir: str | os.PathLike) -> list[dict]:
+    """2.10.9: yerel veritabanı kopyalarının tek envanteri. Unutma, yedek sınırı ve kurtarma listesi bunu kullanır.
+    kind: 'backup' (sunucunun yedeği), 'update' (müşteri güncelleyicisinin yedeği), 'previous' (geri dönüşte kenara alınan eski
+    veritabanı klasörü; path klasördür, db içindeki ad-memory.sqlite). En yenisi başta."""
+    base = Path(data_dir)
+    out: list[dict] = []
+    bdir = base / "backups"
+    if bdir.is_dir():
+        for pat, kind in zip(BACKUP_PATTERNS, ("backup", "update")):
+            for f in bdir.glob(pat):
+                if f.is_file():
+                    out.append({"kind": kind, "path": f, "db": f, "mtime": f.stat().st_mtime})
+    ddir = base / "db"
+    if ddir.is_dir():
+        for d in ddir.glob("onceki-*"):
+            f = d / "ad-memory.sqlite"
+            if d.is_dir():
+                out.append({"kind": "previous", "path": d, "db": f, "mtime": d.stat().st_mtime})
+    out.sort(key=lambda r: r["mtime"], reverse=True)
+    return out
+
+
 class AdMemoryError(Exception):
     """Kullanıcıya/Claude'a Türkçe açıklamayla dönen iş kuralı hatası."""
+
+
+class LockBusy(AdMemoryError):
+    """Oturum kilidi süresinde alınamadı; geçici hata, hiçbir şey yazılmadı (2.10.9)."""

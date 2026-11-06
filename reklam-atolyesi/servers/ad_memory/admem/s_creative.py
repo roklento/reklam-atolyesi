@@ -4,7 +4,9 @@ from __future__ import annotations
 import csv
 import io
 import json
+import os
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -480,8 +482,72 @@ class CreativeMixin:
                         rep["errors"].append(f"ReviewCard yorumu {l['review_id']} bu profilde yok")
                     elif r["withdrawn_at"] or not r["consent_evidence_path"]:
                         rep["errors"].append(f"ReviewCard yorumu {l['review_id']}: izin kanıtı yok ya da geri çekilmiş (bölüm 10)")
+                    else:
+                        rep["errors"] += self._review_props_errors(s.get("id"), l, r)
+        rep["errors"] += self._plan_people_errors(profile_id, index)
         rep["valid"] = not rep["errors"]
         return rep
+
+    def _review_props(self, r: dict) -> dict:
+        """2.10.9: kartta çizilecek değerler yalnızca kayıttan gelir: birebir metin, kayıtlı puan, ad gösterim kuralına göre ad."""
+        return {"reviewId": int(r["id"]), "quote": r["text"], "rating": r["rating"], "displayName": self._display_name(r)}
+
+    def _review_props_errors(self, scene_id, layer: dict, r: dict) -> list[str]:
+        want = self._review_props(r)
+        got = layer.get("props") or {}
+        labels = {"reviewId": "yorum kimliği", "quote": "metin", "rating": "puan", "displayName": "gösterilen ad"}
+        out = []
+        for k, v in want.items():
+            if k not in got:
+                continue  # kaydederken kayıttan doldurulur
+            g = got[k]
+            same = (g == v) if not isinstance(v, str) else (str(g or "").strip() == v.strip())
+            if k == "rating" and g is not None and v is not None:
+                same = abs(float(g) - float(v)) < 1e-9
+            if k == "displayName" and not v and not g:
+                same = True
+            if not same:
+                out.append(f"sahne {scene_id}: ReviewCard {labels[k]} yorum kaydıyla ({r['id']}) aynı değil; kart yalnızca kayıttaki "
+                           "değerle çizilir (bölüm 10)")
+        return out
+
+    def _plan_people_errors(self, profile_id: int, index: dict) -> list[str]:
+        """2.10.9: planın kullandığı varlıklarda izni olmayan ya da geri çekilmiş kişi varsa hata (bölüm 10)."""
+        used = {v["id"] for v in index.values() if v.get("id")}
+        if not used:
+            return []
+        bad = [u for u in self.consent_query(profile_id)["assets_without_valid_consent"] if u["asset_id"] in used]
+        return [f"varlık {u['asset_id']} ({Path(u['path']).name}): kişi «{u['person'] or '?'}» için geçerli izin yok ya da geri "
+                "çekilmiş; bu klip kullanılamaz (bölüm 10)" for u in bad]
+
+    def _plan_consent_errors(self, profile_id: int, plan_id: int) -> list[str]:
+        """2.10.9: render sonrası kayıt ve son QC anında planın yorum ve kişi izinleri yeniden denetlenir (geri çekilme sonradan olabilir)."""
+        row = self._plan_row(profile_id, plan_id)
+        plan = jload(row["plan_json"], {}) if isinstance(row["plan_json"], str) else row["plan_json"]
+        _, index = self._plan_context(profile_id, row["campaign_id"], plan)
+        errs = self._plan_people_errors(profile_id, index)
+        for s in plan.get("scenes", []):
+            for l in s.get("layers", []):
+                if l.get("component") == "ReviewCard" and l.get("review_id"):
+                    r = self.q1("""SELECT r.* FROM reviews r JOIN profiles p ON p.brand_id=r.brand_id WHERE r.id=? AND p.id=?""",
+                                (int(l["review_id"]), profile_id))
+                    if not r or r["withdrawn_at"] or not r["consent_evidence_path"]:
+                        errs.append(f"ReviewCard yorumu {l['review_id']}: izin kanıtı yok ya da geri çekilmiş (bölüm 10)")
+                    else:
+                        errs += self._review_props_errors(s.get("id"), l, r)
+        return errs
+
+    def _fill_review_props(self, profile_id: int, plan: dict) -> dict:
+        """Kayıt anında ReviewCard katmanlarının metin/puan/ad alanları yorum kaydından yazılır."""
+        plan = json.loads(json.dumps(plan))
+        for s in plan.get("scenes", []):
+            for l in s.get("layers", []):
+                if l.get("component") == "ReviewCard" and l.get("review_id"):
+                    r = self.q1("""SELECT r.* FROM reviews r JOIN profiles p ON p.brand_id=r.brand_id WHERE r.id=? AND p.id=?""",
+                                (int(l["review_id"]), profile_id))
+                    if r:
+                        l["props"] = {**(l.get("props") or {}), **self._review_props(r)}
+        return plan
 
     def _plan_row(self, profile_id: int, plan_id: int) -> dict:
         row = self.q1("SELECT * FROM edit_plans WHERE id=?", (int(plan_id),))
@@ -497,6 +563,7 @@ class CreativeMixin:
         schema_errors = [e for e in rep["errors"] if e.startswith("şema:")]
         if schema_errors or (plan.get("status") == "ready" and rep["errors"]):
             raise AdMemoryError("kurgu planı doğrulanamadı: " + " | ".join(rep["errors"][:12]))
+        plan = self._fill_review_props(profile_id, plan)
         concept = self.q1("SELECT id FROM concepts WHERE cycle_id=? AND code=?", (cy["id"], plan.get("concept")))
         hook = self.q1("SELECT id FROM hooks WHERE concept_id=? AND code=?", (concept["id"], plan.get("hook"))) if concept else None
         if plan.get("purpose") == "production" and not concept:
@@ -591,6 +658,7 @@ class CreativeMixin:
             p = self.data_dir / p
         if not p.exists():
             raise AdMemoryError(f"varlık dosyası yok: {p}")
+        p = self._asset_home(profile_id, p)
         sha = sha256_file(p)
         with self.tx():
             ex = self.q1("SELECT * FROM assets WHERE profile_id=? AND sha256=?", (profile_id, sha))
@@ -608,6 +676,28 @@ class CreativeMixin:
                 aid = self.ex(f"INSERT INTO assets({', '.join(cols)}) VALUES({', '.join('?' * len(cols))})",
                               (profile_id, sha, now_iso(), *vals.values())).lastrowid
         return self.q1("SELECT * FROM assets WHERE id=?", (aid,))
+
+    def _asset_home(self, profile_id: int, p: Path) -> Path:
+        """2.10.9 (profil yalıtımı, 2.3): başka bir profilin klasöründeki dosya bu profile kaydedilmez. Profil klasörlerinin dışından
+        (ör. kullanıcının seçtiği ham dosya) gelen dosya bu profilin giriş klasörüne (inbox/) kopyalanır ve kopya kaydedilir; böylece
+        kayıt hiçbir zaman başka bir müşterinin dosyasını göstermez."""
+        rp = p.resolve()
+        own = self.profile_dir(profile_id).resolve()
+        if rp == own or own in rp.parents:
+            return p
+        root = (self.data_dir / "profiles").resolve()
+        if root in rp.parents:
+            raise AdMemoryError(f"dosya başka bir profilin klasöründe: {p}. Bu profile ait dosyayı ver ya da kullanıcıdan dosyayı bu "
+                                "marka için yeniden seçmesini iste")
+        inbox = own / "inbox"
+        inbox.mkdir(parents=True, exist_ok=True)
+        sha = sha256_file(rp)
+        dest = inbox / f"{sha[:12]}-{rp.name}"
+        if not dest.exists() or sha256_file(dest) != sha:
+            tmp = dest.with_name(dest.name + ".part")
+            shutil.copy2(rp, tmp)
+            os.replace(tmp, dest)
+        return dest
 
     def asset_query(self, profile_id: int, scope: str = "campaign", campaign_id: int | None = None, kind: str | None = None,
                     tag: str | None = None, shot_no: str | None = None, min_score: float | None = None, limit: int = 200) -> dict:
@@ -661,6 +751,10 @@ class CreativeMixin:
             p = self.data_dir / p
         if not p.exists():
             raise AdMemoryError(f"dosya yok: {p}")
+        if edit_plan_id is not None:
+            errs = self._plan_consent_errors(profile_id, edit_plan_id)
+            if errs:
+                raise AdMemoryError("kreatif kaydedilmedi: " + " | ".join(errs[:6]))
         parsed = naming.parse_file_name(p.name)
         if not parsed:
             raise AdMemoryError(f"dosya adı adlandırma kuralına uymuyor (5.18): {p.name}")
@@ -717,6 +811,12 @@ class CreativeMixin:
             raise AdMemoryError("status: passed | failed | pending")
         if status == "passed" and not report_path:
             raise AdMemoryError("QC 'passed' kaydı QC raporu yolunu ister")
+        if status == "passed":  # 2.10.9: son pakete girmeden izinler yeniden denetlenir
+            for cid in creative_ids:
+                cr = self.q1("SELECT id, edit_plan_id FROM creatives WHERE id=? AND campaign_id=?", (int(cid), campaign_id))
+                errs = self._plan_consent_errors(profile_id, cr["edit_plan_id"]) if cr and cr["edit_plan_id"] else []
+                if errs:
+                    raise AdMemoryError(f"kreatif {cid} QC'den geçirilemez: " + " | ".join(errs[:6]))
         with self.tx():
             n = 0
             for cid in creative_ids:

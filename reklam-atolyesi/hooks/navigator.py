@@ -157,6 +157,7 @@ def main() -> int:
         sess = pm.load_session(data_dir, sid) or {}
     except pm.ConfigError:
         sess = {}
+    before = json.loads(json.dumps(sess))  # 2.10.9: yazarken yalnızca bu hook'un değiştirdiği alanlar yazılır (pm.save_changes)
     was_on = bool(sess.get("plugin_mode"))
     if not (was_on or trig or cmd):
         return 0  # kapsam kuralı: plugin modu dışında hiçbir şey yapma
@@ -167,7 +168,7 @@ def main() -> int:
     if was_on and not (trig or cmd) and pm.is_exit(prompt):
         sess["plugin_mode"] = False
         sess["exited_at"] = _now()
-        pm.save_session(data_dir, sid, sess)
+        pm.save_changes(data_dir, sid, before, sess)
         pm.context(event, "[reklam-atolyesi] Plugin modu kapatıldı (yalnızca bu oturum). Kullanıcıya kısaca söyle; navigator'ü tekrar açmak için 'reklam-atolyesi' yazılabilir.")
         return 0
     if not was_on:
@@ -221,7 +222,11 @@ def main() -> int:
         out.extend(status_lines(data_dir, sess))
     except Exception as e:  # durum satırı okunamasa bile mod çalışır
         out.append(f"durum okunamadı: {e}")
-    pm.save_session(data_dir, sid, sess)
+    try:
+        pm.save_changes(data_dir, sid, before, sess)
+    except Exception as e:  # 2.10.9: kilit alınamazsa yazılmaz; mesaj kaydedilmediği için onay olarak da kullanılamaz
+        out.append(f"oturum kaydı yazılamadı ({type(e).__name__}); bu mesaj onay olarak kaydedilmedi. Onay gerekiyorsa kullanıcıdan "
+                   "yeniden iste.")
     pm.context(event, "\n".join(out))
     return 0
 

@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.8
+# Müşteri paketi — 2.10.9
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,14 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.8**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.9**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.9 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
+videodaki müşteri yorumu kartı her zaman kayıttaki metin, puan ve adla çizilir; izni olmayan kişinin klibi kullanılmaz. "Unut" dendiğinde
+güncelleme yedekleri de temizlenir. Bir markanın dosyası ya da reklam hesabı başka bir markanın işinde kullanılmaz. Ayarlardaki
+kullanılmayan dil seçeneği kaldırıldı.
 2.10.8 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
 eksik ölçülen günler raporda sıfır görünmez, "ölçülmedi" görünür; ölçüm yetersizse koç kapatma ya da büyütme önermez; harcama sınırı
 doluysa büyütme önerilmez. Meta'dan alınan CSV gün gün değilse, para birimi farklıysa ya da aynı gün iki kez varsa sistem dosyayı almaz

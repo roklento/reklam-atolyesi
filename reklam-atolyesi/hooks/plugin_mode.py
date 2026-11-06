@@ -136,40 +136,12 @@ def save_session(data_dir: Path, sid: str, data: dict) -> None:
 
 
 def file_lock(path: str | os.PathLike, timeout: float = 3.0, stale: float = 10.0):
-    """Süreçler arası kısa kilit (oturum dosyası oku-değiştir-yaz için; hook ve MCP sunucusu aynı dosyayı yazar). O_EXCL kilit dosyası
-    her işletim sisteminde aynı davranır. 10 sn'den eski kilit ölü sayılır; 3 sn içinde alınamazsa kilitsiz devam edilir (hook süresi
-    sınırlı; en kötü durum 2.0.0 öncesi davranıştır)."""
-    import contextlib
-    import time
-
-    @contextlib.contextmanager
-    def _cm():
-        lock = Path(str(path) + ".lock")
-        lock.parent.mkdir(parents=True, exist_ok=True)
-        fd, t0 = None, time.monotonic()
-        while fd is None:
-            try:
-                fd = os.open(str(lock), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            except FileExistsError:
-                try:
-                    if time.time() - lock.stat().st_mtime > stale:
-                        lock.unlink(missing_ok=True)
-                        continue
-                except OSError:
-                    continue
-                if time.monotonic() - t0 > timeout:
-                    break
-                time.sleep(0.02)
-        try:
-            yield fd is not None
-        finally:
-            if fd is not None:
-                os.close(fd)
-                try:
-                    lock.unlink(missing_ok=True)
-                except OSError:
-                    pass
-    return _cm()
+    """Oturum kilidi: MCP sunucusuyla aynı uygulama (admem/util.py, yalnızca standart kütüphane). 2.10.9: kilit alınamazsa LockBusy
+    yükselir, yazılmaz; hook'un kendi try bloğu çağrıyı reddeder."""
+    if str(PLUGIN_ROOT / "servers" / "ad_memory") not in sys.path:
+        sys.path.insert(0, str(PLUGIN_ROOT / "servers" / "ad_memory"))
+    from admem.util import file_lock as _fl
+    return _fl(path, timeout=timeout, stale=stale)
 
 
 def update_session(data_dir: Path, sid: str, fn) -> dict:
@@ -177,6 +149,23 @@ def update_session(data_dir: Path, sid: str, fn) -> dict:
     with file_lock(session_path(data_dir, sid)):
         sess = load_session(data_dir, sid) or {}
         fn(sess)
+        save_session(data_dir, sid, sess)
+        return sess
+
+
+def save_changes(data_dir: Path, sid: str, before: dict, after: dict) -> dict:
+    """2.10.9: okunduktan sonra değiştirilen oturumun yalnızca değişen anahtarlarını kilit altında güncel kayda yazar. Böylece hook'un
+    uzun süren işi sırasında MCP sunucusunun yazdığı alanlar (ör. kullanılmış onay mesajları) eski kopyayla ezilmez."""
+    changed = {k: v for k, v in after.items() if k not in before or before[k] != v}
+    removed = [k for k in before if k not in after]
+    with file_lock(session_path(data_dir, sid)):
+        try:
+            sess = load_session(data_dir, sid) or {}
+        except ConfigError:
+            sess = {}  # bozuk kayıt: hook'un okuduğu da boştu (before == {}), eski davranış gibi yeniden yazılır
+        sess.update(changed)
+        for k in removed:
+            sess.pop(k, None)
         save_session(data_dir, sid, sess)
         return sess
 
