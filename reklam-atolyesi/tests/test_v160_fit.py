@@ -14,9 +14,9 @@ SRC = ROOT / "templates" / "remotion" / "src"
 
 def test_layout_utils_pinned_with_remotion():
     pkg = json.loads((ROOT / "templates" / "remotion" / "package.json").read_text(encoding="utf-8"))["dependencies"]
-    assert pkg["@remotion/layout-utils"] == pkg["remotion"] == "4.0.532"
+    assert pkg["@remotion/layout-utils"] == pkg["remotion"] == "4.0.540"
     lock = json.loads((ROOT / "templates" / "remotion" / "package-lock.json").read_text(encoding="utf-8"))
-    assert lock["packages"]["node_modules/@remotion/layout-utils"]["version"] == "4.0.532"
+    assert lock["packages"]["node_modules/@remotion/layout-utils"]["version"] == "4.0.540"
 
 
 def test_text_components_use_measured_fit():

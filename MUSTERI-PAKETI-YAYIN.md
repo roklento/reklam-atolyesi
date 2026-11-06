@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.9
+# Müşteri paketi — 2.10.10
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,14 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.9**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.10**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.10 migration içermez. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Güvenlik güncellemesi: fotoğraf işleme (Pillow 13),
+sertifika paketi ve video şablonu (Remotion, zod) güncellendi; güncelleyici yalnızca değişen paketleri indirir, ilk güncelleme her
+zamankinden birkaç dakika uzun sürebilir. Müşterinin gördüğü davranış değişmez. Bu sürüm Windows'ta bir fotoğraf (iPhone HEIC dahil)
+yükleyip bir örnek reklam render ederek doğrulanmalıdır.
 2.10.9 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
 videodaki müşteri yorumu kartı her zaman kayıttaki metin, puan ve adla çizilir; izni olmayan kişinin klibi kullanılmaz. "Unut" dendiğinde
 güncelleme yedekleri de temizlenir. Bir markanın dosyası ya da reklam hesabı başka bir markanın işinde kullanılmaz. Ayarlardaki

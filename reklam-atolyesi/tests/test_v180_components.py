@@ -38,9 +38,9 @@ def test_registry_matches_validator_and_pins():
     assert json.loads(re.sub(r"(\w+):", r'"\1":', m.group(1))) == EP.SOURCE_PROPS
     assert '"PictureInPicture"]);' in idx  # sarmalayıcı
     pkg = json.loads((ROOT / "templates" / "remotion" / "package.json").read_text(encoding="utf-8"))["dependencies"]
-    assert pkg["@remotion/rough-notation"] == pkg["remotion"] == "4.0.532"
+    assert pkg["@remotion/rough-notation"] == pkg["remotion"] == "4.0.540"
     lock = json.loads((ROOT / "templates" / "remotion" / "package-lock.json").read_text(encoding="utf-8"))["packages"]
-    assert lock["node_modules/@remotion/rough-notation"]["version"] == "4.0.532" and lock["node_modules/roughjs"]["license"] == "MIT"
+    assert lock["node_modules/@remotion/rough-notation"]["version"] == "4.0.540" and lock["node_modules/roughjs"]["license"] == "MIT"
     cam = (SRC / "components" / "camera.tsx").read_text(encoding="utf-8")
     assert 'name: "KenBurns", category: "camera", version: "1.1.0"' in cam and "settleFrames" in cam and "focus" in cam
 
