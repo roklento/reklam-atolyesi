@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.12
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.13
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,18 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.13** — video ve ölçüm doğruluğu (2.10.10 bağımsız denetimi B7, B8, B10, B20)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Altyazı düzeltmesi videoda görünür:** sahne önbelleği anahtarına sahnenin aralığına düşen altyazı girdilerinin (metin, kelime,
+  zaman) özeti girer; fiyatı düzeltilen altyazının sahnesi yeniden çizilir, değişmeyen sahneler yeniden kullanılır. Altyazısız sahnelerin
+  anahtarı değişmedi.
+- **Anlatıcısız miks durur:** `mix.py` planın beklediği anlatıcı ya da sahne sesi yoksa ya da o aralık sessizse miks yapmaz (çıkış 2).
+- **Sayım sütunları her dilde aynı okunur:** gösterim, tıklama, sonuç gibi sütunlarda "1,250" ve "1.250" 1250'dir; ondalık ayırıcı
+  yalnızca para/oran sütunlarından tahmin edilir; kesirli sayım dosyayı reddeder.
+- **Ölçülmeyen sonuç sıfır değil:** A/B bölümü bir hücrede sonuç ölçülmemişse (ya da harcamanın çoğunda ölçülmemişse) kazanan ve
+  olasılık vermez; rapor "karşılaştırma yapılmadı" der. Hiç ölçülmemiş sonuçta maliyet hesabı hedef olasılığı vermez.
+- `tests/test_v21013_video_olcum.py`.
+
 **2.10.12** — dosya izni ve araç sınırı (2.10.10 bağımsız denetimi B3, B11, B12)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Kişisel dosya yalnızca izinli dosyadan gider:** `creative_create_asset_upload` sonrası baytları `scripts/ingest/izinli_yukleme.py`

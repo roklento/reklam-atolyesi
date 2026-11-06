@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.12
+# Müşteri paketi — 2.10.13
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.12**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.13**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.13 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
+altyazıda düzeltilen metin (ör. fiyat) son videoda görünür; anlatıcı kaydı eksikse video hazırlanmaz ve hangi kaydın eksik olduğu
+söylenir; İngilizce Ads Manager dökümündeki sayılar doğru okunur; ölçülmeyen satış A/B karşılaştırmasında sıfır sayılmaz.
 2.10.12 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
 güncellemeden sonraki ilk ücretli ses ya da görsel üretiminden önce Reklam Atölyesi ElevenLabs bağlantısını bir kez yeniden kontrol eder
 (birkaç dakika, ücretsiz). Kişinin sesi ya da görüntüsü olan dosya yalnızca izin verilen dosyadan gönderilir.
