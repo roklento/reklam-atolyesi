@@ -1,6 +1,6 @@
 {
  "name": "reklam-atolyesi",
- "plugin_version": "2.10.8",
+ "plugin_version": "2.10.9",
  "spec_version": "1.4",
  "capabilities": [
   "Profil yönetimi: birden çok marka/reklam hesabı ve ürün; profil yalıtımı",
@@ -215,7 +215,7 @@
    "name": "memory",
    "kind": "system",
    "description": "reklam-atolyesi hafızası (ad-memory) için yöntem: profil kartı, aşama bağlam paketi, arama, ekleme/eşleştirme, devam notu, konsolidasyon, \"neler yaptık\", unutma. Yalnızca plugin modunda.",
-   "sha256": "9015c0892ff01910b140e6dba480bb2f02512e9b05bb75f071d6eef59352302f"
+   "sha256": "3b0ff132b30fc80bcf24b24d8338dd42e24df96e790c5f43770bb4559d3181e1"
   },
   {
    "name": "meta-history",
@@ -548,14 +548,14 @@
    "matcher": null,
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "78a3750515647e00861e5437e90fe9dc39072c701d4cf2c0c28c1223dace04fa"
+   "sha256": "b8aa6959ab2d5e04b8b1839924682571e57ed3b037df9b9812e3d2f191db3acd"
   },
   {
    "event": "UserPromptExpansion",
    "matcher": "^reklam-atolyesi:.*$",
    "script": "navigator.py",
    "timeout": 10,
-   "sha256": "78a3750515647e00861e5437e90fe9dc39072c701d4cf2c0c28c1223dace04fa"
+   "sha256": "b8aa6959ab2d5e04b8b1839924682571e57ed3b037df9b9812e3d2f191db3acd"
   },
   {
    "event": "SessionStart",
@@ -569,7 +569,7 @@
    "matcher": "^mcp__.*__ads_[a-z0-9_]+$",
    "script": "meta_guard.py",
    "timeout": 10,
-   "sha256": "58038480e1e6159bf82e43df9296c447f0c5e5d4189876175380d209f0e1ac8d"
+   "sha256": "141e0bc917784c7e500099efd94edd9f9e013800834765ced2e437676e26e3b4"
   },
   {
    "event": "PreToolUse",
@@ -597,7 +597,7 @@
    "matcher": null,
    "script": "stop_check.py",
    "timeout": 10,
-   "sha256": "9fbfe60c021b71bffcda1d4519d0749d456abafdc44f25f22ea0b57d098f3242"
+   "sha256": "3ce7f94424b3caff48119d507c7f7a655ecb03b576cf6083d16afa6b09312caf"
   }
  ],
  "mcp_servers": [
@@ -916,11 +916,11 @@
  },
  "tests": {
   "pytest": {
-   "passed": 761,
+   "passed": 778,
    "failed": 0,
    "skipped": 6,
    "returncode": 0,
-   "summary": "761 passed, 6 skipped",
+   "summary": "778 passed, 6 skipped",
    "known_environment_failures": [],
    "command": "<py> -m pytest tests -q -p no:cacheprovider",
    "at": "2026-11-06",
@@ -1385,7 +1385,7 @@
  ],
  "neutrality_audit": {
   "status": "clean",
-  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.3.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.4 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
+  "auditor": "bağımsız ajan (general-purpose; üretimi yapmamış), 6 tur; 1.4.1–1.4.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.4 farkları: Codex değişikliği yapan oturum; 1.4.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.6 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.4.8 ses/düzeltme farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 1.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.0.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.1.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.2.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.3.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.5.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.6.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.7.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.8.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.9.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.0 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.3 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.4 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.5 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.7 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.8 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.9 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma; 2.10.9 farkları: değişikliği yapan oturum (Claude) — otomatik tarama + satır satır okuma",
   "rounds": [
    {
     "scope": "kurulum: bütün plugin",
@@ -1730,19 +1730,19 @@
    }
   ],
   "component_hashes": {
-   "plugin_json": "eb93918b802387d8b72d2b69bf2b7181231daf093674c244227abfefd2d6d554",
+   "plugin_json": "0e15f383d17550d524503ca2884cc9272878f5b45708a5595f6e6e7e98a40fd0",
    "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-   "skills": "e7d0134c66c7063cdde676603bdba18c3ca245ef32d37b9c668e66126420a7a4",
+   "skills": "55bd16c2adfd4b7b9aae98e89f264093e4b5b9ffb27aaaa900cd8ea9174c20d7",
    "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
    "commands": "f322c97d242f27fc96aa121eff6d66f93e30d39f78e31d326022701579421702",
    "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
-   "hooks": "18c8b0347061f4b3c03bc435834ae5cd323581d886fac615586179442ec7c2c2",
-   "ad_memory": "ec85699746f2b2a2035744c3ecb8d0182ec45a1ba230da460f65797c6dc02000",
-   "scripts": "2c5034bcff82ca45e31ce461dccc38e305a7edfb18cbae8ea5ee4a157e4d951a",
+   "hooks": "15997c1f03a3b2fbc532845268c866e01abdbab21731378773ce16e39b76fcd6",
+   "ad_memory": "dbc86e64c102af3bd9f9910b59863efc30b680345d96dbe7589e1e0473b14ed2",
+   "scripts": "c806370cb27570cfcc129ad3c8b8fdb6c32988969db16fa2343492067da56884",
    "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
    "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
    "rules": "6301e0387523175e2e68eff87f5461f5a7179560fa0f1e4e8f7bf120b0d1341a",
-   "evals": "163c36a8cf64b5f419928e2633544f13a767297e955fb9b77d66b68770eb943a"
+   "evals": "50819d2c68a85b1740533be26f05f572ca71f6ac1fbcd7cd496c34a43976de08"
   },
   "checked_at": "2026-11-06"
  },
@@ -1901,19 +1901,19 @@
   }
  ],
  "component_hashes": {
-  "plugin_json": "eb93918b802387d8b72d2b69bf2b7181231daf093674c244227abfefd2d6d554",
+  "plugin_json": "0e15f383d17550d524503ca2884cc9272878f5b45708a5595f6e6e7e98a40fd0",
   "mcp_json": "5d79dcdbdcdf16fbebb4acf15f67f3e3edbc0a6705d8cbe7501f76979a42f5de",
-  "skills": "e7d0134c66c7063cdde676603bdba18c3ca245ef32d37b9c668e66126420a7a4",
+  "skills": "55bd16c2adfd4b7b9aae98e89f264093e4b5b9ffb27aaaa900cd8ea9174c20d7",
   "agents": "6c489b834f15bfacecb9e3361dce2909789bf9fb7c8103960cda4ffd1800c5be",
   "commands": "f322c97d242f27fc96aa121eff6d66f93e30d39f78e31d326022701579421702",
   "workflows": "b5a84d20e88f934d638f54de3d633e5db2ba5606fe06cb715b7b39f37333462a",
-  "hooks": "18c8b0347061f4b3c03bc435834ae5cd323581d886fac615586179442ec7c2c2",
-  "ad_memory": "ec85699746f2b2a2035744c3ecb8d0182ec45a1ba230da460f65797c6dc02000",
-  "scripts": "2c5034bcff82ca45e31ce461dccc38e305a7edfb18cbae8ea5ee4a157e4d951a",
+  "hooks": "15997c1f03a3b2fbc532845268c866e01abdbab21731378773ce16e39b76fcd6",
+  "ad_memory": "dbc86e64c102af3bd9f9910b59863efc30b680345d96dbe7589e1e0473b14ed2",
+  "scripts": "c806370cb27570cfcc129ad3c8b8fdb6c32988969db16fa2343492067da56884",
   "templates": "7dd2da557d9d04824285599080cf95088df07f7dd74340d9c0932daa27760428",
   "vendor_skills": "50268c4f35bab170f2a126f2bd5c4ccba59b1ccd1d5c8e5c58bd67536eeb7daa",
   "rules": "6301e0387523175e2e68eff87f5461f5a7179560fa0f1e4e8f7bf120b0d1341a",
-  "evals": "163c36a8cf64b5f419928e2633544f13a767297e955fb9b77d66b68770eb943a"
+  "evals": "50819d2c68a85b1740533be26f05f572ca71f6ac1fbcd7cd496c34a43976de08"
  },
  "notes": "Canlı (C) maddeler ilk açılışta bekliyor; sonuçlar data_dir veritabanında settings.runtime_verification_json'da tutulur. Kuruluma/makineye özgü kullanıcı kararlı sapmalar (ör. disk alanı) settings.install_deviations_json'dadır."
 }

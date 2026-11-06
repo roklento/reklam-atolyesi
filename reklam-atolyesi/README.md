@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.8
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.9
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,22 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.9** — kişisel içerik, silme ve profil ayrımı (bağımsız ürün denetimi B4, B7, B8, B11, B12)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Yorum kartı kayıttan çizilir:** `ReviewCard` katmanındaki metin, puan ve gösterilen ad yorum kaydıyla aynı olmalı; farklıysa plan
+  doğrulanmaz. Kaydedilen plana bu alanlar kayıttan yazılır. Planın kullandığı klipte izni olmayan ya da geri çekilmiş kişi varsa plan
+  doğrulanmaz. `creative_register` ve QC "passed" kaydı yorum ve kişi izinlerini yeniden denetler.
+- **Unut bütün yerel kopyaları kapsar:** `memory_forget`, yedek sınırı ve `db_restore.py check` tek yedek envanterini kullanır
+  (`admem.util.backup_inventory`): sunucu yedekleri, güncelleme yedekleri (`guncelleme-*.sqlite`) ve geri dönüşte kenara alınan eski
+  veritabanları. Açılamayan bir kopya varsa sonuç `local_copies_complete: false` döner.
+- **Profil ayrımı:** başka bir profilin klasöründeki dosya `asset_register` ile kaydedilmez; profil klasörlerinin dışından gelen dosya
+  profilin `inbox/` klasörüne kopyalanır. Meta koruması, hesap belirten okumada hesabı oturumdaki markanın hesabıyla karşılaştırır;
+  hesap listesi gibi ortak çağrılar etkilenmez.
+- **Oturum kilidi:** kilit süresinde alınamazsa değişiklik yazılmaz, geçici hata döner. Hook'lar ve sunucu tek kilit uygulamasını kullanır;
+  navigator ve stop_check yalnızca değiştirdikleri alanları kilit altında yazar.
+- Kullanılmayan dil seçeneği (`language`) kaldırıldı; plugin Türkçe çalışır.
+- `tests/test_v2109_kisisel_icerik.py`.
+
 **2.10.8** — koç ve rapor doğruluğu (bağımsız ürün denetimi B5–B6)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Eksik ölçüm sıfır sayılmaz:** `metrics_query` toplamları ölçülmemiş alanlarda boş döner. ROAS ve sonuç başı maliyet yalnızca

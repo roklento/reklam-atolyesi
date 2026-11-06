@@ -190,6 +190,24 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.9 (2026-11-06): kişisel içerik, silme ve profil ayrımı
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `servers/ad_memory/admem/s_creative.py` (`edit_plan_validate`, `edit_plan_save`, `creative_register`, `creative_set_qc`) | işleyiş (kapı) | yorum ya da kişili çekim kullanan marka | Dış ürün denetimi B4: kart metni, puanı ve adı plandan geliyordu; izinsiz kişili klip kaydediliyordu | Kart kayıttan; izinsiz kişi ve geri çekilme kayıt ve QC'de duruyor (`tests/test_v2109_kisisel_icerik.py`) | yok | yardım etti (test) |
+| `admem/util.py` (`backup_inventory`), `s_memory.py` (`memory_forget`), `s_base.py` (`backup`), `scripts/setup/db_restore.py` | işleyiş (silme) | güncelleme yapmış her müşteri | Dış ürün denetimi B7: güncelleme yedeği unutmadan ve kurtarma listesinden kaçıyordu | Tek envanter; açılamayan kopya "tamamlandı" demiyor | yok | yardım etti (test) |
+| `s_creative.py` (`asset_register`), `hooks/meta_guard.py` (`account_mismatch`) | işleyiş, hook | çok markalı ajans | Dış ürün denetimi B8: başka profilin dosyası ve hesabı karışabiliyordu | Başka profil klasörü reddediliyor, dış dosya kopyalanıyor, hesap karşılaştırılıyor | yok | yardım etti (test) |
+| `admem/util.py` (`file_lock`), `hooks/plugin_mode.py`, `hooks/navigator.py`, `hooks/stop_check.py` | hook, işleyiş | paralel araç çağrısı | Dış ürün denetimi B12: kilit alınamazsa kilitsiz yazılıyordu; navigator kilitsiz yazıyordu | Kilit yoksa yazılmıyor; hook'lar yalnızca değişen alanı yazıyor | yok | yardım etti (test) |
+| `.claude-plugin/plugin.json` (`language`), `s_base.py` | yapılandırma | yok | Dış ürün denetimi B11: İngilizce seçeneği hiçbir yerde uygulanmıyordu | Seçenek kaldırıldı | yok | yardım etti |
+| `skills/memory/SKILL.md` | skill | unutma isteği | B7 | Açılamayan kopya kullanıcıya söyleniyor | ölçülmedi | ölçülmedi |
+
+**Sahada:** henüz yok.
+
+**Ders:** *Ne zaman:* bir izin ya da silme birden çok kopyaya dokunuyorsa. *Ne yap:* kopyaları tek envanterden say ve izni kullanım anında
+yeniden denetle; okunamayan kopyayı "tamamlandı"ya katma. *Dayanak:* bu sürümün yorum kartı ve unutma satırları. *Güven:* orta.
+
 ## 2.10.8 (2026-11-06): koç ve rapor doğruluğu
 
 **Değişiklikler**
