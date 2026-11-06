@@ -196,18 +196,22 @@ def stage_public(project: Path, scene_map: dict | None) -> dict:
         return assets
     pub = project / "public" / "scenes"
     pub.mkdir(parents=True, exist_ok=True)
+    # 2.10.5: hedef ad içeriğin özetini taşır. Önceden yalnızca dosya adı ve boyut karşılaştırılıyordu: aynı boyutta değişmiş ara dosya
+    # render'a eski hâliyle gidiyor, farklı klasörlerdeki aynı adlı iki dosya birbirinin yerine geçiyordu.
     for sid, layers in (scene_map.get("scenes") or {}).items():
         for li, info in layers.items():
             src = Path(info["path"])
-            dst = pub / src.name
-            if not dst.exists() or dst.stat().st_size != src.stat().st_size:
+            name = f"{sha256_file(src)[:16]}_{src.name}"
+            dst = pub / name
+            if not dst.exists():
+                tmp = pub / (name + ".part")
                 try:
-                    if dst.exists():
-                        dst.unlink()
-                    dst.hardlink_to(src)
+                    tmp.unlink(missing_ok=True)
+                    tmp.hardlink_to(src)
                 except OSError:
-                    shutil.copy2(src, dst)
-            assets.setdefault(sid, {})[str(li)] = f"scenes/{src.name}"
+                    shutil.copy2(src, tmp)
+                tmp.replace(dst)
+            assets.setdefault(sid, {})[str(li)] = f"scenes/{name}"
     return assets
 
 

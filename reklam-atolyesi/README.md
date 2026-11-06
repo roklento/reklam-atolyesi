@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.4
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.5
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,18 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.5** — video ve görsel denetimi (bağımsız kod denetiminin üçüncü dalgası)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Siyah kare ve donma denetimi:** dosya okunamazsa sonuç "temiz" değil "ölçülemedi" olur. Videonun sonuna kadar süren donma da
+  sayılır (önceden atlanıyordu). İlk gerçek render'larda sonda sabit kalan kapanış karesinin donma sayılıp sayılmadığına bakılmalı.
+- **Render ara dosyaları:** render'a giden kopyanın adı içeriğinin özetini taşır; aynı boyutta değişmiş dosya ya da farklı klasörlerdeki
+  aynı adlı iki dosya artık karışmaz.
+- **Sahne önbelleği:** bileşen ayarlarında kullanılan dosyalar (ör. logo) değişince sahne yeniden çizilir.
+- **Fotoğraflar:** aynı adlı iki fotoğraf (IMG_1.png ve IMG_1.jpg gibi) ayrı çıktılara yazılır.
+- **Sarsıntı ölçüsü:** sağa-sola titreme artık ölçülür (önceden yönü sayılmadığı için 0 çıkıyordu). Bu ölçü önceki sürümden yüksek ya da
+  eşit çıkar; eşiği aşan klip sayısı biraz artabilir. Ölçüm hiç yoksa sonuç "ölçülemedi" diye işaretlenir.
+- `tests/test_v2105_medya_denetimi.py`.
+
 **2.10.4** — karar verisi (bağımsız kod denetiminin ikinci dalgası)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Farklı ölçüm ayarları karıştırılmaz:** deneme süresinde Meta'daki ölçüm ayarı (ör. atıf penceresi) değiştiyse koçluk raporu fikirleri

@@ -50,7 +50,7 @@ def scene_key(plan: dict, index: int, *, source_hashes: dict[str, str], style_sh
         "scene": s, "start_frame": round(s["start_s"] * plan["fps"]), "frames": round(s["dur_s"] * plan["fps"]),
         "prev_transition": prev_t, "next_scene_head": {"id": nxt["id"], "layers": nxt["layers"]} if nxt and s.get("transition_out") else None,
         "format": plan["format"], "fps": plan["fps"], "seed": plan.get("seed", 0), "quality": quality, "scale": scale,
-        "captions": plan.get("captions"), "sources": {k: source_hashes.get(k) for k in sorted(_assets(s) | _assets(nxt or {}))},
+        "captions": plan.get("captions"), "sources": _sources(s, nxt, source_hashes),
         "style_sha": style_sha, "fonts": font_hashes or {}, "lut": lut_sha, "components": component_sha or tree_hash(COMPONENTS_DIR),
         "render_versions": render_versions or {}, "audio": audio_sha if _audio_affects(s) else None, "beats": beats_sha if s.get("beat_lock") not in (None, "none") else None,
     }
@@ -58,15 +58,34 @@ def scene_key(plan: dict, index: int, *, source_hashes: dict[str, str], style_sh
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
 
 
+def _ref(v) -> str | None:
+    if isinstance(v, dict):
+        return v.get("asset") or v.get("path")
+    return None
+
+
 def _assets(scene: dict) -> set[str]:
+    """Sahnenin okuduğu dosyalar: katman kaynağı ve 2.10.5'ten beri bileşen ayarındaki dosya kaynakları ({asset|path} taşıyan prop)."""
     out = set()
     for l in scene.get("layers", []) or []:
-        src = l.get("source") or {}
-        if src.get("asset"):
-            out.add(src["asset"])
-        elif src.get("path"):
-            out.add(src["path"])
+        r = _ref(l.get("source") or {})
+        if r:
+            out.add(r)
+        for v in (l.get("props") or {}).values():
+            for item in (v if isinstance(v, list) else [v]):
+                r = _ref(item)
+                if r:
+                    out.add(r)
     return out
+
+
+def _sources(scene: dict, nxt: dict | None, source_hashes: dict[str, str]) -> dict[str, str | None]:
+    """Anahtara giren kaynak özetleri. Varlık anahtarı olmayan ara dosyalar '<sahne>:<katman>' adıyla gelir; onlar da sahneye göre
+    eklenir (2.10.5: önceden hiç eşleşmiyor, bileşen ayarındaki dosya değişince önbellek bayat kalıyordu)."""
+    ids = {scene.get("id")} | ({nxt.get("id")} if nxt else set())
+    keys = _assets(scene) | _assets(nxt or {})
+    keys |= {k for k in source_hashes if ":" in k and k.split(":", 1)[0] in ids}
+    return {k: source_hashes.get(k) for k in sorted(keys)}
 
 
 def _audio_affects(scene: dict) -> bool:
