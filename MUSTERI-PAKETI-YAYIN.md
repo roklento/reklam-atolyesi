@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.2
+# Müşteri paketi — 2.10.3
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.2**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.3**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.3 bir migration içerir (010: sahne önbelleği profil başına; güncelleyici önce yedek alır, kayıtlar korunur). Yeni bağımlılık
+yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik: onayladığı bir bütçe adımı sonradan değişirse
+yeniden sorulur, kişi içeren dosya yalnızca izin verilen dosyaysa gönderilir, koruma çalışamazsa Meta ve ElevenLabs çağrısı durur.
 2.10.2 migration içermez, yeni bağımlılık yok; müşteri paketi değişmedi (ZIP yeniden gönderilmez). Plugin her zamanki gibi
 güncelleyiciyle gelir. Müşterinin gördüğü değişiklik: huni oranları eksik veride artık doğru hesaplanır, bütçe değişince taslak yeniden
 denetlenir, büyük harfli marka adları seslendirmeyi durdurmaz.

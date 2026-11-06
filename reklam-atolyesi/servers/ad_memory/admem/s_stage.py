@@ -190,7 +190,13 @@ class StageMixin:
             for k in ("test_start", "launch_at"):
                 if k in fields and cy[k] and fields[k] != cy[k] and not correction_reason:
                     raise AdMemoryError(f"{k} gerçekleşmiş bir tarih; geriye dönük değiştirilmez (4.4). Kaynak hatası düzeltmesiyse correction_reason verin.")
-        if "priors_snapshot_json" in fields and cy["priors_snapshot_json"] and cy["status"] != "production":
+        if "status" in fields:  # 2.10.3: tur durumu genel alan yazımıyla geri alınmaz (dondurulmuş önsel bu yolla açılıyordu)
+            order = {"production": 0, "measuring": 1, "closed": 2}
+            if fields["status"] not in order:
+                raise AdMemoryError("status: production | measuring | closed")
+            if order[fields["status"]] < order.get(cy["status"], 0):
+                raise AdMemoryError(f"tur durumu geri alınamaz ({cy['status']} → {fields['status']}); yeni ölçüm için yeni tur açılır")
+        if "priors_snapshot_json" in fields and cy["priors_snapshot_json"] and (cy["status"] != "production" or cy["launched_at"]):
             raise AdMemoryError("turun önselleri dondurulmuş; ölçüm sırasında değiştirilemez (6.6)")
         if "risk_limits_json" in fields and fields["risk_limits_json"] is not None:
             self._validate_risk_limits(fields["risk_limits_json"])
@@ -328,12 +334,18 @@ class StageMixin:
     def checkpoint_close(self, profile_id: int, stage: str, summary: str, campaign_id: int | None = None,
                          cycle_id: int | None = None, scope_key: str | None = None, origin: str = "interactive") -> dict:
         self._profile(profile_id)
+        # 2.10.3: checkpoint_save gibi kampanya ve tur bu profile ait olmalı (profil yalıtımı, 2.3)
+        if campaign_id is not None:
+            self._campaign(profile_id, campaign_id)
+        if cycle_id is not None:
+            self._cycle(profile_id, cycle_id, campaign_id)
         with self.tx():
             return self._checkpoint_close_in_tx(profile_id, stage, summary, campaign_id, cycle_id, scope_key, origin)
 
     def _checkpoint_close_in_tx(self, profile_id, stage, summary, campaign_id, cycle_id, scope_key, origin="interactive"):
         sk = self._scope_key(profile_id, campaign_id, cycle_id, scope_key)
-        cur = self.q1("SELECT * FROM resume_state WHERE scope_key=? AND stage=? AND origin=? AND closed_at IS NULL", (sk, stage, origin))
+        cur = self.q1("SELECT * FROM resume_state WHERE scope_key=? AND stage=? AND origin=? AND profile_id=? AND closed_at IS NULL",
+                      (sk, stage, origin, profile_id))
         if cur:
             self.ex("UPDATE resume_state SET closed_at=? WHERE id=?", (now_iso(), cur["id"]))
         if summary:
@@ -580,6 +592,18 @@ class StageMixin:
                 out.append(f"test reklamı sayısı {len(keys)} > tavan {bp['allowed_test_ads']} (5.18): fazlası yedekte kalmalı")
         return out
 
+    @staticmethod
+    def _changed_outputs(run: dict) -> list[str]:
+        """Aşama kaydındaki çıktı dosyalarından içeriği kayıttaki özetle artık eşleşmeyenler (ya da silinenler)."""
+        out = []
+        for f in (jload(run["outputs_json"], {}) or {}).get("files") or []:
+            p = Path(f.get("path") or "")
+            if not f.get("sha256"):
+                continue
+            if not p.is_file() or sha256_file(p) != f["sha256"]:
+                out.append(p.name)
+        return out
+
     def gate_approve(self, profile_id: int, stage_run_id: int, output_version: int, approval_text: str,
                      cycle_id: int | None = None, note: str | None = None, checkpoint: dict | None = None) -> dict:
         """Onay stage_run_id + cycle_id + output_version'a bağlıdır (4.2); kullanıcının açık ifadesi zorunlu."""
@@ -601,6 +625,10 @@ class StageMixin:
         if run["stage"] in ST.CAMPAIGN_STAGES:
             if cycle_id is None or int(cycle_id) != run["cycle_id"]:
                 raise AdMemoryError("onay turu (cycle_id) aşama kaydının turuyla aynı olmalı; başka turun onayı kullanılamaz")
+        changed = self._changed_outputs(run)
+        if changed:  # 2.10.3: onay kullanıcının gördüğü belgeye bağlıdır; dosya tamamlandıktan sonra değiştiyse eski onay kullanılmaz
+            raise AdMemoryError("aşama tamamlandıktan sonra çıktı dosyası değişti ya da silindi: " + ", ".join(changed)
+                                + " — belgeyi stage_complete ile yeniden tamamlayıp yeni hâlini kullanıcıya göster ve onu onaylat")
         blockers = self._gate_blockers(profile_id, run)
         if blockers:
             raise AdMemoryError("kapı geçilemez: " + "; ".join(blockers))

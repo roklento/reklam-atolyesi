@@ -30,7 +30,7 @@ Yok.
    belgesi `brand_upsert(processing_permissions_json={basis, document_path, providers, purposes, checked_at})` ile kaydedilir.
    Sıradan bir "onaylıyorum" bütün aktarım yükümlülüklerini karşılamaz. Dayanak yoksa kişisel veri dışarı aktarılmaz; kişisel veri
    içermeyen malzemeyle ilerlenir. Kişisel veri içerecek her gönderimde önce `processing_permission_check(profile_id, provider,
-   purpose, contains_personal_data, data_kinds, session_id)`.
+   purpose, contains_personal_data, data_kinds, session_id, files)`; izin yalnızca `files` içindeki dosyalar için geçer.
 3. **Sorular (tek tek, ihtiyaç anında, bir kez):**
 
    | # | Soru | Biçim | Kayıt |

@@ -67,6 +67,18 @@ def restore(data_dir: Path, backup: Path, confirm: bool) -> dict:
     if not confirm:
         return {"dry_run": True, "backup": str(backup), "taken": backup.name[10:26],
                 "note": "Bu yedekten sonra yapılan kayıtlar geri gelmez. Kullanıcı onaylarsa --confirm ile yeniden çalıştırın."}
+    # 2.10.3: yedek önce geçici dosyaya kopyalanır ve denetlenir; mevcut veritabanı ancak bundan sonra kenara alınır. Önceden kopyalama
+    # (ör. disk dolu) yarıda kalırsa çalışma yerinde veritabanı kalmıyordu.
+    tmp = dbdir / "ad-memory.sqlite.restore-tmp"
+    try:
+        shutil.copy2(backup, tmp)
+    except OSError as e:
+        tmp.unlink(missing_ok=True)
+        raise SystemExit(f"yedek kopyalanamadı ({e}); disk alanını kontrol edin. Mevcut veritabanı değiştirilmedi")
+    st = quick_check(tmp)
+    if st != "ok":
+        tmp.unlink(missing_ok=True)
+        raise SystemExit(f"yedeğin kopyası bütünlük denetiminden geçmedi ({st}); mevcut veritabanı değiştirilmedi")
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     keep = dbdir / f"onceki-{stamp}"
     keep.mkdir(parents=True, exist_ok=False)
@@ -81,10 +93,14 @@ def restore(data_dir: Path, backup: Path, confirm: bool) -> dict:
         for name in moved:  # yarım taşımayı geri al
             (keep / name).replace(dbdir / name)
         keep.rmdir()
+        tmp.unlink(missing_ok=True)
         raise SystemExit("veritabanı kullanımda: Claude Code'u (bütün pencereleri) kapatıp yeniden deneyin; hiçbir şey değiştirilmedi")
-    tmp = dbdir / "ad-memory.sqlite.restore-tmp"
-    shutil.copy2(backup, tmp)
-    tmp.replace(db)
+    try:
+        tmp.replace(db)  # aynı klasörde yeniden adlandırma: kopyalama değil, yarıda kalmaz
+    except OSError:
+        for name in moved:
+            (keep / name).replace(dbdir / name)
+        raise
     return {"restored": True, "from": str(backup), "previous_kept_in": str(keep), "moved": moved, "check": quick_check(db),
             "note": "Claude Code yeniden açıldığında sunucu gerekiyorsa şemayı günceller (migration öncesi yine yedek alınır)."}
 

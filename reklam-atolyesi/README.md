@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.2
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.3
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,23 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.3** — sahiplik, onay ve silme (bağımsız kod denetiminin ilk dalgası)
+- Migration 010 (sahne önbelleği tablosu yeniden kurulur, kayıtlar korunur). Yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Onaylanan adım değişirse yeniden onay:** onaylanmış bir öneride bütçe, hedef ya da eylem değişirse öneri yeniden onay bekler.
+  Önceden yeni tutar eski onayla "onaylandı" kalıyordu. Yalnızca yeni kanıt eklemek onayı bozmaz.
+- **"Uygulandı" için her alan okunmalı:** önerinin hedefindeki alanlardan biri Meta'dan okunmadıysa öneri "uygulandı" sayılmaz;
+  hangi alanın okunmadığı yazılır.
+- **Kapı onayı belgeye bağlı:** aşama tamamlandıktan sonra belge değiştiyse eski hâli için verilen onay kullanılmaz.
+- **Profil yalıtımı:** bir profil başka profilin devam notunu kapatamaz; sahne önbelleği profil başına ayrıdır.
+- **Dondurulmuş önseller:** tur durumu geri alınarak ölçüm sırasında önsel değiştirilemez.
+- **Unutma:** `%` ya da `_` içeren kısa bir hafıza öğesi unutulurken ilgisiz günlük kayıtları artık silinmez.
+- **Koruma hook'ları:** Meta izin listesi ve maliyet koruması hiç çalışamazsa (yorumlayıcı yok, süre doldu) çağrı durur
+  (`onFailure: block`, Claude Code 2.1.295+).
+- **Yükleme izni dosyaya bağlı:** kişisel veri içeren gönderimde izin `files` ile verilen dosyalar içindir; başka bir dosya ya da geri
+  çekilmiş kişi izniyle gönderim durur.
+- **Yedekten dönüş:** yedek önce geçici dosyaya kopyalanıp denetlenir; kopyalama yarıda kalırsa mevcut veritabanı yerinde kalır.
+- `tests/test_v2103_sahiplik_onay.py`.
+
 **2.10.2** — ölçülmeyen değer sonuç sayılmaz (bağımsız sürüm denetiminin bulduğu açıklar)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Huni oranları:** "tıklayıp sayfayı açanlar" gibi oranlar artık pay ve paydanın ikisinin de ölçüldüğü satırlardan hesaplanır. Önceden
