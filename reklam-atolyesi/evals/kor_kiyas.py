@@ -40,6 +40,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import random
 import re
 import shutil
@@ -141,11 +142,22 @@ def case_name(case: str) -> str:
     return str(case).replace("\\", "/").rstrip("/").split("/")[-1]
 
 
+def kapali_matrix(base: Path | None = None) -> dict:
+    """Kapalı vaka kayıtları (2.10.14): proje dosyalarındaki kapali-vakalar/ klasöründen evals/kapali/ altına kopyalanır; kayıt kapali-matris.json. Plugin klasöründe değildir; klasör yoksa boş.
+    Eski düzen (senaryo-matrisi.json içinde kapali_cases) da okunur."""
+    base = KAPALI if base is None else base
+    out: dict = {}
+    f = base.parent / "senaryo-matrisi.json"
+    if f.exists():
+        out.update(json.loads(f.read_text(encoding="utf-8")).get("kapali_cases") or {})
+    k = base / "kapali-matris.json"
+    if k.exists():
+        out.update(json.loads(k.read_text(encoding="utf-8")).get("kapali_cases") or {})
+    return out
+
+
 def closed_cases() -> set[str]:
-    f = HERE / "senaryo-matrisi.json"
-    if not f.exists():
-        return set()
-    return set((json.loads(f.read_text(encoding="utf-8")).get("kapali_cases") or {}))
+    return set(kapali_matrix())
 
 
 def judge_prompt(case: str, a: str, b: str) -> str:
@@ -239,14 +251,31 @@ def cmd_hakem(a) -> int:
         print("claude komutu bulunamadı; hakem.md dosyalarını elle değerlendirip karar.md olarak kaydedin.", file=sys.stderr)
         return 1
     root = Path(a.dir)
+    failed = 0
     for d in sorted(p for p in root.iterdir() if p.is_dir()):
         if (d / "karar.md").exists() and not a.yeniden:
             continue
         prompt = (d / "hakem.md").read_text(encoding="utf-8")
-        r = subprocess.run([claude, "-p", "--model", a.model], input=prompt, capture_output=True, text=True, timeout=300)
-        (d / "karar.md").write_text(r.stdout, encoding="utf-8")
-        print(f"{d.name}: {'tamam' if r.returncode == 0 else 'hata ' + str(r.returncode)}")
-    return 0
+        why = ""
+        try:
+            r = subprocess.run([claude, "-p", "--model", a.model], input=prompt, capture_output=True, text=True,
+                               encoding="utf-8", timeout=300)
+            if r.returncode != 0:
+                why = f"hata {r.returncode}"
+            elif not CHOICE.findall(r.stdout or ""):
+                why = "karar satırı okunamadı"
+        except (OSError, subprocess.TimeoutExpired) as e:
+            why = type(e).__name__
+        if why:
+            # 2.10.14: başarısız hakem çıktısı karar.md olarak yazılmaz; sonraki çalıştırma bu vakayı yeniden dener
+            failed += 1
+            print(f"{d.name}: {why}; karar kaydedilmedi, yeniden çalıştırınca tekrar denenir", file=sys.stderr)
+            continue
+        tmp = d / "karar.md.yaziliyor"
+        tmp.write_text(r.stdout, encoding="utf-8")
+        os.replace(tmp, d / "karar.md")
+        print(f"{d.name}: tamam")
+    return 1 if failed else 0
 
 
 def cmd_sonuc(a) -> int:
@@ -300,10 +329,10 @@ def _dur(kaynak, sorunlar: list[str], ne_yapilir: str = "") -> None:
 
 
 def expected_cases() -> set[str]:
-    """Yayın testinin vaka seti: matristeki açık ve kapalı vakaların hepsi."""
+    """Yayın testinin vaka seti: matristeki açık vakalar ve evals/kapali/ kopyasındaki kapalı vakaların hepsi."""
     f = HERE / "senaryo-matrisi.json"
     m = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
-    return set(m.get("eval_cases") or {}) | set(m.get("kapali_cases") or {})
+    return set(m.get("eval_cases") or {}) | closed_cases()
 
 
 def _num(d: dict, keys) -> float | None:
@@ -476,8 +505,10 @@ def parmak_izi(plugin_root: Path) -> tuple[str, int]:
         base = plugin_root / "evals" / sub
         if not base.is_dir():
             continue
-        n += sum(1 for x in base.iterdir() if x.is_dir())
-        for f in sorted(x for x in base.rglob("*") if x.is_file()):
+        # 2.10.14: kapali/ plugin dışından gelen kopyadır; .git gibi gizli klasörler vaka değildir
+        n += sum(1 for x in base.iterdir() if x.is_dir() and not x.name.startswith("."))
+        for f in sorted(x for x in base.rglob("*") if x.is_file()
+                        and not any(q.startswith(".") for q in x.relative_to(base).parts)):
             h.update(f.relative_to(plugin_root).as_posix().encode())
             h.update(f.read_bytes().replace(b"\r\n", b"\n"))
     return h.hexdigest()[:16], n
@@ -504,6 +535,66 @@ def cmd_kayit(a) -> int:
          "komut": a.komut or ""}
     kayit_yolu(a.json).write_text(json.dumps(k, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Deney kaydı yazıldı: {kayit_yolu(a.json)} (sürüm {surum}, {n} vaka, parmak izi {iz})")
+    return 0
+
+
+# ---------- kabul kaydı (2.10.14) ----------
+
+KABUL_DIR = HERE / "kabul"
+KABUL_ALANLARI = ("plugin_surumu", "commit", "claudeVersion", "model", "tarih", "kosu", "vaka_parmak_izi", "acik", "kapali",
+                  "esik_alti", "toplam_harcama_usd", "sure_dk", "karar")
+
+
+def kabul_kaydi(json_yolu: str, karar: str, model: str, sure_dk: float | None, notu: str = "") -> dict:
+    """Bir müşteri sürümünün gerçek model sonucunu tek kayıtta toplar. Deney kaydı (kayit) olmadan ve bu sonuca ait değilse yazılmaz.
+    Kapalı vakalar adıyla yazılmaz (kayıt plugin deposuna girer): yalnızca sayı, en düşük ve ortalama puan."""
+    k_yol = kayit_yolu(json_yolu)
+    if not k_yol.exists():
+        raise SystemExit(f"{json_yolu}: deney kaydı yok; önce `kor_kiyas.py kayit` çalıştırılır")
+    k = json.loads(k_yol.read_text(encoding="utf-8"))
+    if k.get("ham_sha256") != hashlib.sha256(Path(json_yolu).read_bytes()).hexdigest():
+        raise SystemExit(f"{json_yolu}: deney kaydı bu sonuç dosyasına ait değil")
+    if karar not in ("kabul", "ret"):
+        raise SystemExit("karar 'kabul' ya da 'ret' olmalı")
+    s = load_scores(json_yolu)
+    eksik = sorted(expected_cases() - set(s["puanlar"]))
+    if eksik:
+        raise SystemExit("sonuçta şu vakalar yok: " + ", ".join(eksik))
+    kapali = closed_cases()
+    if not kapali:
+        raise SystemExit("kapalı vakalar bulunamadı: proje dosyalarındaki kapali-vakalar/ klasörünü evals/kapali/ altına kopyala")
+    ort = {v: sum(x) / len(x) for v, x in s["puanlar"].items() if x}
+    kap = [ort[v] for v in sorted(kapali) if v in ort]
+    return {"plugin_surumu": k.get("plugin_surumu"), "commit": k.get("commit"), "claudeVersion": k.get("claudeVersion"),
+            "model": model, "tarih": __import__("datetime").date.today().isoformat(), "kosu": k.get("kosu"),
+            "vaka_parmak_izi": k.get("vaka_parmak_izi"),
+            "acik": {v: round(p, 3) for v, p in sorted(ort.items()) if v not in kapali},
+            "kapali": {"sayi": len(kap), "en_dusuk": round(min(kap), 3) if kap else None,
+                       "ortalama": round(sum(kap) / len(kap), 3) if kap else None},
+            "esik_alti": sum(1 for p in ort.values() if p < ESIK - PAY),
+            "toplam_harcama_usd": s.get("toplam_harcama"), "sure_dk": sure_dk, "karar": karar, "not": notu}
+
+
+def kabul_sorunlari(rec: dict) -> list[str]:
+    sorun = [f"{a} alanı yok" for a in KABUL_ALANLARI if a not in rec]
+    if rec.get("karar") == "kabul" and (rec.get("esik_alti") or 0) > 0:
+        sorun.append("eşik altında vaka varken karar 'kabul' olamaz")
+    if rec.get("karar") == "kabul" and not (rec.get("kapali") or {}).get("sayi"):
+        sorun.append("kapalı vakalar çalıştırılmadan karar 'kabul' olamaz")
+    if not rec.get("commit") or not rec.get("claudeVersion"):
+        sorun.append("commit ve Claude sürümü yazılı olmalı")
+    return sorun
+
+
+def cmd_kabul(a) -> int:
+    rec = kabul_kaydi(a.json, a.karar, a.model, a.sure_dk, a.notu or "")
+    sorun = kabul_sorunlari(rec)
+    if sorun:
+        _dur("kabul kaydı", sorun)
+    KABUL_DIR.mkdir(exist_ok=True)
+    out = KABUL_DIR / f"{rec['plugin_surumu']}.json"
+    out.write_text(json.dumps(rec, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"Kabul kaydı yazıldı: {out} (karar {rec['karar']}, {len(rec['acik'])} açık + {rec['kapali']['sayi']} kapalı vaka)")
     return 0
 
 
@@ -581,6 +672,9 @@ def run_puan(eski: str, yeni: str, kosu: int = KOSU, beklenen: set[str] | None =
     if kayit:
         s2, ks = _kayit_sorunlari(eski, yeni, kosu)
         sorun += s2
+        if not closed_cases():
+            # 2.10.14: kapalı vakalar plugin dışında; kopya yoksa karşılaştırma yalnız açık vakalarla "geçti" diyemez
+            sorun.append("kapalı vakalar bulunamadı: proje dosyalarındaki kapali-vakalar/ klasörünü evals/kapali/ altına kopyala (evals/README: Kapalı vakalar)")
     if sorun:
         _dur("puan karşılaştırması", sorun, "Eski ve yeni sürüm aynı vaka setiyle, aynı koşu sayısıyla ve aynı Claude sürümüyle "
              "çalıştırılmalı (README: Puan farkı ve harcama).")
@@ -656,8 +750,15 @@ def main(argv: list[str] | None = None) -> int:
     k.add_argument("--plugin-root", required=True, help="değerlendirilen plugin klasörü (vaka dosyaları buradan özetlenir)")
     k.add_argument("--kosu", type=int, default=KOSU)
     k.add_argument("--komut", help="çalıştırılan eval komutu (kayıt için)")
+    kb = sp.add_parser("kabul", help="sürümün gerçek model sonucunu evals/kabul/<sürüm>.json kabul kaydına yazar (2.10.14)")
+    kb.add_argument("--json", required=True, help="yeni sürümün claude plugin eval --json çıktısı (yanında deney kaydı olmalı)")
+    kb.add_argument("--karar", required=True, choices=("kabul", "ret"))
+    kb.add_argument("--model", required=True, help="eval'de kullanılan model adı")
+    kb.add_argument("--sure-dk", type=float, help="koşunun süresi (dakika)")
+    kb.add_argument("--not", dest="notu", help="kısa not")
     a = ap.parse_args(argv)
-    return {"hazirla": cmd_hazirla, "hakem": cmd_hakem, "sonuc": cmd_sonuc, "puan": cmd_puan, "kayit": cmd_kayit}[a.cmd](a)
+    return {"hazirla": cmd_hazirla, "hakem": cmd_hakem, "sonuc": cmd_sonuc, "puan": cmd_puan, "kayit": cmd_kayit,
+            "kabul": cmd_kabul}[a.cmd](a)
 
 
 if __name__ == "__main__":

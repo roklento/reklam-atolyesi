@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.13
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.14
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,30 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.14** — bakım ve yayın araçları (2.10.10 bağımsız denetimi B9, B13, B14, B15, B16, B17, B18, B19)
+- Migration yok, yeni bağımlılık yok. **Müşteri paketi değişti** (`guncelle.ps1`): yeni ZIP gönderilmeli.
+- **Güvenlik taraması dürüst sayar:** `bagimlilik_denetimi.py` npm'in hata yanıtını (ör. kayıt sunucusu 503) ya da okunamayan raporu
+  "0 açık" değil "denetlenemedi" sayar; yüksek ya da kritik bildirim varsa 1 koduyla çıkar (CI adımı kırmızı görünür, işi durdurmaz).
+- **Kör kıyas hakemi:** hakem hata koduyla biterse ya da karar satırı okunamazsa `karar.md` yazılmaz, komut 1 ile çıkar; sonraki
+  çalıştırma o vakayı yeniden dener. Başarılı karar geçici dosyadan yerine taşınır.
+- **Profil açma geri alınır:** profil klasörü açılamazsa profil satırı silinir ve anlaşılır bir hata verilir; tekrar deneme aynı adla
+  açılır ("-2" kopyası oluşmaz). Salt okunur veritabanı açılışları her yerde dosya adresi biçimiyle yapılır ("#", "%" ve boşluk
+  içeren klasör güvenli): `db_restore.py`, `doctor.py`, `memory_tools.py`, `plugin_mode.py`.
+- **Güncelleyici:** hata mesajı "verileriniz yedeklendi" sözünü yalnız yedek gerçekten alındıysa ve yedeğin yeriyle birlikte söyler;
+  yedek alınamazsa güncellemeye başlanmaz ve verilere dokunulmadığı söylenir.
+- **Kök `kur.ps1`:** kurulum mantığının ikinci kopyası kaldırıldı; aynı parametreleri `musteri-paketi/kur.ps1`'e iletir.
+- **Mixkit sesleri paketten çıktı:** `vendor-skills/ai-product-video/assets/audio/` (144 MP3 ve kaynak tablosu) silindi; Mixkit lisansı
+  yeniden dağıtıma izin vermiyor. Efekt araması profil → Kenney (CC0) → Earshot (MIT) sırasıyla yapılır; organik ses (alkış, kalp
+  atışı) bankada yoksa profil kütüphanesinden ya da ElevenLabs'ten (fiyat ve onayla) gelir.
+- **Kapalı vakalar plugin deposundan çıktı:** kapalı vakalar artık proje dosyalarındaki `kapali-vakalar/` klasöründe durur; yönetici
+  yayından önce bu klasörü `evals/kapali/` altına kopyalar (`.gitignore`). `senaryo-matrisi.json` yalnız açık vakaları taşır; kapalı
+  kayıt o klasördeki `kapali-matris.json`'dadır.
+  Klon yoksa `kor_kiyas.py puan` durur. 2.10.0'daki üç kapalı vaka depo geçmişinde göründüğü için yenileri yazılacak.
+- **Kabul kaydı:** `kor_kiyas.py kabul` her müşteri sürümünün gerçek model sonucunu `evals/kabul/<sürüm>.json`'a yazar (commit,
+  Claude sürümü, model, açık vaka puanları, kapalı vakaların yalnız özeti, harcama, süre, karar). Kaydı dolduracak ücretli koşu
+  yönetici tarafında yapılır.
+- `tests/test_v21014_bakim.py`.
+
 **2.10.13** — video ve ölçüm doğruluğu (2.10.10 bağımsız denetimi B7, B8, B10, B20)
 - Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
 - **Altyazı düzeltmesi videoda görünür:** sahne önbelleği anahtarına sahnenin aralığına düşen altyazı girdilerinin (metin, kelime,

@@ -2,7 +2,9 @@
 
 Python: kilitli bağımlılıklar `uv export` ile dökülür ve `pip-audit` ile taranır.
 npm: Remotion şablonunun kilidi `npm audit --omit=dev` ile taranır.
-Yüksek ya da kritik bildirim çıkarsa GitHub Actions'ta uyarı satırı (`::warning::`) basılır. Araç ya da ağ yoksa "denetlenemedi" yazılır.
+Yüksek ya da kritik bildirim çıkarsa GitHub Actions'ta uyarı satırı (`::warning::`) basılır ve betik 1 koduyla çıkar (2.10.14).
+Araç ya da ağ yoksa, araç hata koduyla bitip okunabilir rapor vermezse ya da rapor bir hata nesnesiyse "denetlenemedi" yazılır;
+bu durum 0 sayılmaz, ayrı gösterilir. Çıkış kodu: 0 = bildirim yok ya da denetlenemedi, 1 = yüksek/kritik bildirim var.
 Kullanım (servers/ad_memory içinden): uv run python ../../scripts/setup/bagimlilik_denetimi.py
 """
 from __future__ import annotations
@@ -38,7 +40,12 @@ def python_report() -> dict:
         r = _run([uv, "tool", "run", "pip-audit", "-r", str(req), "--format", "json", "--progress-spinner", "off"], srv)
     if not r or not r.stdout.strip().startswith("{"):
         return {"checked": False, "why": "pip-audit çalışmadı (ağ?)"}
-    data = json.loads(r.stdout)
+    try:
+        data = json.loads(r.stdout)
+    except ValueError:
+        return {"checked": False, "why": "pip-audit raporu okunamadı"}
+    if not isinstance(data, dict) or "dependencies" not in data:
+        return {"checked": False, "why": "pip-audit raporunda bağımlılık listesi yok"}
     vulns = [{"package": d["name"], "version": d["version"], "id": v["id"], "fix": v.get("fix_versions")}
              for d in data.get("dependencies", []) for v in d.get("vulns", [])]
     # pip-audit önem derecesi vermez: her bildirim ciddi sayılır
@@ -53,7 +60,18 @@ def npm_report() -> dict:
     r = _run([npm, "audit", "--omit=dev", "--json", "--package-lock-only"], tpl)
     if not r or not r.stdout.strip().startswith("{"):
         return {"checked": False, "why": "npm audit çalışmadı (ağ?)"}
-    meta = json.loads(r.stdout).get("metadata", {}).get("vulnerabilities", {})
+    try:
+        data = json.loads(r.stdout)
+    except ValueError:
+        return {"checked": False, "why": "npm audit raporu okunamadı"}
+    # npm, kayıt sunucusu hatasında da JSON döner ({"error": {...}}); bu "0 açık" değildir
+    if not isinstance(data, dict) or data.get("error"):
+        err = data.get("error") if isinstance(data, dict) else None
+        code = err.get("code") if isinstance(err, dict) else None
+        return {"checked": False, "why": f"npm audit hata verdi ({code or 'bilinmeyen hata'})"}
+    meta = (data.get("metadata") or {}).get("vulnerabilities")
+    if not isinstance(meta, dict) or "total" not in meta:
+        return {"checked": False, "why": "npm audit raporunda açık sayısı yok"}
     return {"checked": True, "count": int(meta.get("total", 0)), "high": int(meta.get("high", 0)) + int(meta.get("critical", 0)),
             "by_severity": meta}
 
@@ -66,7 +84,7 @@ def main() -> int:
             print(f"::warning::{k} bağımlılıkları denetlenemedi: {v.get('why')}")
         elif v.get("high"):
             print(f"::warning::{k} bağımlılıklarında {v['high']} yüksek/kritik güvenlik bildirimi var; yayından önce güncelle")
-    return 0
+    return 1 if any(v.get("checked") and v.get("high") for v in rep.values()) else 0
 
 
 if __name__ == "__main__":

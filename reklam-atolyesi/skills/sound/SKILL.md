@@ -32,8 +32,9 @@ S10 tamam: `ready` üretim planı ve öz denetimden geçmiş önizleme.
 4. **Yeni efekt ihtiyacı** (S10 yeni `audio_cues` eklediyse; yoğunluk kuralı: 1 saniyede ≤ 2, aynı efekt 2 sn içinde tekrar yok — 1.5.0):
    önce ses kütüphanesi (`sfx_library.py`; profil kütüphanesi → CC0 çekirdek `vendor-skills/sfx-cc0/` (Kenney: arayüz, dijital,
    darbe/adım sesleri, kısa müzik vuruşları) → Earshot bankası `vendor-skills/sfx-earshot/` (2.6.0; kodla üretilmiş 236 temiz ses: whoosh,
-   riser, downlifter, logo sting, sub drop, glitch, klavye, bildirim) → Mixkit arşivi; Türkçe sorgu da olur: "tık", "darbe cam", "onay",
-   "logo", "iniş") ve kodla sentez (`sfx_synth.py`); Earshot denetiminde uyarılı 16 ses yalnızca `--include-flagged` ile ve dinlenerek;
+   riser, downlifter, logo sting, sub drop, glitch, klavye, bildirim); Türkçe sorgu da olur: "tık", "darbe cam", "onay",
+   "logo", "iniş") ve kodla sentez (`sfx_synth.py`). 2.10.14'ten beri pakette Mixkit sesi yoktur (lisansı yeniden dağıtıma izin
+   vermiyor); alkış, kalp atışı gibi organik ses kütüphanede yoksa profil kütüphanesinden ya da ElevenLabs'ten gelir; Earshot denetiminde uyarılı 16 ses yalnızca `--include-flagged` ile ve dinlenerek;
    ElevenLabs gerekiyorsa fiyat ve onay **S11 içinde** alınır (S09 kapısı yeniden açılmaz).
    **Aday anlar (2.7.0):** önizlemeden ya da ham çekimden `PY PR/scripts/analyze/sfx_moments.py --video <önizleme.mp4> --plan <plan.json>
    --frames-dir analysis/sfx-anlar --out analysis/sfx_moments.json` → kesme, ani hareket, hareketin başlaması ve durması (ürün masaya

@@ -19,7 +19,7 @@ REPOS=(
   "remotion-dev/skills|0b5db9daae40|verify|skills/remotion-best-practices=>remotion-best-practices;skills/remotion-create=>remotion-create;skills/remotion-render=>remotion-render;skills/remotion-markup=>remotion-markup;skills/remotion-multimedia=>remotion-multimedia;skills/remotion-captions=>remotion-captions;skills/remotion-studio=>remotion-studio;skills/remotion-docs=>remotion-docs;skills/remotion-upgrade=>remotion-upgrade"
   "elevenlabs/skills|81f1eafc65c9|MIT|text-to-speech=>text-to-speech;music=>music;sound-effects=>sound-effects;voice-isolator=>voice-isolator;speech-to-text=>speech-to-text;setup-api-key=>setup-api-key;mcp.json=>elevenlabs-mcp/mcp.json"
   "iart-ai/ad-video-skills|0de0f2a1c1f4|MIT|skills/ad-creative-video=>ad-creative-video;skills/launch-video=>launch-video;skills/testimonial-video=>testimonial-video;scripts=>ad-video-scripts"
-  "dlazy-ai/ai-product-video|55501b4f2e74|Apache-2.0|SKILL.md=>ai-product-video/SKILL.md;references=>ai-product-video/references;template=>ai-product-video/template;agents=>ai-product-video/agents;assets/audio=>ai-product-video/assets/audio"
+  "dlazy-ai/ai-product-video|55501b4f2e74|Apache-2.0|SKILL.md=>ai-product-video/SKILL.md;references=>ai-product-video/references;template=>ai-product-video/template;agents=>ai-product-video/agents"
   "smit-vanani/claude-promo-video|4f175c71619e|MIT|skills/promo-video=>promo-video"
   "howseen-ai/claude-motion-design|3d90d349ef3f|MIT|skill/motion-design=>motion-design"
   "Kianzzz/xilo-opus-video|f2cd828e2692|MIT|skills/xilo-opus-video=>xilo-opus-video"

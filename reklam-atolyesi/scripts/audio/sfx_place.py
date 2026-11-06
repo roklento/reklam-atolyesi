@@ -44,7 +44,7 @@ ROLE_ANCHOR = {
     "whoosh": "peak", "swish": "peak", "riser": "peak", "swell": "peak", "logo": "peak", "shimmer": "peak",
     "downlifter": "start", "music": "start", "ambience": "start",
 }
-# Dosya yolundaki sözcük → tür (Kenney, Earshot, Mixkit adları). Sıra önemli: ilk eşleşen kazanır.
+# Dosya yolundaki sözcük → tür (Kenney, Earshot ve profil kütüphanesindeki yaygın adlar). Sıra önemli: ilk eşleşen kazanır.
 _PATH_ROLE = [
     ("reverse_swell", "swell"), ("reverse", "swell"), ("logo", "logo"), ("sting", "logo"), ("sub_drop", "sub_drop"),
     ("subdrop", "sub_drop"), ("cut_hit", "cut_hit"), ("downlifter", "downlifter"), ("riser", "riser"), ("swell", "swell"),

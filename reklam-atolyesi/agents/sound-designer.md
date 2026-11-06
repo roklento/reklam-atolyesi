@@ -32,7 +32,7 @@ Whisper kuruluysa her alımın okunuşu metinle karşılaştırılır (`pronunci
 (ton ve doğallık için dinleme kullanıcınındır). Kullanıcı kaydının kelime zamanları: `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD
 --in <kayıt> --script vo.txt --out-dir audio/user_vo` (ücretsiz; Scribe yalnızca Whisper kurulamıyorsa, ücretli protokolle).
 
-**`sfx_local`:** önce kütüphane (`scripts/audio/sfx_library.py`; profil → CC0 Kenney çekirdeği → Earshot bankası (kodla üretilmiş, MIT) → Mixkit), tasarım sesleri kodla (`scripts/audio/sfx_synth.py`; deterministik tohum);
+**`sfx_local`:** önce kütüphane (`scripts/audio/sfx_library.py`; profil → CC0 Kenney çekirdeği → Earshot bankası (kodla üretilmiş, MIT); pakette Mixkit sesi yoktur), tasarım sesleri kodla (`scripts/audio/sfx_synth.py`; deterministik tohum);
 organik ses gerekiyorsa `prepare_paid`'e döndür. Anları önce `scripts/analyze/sfx_moments.py` aday listesinden ve karelerden seç (2.7.0);
 cue'ya `role` yaz (dosya adı türü söylemiyorsa), `anchor` ve `level` varsayılanı bırak: sesin doruğu/gövdesi kareye, seviye türün hedefine oturur.
 

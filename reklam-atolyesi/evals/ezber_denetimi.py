@@ -62,8 +62,10 @@ def load_cases(root: Path = ROOT) -> dict[str, dict]:
     mf = root / "evals" / "senaryo-matrisi.json"
     matrix = json.loads(mf.read_text(encoding="utf-8")) if mf.exists() else {}
     quoting: dict[str, set] = {}
-    for key in ("eval_cases", "kapali_cases"):
-        for n, c in (matrix.get(key) or {}).items():
+    kmf = root / "evals" / "kapali" / "kapali-matris.json"  # 2.10.14: kapalı vakaların kaydı plugin dışından gelen kopyada
+    kapali = json.loads(kmf.read_text(encoding="utf-8")).get("kapali_cases") or {} if kmf.exists() else {}
+    for cases in (matrix.get("eval_cases") or {}, matrix.get("kapali_cases") or {}, kapali):
+        for n, c in cases.items():
             q = c.get("alinti")
             if isinstance(q, list):  # yalnızca cümle listesi geçerli; true gibi toptan izin yok sayılır
                 quoting[n] = {tuple(w[i:i + KELIME_ESIGI]) for t in q if isinstance(t, str)
@@ -72,7 +74,7 @@ def load_cases(root: Path = ROOT) -> dict[str, dict]:
         base = root / "evals" / sub
         if not base.is_dir():
             continue
-        for case in sorted(p for p in base.iterdir() if p.is_dir()):
+        for case in sorted(p for p in base.iterdir() if p.is_dir() and not p.name.startswith(".")):
             info = {"grams": {}, "alinti": quoting.get(case.name, set()), "grup": "kapalı" if sub == "kapali" else "açık"}
             files = [case / "prompt.md"] + sorted((case / "graders").glob("*.md"))
             for f in files:

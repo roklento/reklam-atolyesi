@@ -16,7 +16,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "evals"))
 import kor_kiyas as KK  # noqa: E402
 
-CASES = sorted(KK.expected_cases())
+# 2.10.14: kapalı vakalar plugin dışında; yerel kopya yoksa (CI, müşteri kopyası) yerlerine üç sentetik ad kullanılır
+_GERCEK_KAPALI = KK.closed_cases()
+KAPALI = _GERCEK_KAPALI or {"kapali-sentetik-1", "kapali-sentetik-2", "kapali-sentetik-3"}
+CASES = sorted(KK.expected_cases() | KAPALI)
+
+
+@pytest.fixture(autouse=True)
+def _sentetik_kapali(monkeypatch):
+    if not _GERCEK_KAPALI:
+        monkeypatch.setattr(KK, "closed_cases", lambda: set(KAPALI))
 
 
 def _run(score=1.0, cost=0.1, **extra) -> dict:
@@ -176,7 +185,7 @@ def test_kayit_command_fingerprints_case_files(tmp_path):
     p = _doc(tmp_path / "e.json")
     assert KK.main(["kayit", "--json", p, "--plugin-root", str(ROOT)]) == 0
     k = json.loads(KK.kayit_yolu(p).read_text(encoding="utf-8"))
-    assert k["vaka_sayisi"] == 16 and k["claudeVersion"] == "2.5.0" and k["kosu"] == 3
+    assert k["vaka_sayisi"] == KK.parmak_izi(ROOT)[1] >= 13 and k["claudeVersion"] == "2.5.0" and k["kosu"] == 3
     assert k["vaka_parmak_izi"] == KK.parmak_izi(ROOT)[0]
     # Bir hakem dosyası değişirse parmak izi değişir (kopya üzerinde; vaka içeriği okunmaz).
     import shutil

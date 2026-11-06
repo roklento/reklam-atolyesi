@@ -34,7 +34,7 @@ jobs:
         run: uv run python ../../scripts/setup/ci_check.py
       - name: Ezber denetimi (vakadan plugin metnine kopya yok)
         run: uv run python ../../evals/ezber_denetimi.py
-      - name: Bağımlılık güvenlik raporu (yayını durdurmaz, yüksek bildirimde uyarır)
+      - name: Bağımlılık güvenlik raporu (yüksek bildirimde adım kırmızı görünür; ağ yoksa denetlenemedi yazar)
         continue-on-error: true
         run: uv run python ../../scripts/setup/bagimlilik_denetimi.py
 
