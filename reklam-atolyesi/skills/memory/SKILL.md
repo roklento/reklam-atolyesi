@@ -66,10 +66,13 @@ Yok.
 1. `journal_summary(profile_id, days=30)` + açık devam notları (`checkpoint_get`) + `playbook_get(status="active")` + aktif tercihler
    (`memory_search` katman `preference`) + bekleyen doğrulamalar. Sade bir liste olarak göster.
 2. Kullanıcı düzeltirse `memory_update(item_id, content=…, by_user=True)`.
-3. Silme: önce neyin silineceğini göster, açık onay al → `memory_forget(item_id, confirm_text, profile_id)`. Araç öğeyi, FTS kaydını,
+3. Silme: önce silinecek öğeyi kullanıcıya göster ve "Bu kaydı sileyim mi?" diye sor; kullanıcı cevap verince
+   `memory_forget(session_id, item_id, profile_id)`. Onay kullanıcının bu cevabından alınır ("evet, sil" ya da "bunu unut" geçer;
+   "hayır, silme" ya da şartlı cevap geçmez ve hiçbir şey silinmez). Araç öğeyi, FTS kaydını,
    kullanım/kanıt kopyalarını, türeyen özet ve dışa aktarımları temizler; öğeyi içeren yerel yedekleri (güncelleme yedekleri ve geri
    dönüşte kenara alınan eski veritabanları dahil) silip temiz yedek alır; günlükte içerik taşımayan iz kalır. Sonuçta
-   `local_copies_complete` false ise açılamayan dosyaları kullanıcıya söyle; silme tamamlandı deme. Meta'da yayınlanmış içerik, kullanıcının harici kopyaları ve sağlayıcı kayıtları yerel silmeyle yok
+   `local_copies_complete` false ise açılamayan dosyaları kullanıcıya söyle; silme tamamlandı deme. Sorun giderilince aynı
+   `memory_forget` çağrısı (yeni onayla) yalnız kalan kopyaları yeniden dener. Oturumda tutulan son mesajlardaki kopyalar da temizlenir. Meta'da yayınlanmış içerik, kullanıcının harici kopyaları ve sağlayıcı kayıtları yerel silmeyle yok
    olmuş sayılmaz: yerel tamamlananlar ile insan/sağlayıcı tarafında bekleyenler ayrı raporlanır. Kişisel medya/yorum için
    `consent_withdraw` / `review_withdraw` (bölüm 10).
 

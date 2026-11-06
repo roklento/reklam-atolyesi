@@ -485,14 +485,17 @@ class BaseStore:
             return self._session_write(session_id, s if out is None else out)
 
     def _user_approval(self, session_id: str | None, approval_text: str | None, since: str | None,
-                       number: float | None = None) -> str:
+                       number: float | None = None, profile_id: int | None = None, core: frozenset | None = None) -> str:
         """2.10.7: onay ifadesinin kaynağı ve biçimi (admem/approval.py). session_id verilirse onay, navigator hook'unun bu oturuma
         yazdığı SON kullanıcı mesajıdır: onaylanan şey (tahmin, belge sürümü) gösterildikten sonra yazılmış, süresi geçmemiş ve
         daha önce başka bir onay için kullanılmamış olmalı. Model metni kendi yazamaz. session_id yoksa (doğrudan çağrı, test)
-        verilen metin aynı biçim denetiminden geçer. Dönen değer kayda yazılacak onay metnidir."""
+        verilen metin aynı biçim denetiminden geçer (MCP aracı boş session_id'yi kabul etmez; bu yol yalnızca doğrudan çağrı içindir).
+        2.10.11: profile_id verilirse mesaj başka bir markaya bağlı oturumda yazılmamış olmalı (B markasında yazılan "evet" A'nın işini
+        onaylamaz; henüz markaya bağlanmamış oturumdaki mesaj, aynı kullanıcının kendi oturumu olduğu için geçer);
+        500 karakterde kesilmiş mesaj onay sayılmaz. Dönen değer kayda yazılacak onay metnidir."""
         from . import approval as AP
         if not session_id:
-            return AP.require(approval_text, number)
+            return AP.require(approval_text, number, core)
         out: dict = {}
 
         def take(s: dict) -> None:
@@ -505,14 +508,20 @@ class BaseStore:
             at = parse_iso(last.get("at"))
             ref = parse_iso(since) if since else None
             now = parse_iso(now_iso())
+            said_in = last.get("profile_id", s.get("profile_id"))
             if last.get("id") in used:
                 out["err"] = "kullanıcının son mesajı başka bir onay için kullanıldı; yeni onay için kullanıcıya yeniden sor"
             elif at is None or (ref is not None and at < ref):
                 out["err"] = "kullanıcının son mesajı, onaylanacak şey gösterilmeden önce yazılmış; kullanıcıya göster ve onayını iste"
             elif now is not None and (now - at).total_seconds() > AP.APPROVAL_TTL_MIN * 60:
                 out["err"] = f"kullanıcının son mesajı {AP.APPROVAL_TTL_MIN} dakikadan eski; onayı yeniden iste"
+            elif profile_id is not None and said_in is not None and int(said_in) != int(profile_id):
+                out["err"] = ("kullanıcının son mesajı bu markanın oturumunda yazılmadı; başka bir markada verilen onay bu işe geçmez. "
+                              "Oturumu bu markaya bağla (session_bind), onaylanacak şeyi göster")
+            elif last.get("truncated"):
+                out["err"] = "kullanıcının son mesajı çok uzun olduğu için kısaltılarak kaydedildi; uzun mesaj onay sayılmaz"
             else:
-                ok, why = AP.check(last.get("text"), number)
+                ok, why = AP.check(last.get("text"), number, core)
                 if not ok:
                     out["err"] = f"kullanıcının son mesajı onay sayılmaz: {why}"
                     return

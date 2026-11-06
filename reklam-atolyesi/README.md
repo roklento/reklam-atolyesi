@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.10
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.11
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,23 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.11** — onay ve silme (2.10.10 bağımsız denetimi B1, B2, B4, B5, B6)
+- Migration yok, yeni bağımlılık yok, müşteri paketi değişmedi.
+- **Onay oturumsuz alınmaz:** onay isteyen MCP araçları (`gate_approve`, `generation_approve`, `action_item_set_status`, `playbook_activate`,
+  `feedback_export`, `memory_forget`) boş `session_id` ile çalışmaz. Serbest metinle onay yalnızca doğrudan (test) çağrısında kalır.
+- **Onay markaya bağlı:** navigator her kullanıcı mesajıyla o anki markayı da saklar; başka markaya bağlı oturumda yazılan "evet" bu
+  markanın işini onaylamaz.
+- **Onay biçimi sıkılaştı:** `/onayla` yalnız tam komut olarak geçer ve arkasındaki metin de denetlenir ("/onaylama", "/onayla ama …"
+  geçmez). Emoji, soru işareti, başka alfabe, 300 karakterden uzun ya da kaydı kesilmiş mesaj onay değildir. Başka dilde "yes" gelirse
+  kullanıcıya Türkçe kısa cevap yazması söylenir.
+- **Silme kullanıcının cevabıyla:** `memory_forget(session_id, item_id, profile_id)` onayı kullanıcının mesajından alır; "evet, sil" ve
+  "bunu unut" geçer, "hayır, silme" hiçbir şey silmez.
+- **Silme kalıntısız ve sürdürülebilir:** günlüğün ayrıntı alanı ve oturumda tutulan son mesajlar da temizlenir; okunamayan dışa aktarım
+  "tamamlanmadı"ya sayılır. Açılamayan kopyalar içerik saklanmadan kaydedilir; aynı silme yeniden çağrılınca kalan yerler denenir.
+  Yedek taraması `#` ve boşluk içeren veri klasöründe de çalışır.
+- **CSV başka markadan alınmaz:** başka markanın klasöründeki Meta dökümü reddedilir; genel klasörler ve markanın kendi klasörü serbest.
+- `tests/test_v21011_onay_silme.py`.
+
 **2.10.10** — bağımlılık güncellemesi (bağımsız ürün denetimi B9)
 - Migration yok, müşteri paketi değişmedi. Güncellenen bağımlılıklar: Pillow 12.3.0 → 13.0.0, certifi 2026.7.22 → 2026.10.23, Remotion
   paketleri 4.0.532 → 4.0.540, zod 4.5.4 → 4.6.7 (alt bağımlılık fast-uri de güncellendi). pip-audit ve `npm audit --omit=dev`

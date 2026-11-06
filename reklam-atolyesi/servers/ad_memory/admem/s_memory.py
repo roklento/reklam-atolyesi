@@ -36,6 +36,42 @@ def _mentions(text: str, frag: str) -> bool:
     return re.search(r"(?<![\w%])" + re.escape(frag.strip()) + r"(?![\w%])", text) is not None
 
 
+
+def _as_text(v) -> str:
+    """Satır okuyucu *_json sütunlarını çözer; aramada metne geri çevrilir."""
+    if v is None:
+        return ""
+    return v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
+
+
+def _forget_in_backup(kind: str, path: Path, db: Path, item_id: int, content: str | None) -> str:
+    """Bir yedekte unutulan öğe var mı: 'removed' | 'clean' | 'unreadable'. content None ise yalnız öğe kimliğine bakılır."""
+    if kind == "previous" and not db.exists():
+        return "clean"
+    if not db.exists():
+        return "clean" if not path.exists() else "unreadable"
+    try:
+        con = sqlite3.connect(db.resolve().as_uri() + "?mode=ro", uri=True, timeout=3)  # 2.10.11: as_uri ('#', boşluk güvenli)
+        try:
+            if content is None:
+                hit = con.execute("SELECT 1 FROM memory_items WHERE id=? LIMIT 1", (item_id,)).fetchone()
+            else:
+                hit = con.execute("SELECT 1 FROM memory_items WHERE id=? OR content=? LIMIT 1", (item_id, content)).fetchone()
+        finally:
+            con.close()
+    except sqlite3.Error:
+        return "unreadable"
+    if not hit:
+        return "clean"
+    try:
+        if kind == "previous":
+            shutil.rmtree(path)
+        else:
+            db.unlink()
+    except OSError:
+        return "unreadable"
+    return "removed"
+
 class MemoryMixin:
     # --- FTS ------------------------------------------------------------------
     def _fts_put(self, kind: str, ref_id: int, profile_id: int | None, text: str) -> None:
@@ -600,21 +636,40 @@ class MemoryMixin:
         return {"checked": decayed, "due_revalidation": revalid, "archived": archived, "effective_confidence_note": "yarı ömür varsayılan 180 gün"}
 
     # --- unutma (8.8) --------------------------------------------------------------
-    def memory_forget(self, item_id: int, confirm_text: str, profile_id: int | None = None) -> dict:
-        """Öğe + FTS + kullanım/kanıt kopyaları + türeyen özetler/dışa aktarımlar + öğeyi içeren yerel yedekler temizlenir."""
-        it = self._item(profile_id, item_id)
-        if not confirm_text or not confirm_text.strip():
-            raise AdMemoryError("unutma kullanıcının açık isteğiyle yapılır")
+    def memory_forget(self, item_id: int, confirm_text: str = "", profile_id: int | None = None,
+                      session_id: str | None = None) -> dict:
+        """Öğe + FTS + kullanım/kanıt kopyaları + günlük (özet ve ayrıntı) + oturumlardaki kullanıcı mesajı kopyaları + türeyen
+        özetler/dışa aktarımlar + öğeyi içeren yerel yedekler temizlenir.
+        2.10.11: onay kullanıcının kendi mesajından alınır (session_id; diğer onaylarla aynı biçim denetimi, "evet, sil" / "bunu unut"
+        geçer, "hayır, silme" geçmez). Açılamayan kopya kalırsa silme "tamamlanmadı" sayılır ve kalan yerler kaydedilir (içerik
+        saklanmadan); aynı item_id ile yeniden çağrılınca yalnız bu yerler yeniden denenir."""
+        from . import approval as AP
+        pending = self._forget_pending()
+        row = self.q1("SELECT * FROM memory_items WHERE id=?", (int(item_id),))
+        pid = int(profile_id) if profile_id is not None else None
+        if row is None or row["profile_id"] != pid:
+            pend = next((p for p in pending if p["item_id"] == int(item_id) and p.get("profile_id") == pid), None)
+            if pend is None:
+                self._item(profile_id, item_id)  # yalıtım hatası
+            self._user_approval(session_id, confirm_text, None, profile_id=profile_id, core=AP.FORGET_CORE)
+            return self._forget_resume(pend, pending)
+        it = row
+        self._user_approval(session_id, confirm_text, None, profile_id=profile_id, core=AP.FORGET_CORE)
         content = it["content"]
         frag = content[:60]
+        frag_json = json.dumps(frag, ensure_ascii=False)[1:-1]
         with self.tx():
             self.ex("DELETE FROM memory_usage WHERE item_id=?", (it["id"],))
             self.ex("UPDATE memory_items SET superseded_by=NULL WHERE superseded_by=?", (it["id"],))
             self._fts_del("memory", it["id"])
             self.ex("DELETE FROM memory_items WHERE id=?", (it["id"],))
-            # 2.10.3: düz metin eşleşmesi (LIKE'ta % ve _ joker sayılıyor, ilgisiz kayıtlar siliniyordu); çok kısa içerik tek kelime olarak aranır
-            touched = [j for j in self.qa("SELECT id, summary FROM journal WHERE profile_id IS ? AND instr(summary, ?) > 0", (profile_id, frag))
-                       if _mentions(j["summary"], frag)]
+            # 2.10.3: düz metin eşleşmesi (LIKE'ta % ve _ joker sayılıyor, ilgisiz kayıtlar siliniyordu); çok kısa içerik tek kelime olarak aranır.
+            # 2.10.11: günlüğün ayrıntı alanı da aranır (başlık genel, ayrıntıda içerik olabilir).
+            touched = [j for j in self.qa("SELECT id, summary, detail_json FROM journal WHERE profile_id IS ? AND (instr(summary, ?) > 0 "
+                                          "OR instr(COALESCE(detail_json, ''), ?) > 0 OR instr(COALESCE(detail_json, ''), ?) > 0)",
+                                          (profile_id, frag, frag, frag_json))
+                       if _mentions(j["summary"], frag) or _mentions(_as_text(j["detail_json"]), frag)
+                       or _mentions(_as_text(j["detail_json"]), frag_json)]
             for j in touched:
                 self.ex("UPDATE journal SET summary='[unutma isteğiyle kaldırıldı]', detail_json=NULL WHERE id=?", (j["id"],))
                 self._fts_del("journal", j["id"])
@@ -623,48 +678,116 @@ class MemoryMixin:
                     self.ex("DELETE FROM journal_rollups WHERE id=?", (r["id"],))
             self.ex("""INSERT INTO journal(profile_id,campaign_id,ts,type,summary,rolled) VALUES(?,NULL,?, 'forget', 'bir hafıza öğesi kullanıcı isteğiyle silindi', 0)""",
                     (profile_id, now_iso()))
-        exports_removed = []
+        sessions_scrubbed, unreadable_sessions = self._forget_sessions(frag)
+        exports_removed, unreadable_exports = [], []
         for d in self._export_dirs(profile_id):
             for f in d.glob("*.md"):
                 try:
                     if _mentions(f.read_text(encoding="utf-8"), frag):
                         f.unlink()
                         exports_removed.append(f.name)
-                except OSError:
-                    continue
+                except (OSError, UnicodeDecodeError):
+                    unreadable_exports.append(str(f))  # 2.10.11: okunamayan dışa aktarım sessizce atlanmaz
         # 2.10.9: sunucu yedekleri, güncelleme yedekleri ve geri dönüşte kenara alınan eski veritabanları tek envanterden taranır.
-        # Okunamayan bir kopya varsa silme "tamamlandı" sayılmaz.
         backups_removed, unreadable = [], []
         for rec in backup_inventory(self.data_dir):
-            b = rec["db"]
-            if rec["kind"] == "previous" and not b.exists():
-                continue
-            try:
-                con = sqlite3.connect(f"file:{b.as_posix()}?mode=ro", uri=True, timeout=3)
-                try:
-                    hit = con.execute("SELECT 1 FROM memory_items WHERE id=? OR content=? LIMIT 1", (it["id"], content)).fetchone()
-                finally:
-                    con.close()
-            except sqlite3.Error:
-                unreadable.append(str(rec["path"]))
-                continue
-            if hit:
-                try:
-                    if rec["kind"] == "previous":
-                        shutil.rmtree(rec["path"])
-                    else:
-                        b.unlink()
-                    backups_removed.append(rec["path"].name)
-                except OSError:
-                    unreadable.append(str(rec["path"]))
+            st = _forget_in_backup(rec["kind"], rec["path"], rec["db"], it["id"], content)
+            if st == "removed":
+                backups_removed.append(rec["path"].name)
+            elif st == "unreadable":
+                unreadable.append({"kind": rec["kind"], "path": str(rec["path"]), "db": str(rec["db"])})
         new_backup = self.backup(reason="forget") if backups_removed else None
         if exports_removed:
             self.export_markdown(profile_id)
-        return {"forgotten": item_id, "journal_scrubbed": len(touched), "exports_removed": exports_removed,
-                "backups_removed": backups_removed, "new_backup": new_backup["path"] if new_backup else None,
+        left = {"item_id": int(item_id), "profile_id": pid, "backups": unreadable, "exports": unreadable_exports, "at": now_iso()}
+        self._forget_pending_save([p for p in pending if p["item_id"] != int(item_id)] + ([left] if unreadable or unreadable_exports else []))
+        return self._forget_result(item_id, len(touched), sessions_scrubbed, exports_removed, backups_removed, new_backup,
+                                   [b["path"] for b in unreadable] + unreadable_exports + unreadable_sessions)
+
+    # 2.10.11: yarım kalan silmelerin kalan yerleri (içerik saklanmaz; yalnız öğe kimliği ve dosya yolları)
+    def _forget_pending(self) -> list[dict]:
+        r = self.q1("SELECT value FROM settings WHERE key='forget_pending_json'")
+        try:
+            return json.loads(r["value"]) if r and r["value"] else []
+        except ValueError:
+            return []
+
+    def _forget_pending_save(self, items: list[dict]) -> None:
+        with self.tx():
+            self.ex("INSERT INTO settings(key,value,updated_at) VALUES('forget_pending_json',?,?) ON CONFLICT(key) DO UPDATE SET "
+                    "value=excluded.value, updated_at=excluded.updated_at", (json.dumps(items, ensure_ascii=False), now_iso()))
+
+    def _forget_resume(self, pend: dict, pending: list[dict]) -> dict:
+        """Yarım kalan silme: öğe canlı veritabanından zaten silinmiş; kalan yedekler (öğe kimliğiyle) ve okunamayan dışa aktarımlar
+        (türetilmiş dosya; açılabiliyorsa silinip yeniden üretilir) yeniden denenir."""
+        backups_removed, still = [], []
+        for b in pend.get("backups") or []:
+            st = _forget_in_backup(b["kind"], Path(b["path"]), Path(b["db"]), pend["item_id"], None)
+            if st == "removed":
+                backups_removed.append(Path(b["path"]).name)
+            elif st == "unreadable":
+                still.append(b)
+        exports_removed, still_exp = [], []
+        for f in pend.get("exports") or []:
+            p = Path(f)
+            try:
+                if p.exists():
+                    p.read_bytes()
+                    p.unlink()
+                    exports_removed.append(p.name)
+            except OSError:
+                still_exp.append(f)
+        new_backup = self.backup(reason="forget") if backups_removed else None
+        if exports_removed:
+            self.export_markdown(pend.get("profile_id"))
+        rest = [p for p in pending if p["item_id"] != pend["item_id"]]
+        if still or still_exp:
+            rest.append({**pend, "backups": still, "exports": still_exp, "at": now_iso()})
+        self._forget_pending_save(rest)
+        out = self._forget_result(pend["item_id"], 0, 0, exports_removed, backups_removed, new_backup,
+                                  [b["path"] for b in still] + still_exp)
+        out["resumed"] = True
+        return out
+
+    def _forget_sessions(self, frag: str) -> tuple[int, list[str]]:
+        """Oturum dosyalarındaki son kullanıcı mesajları (onay kaydı için tutulur) unutulan içeriği taşıyorsa metin kaldırılır."""
+        sdir = self.data_dir / ".sessions"
+        n, bad = 0, []
+        if not sdir.is_dir():
+            return 0, []
+        for f in sdir.glob("*.json"):
+            try:
+                if not _mentions(f.read_text(encoding="utf-8"), frag) and not _mentions(f.read_text(encoding="utf-8"),
+                                                                                       json.dumps(frag, ensure_ascii=False)[1:-1]):
+                    continue
+                json.loads(f.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                bad.append(str(f))
+                continue
+            hit = {"n": 0}
+
+            def scrub(s: dict) -> None:
+                for u in s.get("user_prompts") or []:
+                    if _mentions(u.get("text") or "", frag):
+                        u["text"] = "[unutma isteğiyle kaldırıldı]"
+                        hit["n"] += 1
+            try:
+                self._session_update(f.stem, scrub)
+            except (AdMemoryError, OSError):
+                bad.append(str(f))
+                continue
+            n += hit["n"]
+        return n, bad
+
+    @staticmethod
+    def _forget_result(item_id, journal_n, sessions_n, exports_removed, backups_removed, new_backup, unreadable) -> dict:
+        return {"forgotten": item_id, "journal_scrubbed": journal_n, "session_messages_scrubbed": sessions_n,
+                "exports_removed": exports_removed, "backups_removed": backups_removed,
+                "new_backup": new_backup["path"] if new_backup else None,
                 "local_copies_complete": not unreadable, "backups_unreadable": unreadable,
-                **({"warning": "bazı yerel yedekler açılamadı ya da silinemedi; silme bu kopyalar için tamamlanmadı. Kullanıcıya bu dosyaları "
-                               "söyle; elle silinene ya da açılabilene kadar silme tamamlandı deme"} if unreadable else {}),
+                **({"warning": "bazı yerel kopyalar açılamadı ya da silinemedi; silme bu kopyalar için tamamlanmadı. Kullanıcıya bu dosyaları "
+                               "söyle; sorun giderilince aynı silmeyi yeniden çağır (kaldığı yerden sürer). O zamana kadar silme tamamlandı deme"}
+                   if unreadable else {}),
                 "pending_outside": "Meta'da yayınlanmış içerik, kullanıcının haricî kopyaları ve sağlayıcı kayıtları yerel silmeyle yok olmuş sayılmaz."}
 
     def _export_dirs(self, profile_id: int | None) -> list[Path]:

@@ -892,7 +892,8 @@ class CreativeMixin:
         if (approval_scope or {}).get("contains_personal_data") and not (approval_scope or {}).get("processing_permission_ref"):
             raise AdMemoryError("kişisel veri içeren girdi için işleme/aktarım dayanağı referansı gerekir (yükleme öncesi izin kapısı, bölüm 10)")
         # 2.10.7: onay kullanıcının tahmin gösterildikten sonra yazdığı mesajından alınır; mesajda sayı varsa azami krediyle aynı olmalı
-        approval_text = self._user_approval(session_id, approval_text, g["updated_at"], number=float(approved_max_credits))
+        approval_text = self._user_approval(session_id, approval_text, g["updated_at"], number=float(approved_max_credits),
+                                           profile_id=profile_id)
         scope = {**approval_scope, "approved_max_credits": float(approved_max_credits), "count": int(count),
                  "approval_text": approval_text, "params_hash": g["params_hash"], "request_no": g["request_no"],
                  "estimate_credits": float(g["estimate_credits"] or 0)}

@@ -634,7 +634,7 @@ class StageMixin:
         blockers = self._gate_blockers(profile_id, run)
         if blockers:
             raise AdMemoryError("kapı geçilemez: " + "; ".join(blockers))
-        approval_text = self._user_approval(session_id, approval_text, run["finished_at"])
+        approval_text = self._user_approval(session_id, approval_text, run["finished_at"], profile_id=profile_id)
 
         c = self.q1("SELECT * FROM campaigns WHERE id=?", (run["campaign_id"],)) if run["campaign_id"] else None
         cy = self.q1("SELECT * FROM cycles WHERE id=?", (run["cycle_id"],)) if run["cycle_id"] else None
