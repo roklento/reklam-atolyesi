@@ -82,7 +82,9 @@ def review(video: str, plan: dict, out_dir: Path, style: dict | None, beats: lis
     findings += [{"kind": "font_glyph", "msg": m["issue"], "where": m["where"]} for m in fc["missing"]]
     findings += [{"kind": "font_load", "msg": u["issue"]} for u in fc["unresolved"]]
     if not bf["ok"]:
-        findings.append({"kind": "black_freeze", "msg": f"siyah {len(bf['black_segments'])} / donma {len(bf['freeze_segments'])} bölüm", "detail": bf})
+        findings.append({"kind": "black_freeze", "detail": bf,
+                         "msg": f"siyah kare ve donma ölçülemedi: {bf.get('error')}" if bf.get("measured") is False
+                         else f"siyah {len(bf['black_segments'])} / donma {len(bf['freeze_segments'])} bölüm"})
     if audio and (abs(audio["lufs"] + 14) > 1 or audio["true_peak_dbtp"] > -0.95):
         findings.append({"kind": "loudness", "msg": f"{audio['lufs']} LUFS / {audio['true_peak_dbtp']} dBTP (hedef -14 / ≤ -1)"})
     slide = SS.slideshow_risk(plan, video)

@@ -173,3 +173,19 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir hesap farklı kaynaklardan gelen sayıları topluyorsa (birim, para birimi, ölçüm tanımı). *Ne yap:* toplamadan
 önce birimin aynı olduğunu denetle; değilse ayrı göster ve hüküm verme. *Dayanak:* bu sürümün ölçüm tanımı ve para birimi satırları.
 *Güven:* orta (birim testi).
+
+## 2.10.5 (2026-11-06): video ve görsel denetimi
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/qc/checks.py` (`black_freeze`), `scripts/render/self_review.py` | işleyiş | video üreten bütün hücreler | Dış kod denetimi: olmayan dosya "temiz", sonuna kadar donma görünmüyordu | Okunamayan dosya ölçülemedi; sondaki donma sayılıyor (`tests/test_v2105_medya_denetimi.py`) | yok | ölçülecek (gerçek render'da kapanış karesi) |
+| `scripts/render/render.py` (`stage_public`) | işleyiş | ara dosya kullanan bütün hücreler | Dış kod denetimi: boyut karşılaştırması ve ad çakışması | İçerik özetli ad; aynı boyutta değişen dosya yenileniyor | yok | yardım etti (test) |
+| `scripts/compose/scene_cache.py` (`scene_key`) | işleyiş | bileşen ayarında dosya kullanan hücreler | Dış kod denetimi: ayardaki dosya anahtara girmiyordu | Ayar dosyası değişince anahtar değişiyor; başka sahnenin dosyası etkilemiyor | yok | yardım etti (test) |
+| `scripts/ingest/convert.py` (`process_photo`, `detect_shake`) | işleyiş | fotoğraf ve telefon çekimi kullanan hücreler | Dış kod denetimi: aynı adlı fotoğraflar çakışıyordu; titreme yönü sayılmıyordu | Ayrı çıktı adları; titreme ölçülüyor | yok | ölçülecek (sarsıntı eşiği gerçek çekimle) |
+
+**Sahada:** henüz defter yok. Beklenen: sabitlenen klip sayısı biraz artabilir.
+
+**Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
+sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.

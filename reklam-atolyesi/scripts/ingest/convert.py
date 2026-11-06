@@ -106,12 +106,15 @@ def detect_shake(src: Path, trf: Path) -> dict:
         if vs:
             vs.sort(key=lambda t: t[0] * t[0] + t[1] * t[1])
             mid = vs[len(vs) // 2]
-            per_frame.append(math.hypot(*mid))
-    if not per_frame:
-        return {"shake_permille": 0.0, "frames": 0}
-    diffs = [abs(per_frame[i] - per_frame[i - 1]) for i in range(1, len(per_frame))] or [0.0]
+            per_frame.append(mid)
+    if not per_frame:  # ölçüm yok: "sarsıntı yok" değil, ölçülemedi (sabitleme kararı verilmez, rapora yazılır)
+        return {"shake_permille": 0.0, "frames": 0, "measured": False, "threshold_permille": SHAKE_THRESHOLD_PERMILLE}
+    # 2.10.5: kareler arası fark yönüyle birlikte (vektör) alınır. Önceden yalnızca büyüklük farkı alınıyordu: sağa-sola aynı
+    # büyüklükte titreyen görüntü 0 ("sarsıntı yok") çıkıyordu.
+    diffs = [math.hypot(per_frame[i][0] - per_frame[i - 1][0], per_frame[i][1] - per_frame[i - 1][1])
+             for i in range(1, len(per_frame))] or [0.0]
     score = (sum(diffs) / len(diffs)) / width * 1000
-    return {"shake_permille": round(score, 3), "frames": len(per_frame), "threshold_permille": SHAKE_THRESHOLD_PERMILLE}
+    return {"shake_permille": round(score, 3), "frames": len(per_frame), "measured": True, "threshold_permille": SHAKE_THRESHOLD_PERMILLE}
 
 
 def stabilize(src: Path, trf: Path, dst: Path, fast: bool = False) -> None:
@@ -130,6 +133,14 @@ def extract_audio(src: Path, dst: Path) -> bool:
         return False
 
 
+def photo_output_name(src: Path) -> str:
+    """Çıktı adı (2.10.5): aynı klasörde aynı adlı başka bir fotoğraf varsa (IMG_1.png ve IMG_1.jpg) uzantı da ada girer; önceden
+    ikisi aynı JPEG'e yazıyor, biri sessizce kayboluyordu. Ad her çalıştırmada aynıdır (yarıda kalan işlem aynı dosyayı yeniden yazar)."""
+    twins = [p for p in src.parent.iterdir() if p != src and p.stem == src.stem and p.suffix.lower() in PHOTO_EXT] \
+        if src.parent.exists() else []
+    return f"{src.stem}_{src.suffix.lstrip('.').lower()}.jpg" if twins else f"{src.stem}.jpg"
+
+
 def process_photo(src: Path, dst_dir: Path) -> dict:
     """EXIF yönü uygulanır, HEIC ise JPEG'e çevrilir (pillow-heif) (5.4)."""
     from PIL import Image, ImageOps
@@ -141,7 +152,7 @@ def process_photo(src: Path, dst_dir: Path) -> dict:
     with Image.open(src) as im:
         exif_orient = (im.getexif() or {}).get(0x0112)
         im2 = ImageOps.exif_transpose(im).convert("RGB")
-        dst = dst_dir / (src.stem + ".jpg")
+        dst = dst_dir / photo_output_name(src)
         im2.save(dst, "JPEG", quality=95)
         return {"source": str(src), "sha256": sha256_file(src), "output": str(dst), "output_sha256": sha256_file(dst),
                 "width": im2.width, "height": im2.height, "exif_orientation": exif_orient, "heic": src.suffix.lower() in (".heic", ".heif")}

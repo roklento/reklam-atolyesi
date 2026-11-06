@@ -49,12 +49,29 @@ def safe_box(plan: dict) -> dict:
 
 def black_freeze(video: str, black_min: float = 0.12, freeze_min: float = 0.5) -> dict:
     r = ffmpeg(["-i", video, "-vf", f"blackdetect=d={black_min}:pix_th=0.06,freezedetect=n=0.002:d={freeze_min}", "-an", "-f", "null", "-"], check=False)
+    if r.returncode != 0 or not Path(video).is_file():
+        # 2.10.5: FFmpeg dosyayı okuyamadıysa sonuç "temiz" değil "ölçülemedi"dir (önceden olmayan dosya için ok=true dönüyordu)
+        tail = (r.stderr or "").strip().splitlines()[-1:] or ["dosya yok"]
+        return {"black_segments": [], "freeze_segments": [], "ok": False, "measured": False, "error": tail[0][:300]}
     blacks = [{"start": float(a), "end": float(b), "dur": float(c)} for a, b, c in
               re.findall(r"black_start:([\d.]+) black_end:([\d.]+) black_duration:([\d.]+)", r.stderr)]
-    fstarts = [float(x) for x in re.findall(r"freeze_start: ([\d.]+)", r.stderr)]
-    fdurs = [float(x) for x in re.findall(r"freeze_duration: ([\d.]+)", r.stderr)]
-    freezes = [{"start": s, "dur": d} for s, d in zip(fstarts, fdurs)]
-    return {"black_segments": blacks, "freeze_segments": freezes, "ok": not blacks and not freezes}
+    # freeze_start / freeze_duration sırayla eşleştirilir; dosya sonuna kadar süren donmanın bitiş satırı gelmez (2.10.5: önceden
+    # bu donma düşüyordu): süresi dosya süresinden hesaplanır.
+    events = re.findall(r"freeze_(start|duration): ([\d.]+)", r.stderr)
+    freezes, open_start = [], None
+    for kind, val in events:
+        if kind == "start":
+            open_start = float(val)
+        elif open_start is not None:
+            freezes.append({"start": open_start, "dur": float(val)})
+            open_start = None
+    if open_start is not None:
+        m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", r.stderr)
+        total = int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3)) if m else None
+        dur = round(total - open_start, 3) if total is not None else None
+        if dur is None or dur >= freeze_min:
+            freezes.append({"start": open_start, "dur": dur, "until_end": True})
+    return {"black_segments": blacks, "freeze_segments": freezes, "ok": not blacks and not freezes, "measured": True}
 
 
 def safe_zone(plan: dict, style: dict | None = None, captions: list | None = None, layout: dict | None = None) -> dict:
