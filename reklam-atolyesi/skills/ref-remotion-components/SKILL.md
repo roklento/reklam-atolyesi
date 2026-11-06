@@ -14,7 +14,7 @@ güncellemesi eski projeyi değiştirmez). Eski projeyi güncel şablona getirme
 (2.0.0; yalnızca yayımlanmış bir şablon sürümüyle bayt bayt aynı dosyalar güncellenir, elle değiştirilenler `kept_customized`
 listesinde kalır; `templates/remotion/template_history.json`). Plan projenin çizemediği bir özelliği kullanıyorsa render başlamadan
 durur (gri "bilinmeyen bileşen" paneli finalde görünmez). Sahne önbelleği anahtarı projenin kendi kod dosyalarını içerir. Bağımlılıklar `DD/.node/node_modules`
-(Remotion 4.0.532, zod 4.5.4, three 0.178.0, react 19.1.0).
+(Remotion 4.0.540, zod 4.6.7, three 0.178.0, react 19.1.0).
 - `src/Root.tsx`: `Master-916` (1080×1920), `Master-45` (1080×1350), `Master-11` (1080×1080; isteğe bağlı), `Gallery`. Remotion
   kimliklerinde alt çizgi geçersizdir. Sabit kareler aynı kompozisyondan `--still <kare>`.
 - `src/plan.ts` (zod; yetkili doğrulama Python `edit_plan_validate`), `src/style.ts` (planın hash'le bağlandığı stil kopyası),
@@ -41,7 +41,7 @@ Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` ·
   `offsetS`, `preset`: `plain` · `keyword` (parçada en fazla bir vurgu sözcüğü, vurgu rengi + hafif büyütme) · `keyword_upper` (aynı +
   Türkçe büyük harf, i → İ) · `karaoke` (o an söylenen sözcük vurgulu), `accent` (stil `captions.accent`, yoksa `palette.accent`; görece parlaklığı < 0,3 olan koyu renk okunur sarıya düşer); metin
   VO ile birebir; planda `captions.preset`; 1.5.0) · **`TextMark`** (1.8.0; `text` içinde `mark` sözcüğü/öbeği el çizimi gibi
-  işaretlenir: `mode` circle|underline|highlight|box, `markColor`, `seed`; `@remotion/rough-notation` 4.0.532, MIT; eşleşme Türkçe katlamalı
+  işaretlenir: `mode` circle|underline|highlight|box, `markColor`, `seed`; `@remotion/rough-notation` 4.0.540, MIT; eşleşme Türkçe katlamalı
   — "İYİ" ile "iyi"; bulunamazsa kırmızı VURGU BULUNAMADI; efekt bütçesi 15 sn'de en fazla 2).
 - **Geçiş (bileşen olarak test):** `Crossfade`, `DipToColor`, `LightLeak`, `WhipPan` (hareket bulanıklıklı), `MaskReveal`, `MatchZoom`,
   `SlideBlur`, `FilmBurn` (`type`, `color`, `durationFrames`, `seed`).

@@ -502,7 +502,7 @@ Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı 
   kurulumda kullanıcı kapatır (`claude plugin disable`, geri alınabilir) ya da kimlik bazında sapma olarak bırakır (`--plugins`).
   Kurulumdan sonra eklenen böyle bir plugin için navigator tek satır uyarır.
 - Yazı bileşenleri (TextReveal, KineticWords, SoftType, LowerThird, PriceTag etiketi, CTAPulse, EndCard, BehindSubjectText) satırlarını
-  gerçek fontla ölçer (`@remotion/layout-utils` 4.0.532, MIT); sığana dek `minFontSize`'a küçülür, sığmazsa kırmızı **YAZI SIĞMIYOR**.
+  gerçek fontla ölçer (`@remotion/layout-utils` 4.0.540, MIT); sığana dek `minFontSize`'a küçülür, sığmazsa kırmızı **YAZI SIĞMIYOR**.
   Ölçüm `<video>.layout.json`'a yazılır; `checks.py safe --layout` (ve `tech`) blok boyunu ölçümden alır, taşmayı sorun sayar. Tahmin
   yolu da sözcük sözcük kırmaya geçti.
 - Referans videoda kesimler PySceneDetect 0.7.2 (BSD-3) AdaptiveDetector ile (hızlı kamera hareketini kesim saymaz); kurulu değilse

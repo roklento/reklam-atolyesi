@@ -65,7 +65,7 @@ OAuth). `elevenlabs-mcp/mcp.json` yalnızca resmi uzak MCP adresinin kaynağı.
 | multimedia (video/ses/görsel) | `<OffthreadVideo>`, sahne ara dosyaları | https://www.remotion.dev/docs/offthreadvideo , https://www.remotion.dev/docs/audio |
 | captions | `CaptionTrack`, `words_align.py` | https://www.remotion.dev/docs/captions |
 | studio (önizleme) | öz denetim kontak sayfaları (studio kullanılmaz) | https://www.remotion.dev/docs/studio |
-| docs / upgrade | sürüm pinleri (4.0.532) | https://www.remotion.dev/docs/ , https://www.remotion.dev/docs/upgrading |
+| docs / upgrade | sürüm pinleri (4.0.540) | https://www.remotion.dev/docs/ , https://www.remotion.dev/docs/upgrading |
 Lisans: https://www.remotion.dev/docs/license/faq (`ref-legal-tr-meta`). Repoya lisans eklenirse vendoring'e alınabilir (12.10).
 Makinede `~/.claude/skills` altında genel `remotion-*` skill'leri varsa (kullanıcı başka işler için kurmuş olabilir) plugin işlerinde
 **okunmaz ve uygulanmaz**; Remotion için yalnızca bu tablo ve `ref-remotion-components` geçerlidir. Kurulumda kullanıcı bu skill'lere
