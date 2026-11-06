@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: ffmpeg
-        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ffmpeg  # 2.10.5: önerilen paketler (ses tanıma, sürücüler) indirme süresini 30 dakikayı aşırıyordu
       - name: Bağımlılıklar
         run: uv sync --frozen
       - name: Testler (senaryo matrisi dahil)
