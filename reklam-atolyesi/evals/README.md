@@ -65,6 +65,22 @@ Neden: açık vakaları gördük ve plugin'i onlara göre düzelttik. Bir düzel
 bakmadığımız vakalar gösterir. Kapalı vakaların her biri şimdiye kadar hiçbir açık vakada sınanmamış bir kullanıcıyı ya da kuralı
 içerir (U8 toplam sınırı yetmeyen kullanıcı, K04 yayındaki tur, K12 kanıt eşiği).
 
+**Kapalı vaka doğrulayıcısı (2.10.15, ücretsiz).** Kapalı vakaları okumadan biçimlerini denetlemek için:
+
+```
+python evals/kapali_dogrula.py                    # evals/kapali/ kopyası
+python evals/kapali_dogrula.py --dizin <klasör>   # başka bir klasör (ör. proje dosyalarından indirilen kapali-vakalar/)
+```
+
+Betik vaka metnini hiçbir zaman yazdırmaz; vaka adlarını da "vaka 1, vaka 2" diye gizler (`--adlarla` yalnızca vakaları yazanın
+bilgisayarında kullanılır). Sonuç "GEÇERLİ" ya da "vaka 2 · prompt.md: "Durum:" ile başlayan satır yok" gibi dosya ve alan adlarıdır.
+Çıkış kodu 0 geçerli, 1 sorun var, 2 klasör ya da kayıt okunamadı. Denetlenenler: `kapali-matris.json` kaydı (ürün ve kullanıcı
+matriste, rubrik kodları rubrikte, vaka başına 2–3 ölçüt, açık vakalarla ad ve hücre çakışması yok, kapalı vakalar arasında aynı hücre
+yok, en az 3 vaka ve en az biri açık vakalarda olmayan bir kullanıcı), klasörlerin kayıtla aynı olması, `prompt.md` ön bilgisi
+(yalnızca `max_turns` ve okuma araçları) ile Senaryo, Durum ve Kullanıcı satırları, ölçüt dosyaları (`type: llm`, `weight`, R kodu,
+"Geçer:" ve "Kalır:"), plugin metninden ve açık vakalardan 6 kelimelik kopya, vaka adının plugin metninde geçmesi ve `kor_kiyas.py`'nin
+vakaları bulup hakem metnini kurabilmesi. `kor_kiyas.py kabul` doğrulayıcıdan geçmeyen kapalı vakalarla kabul kaydı yazmaz.
+
 - Kapalı bir vaka yeni sürümde gerilerse sürüm durur ve `kor_kiyas.py puan` "ezbere kayma şüphesi" der. Yapılacak iş vakayı açıp ona
   göre düzeltmek **değildir**: önce bu sürümün düzeltmeleri genel kural olarak yeniden yazılır.
 - Bir kapalı vaka bir kez açılıp ona göre düzeltme yapılırsa `eval_cases`'e (ve `vakalar/`'a) taşınır, yerine yeni bir kapalı vaka
@@ -223,4 +239,5 @@ gelmez; bu üçüncü liste eval ya da sahayla henüz ölçülmemiş olanları g
    `tests/test_v2100_overfit.py` aynısını kapalı vakalar için yapar.
 5. Kapalı vaka eklenecekse `kapali-vakalar/<ad>/` altına ve o klasörün `kapali-matris.json` dosyasında `kapali_cases`'e yazılır
    (2.10.14). Kapalı vakayı, o sürümde düzeltme yazmayan bir
-   oturum yazar; yazıldıktan sonra düzeltme oturumlarında açılmaz.
+   oturum yazar; yazıldıktan sonra düzeltme oturumlarında açılmaz. Yazan, `python evals/kapali_dogrula.py` "GEÇERLİ" demeden vakaları
+   teslim etmez (2.10.15).

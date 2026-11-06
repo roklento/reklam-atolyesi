@@ -563,7 +563,16 @@ def kabul_kaydi(json_yolu: str, karar: str, model: str, sure_dk: float | None, n
     kapali = closed_cases()
     if not kapali:
         raise SystemExit("kapalı vakalar bulunamadı: proje dosyalarındaki kapali-vakalar/ klasörünü evals/kapali/ altına kopyala")
-    ort = {v: sum(x) / len(x) for v, x in s["puanlar"].items() if x}
+    if KAPALI.is_dir():  # 2.10.15: biçimi bozuk kapalı vakayla kabul yazılmaz (içerik yazdırılmaz)
+        import kapali_dogrula
+        try:
+            ksorun = kapali_dogrula.denetle(KAPALI)[0]
+        except FileNotFoundError as e:
+            ksorun = [str(e)]
+        if ksorun:
+            raise SystemExit(f"kapalı vakalar doğrulayıcıdan geçmedi ({len(ksorun)} sorun); "
+                             "`python evals/kapali_dogrula.py` ile ayrıntıya bakın")
+    ort ={v: sum(x) / len(x) for v, x in s["puanlar"].items() if x}
     kap = [ort[v] for v in sorted(kapali) if v in ort]
     return {"plugin_surumu": k.get("plugin_surumu"), "commit": k.get("commit"), "claudeVersion": k.get("claudeVersion"),
             "model": model, "tarih": __import__("datetime").date.today().isoformat(), "kosu": k.get("kosu"),
