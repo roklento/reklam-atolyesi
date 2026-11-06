@@ -190,6 +190,18 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.15 (2026-11-06): kapalı vaka doğrulayıcısı
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `evals/kapali_dogrula.py`, `evals/kor_kiyas.py` (`kabul`), `scripts/setup/manifest.py` (evals özeti `kapali/` saymaz) | admin aracı | kapalı vakalar | Revize: eski üç kapalı vaka depo geçmişinde açık kaldı; yenilerini bu projede düzeltme yazmayan biri yazacak, yönetici içeriği görmeden biçimi denetlemeli | Biçim ve çalışırlık içerik yazdırılmadan denetlenir; bozuk setle kabul kaydı yazılmaz | yok | yardım etti (test) |
+
+**Sahada:** henüz yok.
+
+**Ders:** ders yok.
+
 ## 2.10.14 (2026-11-06): bakım ve yayın araçları
 
 **Değişiklikler**

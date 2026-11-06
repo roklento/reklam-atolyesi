@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.14
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.15
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,16 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.15** — kapalı vaka doğrulayıcısı (yalnız admin araçları)
+- Migration yok, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez); müşterinin gördüğü bir değişiklik yok.
+- **`evals/kapali_dogrula.py`:** yeni kapalı vakaların biçimini ve yayın testinde çalışıp çalışmayacağını denetler, vaka metnini
+  yazdırmaz. Sonuç ya "geçerli" ya da "vaka 2 · prompt.md: "Durum:" ile başlayan satır yok" gibi dosya ve alan adıdır; vaka adları
+  da gizlenir (`--adlarla` yalnızca yazanın bilgisayarında). Kayıt, klasörler, ön bilgi, Senaryo/Durum/Kullanıcı satırları, ölçüt
+  dosyaları (Geçer ve Kalır), açık vakalarla hücre çakışması, plugin metninden ve açık vakalardan 6 kelimelik kopya denetlenir.
+- **`kor_kiyas.py kabul`** doğrulayıcıdan geçmeyen kapalı vakalarla kabul kaydı yazmaz.
+- Manifestin `evals` özeti yerel `evals/kapali/` kopyasını saymaz; kopya yerindeyken kurulum kontrolü manifesti eski göstermez.
+- `tests/test_v21015_kapali_dogrula.py`.
+
 **2.10.14** — bakım ve yayın araçları (2.10.10 bağımsız denetimi B9, B13, B14, B15, B16, B17, B18, B19)
 - Migration yok, yeni bağımlılık yok. **Müşteri paketi değişti** (`guncelle.ps1`): yeni ZIP gönderilmeli.
 - **Güvenlik taraması dürüst sayar:** `bagimlilik_denetimi.py` npm'in hata yanıtını (ör. kayıt sunucusu 503) ya da okunamayan raporu
