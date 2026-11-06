@@ -47,7 +47,19 @@ claude plugin eval ./reklam-atolyesi --trust-plugin --runs 3 --threshold 0.8 --a
 ## Kapalı vakalar (2.10.0)
 
 `kapali/` altındaki vakalar **düzeltme yazarken açılmaz**. Yalnızca yayından önce, Katman B'nin aynı komutuyla diğer vakalarla
-birlikte çalışırlar (`claude plugin eval` `evals/` altındaki her vakayı bulur). Matristeki kayıtları `kapali_cases` bölümündedir.
+birlikte çalışırlar (`claude plugin eval` `evals/` altındaki her vakayı bulur).
+
+**2.10.14'ten beri kapalı vakalar plugin deposunda değildir.** Plugin klasörü her müşteriye kopyalandığı için içindeki vaka da müşteriye
+gidiyordu; bu, vakaların bağımsızlığını bozuyordu. Kapalı vakalar artık proje dosyalarındaki **`kapali-vakalar/` klasöründe** durur ve müşteriye verilmez:
+
+- Yönetici yayından önce o klasörü `reklam-atolyesi/evals/kapali/` altına kopyalar. Bu klasör `.gitignore`'dadır; plugin deposuna
+  girmez. Vakaların kaydı (`{ad: {product, user, rubric}}`) o klasördeki `kapali-matris.json` dosyasındadır (`kapali_cases`).
+- Proje dosyalarını bu projedeki bütün oturumlar görebilir; koruma yalnız CLAUDE.md'deki "açma" kuralıdır.
+- Kopya yoksa `kor_kiyas.py puan` ve `kor_kiyas.py kabul` durur ("kapalı vakalar bulunamadı"); yayın onayı yalnız açık vakalarla verilmez.
+- CI'da kopya yoktur: ezber denetimi orada yalnız açık vakalara bakar; kapalı vakalarla ezber denetimi yayından önce yöneticinin
+  bilgisayarında, kopya yerindeyken çalıştırılır.
+- 2.10.0'da yazılan üç kapalı vaka depo geçmişinde açık durduğu için artık gizli sayılmaz; proje dosyalarına taşındılar ama yerlerine yeni
+  kapalı vakalar yazılır.
 
 Neden: açık vakaları gördük ve plugin'i onlara göre düzelttik. Bir düzeltmenin gerçekten genel olup olmadığını, yalnızca hiç
 bakmadığımız vakalar gösterir. Kapalı vakaların her biri şimdiye kadar hiçbir açık vakada sınanmamış bir kullanıcıyı ya da kuralı
@@ -137,6 +149,20 @@ okuyacak şekilde daraltılır. Bu yapılana kadar "sürüm eval ile doğruland�
 **Yayın kararı** hepsinin birlikte geçmesidir: `claude plugin eval` çıkış kodu 0, `puan` çıkış kodu 0, kör karşılaştırma
 `sonuc` çıkış kodu 0. CI model değerlendirmesini çalıştırmaz; yeşil CI bunun yerine geçmez.
 
+## Kabul kaydı (2.10.14, her müşteri sürümü için)
+
+CI model değerlendirmesini bilerek çalıştırmaz (ücretli). Bu yüzden "bu sürüm gerçek modelle denendi" bilgisi tek bir kayıtta durur:
+`evals/kabul/<sürüm>.json`. Kayıt, Katman B koşusundan ve deney kaydından (`kor_kiyas.py kayit`) sonra yazılır:
+
+```
+python evals/kor_kiyas.py kabul --json /tmp/yeni.json --karar kabul --model <model adı> --sure-dk 95
+```
+
+Alanlar: sürüm, commit, Claude sürümü, model, tarih, koşu sayısı, vaka parmak izi, açık vakaların ortalama puanı, kapalı vakaların
+yalnızca sayısı / en düşük / ortalama puanı (adları depoya yazılmaz), eşik altı vaka sayısı, toplam harcama, süre ve karar.
+Deney kaydı yoksa, sonuç dosyası sonradan değiştiyse, bir vaka eksikse ya da kapalı vaka kopyası yoksa kayıt yazılmaz. Eşik altında
+vaka varken karar "kabul" olamaz. Kayıt commit'lenir; `tests/test_v21014_bakim.py` mevcut kayıtların biçimini denetler.
+
 ## Önceki sürümle kör karşılaştırma (2.8.0, yayın öncesi)
 
 Eşiği geçmek yeni sürümün eskisinden iyi olduğunu göstermez. Yayından önce aynı vakalarda iki sürümün cevapları, hangisinin hangi
@@ -195,5 +221,6 @@ gelmez; bu üçüncü liste eval ya da sahayla henüz ölçülmemiş olanları g
    `weight`, ölçüt kodu ve geçer/kalır tarifi) ekleyin.
 4. `tests/test_v250_scenarios.py::test_matrix_and_eval_cases_are_consistent` matris, rubrik ve dosyaların birbirini tuttuğunu denetler;
    `tests/test_v2100_overfit.py` aynısını kapalı vakalar için yapar.
-5. Kapalı vaka eklenecekse `kapali/<ad>/` altına ve matriste `kapali_cases`'e yazılır. Kapalı vakayı, o sürümde düzeltme yazmayan bir
+5. Kapalı vaka eklenecekse `kapali-vakalar/<ad>/` altına ve o klasörün `kapali-matris.json` dosyasında `kapali_cases`'e yazılır
+   (2.10.14). Kapalı vakayı, o sürümde düzeltme yazmayan bir
    oturum yazar; yazıldıktan sonra düzeltme oturumlarında açılmaz.

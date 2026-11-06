@@ -81,6 +81,7 @@ $Gunluk = Join-Path $env:TEMP ('reklam-atolyesi-guncelleme-{0}.log' -f (Get-Date
 $dd = $null
 $code = 1
 $updateLock = $null
+$yedek = $null
 try {
     Start-Transcript -Path $Gunluk | Out-Null
     Write-Host 'Reklam Atölyesi güncelleniyor.' -ForegroundColor Cyan
@@ -104,7 +105,12 @@ try {
     $helper = Join-Path $PSScriptRoot 'guncelle.py'
     $oldVersion = [string]$kurulu.version
     Write-Host "Şu an kurulu sürüm: $oldVersion"
+    $yedekBasi = (Get-Date).AddSeconds(-2)
     Invoke-Adim $py @($helper, 'backup', '--data-dir', $dd)
+    # 2.10.14: hata mesajı "yedeklendi" sözünü yalnız yedek gerçekten alındıysa ve yeriyle birlikte söyler
+    $yedek = Get-ChildItem -LiteralPath (Join-Path $dd 'backups') -Filter 'guncelleme-*.sqlite' -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.LastWriteTime -ge $yedekBasi -and $_.Length -gt 0 } | Sort-Object LastWriteTime | Select-Object -Last 1
+    if (-not $yedek) { throw 'Verilerin yedeği alınamadı; güncellemeye başlanmadı.' }
     $pythonStamp = Join-Path $dd '.guncelleme-python-sha256'
     if (-not (Test-Path -LiteralPath $pythonStamp)) {
         [IO.File]::WriteAllText($pythonStamp, (Get-PythonKilit $kurulu.installPath))
@@ -149,7 +155,12 @@ try {
 } catch {
     Write-Host "GÜNCELLEME TAMAMLANAMADI. Sebep: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host 'Bu ekrandaki mesajı ve aşağıda yeri yazan kayıt dosyasını geliştiriciye gönderin.' -ForegroundColor Yellow
-    Write-Host 'Güncelleme yarıda kalmış olabilir. Sorun çözülünce guncelle.cmd dosyasını yeniden çalıştırabilirsiniz; verileriniz yedeklendi.'
+    if ($yedek) {
+        Write-Host 'Güncelleme yarıda kalmış olabilir. Sorun çözülünce guncelle.cmd dosyasını yeniden çalıştırabilirsiniz.'
+        Write-Host "Verilerinizin güncelleme öncesi yedeği şurada: $($yedek.FullName)"
+    } else {
+        Write-Host 'Güncellemeye başlanmadı ve verilerinizin yedeği alınamadı. Verileriniz değiştirilmedi. Sorun çözülünce guncelle.cmd dosyasını yeniden çalıştırabilirsiniz.'
+    }
 } finally {
     if ($updateLock) { $updateLock.Dispose() }
     Write-Host "Kayıt dosyası: $Gunluk"

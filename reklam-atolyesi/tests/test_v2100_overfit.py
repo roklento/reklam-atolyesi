@@ -14,6 +14,9 @@ import ezber_denetimi as EZ  # noqa: E402
 import kor_kiyas as KK  # noqa: E402
 
 MATRIX = json.loads((ROOT / "evals" / "senaryo-matrisi.json").read_text(encoding="utf-8"))
+KAPALI = ROOT / "evals" / "kapali"  # 2.10.14: proje dosyalarından yerel kopya; CI'da ve müşteri kopyasında yoktur
+CLOSED = KK.kapali_matrix()
+needs_closed = __import__("pytest").mark.skipif(not CLOSED, reason="kapalı vakalar bu kopyada yok (2.10.14)")
 
 
 # ---------- ezber denetimi ----------
@@ -91,17 +94,27 @@ def test_known_quoting_cases_are_marked():
     hits = EZ.find(EZ.all_lines(), EZ.load_cases())
     assert {h["vaka"] for h in hits} <= {"hata-sonrasi-defter-sorusu", "s02-strateji-yeni-baslayan"}
     assert all(h["alinti"] for h in hits)
-    for key in ("eval_cases", "kapali_cases"):
-        for name, case in MATRIX[key].items():
+    for cases in (MATRIX["eval_cases"], CLOSED):
+        for name, case in cases.items():
             assert "alinti" not in case or isinstance(case["alinti"], list), name
 
 
 # ---------- kapalı vakalar ----------
 
+def test_closed_cases_are_not_shipped_with_plugin():
+    """2.10.14 (B17): kapalı vakalar plugin klasörüyle müşteriye gitmez; depoda izlenmez, kaydı proje dosyalarındadır."""
+    tracked = subprocess.run(["git", "ls-files", "evals/kapali"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    assert tracked == ""
+    assert "kapali_cases" not in MATRIX
+    gi = (ROOT.parent / ".gitignore").read_text(encoding="utf-8")
+    assert "reklam-atolyesi/evals/kapali/" in gi
+
+
+@needs_closed
 def test_closed_cases_are_consistent_and_cover_new_ground():
     rubric = (ROOT / "evals" / "rubrik.md").read_text(encoding="utf-8")
     codes = set(re.findall(r"^## (R\d+)\b", rubric, re.M))
-    closed = MATRIX["kapali_cases"]
+    closed = CLOSED
     assert len(closed) >= 3
     open_cells = {(c["product"], c["user"]) for c in MATRIX["eval_cases"].values()}
     open_users = {c["user"] for c in MATRIX["eval_cases"].values()}
@@ -119,7 +132,7 @@ def test_closed_cases_are_consistent_and_cover_new_ground():
             assert "type: llm" in head and "weight:" in head, g
         used = {m for g in graders for m in re.findall(r"\bR\d+\b", g.read_text(encoding="utf-8"))}
         assert set(case["rubric"]) <= used, name
-    on_disk = {p.name for p in (ROOT / "evals" / "kapali").iterdir() if p.is_dir()}
+    on_disk = {p.name for p in KAPALI.iterdir() if p.is_dir() and not p.name.startswith(".")}
     assert on_disk == set(closed)
     # En az bir kapalı vaka hiçbir açık vakada olmayan bir kullanıcıyı sınar.
     assert {c["user"] for c in closed.values()} - open_users
@@ -130,8 +143,9 @@ def test_defter_oku_ignores_closed_cases():
     assert 'matrix.get("eval_cases")' in src and 'get("kapali_cases")' not in src
 
 
+@needs_closed
 def test_kor_kiyas_finds_closed_case_text():
-    name = next(iter(MATRIX["kapali_cases"]))
+    name = next(iter(CLOSED))
     assert KK.case_dir(name) == ROOT / "evals" / "kapali" / name
     assert KK.case_dir("kapali/" + name) == ROOT / "evals" / "kapali" / name
     assert "Durum:" in KK.judge_prompt(name, "a", "b")
@@ -156,8 +170,9 @@ def _eval_json(path: Path, scores: dict[str, list[float]], cost_per_run: float |
     return str(path)
 
 
-def test_noise_band_separates_real_change_from_noise(tmp_path):
-    closed = next(iter(MATRIX["kapali_cases"]))
+def test_noise_band_separates_real_change_from_noise(tmp_path, monkeypatch):
+    closed = "kapali-ornek"
+    monkeypatch.setattr(KK, "closed_cases", lambda: {closed})
     old = _eval_json(tmp_path / "e.json", {"a": [0.5, 1.0, 1.0], "b": [1.0, 1.0, 1.0], closed: [1.0, 1.0, 1.0]}, 0.10, "runs")
     new = _eval_json(tmp_path / "y.json", {"a": [1.0, 1.0, 1.0], "b": [1.0, 1.0, 0.5], closed: [0.5, 0.5, 1.0]}, 0.10, "runs")
     r = KK.compare_scores(KK.load_scores(old), KK.load_scores(new), KK.closed_cases())

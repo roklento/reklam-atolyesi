@@ -21,7 +21,7 @@ from admem.util import trigram_similarity  # noqa: E402
 
 def ro(data_dir: str) -> sqlite3.Connection:
     p = Path(data_dir) / "db" / "ad-memory.sqlite"
-    con = sqlite3.connect(f"file:{p.as_posix()}?mode=ro", uri=True)
+    con = sqlite3.connect(p.resolve().as_uri() + "?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     return con
 

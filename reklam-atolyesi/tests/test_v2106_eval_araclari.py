@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "evals"))
 import ezber_denetimi as EZ  # noqa: E402
 import kor_kiyas as KK  # noqa: E402
 from test_v2100_overfit import _fake_cases  # noqa: E402
-from test_v2101_eval_gate import _doc, _kayit, _pair, _puan  # noqa: E402
+from test_v2101_eval_gate import _doc, _kayit, _pair, _puan, _sentetik_kapali  # noqa: E402,F401
 
 
 # ---------- deney kaydı ham sonuca bağlı ----------

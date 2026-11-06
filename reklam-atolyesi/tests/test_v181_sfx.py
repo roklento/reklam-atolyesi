@@ -9,10 +9,10 @@ def _rel(query, **kw):
 
 
 def test_missing_turkish_tags():
-    assert "ai-product-video/assets/audio/sfx/crowd/applause-rhythmic-loop.mp3" in _rel("alkış")
-    assert _rel("kalp") == ["ai-product-video/assets/audio/sfx/crowd/heartbeat-single.mp3"]
-    # önceden cam kırılma sesleri önce geliyordu; 2.6.0'dan beri Earshot shimmer ailesi Mixkit "light"tan önce gelir
-    assert _rel("ışıltı") and all("/sfx/light/" in r or "shimmer/" in r for r in _rel("ışıltı"))
+    assert SL.tr_tags("alkis") == ["applause", "clap"] and SL.tr_tags("kalp") == ["heart", "heartbeat"]
+    # 2.10.14: Mixkit arşivi paketten çıktı; alkış ve kalp atışı paketteki bankalarda yok (profil kütüphanesi ya da ElevenLabs)
+    assert not any("ai-product-video" in r for r in _rel("alkış") + _rel("kalp"))
+    assert _rel("ışıltı") and all("shimmer/" in r for r in _rel("ışıltı"))
 
 
 def test_suffixed_query_uses_root():
@@ -22,8 +22,8 @@ def test_suffixed_query_uses_root():
 
 
 def test_category_breaks_ties():
-    # 2.6.0: Earshot whoosh aileleri (dağıtılabilir) Mixkit transition'dan önce; ikisi de "geçiş" ailesidir
-    assert all("whoosh" in r.split("/")[-2] or "/sfx/transition/" in r for r in _rel("geçiş", limit=5))
+    # 2.6.0: Earshot whoosh aileleri "geçiş" ailesidir
+    assert all("whoosh" in r.split("/")[-2] for r in _rel("geçiş", limit=5))
     assert all("interface-sounds/click" in r for r in _rel("tık", limit=3))  # CC0 önceliği korunur
 
 
@@ -37,7 +37,9 @@ def test_profile_scored_relative(tmp_path):
 
 
 def test_unsourced_archive_files_removed():
-    files = {p.name for p in (SL.VENDOR_AUDIO / "sfx").rglob("*.mp3")}
-    assert files == {p.name for p in SL.vendor_allowed()}
-    for gone in ("sparkle.mp3", "riser-cine.mp3", "keyboard.mp3", "whoosh-big.mp3", "pop.mp3"):
-        assert gone not in files
+    # 2.10.14 (B18): Mixkit arşivi bütünüyle çıkarıldı; paketteki ses dosyaları yalnız CC0 ve Earshot bankalarındadır
+    from conftest import ROOT
+    assert not (ROOT / "vendor-skills" / "ai-product-video" / "assets").exists()
+    shipped = [p for p in (ROOT / "vendor-skills").rglob("*") if p.suffix.lower() in SL.AUDIO_EXT]
+    assert shipped and all(p.relative_to(ROOT / "vendor-skills").parts[0] in ("sfx-cc0", "sfx-earshot") for p in shipped)
+    assert not any("mixkit" in r["source"].lower() for q in ("geçiş", "ışıltı", "tık", "alkış") for r in SL.search(q, limit=50)["results"])

@@ -183,7 +183,7 @@ def ro_db(data_dir: Path) -> sqlite3.Connection | None:
     p = db_path(data_dir)
     if not p.exists():
         return None
-    con = sqlite3.connect(f"file:{p.as_posix()}?mode=ro", uri=True, timeout=3)
+    con = sqlite3.connect(p.resolve().as_uri() + "?mode=ro", uri=True, timeout=3)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA busy_timeout=3000")
     return con

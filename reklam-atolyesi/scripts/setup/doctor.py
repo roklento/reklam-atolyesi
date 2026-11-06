@@ -542,7 +542,7 @@ def load_install_deviations(data_dir: Path) -> list[dict]:
     if not db.exists():
         return []
     try:
-        con = sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True)
+        con = sqlite3.connect(db.resolve().as_uri() + "?mode=ro", uri=True)
         row = con.execute("SELECT value FROM settings WHERE key='install_deviations_json'").fetchone()
         con.close()
         return json.loads(row[0]) if row and row[0] else []

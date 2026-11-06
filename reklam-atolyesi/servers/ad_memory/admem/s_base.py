@@ -6,6 +6,7 @@ import datetime as dt
 import json
 import os
 import re
+import shutil
 import sqlite3
 from pathlib import Path
 from typing import Any, Iterator
@@ -177,8 +178,18 @@ class BaseStore:
                           (s, name.strip(), now_iso(), 1 if synthetic else 0))
             pid = cur.lastrowid
         pdir = self.data_dir / "profiles" / s
-        for sub in ("brand/docs", "memory", "products", "reports", "competitors/user", "competitors/cache", "campaigns", "styles"):
-            (pdir / sub).mkdir(parents=True, exist_ok=True)
+        existed = pdir.exists()
+        try:
+            for sub in ("brand/docs", "memory", "products", "reports", "competitors/user", "competitors/cache", "campaigns", "styles"):
+                (pdir / sub).mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            # 2.10.14: klasör açılamazsa profil satırı geri alınır; tekrar deneme aynı adla açılır ("-2" kopyası oluşmaz)
+            with self.tx():
+                self.ex("DELETE FROM profiles WHERE id=?", (pid,))
+            if not existed:
+                shutil.rmtree(pdir, ignore_errors=True)
+            raise AdMemoryError(f"profil klasörü açılamadı, profil kaydedilmedi: {pdir} ({type(e).__name__}: {e}). Klasör iznini ya da "
+                                "disk alanını düzeltip yeniden dene.") from e
         return self.q1("SELECT * FROM profiles WHERE id=?", (pid,))
 
     def profile_list(self, include_archived: bool = False, include_synthetic: bool = False) -> dict:

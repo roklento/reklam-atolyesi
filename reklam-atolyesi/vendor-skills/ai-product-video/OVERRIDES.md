@@ -6,7 +6,6 @@ Bu dosya upstream dosyalardan **önce** okunur (spec 5.22). Upstream içerik hi�
 - `references/shots/` hareket tarifi kartları (camera, transition, typography, rhythm, opening, outro, effects…): kamera hareketi ve geçiş **dili**; S04'te amatör çekimci kartlarına (5.3), S08/S10'da hareket tariflerine çevrilir. Kartlardaki "参考实现" demo kaynakları bu kopyada **yoktur** (yalnızca kart metni alındı); parametre tabloları uyarlanır, kod kopyalanmaz.
 - `references/sound-design.md` ses tasarımı yöntemi (riser → impact → sparkle cümlesi, kategori yolu) ve `references/music-beat-sync.md` vuruş kilidi yöntemi: S09/S11 (5.9, 5.13).
 - `references/aesthetic-rules.md` ve `references/final-review.md`: öz denetim (5.15) ve bağımsız QC kontrol listesine **ek** ölçüt.
-- `assets/audio/sfx/`: efekt kütüphanesi (5.9) — **yalnızca** aşağıdaki lisans koşuluyla.
 
 ## Devre dışı (uygulanmaz)
 - **dlazy CLI araç zincirinin tamamı** (`## dlazy 工具链`, `dlazy search_audio`, `dlazy fun-asr`, TTS/görsel/B-roll üretimi, `npm install -g @dlazy/cli`, `dlazy login`): ücretli dış servis; plugin'in maliyet korumasına bağlı değildir. Müzik/efekt/seslendirme/transkripsiyon/görsel yalnızca ElevenLabs MCP ile ve tahmin → onay → rezervasyon yolundan (9.1).
@@ -15,17 +14,16 @@ Bu dosya upstream dosyalardan **önce** okunur (spec 5.22). Upstream içerik hi�
 - Kartlardaki örnek palet, font ve metinler varsayılan değildir (ilke 12).
 
 ## Ses dosyaları (lisans)
-- `assets/audio/ATTRIBUTION.md`'de **kaynak URL'si kayıtlı** dosyalar (144 dosya; kayıtsız 5 dosya 1.8.1'de silindi) Mixkit Sound Effects Free License kapsamındadır; yalnızca yerel kreatiflerde kullanılır, dosyalar başka yere yeniden dağıtılmaz.
-- Kaynağı doğrulanamayan şu dosyalar 1.8.1'de **depodan silindi** (upstream "商用前须确认" notu). `references/sound-design.md` ve
-  `template/src/aifl/Main.tsx` demosu hâlâ bunları anar (demo üretim hattında kullanılmaz); tarifte geçtiklerinde karşılığı kullanılır:
-  - `sfx/light/sparkle.mp3` → `sfx/light/shimmer-sparkle-sweep.mp3` (ya da `sparkle-touch.mp3`, `sparkle-wand.mp3`)
-  - `sfx/riser/riser-cine.mp3` → `PY PR/scripts/audio/sfx_synth.py --kind riser` ya da CC0 `sfx-cc0/digital-audio/phaserUp*.ogg`
-  - `sfx/text/keyboard.mp3` → `sfx/text/typewriter-hit-soft.mp3` / `typewriter-digital.mp3`
-  - `sfx/transition/whoosh-big.mp3` → `sfx/transition/air-whoosh-powerful.mp3`
-  - `sfx/ui/pop.mp3` → `sfx/ui/ui-message-pop.mp3` / `pop-electric.mp3`
-- "riser → impact → sparkle" cümlesi bu kopyada: sentez riser → `sfx/impact/impact-deep-whoosh.mp3` → `sfx/light/shimmer-sparkle-sweep.mp3`.
-- `ui/` klasöründeki sentetik geri bildirim sesleri tek tek dinlenmeden kullanılmaz (upstream sound-design 3.3); doğrulanmış dinleme aracı yoksa dinleme kullanıcıya bırakılır (5.13).
-- Bu liste `scripts/audio/sfx_library.py` tarafından makinece uygulanır (izinli liste URL kaydından üretilir).
+- 2.10.14: upstream `assets/audio/` (Mixkit efektleri ve kaynak tablosu) bu kopyada **yoktur**. Mixkit lisansı dosyaların başka yere
+  yeniden dağıtılmasına izin vermiyor; plugin ise her müşterinin bilgisayarına kopyalanıyor. Efektler profil kütüphanesinden,
+  `vendor-skills/sfx-cc0/` (Kenney, CC0) ve `vendor-skills/sfx-earshot/` (Earshot, MIT) bankalarından, kodla sentezden
+  (`scripts/audio/sfx_synth.py`) ya da ElevenLabs'ten (fiyat ve onayla) gelir; arama `scripts/audio/sfx_library.py`.
+- `references/` ve `template/src/aifl/Main.tsx` demosu hâlâ `sfx/...mp3` dosyalarını anar; bunlar yöntem örneğidir, dosya olarak
+  kullanılmaz. Tarifte geçen kategori Earshot ailesine çevrilir: `transition/` → `whoosh_fast/`, `whoosh_big/`, `swish/`;
+  `riser/` → `riser/`, `pro_riser/`; `impact/` → `impact/`, `sub_drop/`; `light/` (sparkle) → `shimmer/`, `pro_shimmer/`;
+  `ui/` → `click/`, `pop/`, `notify/`; `text/` → `typing_key/`, `typing_run/`; `camera/` → `shutter/`.
+- "riser → impact → sparkle" cümlesi bu kopyada: Earshot `riser/` (ya da sentez riser) → `impact/` → `shimmer/`.
+- `ui/` türü sentetik geri bildirim sesleri tek tek dinlenmeden kullanılmaz (upstream sound-design 3.3); doğrulanmış dinleme aracı yoksa dinleme kullanıcıya bırakılır (5.13).
 
 ## Çatışmada geçerli olan
 - Determinizm (ilke 7), efekt bütçesi (5.6). BGM'li/BGM'siz iki sürüm zorunlu değildir; teslim 5.16'dadır.

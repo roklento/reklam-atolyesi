@@ -6,9 +6,12 @@ Bu depo `reklam-atolyesi` plugin'idir. Çalışma kuralları ve yayın adımlar�
 ## Düzeltme yazarken iki kural (2.10.0)
 
 1. **`reklam-atolyesi/evals/kapali/` klasörünü açma.** Oradaki vakalar, bir düzeltmenin gördüğümüz vakaların dışında da işe yarayıp
-   yaramadığını gösteren tek ölçüdür. Yalnızca yayından önce `claude plugin eval` ile çalıştırılırlar. Bir kapalı vaka gerilerse
-   onu açıp ona göre düzeltme yapma; bu sürümün düzeltmelerini genel kural olarak yeniden yaz. İstisna: kapalı vakayı yazmak ya da
-   açık gruba taşımak için admin açıkça isterse.
+   yaramadığını gösteren tek ölçüdür. Yalnızca yayından önce `claude plugin eval` ile çalıştırılırlar. 2.10.14'ten beri bu klasör
+   plugin deposunda değildir: kapalı vakalar proje dosyalarındaki `kapali-vakalar/` klasöründe durur (o klasörü de açma), yönetici
+   yayından önce onu `evals/kapali/` altına kopyalar (klasör `.gitignore`'dadır, müşteriye gitmez). Kopya yoksa klasör de yoktur;
+   geçmiş commit'lerden geri getirme.
+   Bir kapalı vaka gerilerse onu açıp ona göre düzeltme yapma; bu sürümün düzeltmelerini genel kural olarak yeniden yaz.
+   İstisna: kapalı vakayı yazmak ya da açık gruba taşımak için admin açıkça isterse.
 2. **Vakanın kelimelerini plugin metnine yazma.** Düzeltme genel bir kural olarak yazılır: vakadaki ürün, marka, tutar ya da cümle
    skill'e, kurala ya da hook'a girmez. CI'daki ezber denetimi (`reklam-atolyesi/evals/ezber_denetimi.py`) 6 kelimelik birebir
    kopyayı ve vaka adını yakalar. Etki defterine (`reklam-atolyesi/evals/etki-defteri.md`) her değişikliğin gerekçesi yazılır.

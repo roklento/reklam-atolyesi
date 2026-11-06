@@ -190,6 +190,27 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.14 (2026-11-06): bakım ve yayın araçları
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/setup/bagimlilik_denetimi.py`, CI adımı | yayın denetimi | yok | B9: npm hata yanıtı "0 açık" sayılıyordu, bulgu çıkış kodunu değiştirmiyordu | Hata yanıtı "denetlenemedi"; yüksek bulguda çıkış 1 | yok | ölçülmedi |
+| `evals/kor_kiyas.py` (`cmd_hakem`) | admin aracı | kör kıyas | B13: başarısız hakem boş karar yazıyor, tekrar denemede atlanıyordu | Yalnız okunabilir karar kaydedilir; başarısızlık çıkış 1 | yok | ölçülmedi |
+| `admem/s_base.py` (`profile_create`), salt okunur DB açılışları | işleyiş (kurulum) | teknik olmayan, güncelleyen kullanıcı | B14: klasör hatasında profil satırı kalıyordu; "#" içeren yolda DB açılmıyordu | Geri alma; `as_uri` her yerde | yok | ölçülmedi |
+| `musteri-paketi/guncelle.ps1` | müşteri paketi | güncelleyen kullanıcı | B15: hata mesajı yedek olmasa da "yedeklendi" diyordu | Yalnız alınan yedek, yeriyle söylenir | yok | ölçülmedi |
+| kök `kur.ps1`, `kur.cmd` | dağıtım | eski kök betiği kullanan | B19: iki kopya ayrışmıştı | Kök betik paketteki betiğe iletir | yok | ölçülmedi |
+| `vendor-skills/ai-product-video/assets/audio/` (silindi), `sfx_library.py`, ses skill/ajan metni | lisans | efekt kullanan bütün hücreler | B18: lisans yeniden dağıtıma izin vermiyordu | Efektler CC0 ve Earshot bankalarından | yok | ölçülmedi |
+| `evals/kapali/` (proje dosyalarına), `senaryo-matrisi.json`, `ezber_denetimi.py`, `kor_kiyas.py`, CLAUDE.md | işleyiş (admin) | kapalı vakalar | B17: kapalı vakalar plugin'le müşteriye gidiyordu | Klon yoksa puan karşılaştırması durur; eski üç vaka yenilenecek | yok | ölçülmedi |
+| `evals/kor_kiyas.py kabul`, `evals/kabul/` | admin aracı | bütün sürümler | B16: sürüm için kayıtlı gerçek model sonucu yoktu | Tek biçimde kabul kaydı | yok | ölçülmedi |
+
+**Sahada:** henüz yok.
+
+**Ders:** *Ne zaman:* bir araç dış bir komutun çıktısını ya da kendi başarısını kaydediyorsa. *Ne yap:* başarısız ya da okunamayan
+çıktıyı kaydetme, "denetlenemedi" de; kullanıcıya bir şeyin yapıldığını yalnız yapıldığı görüldüyse söyle. *Dayanak:* bu sürümün
+tarama, hakem ve güncelleyici satırları. *Güven:* orta.
+
 ## 2.10.13 (2026-11-06): video ve ölçüm doğruluğu
 
 **Değişiklikler**

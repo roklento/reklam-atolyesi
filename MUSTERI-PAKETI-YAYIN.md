@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.13
+# Müşteri paketi — 2.10.14
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,16 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.13**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.14**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.14 migration içermez, yeni bağımlılık yok. **Müşteri paketi değişti, ZIP yeniden gönderilmeli** (`guncelle.ps1`). Müşterinin
+gördüğü değişiklik: güncelleme yarıda kalırsa ekran yedeğin alınıp alınmadığını ve yerini söyler; yedek alınamazsa güncellemeye
+başlanmaz. Profil klasörü açılamazsa marka yarım kaydedilmez. Paketteki Mixkit efektleri çıkarıldı; kütüphanede olmayan organik ses
+(alkış, kalp atışı) gerekirse ElevenLabs fiyatı sorulur. Kök `kur.cmd` artık paketteki kurulumu çalıştırır.
+PowerShell betikleri bu ortamda çalıştırılamadı (pwsh yok): `guncelle.ps1` ve kök `kur.ps1` değişikliği okunarak denetlendi,
+Windows'ta Windows CI işiyle sınanır.
 2.10.13 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
 altyazıda düzeltilen metin (ör. fiyat) son videoda görünür; anlatıcı kaydı eksikse video hazırlanmaz ve hangi kaydın eksik olduğu
 söylenir; İngilizce Ads Manager dökümündeki sayılar doğru okunur; ölçülmeyen satış A/B karşılaştırmasında sıfır sayılmaz.

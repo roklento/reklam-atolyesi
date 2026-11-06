@@ -1,5 +1,5 @@
 """2.6.0: Earshot ses bankası (kodla üretilmiş, MIT) — dosya başına kaynak kaydı, uyarılı sesler varsayılan aramada yok,
-kayıtsız/değişmiş dosya listelenmez, arama sırası profil → Kenney → Earshot → Mixkit."""
+kayıtsız/değişmiş dosya listelenmez, arama sırası profil → Kenney → Earshot (2.10.14: Mixkit arşivi çıkarıldı)."""
 from __future__ import annotations
 
 import json
@@ -59,7 +59,7 @@ def test_turkish_queries_reach_new_families():
     assert all(r["source"].startswith("vendor:sfx-cc0") for r in SL.search("tık", limit=3)["results"])
 
 
-def test_earshot_ranks_after_kenney_before_mixkit():
+def test_earshot_ranks_after_kenney():
     res = SL.search("glitch", limit=40)["results"]
     srcs = [r["source"].split(" ")[0] for r in res if r["score"] == res[0]["score"]]
     order = [s for i, s in enumerate(srcs) if s not in srcs[:i]]

@@ -1,11 +1,11 @@
 """Ses kütüphanesi araması (spec 5.9 adım 2): önce profil ses kütüphanesi, sonra CC0 çekirdek (Kenney, 1.7.0), sonra Earshot bankası
-(kodla üretilmiş, MIT, 2.6.0), sonra ai-product-video efekt arşivi.
+(kodla üretilmiş, MIT, 2.6.0). ai-product-video'nun Mixkit arşivi 2.10.14'te paketten çıkarıldı: Mixkit lisansı dosyaların başka yere
+yeniden dağıtılmasına izin vermiyor, plugin ise her müşteriye kopyalanıyor.
 
 Vendor arşivlerinden yalnızca kaynağı kayıtlı dosyalar listelenir (OVERRIDES.md lisans kuralı):
 - sfx-cc0: ATTRIBUTION.md tablosunda satırı olan, lisansı CC0 yazan ve SHA-256'sı tutan dosya,
 - sfx-earshot: ATTRIBUTION.md tablosunda satırı olan, lisansı MIT (Earshot) yazan ve SHA-256'sı tutan dosya; Earshot denetiminde
-  uyarı alanlar yalnızca --include-flagged ile,
-- ai-product-video: ATTRIBUTION.md'de Mixkit kaynak URL'si kayıtlı dosya.
+  uyarı alanlar yalnızca --include-flagged ile.
 Eşleşme sözcük bazlıdır (dosya yolundaki sözcükler, camelCase bölünür); Türkçe sorgu sözcükleri İngilizce etiketlere de açılır
 (ör. "tık" → click, "geçiş" → whoosh/transition); ekli biçim de açılır ("geçişi" → gecis, 1.8.1). 1.7.0 öncesi alt dize eşleşmesi
 "up" sorgusunu "cup"a da eşliyordu.
@@ -24,7 +24,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from common import PLUGIN_ROOT, emit  # noqa: E402
 from admem.util import tr_fold  # noqa: E402
 
-VENDOR_AUDIO = PLUGIN_ROOT / "vendor-skills" / "ai-product-video" / "assets" / "audio"
 CC0_DIR = PLUGIN_ROOT / "vendor-skills" / "sfx-cc0"
 EARSHOT_DIR = PLUGIN_ROOT / "vendor-skills" / "sfx-earshot"
 AUDIO_EXT = (".wav", ".mp3", ".flac", ".ogg")
@@ -110,18 +109,6 @@ def family_hit(path: str, terms: list[set[str]]) -> int:
     return sum(1 for alts in terms if any(_match(a, ws) for a in alts))
 
 
-def vendor_allowed() -> list[Path]:
-    attr = (VENDOR_AUDIO / "ATTRIBUTION.md").read_text(encoding="utf-8") if (VENDOR_AUDIO / "ATTRIBUTION.md").exists() else ""
-    ok = []
-    for f in sorted((VENDOR_AUDIO / "sfx").rglob("*")) if (VENDOR_AUDIO / "sfx").exists() else []:
-        if not f.is_file():
-            continue
-        line = next((ln for ln in attr.splitlines() if f"`{f.name}`" in ln), "")
-        if "https://assets.mixkit.co" in line:
-            ok.append(f)
-    return ok
-
-
 @lru_cache(maxsize=1)
 def cc0_allowed() -> tuple[tuple[Path, str], ...]:
     """(dosya, kaynak URL) — yalnızca ATTRIBUTION.md satırı olan, CC0 yazan ve hash'i tutan dosyalar."""
@@ -165,9 +152,6 @@ def search(query: str, profile_dir: Path | None = None, limit: int = 10, include
               **({} if ok else {"flagged": True}),
               "score": score(p.relative_to(EARSHOT_DIR).as_posix(), terms), "_rel": p.relative_to(EARSHOT_DIR).as_posix()}
              for p, sid, ok in earshot_allowed() if ok or include_flagged]
-    hits += [{"path": str(p), "source": "vendor:ai-product-video (Mixkit SFX Free License)", "category": p.parent.name,
-              "score": score(p.relative_to(VENDOR_AUDIO).as_posix(), terms), "_rel": p.relative_to(VENDOR_AUDIO).as_posix()}
-             for p in vendor_allowed()]
     rank = {"profile": 0, SRC_CC0: 1, SRC_EARSHOT: 2}
     hits = [h for h in hits if h["score"]]
     hits.sort(key=lambda h: (-h["score"], rank.get(h["source"], 3), -strength(h["_rel"], terms),

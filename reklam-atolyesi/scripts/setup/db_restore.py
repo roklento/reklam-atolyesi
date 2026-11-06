@@ -26,7 +26,7 @@ from admem.util import backup_inventory  # noqa: E402  (yalnızca standart küt�
 
 def quick_check(path: Path) -> str:
     try:
-        con = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True, timeout=3)
+        con = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=3)
         try:
             r = con.execute("PRAGMA quick_check").fetchone()[0]
             v = con.execute("SELECT MAX(version) FROM schema_meta").fetchone()[0]
@@ -39,7 +39,7 @@ def quick_check(path: Path) -> str:
 
 def schema_version(path: Path) -> int | None:
     try:
-        con = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True, timeout=3)
+        con = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=3)
         try:
             return int(con.execute("SELECT MAX(version) FROM schema_meta").fetchone()[0] or 0)
         finally:
