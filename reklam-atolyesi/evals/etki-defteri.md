@@ -190,6 +190,19 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.16 (2026-11-27): video skill çakışması ve "önce kütüphanede ara"
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/setup/doctor.py` (`global_skill_clash`, `accepted_global_skills`), `scripts/setup/kurulum_dogrula.py` (`handle_global_skills`) | işleyiş (kurulum) | başka video araçları da kullanan her profil (ajans, deneyimli kullanıcı) × her ürün | Revize: dış bir HTML→video aracının değerlendirmesi; tek tek skill olarak kurulan video araçları plugin taramasına görünmüyordu, "dokunma" kararı yeni kurulanları da kapsıyordu | Adı ya da açıklaması video/kurgu olan genel skill gösterilir; kabul ad bazında | yok | ölçülecek (ilk kurulum kayıtlarında) |
+| `skills/compose` (adım 7), `skills/ref-remotion-components` ("İhtiyaca göre mevcut bileşen") | uzman bilgisi (kurgu) | S10 kurgu, bütün ürün × kullanıcı hücreleri | Aynı revize: araç hazır blok kataloğuna bakmadan efekt yazdırmıyor; bizde bu adım yazılı değildi | Yeni bileşenden önce kütüphane ve profil bileşenleri denenir, gerekçe yazılır | yok | ölçülecek (yeni bileşen sayısı ve S11 düzeltme turları) |
+
+**Sahada:** henüz yok.
+
+**Ders:** ders yok.
+
 ## 2.10.15 (2026-11-06): kapalı vaka doğrulayıcısı
 
 **Değişiklikler**

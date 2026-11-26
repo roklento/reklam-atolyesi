@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.15
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.16
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,18 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.16** — video skill çakışması ve "önce kütüphanede ara" (dış araç değerlendirmesinden iki fikir)
+- Migration yok, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez).
+- **Kurulum denetimi (`global_skills`):** `~/.claude/skills` altına plugin olmadan, tek tek kurulan skill'lerden adı ya da açıklaması
+  video üretimi/kurgu işini üstlenebilecek olanlar da gösterilir (`hooks/plugin_clash.json` video desenleri; yalnızca SKILL.md ön bilgisi
+  okunur). Önceden yalnızca vendor adı ve `remotion*` adları yakalanıyordu; böyle kurulan bir video aracı plan → render → QC adımlarını
+  atlatabiliyordu. "Dokunma" kararı artık ad bazındadır (`skills` alanı): sonradan kurulan yeni bir video skill'i yeniden sorulur.
+  Adları listelemeyen eski kayıt yalnızca eski kuralın yakaladığı adları kapsar.
+- **compose adım 7 + `ref-remotion-components` "İhtiyaca göre mevcut bileşen" tablosu:** yeni bileşen yazmadan önce kütüphane, profilin
+  onaylı bileşenleri ve prop/sarmalayıcı birleşimleri denenir; yeni bileşen gerekirse bakılan en yakın bileşenler ve neden uymadıkları
+  kurgu notuna yazılır.
+- `tests/test_v21016_kutuphane_ve_skill_cakismasi.py`.
+
 **2.10.15** — kapalı vaka doğrulayıcısı (yalnız admin araçları)
 - Migration yok, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez); müşterinin gördüğü bir değişiklik yok.
 - **`evals/kapali_dogrula.py`:** yeni kapalı vakaların biçimini ve yayın testinde çalışıp çalışmayacağını denetler, vaka metnini

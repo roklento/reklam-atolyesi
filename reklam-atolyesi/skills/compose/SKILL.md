@@ -95,7 +95,13 @@ S09 kapısı geçilmiş: her sahnede kullanıcı ses kararı, varlıklar bağlı
    `high` uyarı; eşikler yereldir, ham/UGC türünde az efekt kusur sayılmaz). Sorun varsa plan düzeltilir
    (`edit_plan_patch`), yeniden render; **en fazla 3 tur**. Kalan sorun kullanıcıya açıkça söylenir. Akıcılık, kısa ürün bozulması ve
    ses için tam oynatma gerekir; araç yapamıyorsa S11 kapısında kullanıcı kontrolü beklenir.
-7. **Yeni bileşen kuralı:** gereken efekt kütüphanede yoksa yazılır (deterministik, `useCurrentFrame()`'den türetilmiş, zod parametreli,
+7. **Önce kütüphanede ara, sonra yaz (2.10.16):** bir efekt ya da görünüm için yeni bileşen yazmadan önce sırayla bakılır:
+   (a) `ref-remotion-components` → "İhtiyaca göre mevcut bileşen" tablosu; (b) bu profilin onaylı bileşenleri
+   (`DD/profiles/<slug>/components/`) ve `memory_context`'teki kurgu prosedürleri; (c) mevcut bir bileşenin prop'larıyla ya da bir
+   sarmalayıcıyla (`KenBurns`, `Spotlight`, `PictureInPicture` …) birleşimiyle karşılanıp karşılanmadığı. Biri karşılıyorsa yeni bileşen
+   yazılmaz. Hiçbiri karşılamıyorsa bakılan en yakın bileşenler ve neden uymadıkları (ör. "yazı sığmıyor", "kaynak türü yok") kurgu
+   notuna ve `memory_add(layer="procedural", kind="compose")` kaydına yazılır; kullanıcıya taslakta yeni bileşen olduğu söylenir.
+   Gereken efekt kütüphanede yoksa yazılır (deterministik, `useCurrentFrame()`'den türetilmiş, zod parametreli,
    `Math.random`/`Date.now` yok) → 3 sabit kare + 2 sn test → öz denetim → kullanıcı taslak içinde görür; onaylanırsa sürüm numarası ve
    testiyle kütüphaneye; onaylanmazsa kampanyaya özel kalır.
 8. Bulgular ve tekrarlayan hatalar `memory_add(layer="procedural", kind="compose")`. Render süresi sistem hafızasına
