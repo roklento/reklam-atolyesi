@@ -181,6 +181,8 @@ SCRIPT_MAP = {
     "analyze: klipler arası pozlama ve beyaz dengesi eşitleme, önce|sonra kareleri": "scripts/analyze/color_match.py",
     "compose: edit_plan şeması ve doğrulama": "scripts/compose/validate_plan.py",
     "compose: sahne önbelleği": "scripts/compose/scene_cache.py",
+    "compose: yerel ürün ayırma (saydam ürün, ürünün arkası doldurulmuş arka plan, maske; DD/.gorsel)": "scripts/compose/cutout.py",
+    "compose: ürün ayırma işçisi (motorun kendi ortamında)": "scripts/compose/cutout_worker.py",
     "audio: beats": "scripts/audio/beats.py",
     "audio: sfx_synth": "scripts/audio/sfx_synth.py",
     "audio: clean, duck, loudnorm, phone_test": "scripts/audio/loudness.py",

@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.16
+# Müşteri paketi — 2.10.17
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,15 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.16**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.17**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.17 migration içermez, çekirdek ortama yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin
+gördüğü değişiklik: ürün fotoğrafından hareketli sahne hazırlanırken ürün arka plandan ücretsiz ve bilgisayarda ayrılır. İlk seferde
+"yaklaşık 300 MB'lık ücretsiz bir araç indirmem gerekiyor, indireyim mi?" diye sorulur; istemezse ücretli yol fiyatıyla önerilir.
+Fotoğraftan derinlik hareketinde ürün artık iki kez görünmez. Bilgisayarda görseli videoya çeviren başka bir skill kuruluysa kurulum
+kontrolü onu da gösterir.
 2.10.16 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü değişiklik:
 bilgisayarda video hazırlayan başka bir skill tek başına kurulmuşsa kurulum kontrolü bunu da gösterir ve "dokunayım mı?" diye sorar;
 daha önce "dokunma" denen skill'ler için yeniden sorulmaz, yeni kurulan biri için sorulur. Kurgu sırasında yeni bir efekt yazılmadan

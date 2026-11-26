@@ -49,8 +49,9 @@ Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` ·
   `Particles` (`count`,`seed`; tohumlu) · `GradeOverlay` (`grain` 0–1, `vignette` 0–1; nötr varsayılan 0) · `LensFlareSoft`.
   Sahne boyu süren atmosfer efekti varsayılan bütçede yoktur.
 - **Kamera:** `KenBurns` (`fromScale`,`toScale`,`fromX`,`toX`,`fromY`,`toY`; 2× üstünde netlik düşer; 1.1.0: `focus {x,y}`, `settleFrames`) · `Parallax25D` (`background`,
-  `foreground` maske) · `FakeRackFocus` · `HandheldDrift` (çok hafif; `amplitude ≤ 1,5`).
-- **Ürün:** `BehindSubjectText` (`text`, `background`, `cutout` maske) · `Spotlight` · `OutlineGlow` (`cutout`) · `StillTurn` (fotoğraftan
+  `foreground` maske; 2.10.17: ikisi de `cutout.py ayir` çıktısı: `background` = ürünün arkası doldurulmuş `<ad>.arka.png`, `foreground` =
+  saydam `<ad>.urun.png`. Arka plana özgün fotoğraf verilirse hareket edince ürün iki kez görünür) · `FakeRackFocus` · `HandheldDrift` (çok hafif; `amplitude ≤ 1,5`).
+- **Ürün:** `BehindSubjectText` (`text`, `background`, `cutout` maske = `<ad>.urun.png`) · `Spotlight` · `OutlineGlow` (`cutout`) · `StillTurn` (fotoğraftan
   hafif dönüş hissi, `degrees ≤ 14`, `sheen` varsayılan kapalı, AI yok) · **`PictureInPicture`** (1.8.0, sarmalayıcı: alttaki çekim arka
   plan, `inset` konuşan kişi köşede; `shape` circle|rounded, `corner`, `size` 0,18–0,45; köşe kutusu `layout.json pip_box`'tan güvenli
   alanda, `checks.py safe` yazı/altyazıyla çakışmayı denetler; konuşan kişinin izni her zamanki gibi) · **`PhoneScreen`** (1.8.0: sade

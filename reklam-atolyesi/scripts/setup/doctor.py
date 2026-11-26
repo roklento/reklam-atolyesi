@@ -54,7 +54,7 @@ action_items_set action_item_set_status action_items_verify scale_layer_get scal
 playbook_activate playbook_revalidate playbook_retire playbook_round_tick memory_card memory_context memory_search memory_add memory_observe
 memory_update memory_forget memory_consolidate consolidation_due journal_log journal_summary checkpoint_save checkpoint_get checkpoint_close
 export_markdown backup system_manifest_get draft_check draft_status feedback_preview feedback_export""".split()
-DATA_ALLOWED = {".venv", ".node", "db", ".kurulum-statik-tamam", ".sessions", "logs", "backups", "memory", ".selftest", ".tts"}
+DATA_ALLOWED = {".venv", ".node", "db", ".kurulum-statik-tamam", ".sessions", "logs", "backups", "memory", ".selftest", ".tts", ".gorsel"}
 FFMPEG_FILTERS = ["vidstabdetect", "vidstabtransform", "zscale", "loudnorm", "lut3d", "sidechaincompress", "tonemap", "colorchannelmixer"]
 VERSION_RE = re.compile(r"(\d+)\.(\d+)(?:\.(\d+))?")
 
@@ -224,7 +224,7 @@ def global_skill_clash() -> list[str]:
     """~/.claude/skills altında plugin'in işiyle çakışabilecek genel skill'ler (kullanıcının başka işler için kurduğu).
 
     İki tür: (1) vendor skill'leriyle ya da Remotion ile aynı adlı olanlar; (2) 2.10.16: adı ya da açıklaması video üretimi/kurgu işini
-    üstlenebilecek olanlar (plugin taramasının `hooks/plugin_clash.json` video desenleri). Plugin olarak değil tek tek skill olarak
+    üstlenebilecek olanlar (plugin taramasının `hooks/plugin_clash.json` video desenleri; 2.10.17'den beri `when_to_use` da okunur). Plugin olarak değil tek tek skill olarak
     kurulan video araçları (ör. `npx skills add` ile) plugin taramasına görünmez; bunlar da plan → render → QC kapılarını atlatabilir.
     Yalnızca SKILL.md'nin ön bilgisi okunur, hiçbir dosya çalıştırılmaz."""
     gskills = Path.home() / ".claude" / "skills"
@@ -238,8 +238,7 @@ def global_skill_clash() -> list[str]:
         f = gskills / name / "SKILL.md"
         if not video_re or not f.is_file():
             return False
-        fm = PS._frontmatter(f)
-        text = f"{fm.get('name') or name} {fm.get('description', '')}".lower()
+        text = PS.trigger_text(PS._frontmatter(f), name)
         return any(p.search(text) for p in video_re)
     return [g for g in globals_ if legacy_name_clash(g) or video_skill(g)]
 
