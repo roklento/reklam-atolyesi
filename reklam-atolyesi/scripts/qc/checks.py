@@ -24,6 +24,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "audio"))
 from common import emit, ffmpeg, ffprobe_json, read_json  # noqa: E402
 import text_layout as TL  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "servers" / "ad_memory"))
+from admem.editplan import layer_text, reading_seconds  # noqa: E402  (2.10.18: okuma süresi kurgu planı denetimiyle aynı kural)
+
 FORMAT_SIZE = {"9x16": (1080, 1920), "4x5": (1080, 1350), "1x1": (1080, 1080)}
 SAFE = {"9x16": {"top": 0.14, "bottom": 0.35, "side": 0.06}, "4x5": {"top": 250 / 1350, "bottom": 250 / 1350, "side": 100 / 1080},
         "1x1": {"top": 0.08, "bottom": 0.08, "side": 0.08}}
@@ -75,7 +78,8 @@ def black_freeze(video: str, black_min: float = 0.12, freeze_min: float = 0.5) -
 
 
 def safe_zone(plan: dict, style: dict | None = None, captions: list | None = None, layout: dict | None = None) -> dict:
-    """Her yazı bloğunun üst ve alt kenarı güvenli alanda mı (konum şablonla aynı tablodan: lib/text_layout.py), ekranda ≥ 1,5 sn mi.
+    """Her yazı bloğunun üst ve alt kenarı güvenli alanda mı (konum şablonla aynı tablodan: lib/text_layout.py), ekranda okunacak kadar
+    kalıyor mu (2.10.18: uzunluğa göre, en az 1,5 sn; admem.editplan.reading_seconds).
     Altyazı açıksa altyazı bloğu da denetlenir (parça metni verilmezse 2 satır). layout (render.py → <çıktı>.layout.json) verilirse
     blok boyu ölçümden alınır ve ölçümde sığmayan (YAZI SIĞMIYOR) her yazı ayrı sorundur (1.6.0)."""
     records = (layout or {}).get("records") or []
@@ -113,8 +117,9 @@ def safe_zone(plan: dict, style: dict | None = None, captions: list | None = Non
             checked += 1
             place(ext, s["id"], i)
             dur = float(l.get("dur_s", s["dur_s"] - float(l.get("start_s", 0))))
-            if dur < 1.5:
-                issues.append({"scene": s["id"], "layer": i, "issue": f"yazı {dur:.2f} sn ekranda (< 1,5 sn)"})
+            need = reading_seconds(layer_text(l))
+            if dur + 1e-6 < need:
+                issues.append({"scene": s["id"], "layer": i, "issue": f"yazı {dur:.2f} sn ekranda; bu uzunluktaki yazı için ≥ {need:.1f} sn gerekir"})
     cap = TL.captions_extent(plan, captions)
     if cap:
         checked += 1

@@ -52,6 +52,11 @@ _source = {
         "out_s": {"type": "number", "minimum": 0},
         "generation_id": {"type": "integer"},
         "real_twin": {"type": "string"},
+        # 2.10.18: AI klip/görselde ürünün değişmeyecek özellikleri (silüet, renk, kapak, etiket düzeni…): prompt'un "değişmeyecekler"
+        # kısmı ve kabul kontrolünün ölçütü aynı listedir. first_frame/last_frame: modele sabitlenen onaylı ürün kareleri.
+        "invariants": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "first_frame": {"type": "string"},
+        "last_frame": {"type": "string"},
     },
 }
 _layer = {
@@ -173,6 +178,25 @@ def _layer_span(scene: dict, layer: dict) -> tuple[float, float]:
     st = scene["start_s"] + float(layer.get("start_s", 0.0))
     du = float(layer.get("dur_s", scene["dur_s"] - float(layer.get("start_s", 0.0))))
     return st, du
+
+
+# Okuma süresi (2.10.18): yazının ekranda kalma süresi uzunluğuna göre. Önceden her yazıya sabit 1,5 sn yetiyordu; uzun bir fiyat ya da
+# kargo cümlesi izleyici okuyamadan geçebiliyordu. Telefonda, hareketli görüntü üstünde Türkçe okuma için yerel varsayım: saniyede 15
+# harf (boşluklar sayılmaz) + gözün yazıyı bulması için 0,5 sn pay; kısa yazıda alt sınır yine 1,5 sn.
+READ_CPS, READ_PAD_S, READ_MIN_S = 15.0, 0.5, 1.5
+TEXT_PROP_KEYS = ("text", "title", "subtitle", "label", "currency", "price", "referencePrice")
+
+
+def layer_text(layer: dict) -> str:
+    """Katmanın ekranda okunacak yazısı: `text` alanı ve yazı taşıyan prop'lar (fiyat sayıları dahil)."""
+    props = layer.get("props") or {}
+    parts = [layer.get("text")] + [props.get(k) for k in TEXT_PROP_KEYS]
+    return " ".join(str(x) for x in parts if isinstance(x, (str, int, float)) and not isinstance(x, bool) and str(x).strip())
+
+
+def reading_seconds(text: str) -> float:
+    letters = sum(1 for ch in str(text or "") if not ch.isspace())
+    return max(READ_MIN_S, round(letters / READ_CPS + READ_PAD_S, 2)) if letters else READ_MIN_S
 
 
 def source_props(layer: dict) -> list[tuple[str, Any]]:
@@ -350,6 +374,12 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
                     ai_layers.append(f"{s['id']}:{li}")
                     if src.get("kind") == "ai_clip" and not src.get("real_twin") and plan["status"] == "ready":
                         warnings.append(f"sahne {s['id']} katman {li}: AI klibin gerçek çekimli eşi (real_twin) belirtilmemiş (5.3, 5.16)")
+                    if plan["status"] == "ready" and not [x for x in src.get("invariants") or [] if str(x).strip()]:
+                        warnings.append(f"sahne {s['id']} katman {li}: AI kaynağında ürünün değişmezleri (invariants: silüet, renk, kapak, "
+                                        "etiket düzeni…) yazılmamış; kabul kontrolü neye göre yapıldı belli değil (5.10, 5.11)")
+                    if src.get("kind") == "ai_clip" and plan["status"] == "ready" and not src.get("first_frame"):
+                        warnings.append(f"sahne {s['id']} katman {li}: AI klibin ilk karesi onaylı ürün karesine sabitlenmemiş (first_frame); "
+                                        "ürün klip boyunca değişebilir (5.11)")
             comp = layer.get("component")
             if comp in ("BeforeAfter", "NumberRoll", "PhoneScreen", "PictureInPicture", "TextMark"):
                 _component_rules(plan, s, li, layer, context, errors, warnings)
@@ -361,8 +391,10 @@ def validate(plan: dict, *, style: dict | None = None, beats: list[float] | None
                 errors.append(f"sahne {s['id']}: imza anı bileşeni {comp} yalnızca reveal ve son kartta kullanılabilir (5.12)")
             if layer["type"] == "text" or comp in ("TextReveal", "KineticWords", "SoftType", "LowerThird", "PriceTag", "TextMark"):
                 st, du = _layer_span(s, layer)
-                if du < 1.5:
-                    warnings.append(f"sahne {s['id']} katman {li}: yazı {du:.2f} sn ekranda; okunurluk için ≥ 1,5 sn önerilir (bölüm 10)")
+                need = reading_seconds(layer_text(layer))
+                if du + 1e-6 < need:
+                    warnings.append(f"sahne {s['id']} katman {li}: yazı {du:.2f} sn ekranda; bu uzunluktaki yazının okunması için "
+                                    f"≥ {need:.1f} sn önerilir (saniyede {READ_CPS:g} harf + {READ_PAD_S:g} sn pay, en az {READ_MIN_S:g} sn; bölüm 10)")
 
     # Ses kuralları
     for s in scenes:

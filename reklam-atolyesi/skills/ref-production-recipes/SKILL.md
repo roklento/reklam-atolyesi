@@ -54,6 +54,7 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | Meta CSV / adlandırma / önsel kontrolü | `PY PR/scripts/meta/meta_tools.py csv-check|naming|priors|synth-csv …` |
 | rakip yardımcıları | `PY PR/scripts/competitive/comp_tools.py diff|group|map|distance|offer|library-normalize …` |
 | bütçe / koçluk / grafik / rapor / kalibrasyon | `PY PR/scripts/analytics/{budget,coach,charts,report,calibration}.py …` |
+| canlı ilerleme panosu (yalnızca okur, 2.10.18) | `PY PR/scripts/analytics/pano.py --data-dir DD --profile-id N [--campaign-id M] [--izle]` → `DD/profiles/<profil>/pano/kampanya-<M>.html` |
 | hafıza önizlemeleri (salt okuma) | `PY PR/scripts/memory/memory_tools.py consolidation-preview|usage-report|fold-preview --data-dir DD` |
 
 ## FFmpeg tarifleri (spec örnekleri aynen; script'ler bunları uygular)
@@ -92,14 +93,15 @@ yetmezse ElevenLabs voice-isolator (ücretli).
 **Video (5.11)** — asla: ürün gerçekliğini kanıtlayan sahne, karşılaştırma iddiası, insan yüzü/AI karakter:
 | İş | Varsayılan | Alternatif | Not |
 |---|---|---|---|
-| Gerçek kareden kısa hareket (5–10 sn) | `kling-3-pro` | `bytedance-seedance-v2.5`, `veo-3.1-generate-001` | gerçek kare aynı flow'a, `connect_from` |
+| Gerçek kareden kısa hareket (5–10 sn) | `kling-3-pro` | `bytedance-seedance-v2.5`, `veo-3.1-generate-001` | gerçek kare aynı flow'a, `connect_from`; onaylı kare ilk kare (destekleniyorsa son kare de; 2.10.18), değişmezler listesi prompt'ta |
 | Gerçekçi ortam/atmosfer | `veo-3.1-generate-001` | `kling-3-pro` | |
 | Var olan videonun ışığını/arka planını değiştirme | `runway-aleph2` | `kling-o3-edit-video` | yeni görüntü → AI etiketi |
 | Klibi uzatma | `bytedance-seedance-v2.5-extend` | `gemini-omni-1.1-flash-extend` | |
 | Çözünürlük artırma | `topaz-video-upscale` | — | odaksızı düzeltmez |
 | Ucuz taslak denemesi | `veo-3.1-fast-generate-001` | `ltx-v2-fast` | önce ucuz dene |
 Ses: seslendirme yerel `scripts/audio/tts_local.py` (EMA varsayılan; VoxCPM2 ses kütüphanesi yalnızca uygun ekran kartında öneri, 1.4.9), ElevenLabs TTS `eleven_v4` yalnızca kullanıcı isterse yedek; müzik `eleven_music_v2_5` varsayılan enstrümantal (sözlü müzik yalnızca kullanıcı kararı ve lisans kontrolüyle); efekt `eleven_text_to_sound_v2`.
-Prompt şablonu: kamera dili + özne + zamanla değişen + mekan + atmosfer + **değişmeyecekler** listesi.
+Prompt şablonu: kamera dili + özne + zamanla değişen + mekan + atmosfer + **değişmeyecekler** listesi (2.10.18: ürünün değişmezleri;
+planda `source.invariants`, kabul kontrolü aynı listeyle).
 
 ## Amatör çekim kurtarma (5.20)
 | Sorun | Tarif | Sınır |

@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.17
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.18
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,20 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.18** — yazının okuma süresi, AI klipte ürünün değişmezleri, canlı ilerleme panosu (dış video aracı karşılaştırmasından)
+- Migration yok, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez).
+- **Okuma süresi uzunluğa göre:** yazı ekranda saniyede 15 harf (boşluk sayılmaz) + 0,5 sn pay kadar kalmalı, kısa yazıda alt sınır
+  yine 1,5 sn. Önceden her yazıya sabit 1,5 sn yetiyordu; uzun bir fiyat ya da kargo cümlesi okunamadan geçebiliyordu. Kurgu planı
+  denetimi (`admem.editplan.reading_seconds`) ve QC güvenli alan denetimi (`checks.py safe_zone`) aynı kuralı kullanır; `qc` ve
+  `ref-legal-tr-meta` metinleri buna göre güncellendi.
+- **AI klipte ürün değişmesin:** kurgu planındaki AI kaynağına `invariants` (ürünün değişmeyecek özellikleri: silüet, renk, kapak, etiket
+  düzeni), `first_frame` ve `last_frame` (modele sabitlenen onaylı ürün kareleri) eklendi. Hazır planda AI kaynağında değişmez listesi
+  yoksa, AI klipte ilk kare sabitlenmemişse uyarı verilir. `materials` §6: aynı liste hem prompt'un "değişmeyecekler" kısmı hem kabul
+  kontrolünün ölçütüdür; elde olmayan görünüş (arka yüz, iç kısım) AI ile uydurulmaz.
+- **Canlı ilerleme panosu (`scripts/analytics/pano.py`):** kampanyanın aşamalarını, onay bekleyen konuyu, kurgu planının sahnelerini,
+  ücretli üretimleri ve harcanan krediyi gösteren, kendini yenileyen yerel bir sayfa. Veritabanını salt okuma kipinde açar, dışarıya
+  istek göndermez. Navigator kurgu ya da ücretli üretim aşamasında bir kez önerir (§9); `/durum` da açabilir.
+- `tests/test_v21018_okuma_degismez_pano.py`; `test_v152_safe_zone` örnek planındaki sahneler 3 sn'ye uzatıldı (uzun açılış yazısı).
 **2.10.17** — yerel ürün ayırma ve "görseli hareketlendiren" skill'lerin çakışma denetimi (beş dış video skill'i değerlendirmesinden)
 - Migration yok, çekirdek ortama yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez).
 - **Yerel ürün ayırma (`scripts/compose/cutout.py`):** ürün fotoğrafından saydam ürün (`<ad>.urun.png`), ürünün arkası doldurulmuş arka

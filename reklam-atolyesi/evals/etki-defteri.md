@@ -190,6 +190,20 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.18 (2026-11-27): okuma süresi, AI klipte değişmezler, canlı ilerleme panosu
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `servers/ad_memory/admem/editplan.py` (`reading_seconds`, `layer_text`), `scripts/qc/checks.py` (`safe_zone`), `skills/qc`, `skills/ref-legal-tr-meta` | uzman bilgisi (okunurluk) + işleyiş (denetim) | fiyat, kargo ya da koşul yazısı taşıyan her video × her profil | Revize: dış video aracı karşılaştırması. Sabit 1,5 sn alt sınır uzun yazıyı geçiriyordu; kurgu planı ve QC aynı kuralı kullanmıyordu | Sentetik planda 41 harflik yazı 2 sn'de uyarı, 4 sn'de uyarısız; 4 harflik yazıda alt sınır 1,5 sn değişmedi; mevcut örnek planlardan yalnızca bir test planı (2 sn'de 27 harf) yakalandı | yok | ölçülecek (QC'de okuma uyarısı sayısı, eval puanı) |
+| `servers/ad_memory/admem/editplan.py` (`source.invariants`, `first_frame`, `last_frame`), `skills/materials` §6, `skills/ref-production-recipes` | uzman bilgisi (AI üretim) + işleyiş (plan denetimi) | AI klip/görsel kullanan profiller × fiziksel ürün (ambalajlı, etiketli) | Aynı revize: AI klipte ürünün biçim, renk ya da etiket kayması kabul kontrolünde ölçütsüzdü; elde olmayan görünüşün uydurulması yasak değildi | Hazır planda listesiz AI kaynağı ve ilk karesi sabitlenmemiş AI klip uyarı verir; taslakta vermez; boş madde şemaya aykırı | yok (ücretli çağrı sayısı değişmez; reddedilen klip azalırsa düşer) | ölçülecek (AI klip kabul oranı) |
+| `scripts/analytics/pano.py` (yeni), `skills/navigator` §9, `commands/durum.md`, `skills/ref-production-recipes`, `scripts/setup/manifest.py` | işleyiş (görünürlük) | yeni başlayan kullanıcı × uzun üretim; ajansta birden çok kampanya | Aynı revize: kullanıcı nerede olduğunu ancak sohbette sorarak öğreniyordu | Sentetik veritabanında aşamalar, sahneler, üretim ve harcama doğru; çalıştırma öncesi ve sonrası veritabanı dosyası bayt bayt aynı | yok | ölçülecek (öneriyi kabul eden kullanıcı oranı) |
+
+**Sahada:** henüz yok.
+
+**Ders:** ders yok.
+
 ## 2.10.17 (2026-11-27): yerel ürün ayırma ve görseli hareketlendiren skill'ler
 
 **Değişiklikler**

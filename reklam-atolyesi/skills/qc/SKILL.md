@@ -29,7 +29,7 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
 2. **Teknik QC (otomatik)** her dosya için:
    `PY PR/scripts/qc/checks.py tech --video <mp4> --plan <plan.json> --expect-duration <sn> --format <9x16|4x5|1x1>` (süre, çözünürlük,
    fps, codec/profil, yuv420p, AAC 48 kHz, faststart, -14 LUFS ±1, ≤ -1 dBTP, siyah kare/donma **bütün videoda**, güvenli alan),
-   `checks.py black --video <mp4>`, `checks.py safe --plan <plan.json> --style <style.json> [--captions <captions.json>] --layout <mp4>.layout.json` (yazı bloklarının üst ve alt kenarı, altyazı dahil, güvenli alanda ve ≥ 1,5 sn ekranda; konumlar şablonla aynı tablodan, blok boyu render ölçümünden; "yazı sığmıyor" sorunu metin kısaltılarak ya da bileşen değiştirilerek giderilir, asla kabul edilmez), font glif kapsamı
+   `checks.py black --video <mp4>`, `checks.py safe --plan <plan.json> --style <style.json> [--captions <captions.json>] --layout <mp4>.layout.json` (yazı bloklarının üst ve alt kenarı, altyazı dahil, güvenli alanda ve okunacak kadar ekranda: 2.10.18'den beri uzunluğa göre, saniyede 15 harf + 0,5 sn, en az 1,5 sn; konumlar şablonla aynı tablodan, blok boyu render ölçümünden; "yazı sığmıyor" sorunu metin kısaltılarak ya da bileşen değiştirilerek giderilir, asla kabul edilmez), font glif kapsamı
    (`PY PR/scripts/qc/font_coverage.py --plan <plan.json> --project <kampanya>/src --data-dir DD`; eksik karakter ya da yüklenmeyen font →
    düzeltme notu), kontak sayfası (`contact_sheet.py --per-second`) ve yazı şeritleri (`contact_sheet.py --text-bands --plan <plan.json>`;
    kontak sayfasında 32 px yazı ≤ 8 px kalır, küçük yazı şeritten küçültmeden okunur), slayt gösterisi riski (`PY PR/scripts/qc/slideshow.py --plan <plan.json> --video <mp4>`:
@@ -46,7 +46,7 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
    incelenmiş kreatif tekrar incelenmez; yol `journal_log`'a. Ajan görmediği/duymadığı kanıta (hareket akıcılığı, kısa ürün bozulması,
    ses) onay vermez: bunlar "insan kontrolü gerekli" diye döner.
 4. **Görsel ölçütler:** AI kliplerinde ürün bozulması (gerçek fotoğrafla yan yana), yazım ve Türkçe karakterler (yazı şeritlerinden: harf
-   başka fontla mı çizilmiş, kırpılmış mı, zemin üstünde okunuyor mu), okunurluk (≥ 1,5 sn),
+   başka fontla mı çizilmiş, kırpılmış mı, zemin üstünde okunuyor mu), okunurluk (uzunluğa göre, en az 1,5 sn),
    marka tutarlılığı, kilitli vurgu anlarının vuruşa oturması, efekt bütçesi.
 5. **Yasal ölçütler (`ref-legal-tr-meta`):** yalnızca kanıtlanabilir iddialar · fiyat/indirim satış sayfasıyla birebir ve indirimde
    referans fiyat kanıtı · yüz ve eller gerçek çekimden; AI insan yok · ses klonu yok · AI içeren varyasyon için Meta açıklama/etiket
@@ -63,7 +63,7 @@ S12 tamam: `creatives` kayıtları (test + yedek), planlar, miks raporları.
 7. **Sonuç:** her kreatif için `creative_set_qc(profile_id, campaign_id, creative_ids, status="passed"|"failed"|"pending", report_path)` (`pending` = düzeltme bekliyor; `passed` rapor yolunu ister).
    Düzeltme gerekiyorsa liste çıkar → S12'ye yama ya da ilgili aşamaya dönüş (`stage_back`); düzeltilen dosya yeniden QC'den geçer.
    Tekrarlayan bulgular `memory_add(layer="procedural", kind="qc")`; ürün tarifiyle ilgili bulgu ürün tarifine önerilir.
-8. **Son kontrol listesi** (raporun başında, tümü işaretli): yazılar güvenli alanda ve ≥ 1,5 sn · ses -14 LUFS, telefon hoparlöründe VO net ·
+8. **Son kontrol listesi** (raporun başında, tümü işaretli): yazılar güvenli alanda ve okunacak kadar ekranda (en az 1,5 sn) · ses -14 LUFS, telefon hoparlöründe VO net ·
    AI klipleri gerçek fotoğrafla karşılaştırıldı, bozulma yok · iddia listesi kontrol edildi · AI içeren varyasyonlarda Meta açıklama
    talimatı güncel kurala uygun · Meta reklam standartları (§8) uyarıları karara bağlandı · yazım ve Türkçe karakterler · yorum ve kişi izinleri eşleşti · ses kararları uygulandı · rakipten
    türeyen konseptler uzaklık kuralını geçti; rakip adı/logosu/varlığı yok.

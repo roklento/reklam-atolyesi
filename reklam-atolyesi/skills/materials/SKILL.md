@@ -150,7 +150,18 @@ fade, etiketleme; profil ses kütüphanesine.
 - Varsayılan modeller `ref-production-recipes` tablosunda (ör. gerçek kareden kısa hareket `kling-3-pro`, ucuz deneme önce); sıra üretim
   hafızasındaki kabul oranlarıyla güncellenir. Prompt şablonu: kamera dili + özne + zamanla değişen + mekan + atmosfer + **değişmeyecekler**.
   Gerçek kare aynı flow'a yüklenir (izin kapısı), `connect_from`.
-- **Kabul kontrolü:** gerçek kareyle yan yana kontak sayfası (ürünün şekli, parça sayısı, rengi, üzerindeki yazı) → `generation_update(accepted)`.
+- **Ürünün değişmezleri (2.10.18), üretimden önce:** fotoğraflara bakılarak ürünün değişmemesi gereken özellikleri tek tek yazılır:
+  silüet ve oran, renk(ler), kapak ya da kapanış, düğme/bağlantı yerleri, parça sayısı, etiket ve logo düzeni, üzerindeki yazı. Bu liste
+  prompt'un "değişmeyecekler" kısmıdır, kabul kontrolünün ölçütüdür ve planda kaynağa `source.invariants` olarak yazılır. Değişebilecekler
+  (ışık, zemin, kamera hareketi, ortam) ayrıca yazılır.
+- **İlk ve son kare sabit:** onaylı ürün karesi klibin ilk karesi olarak verilir (`source.first_frame`); model bitiş karesini de kabul
+  ediyorsa ve sahne ürünle bitiyorsa son kare de onaylı karedir (`source.last_frame`). Model ürünü yeniden çizmek yerine yalnızca aradaki
+  hareketi üretir; ürünün kimliği klip boyunca korunur.
+- **Elde olmayan görünüş uydurulmaz:** sahne ürünün arka yüzünü, içini, açık hâlini ya da çalışırken görüntüsünü istiyor ama böyle bir
+  çekim yoksa AI'a ürettirilmez (uydurulmuş bir mekanizma ürünü olduğundan farklı gösterir). Ek çekim istenir ya da sahne eldeki açılarla
+  yeniden kurulur.
+- **Kabul kontrolü:** gerçek kareyle yan yana kontak sayfası, değişmezler listesi madde madde (ürünün şekli, parça sayısı, rengi, üzerindeki
+  yazı); bir madde tutmuyorsa klip kabul edilmez → `generation_update(accepted)`.
   Kabul edilen katman planda `ai_clip`/`ai_image` kaynağı ve AI etiketi bayrağıyla; `provenance.ai_share` buradan.
 
 ### 7. Planı bağla ve bitir
