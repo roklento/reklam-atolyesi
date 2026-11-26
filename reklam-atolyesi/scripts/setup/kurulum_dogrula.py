@@ -145,12 +145,6 @@ def review_record(cmp: dict, what: str, images: list[Path], interactive: bool, q
     return {"ok": human, "by": "kullanıcı (görsel inceleme, eşik geçilmediği için soruldu)", "at": today, "comparison": cmp}
 
 
-def accepted_deviation(data_dir: Path, check: str) -> bool:
-    import doctor as DR
-    return any(d.get("check") == check and d.get("decided_by") == "user" and d.get("status") == "accepted"
-               for d in DR.load_install_deviations(data_dir))
-
-
 def handle_global_skills(data_dir: Path, choice: str, interactive: bool) -> tuple[dict | None, dict]:
     """~/.claude/skills altında çakışan genel skill'ler (1.4.1). 'tasi': ~/.claude/skills-yedek'e taşınır (silinmez);
     'birak': kullanıcı kararı 'global_skills' sapması olarak kaydedilir; 'sor': etkileşimli konsolda sorulur, değilse karar yok
@@ -159,12 +153,14 @@ def handle_global_skills(data_dir: Path, choice: str, interactive: bool) -> tupl
     clash = DR.global_skill_clash()
     if not clash:
         return None, {"clash": []}
-    if accepted_deviation(data_dir, "global_skills"):
+    if set(clash) <= DR.accepted_global_skills(DR.load_install_deviations(data_dir), clash):
         return None, {"clash": clash, "karar": "daha önce kabul edilmiş sapma (dokunulmadı)"}
     if choice == "sor":
         if interactive and sys.stdin and sys.stdin.isatty():
-            say(f"  ~/.claude/skills altında plugin'in Remotion başvurularıyla aynı adlı genel skill'ler var: {', '.join(clash)}")
-            say("  Plugin bunları kullanmaz. Başka işlerde kullanıyorsanız dokunmayın; kullanmıyorsanız yedek klasörüne taşınabilir (silinmez).")
+            say(f"  Bilgisayarınızda Reklam Atölyesi'nin işine karışabilecek başka skill'ler var: {', '.join(clash)}")
+            say("  Bunların bir kısmı video hazırlıyor ya da bizim kullandığımız araçlarla aynı adı taşıyor. Aynı anda açık kalırlarsa")
+            say("  Claude videoyu bizim adımlarımız yerine onlarla hazırlamaya kalkabilir. Reklam Atölyesi bunları kullanmaz.")
+            say("  Başka işlerde kullanıyorsanız dokunmayın; kullanmıyorsanız yedek klasörüne taşınabilir (silinmez).")
             while True:
                 ans = input("  [T] yedeğe taşı  /  [D] dokunma: ").strip().lower()
                 if ans in ("t", "taşı", "tasi"):
@@ -189,9 +185,9 @@ def handle_global_skills(data_dir: Path, choice: str, interactive: bool) -> tupl
             shutil.move(str(src / name), str(target))
             moved.append(target.name)
         return None, {"clash": clash, "karar": "yedeğe taşındı", "yedek": "~/.claude/skills-yedek", "tasinan": moved}
-    rec = {"id": "global_remotion_skills", "check": "global_skills", "spec": "12.4, 12.5",
+    rec = {"id": "global_remotion_skills", "check": "global_skills", "spec": "12.4, 12.5", "skills": list(clash),
            "deviation": (f"~/.claude/skills altında genel skill'ler var ({', '.join(clash)}); kullanıcı başka işlerde kullandığı için dokunulmamasına "
-                         "karar verdi. Plugin bunları okumaz; Remotion için ref-remotion-components ve ref-vendor-map geçerlidir."),
+                         "karar verdi. Plugin bunları okumaz; video için compose, Remotion için ref-remotion-components ve ref-vendor-map geçerlidir."),
            "decided_by": "user", "decided_at": dt.date.today().isoformat(), "status": "accepted"}
     return rec, {"clash": clash, "karar": "dokunulmadı (sapma olarak kaydedilecek)"}
 

@@ -86,8 +86,32 @@ Sahne geçişi: `transition_out: {type, dur_s}`; `type`: `cut` · `crossfade` ·
 - Render: önizleme 0,5 ölçek (tek sayı → çift), final ölçek 1; işçi bütçesi `max(1, floor(CPU/2))`; sahne önbelleği (5.21).
 - Lisans: Remotion lisansı kullanıcı/kuruluş ve ekip kapsamına göre belirlenir (`ref-legal-tr-meta` → Remotion).
 
+## İhtiyaca göre mevcut bileşen (2.10.16)
+Yeni bileşen yazmadan önce bu tabloya, sonra profilin onaylı bileşenlerine (`DD/profiles/<slug>/components/`) bakılır. Tablo bir
+araç kutusu dizinidir; seçim yine stil kitabına, efekt bütçesine ve bileşenin kendi kurallarına bağlıdır.
+| İhtiyaç | Önce bakılacak |
+|---|---|
+| Başlık, açılış cümlesi, sözcük sözcük yazı | `TextReveal`, `KineticWords`, `SoftType` |
+| İsim/ünvan, bilgi bandı | `LowerThird` |
+| Bir sözcüğü işaretlemek, el çizimi vurgu | `TextMark` (15 sn'de en fazla 2) |
+| Konuşma ya da anlatıcı altyazısı | `CaptionTrack` (`preset`) |
+| Fiyat, indirimli fiyat | `PriceTag`; sayarak gösterim `NumberRoll` (`kind: "price"`) |
+| Kanıtlı sayı, oran, adet | `NumberRoll` (`kind: "claim"`) |
+| Önce/sonra karşılaştırması | `BeforeAfter` (yalnızca `proof=before_after`) |
+| Telefon ekranı, uygulama ya da site kaydı | `PhoneScreen` |
+| Konuşan kişi köşede, arkada ürün çekimi | `PictureInPicture` |
+| Yorum, puan | `ReviewCard`, `StarRating` (yalnızca kayıttaki gerçek veri) |
+| Kapanış, çağrı | `EndCard`, `CTAPulse` |
+| Fotoğrafa hareket, odak noktasına yaklaşma | `KenBurns` (`focus`), `StillTurn`, `Parallax25D` |
+| Ürünü öne çıkarmak, arkasına yazı | `Spotlight`, `OutlineGlow`, `BehindSubjectText` |
+| Parlama, ışık, atmosfer | `LightSheen`, `SoftGlow`, `Bokeh`, `Particles`, `LensFlareSoft`, `GradeOverlay` |
+| Elde çekim hissi, netlik kayması | `HandheldDrift`, `FakeRackFocus` |
+| Sahne geçişi | `transition_out.type` (bileşen gerekmez) |
+| Reveal ya da son kartta tek imza anı | `LightRays`, `ParticleSwirl`, `HeatShimmer` |
+
 ## Yeni bileşen kuralı
-Gereken efekt yoksa: `src/components/<kategori>.tsx` içinde zod şemalı, deterministik bileşen + `Entry` kaydı (`name`, `category`,
+Gereken efekt yoksa (yukarıdaki tablo ve profilin onaylı bileşenleri karşılamıyorsa; bakılan en yakın bileşenler ve neden uymadıkları
+kurgu notuna yazılır): `src/components/<kategori>.tsx` içinde zod şemalı, deterministik bileşen + `Entry` kaydı (`name`, `category`,
 `version`, `schema`, nötr `demo`) → 3 sabit kare + 2 sn test (`render.py gallery --components <Ad>`) → öz denetim (kontak sayfası, ortası
 siyah kare kontrolü dahil) → kullanıcı taslakta görür → onaylanırsa sürüm numarası ve test çıktısıyla **profil bileşen kütüphanesine**
 (`DD/profiles/<slug>/components/<Ad>@<sürüm>.tsx` + test kareleri) eklenir ve sonraki kampanya projelerinin `src/components/`'ına

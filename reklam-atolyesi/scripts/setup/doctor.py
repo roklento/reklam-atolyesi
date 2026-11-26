@@ -221,20 +221,58 @@ def check_vendor(r: Report) -> None:
 
 
 def global_skill_clash() -> list[str]:
-    """~/.claude/skills altında vendor skill'leriyle ya da Remotion ile aynı adlı genel skill'ler (kullanıcının başka işler için kurduğu)."""
-    vd = ROOT / "vendor-skills"
+    """~/.claude/skills altında plugin'in işiyle çakışabilecek genel skill'ler (kullanıcının başka işler için kurduğu).
+
+    İki tür: (1) vendor skill'leriyle ya da Remotion ile aynı adlı olanlar; (2) 2.10.16: adı ya da açıklaması video üretimi/kurgu işini
+    üstlenebilecek olanlar (plugin taramasının `hooks/plugin_clash.json` video desenleri). Plugin olarak değil tek tek skill olarak
+    kurulan video araçları (ör. `npx skills add` ile) plugin taramasına görünmez; bunlar da plan → render → QC kapılarını atlatabilir.
+    Yalnızca SKILL.md'nin ön bilgisi okunur, hiçbir dosya çalıştırılmaz."""
     gskills = Path.home() / ".claude" / "skills"
     globals_ = sorted(p.name for p in gskills.iterdir()) if gskills.exists() else []
-    vendor_names = {p.name for p in vd.iterdir() if p.is_dir()} | {"remotion", "remotion-best-practices"}
-    return [g for g in globals_ if g in vendor_names or g.startswith("remotion")]
+    try:
+        video_re = PS.rules()["_video_re"]
+    except Exception:  # tablo okunamazsa yalnız ad eşleşmesi (tarama kurulumu düşürmez)
+        video_re = []
+
+    def video_skill(name: str) -> bool:
+        f = gskills / name / "SKILL.md"
+        if not video_re or not f.is_file():
+            return False
+        fm = PS._frontmatter(f)
+        text = f"{fm.get('name') or name} {fm.get('description', '')}".lower()
+        return any(p.search(text) for p in video_re)
+    return [g for g in globals_ if legacy_name_clash(g) or video_skill(g)]
 
 
-def check_global_skills(r: Report, deviations: dict) -> None:
+def legacy_name_clash(name: str) -> bool:
+    """2.10.16 öncesi kuralın yakaladığı adlar (vendor adı ya da remotion*). Eski kabul kayıtları adları listelemez; yalnızca bunları kapsar."""
+    vendor_names = {p.name for p in (ROOT / "vendor-skills").iterdir() if p.is_dir()} | {"remotion", "remotion-best-practices"}
+    return name in vendor_names or name.startswith("remotion")
+
+
+def accepted_global_skills(dev_records: list[dict], clash: list[str]) -> set[str]:
+    """Kullanıcının 'dokunma' dediği genel skill adları (2.10.16: kabul ad bazındadır; sonradan kurulan yeni bir video skill'i kapsanmaz,
+    plugin kabulündeki gibi). Adları listelemeyen eski kayıt yalnızca eski kuralın yakaladığı adları kapsar."""
+    names: set[str] = set()
+    for d in dev_records:
+        if d.get("check") == "global_skills" and d.get("decided_by") == "user" and d.get("status") == "accepted":
+            if isinstance(d.get("skills"), list):
+                names |= {str(x) for x in d["skills"]}
+            else:
+                names |= {c for c in clash if legacy_name_clash(c)}
+    return names
+
+
+def check_global_skills(r: Report, deviations: dict, dev_records: list[dict] | None = None) -> None:
     # Ayrı madde (1.4.1): kullanıcı bu skill'leri başka işlerde kullanıyorsa dokunulmamasını seçebilir; karar install_deviations'a
     # 'global_skills' sapması olarak yazılır, madde kırmızı görünür ama kurulumu engellemez. Plugin bu skill'leri okumaz (ref-vendor-map).
+    # 2.10.16: kayıtlar verilirse kabul yalnızca kabul edilen adları kapsar; yeni bir çakışan skill maddeyi yeniden engel yapar.
     clash = global_skill_clash()
-    r.add("global_skills", "~/.claude/skills altında plugin'inkilerle çakışan genel skill yok", not clash,
-          {"clash": clash, "path": "~/.claude/skills"} if clash else None, deviation=deviations.get("global_skills") if clash else None)
+    dev = deviations.get("global_skills") if clash else None
+    if dev and dev_records is not None and not set(clash) <= accepted_global_skills(dev_records, clash):
+        dev = None
+    r.add("global_skills", "~/.claude/skills altında plugin'in işiyle çakışan genel skill yok (aynı adlı ya da video/kurgu skill'i)", not clash,
+          {"clash": clash, "path": "~/.claude/skills"} if clash else None, deviation=dev)
 
 
 def accepted_plugin_ids(dev_records: list[dict]) -> set[str]:
@@ -630,7 +668,7 @@ def main() -> None:
     r = Report()
     check_tools(r, data_dir)
     check_vendor(r)
-    check_global_skills(r, deviations)
+    check_global_skills(r, deviations, dev_records)
     check_components(r)
     check_scripts_map(r, manifest)
     check_hooks_exec(r, data_dir)

@@ -73,3 +73,5 @@ dokunulmamasını seçerse doctor bunu `global_skills` sapması olarak kaydeder.
 Aynı kural kurulu **öteki plugin'ler** için de geçerlidir (1.6.0): Remotion'un resmi Claude Code plugin'i (`remotion@remotion`) ya da
 başka bir video/altyazı plugin'i kuruluysa onun skill'leri ve MCP araçları bu plugin'in işlerinde okunmaz ve çağrılmaz. Kurulum
 denetimi bunları `scripts/lib/plugin_scan.py` ile bulur; kullanıcı kapatmazsa `plugins` sapması olarak kaydedilir.
+Plugin olarak değil tek tek skill olarak (`~/.claude/skills` altına) kurulan video ya da kurgu skill'leri de (2.10.16) aynı tablonun
+video desenleriyle `global_skills` maddesinde gösterilir; kabul ad bazındadır, sonradan kurulan yeni bir skill yeniden sorulur.
