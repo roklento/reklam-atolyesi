@@ -1,4 +1,4 @@
-# Reklam Atölyesi (reklam-atolyesi) · 2.10.16
+# Reklam Atölyesi (reklam-atolyesi) · 2.10.17
 
 Meta video reklamlarını **rakip analiziyle stratejiden yayın paketine** kadar üreten, yayındaki reklamları matematikle okuyup koçluk
 yapan ve her turda öğrenen bir Claude Code plugin'i. Marka, reklam hesabı ve ürünler **profil verisidir**; plugin kodu markadan bağımsızdır.
@@ -97,6 +97,20 @@ Kaynak: https://code.claude.com/docs/en/hooks#posttoolusefailure
 Python/Claude başlayamıyorsa hook çalışamaz; kullanıcı ekrandaki hatayı iletir. Arka plan log izleyicisi yoktur.
 
 ## Sürüm notları
+**2.10.17** — yerel ürün ayırma ve "görseli hareketlendiren" skill'lerin çakışma denetimi (beş dış video skill'i değerlendirmesinden)
+- Migration yok, çekirdek ortama yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez).
+- **Yerel ürün ayırma (`scripts/compose/cutout.py`):** ürün fotoğrafından saydam ürün (`<ad>.urun.png`), ürünün arkası doldurulmuş arka
+  plan (`<ad>.arka.png`) ve maske. Ücretsizdir, fotoğraf bilgisayardan çıkmaz. Model BiRefNet-lite (MIT; boyut ve sha256 sabit, tutmazsa
+  kullanılmaz); motor kendi sanal ortamında (`DD/.gorsel/cutout/.venv`: onnxruntime, numpy, pillow sabit sürüm; torch yok), yalnızca ilk
+  kullanımda kullanıcıya sorularak kurulur (≈ 0,3 GB). Boşluk doldurma OpenCV ile, ek model yok. Önceden ürünü ayırmak yalnızca ücretli
+  servisle mümkündü ve `Parallax25D` arka planda ürünün kendisini de taşıyordu (hareket edince ürün iki kez görünürdü). Ücretli yol,
+  kullanıcı indirmek istemezse yedek olarak kalır. `ref-production-recipes` ve `ref-remotion-components` buna göre güncellendi; doctor
+  `DD/.gorsel` klasörünü tanır.
+- **Çakışma denetimi:** skill'in tetik metni (`when_to_use`) de okunur, çok satırlı ön bilgi değerleri birleştirilir; video desenlerine
+  video dosyası çıktısı (mp4, webm), döngü animasyonu ve "hareketlendir/canlandır" eklendi. Bir görseli kısa videoya çeviren skill'ler
+  (açıklamasında "video" geçmese de) artık gösterilir. Yalnızca GIF kaydı yapan araçlar (ör. tarayıcı kaydı) sayılmaz.
+- `tests/test_v21017_urun_ayirma.py`.
+
 **2.10.16** — video skill çakışması ve "önce kütüphanede ara" (dış araç değerlendirmesinden iki fikir)
 - Migration yok, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez).
 - **Kurulum denetimi (`global_skills`):** `~/.claude/skills` altına plugin olmadan, tek tek kurulan skill'lerden adı ya da açıklaması

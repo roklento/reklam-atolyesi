@@ -75,3 +75,5 @@ başka bir video/altyazı plugin'i kuruluysa onun skill'leri ve MCP araçları b
 denetimi bunları `scripts/lib/plugin_scan.py` ile bulur; kullanıcı kapatmazsa `plugins` sapması olarak kaydedilir.
 Plugin olarak değil tek tek skill olarak (`~/.claude/skills` altına) kurulan video ya da kurgu skill'leri de (2.10.16) aynı tablonun
 video desenleriyle `global_skills` maddesinde gösterilir; kabul ad bazındadır, sonradan kurulan yeni bir skill yeniden sorulur.
+2.10.17'den beri skill'in tetik metni (`when_to_use`) de taranır ve görseli kısa videoya çeviren (mp4, döngü animasyonu, "hareketlendir")
+skill'ler de bu kapsamdadır.

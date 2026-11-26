@@ -37,6 +37,7 @@ her adımın girdisi/sonucu/maliyeti ilgili tabloya.
 | yazıya dökme (yerel Whisper) | `PY PR/scripts/audio/asr_local.py transcribe --data-dir DD --in … [--script vo.txt] --out-dir …` |
 | konuşmalı kurgu kesimi / altyazı birleştirme | `PY PR/scripts/audio/asr_local.py cuts --transcript … --out … --asset … --at …` · `captions --words a@0 --words b` |
 | ses motoru kurulumu | `PY PR/scripts/setup/tts_setup.py --data-dir DD --engine ema|voxcpm|whisper [--yes]` (boyut önce gösterilir; voxcpm yalnızca uygun ekran kartında) |
+| ürün ayırma (yerel, ücretsiz; 2.10.17) | `PY PR/scripts/compose/cutout.py ayir --data-dir DD --image … --out-dir …` → `<ad>.urun.png` (saydam ürün), `<ad>.arka.png` (ürünün arkası doldurulmuş), `<ad>.maske.png`; `uyari` doluysa kullanıcıya gösterilir. Kurulu değilse çıkış 5: kullanıcıya `kullaniciya` cümlesi sorulur, evet derse `cutout.py kur --data-dir DD --yes` (≈ 0,3 GB) |
 | ses kütüphanesi önerisi | `PY PR/scripts/audio/tts_local.py capability --data-dir DD` (varsayılan EMA; ekran kartı/bellek/sürücü/disk uygunsa öneri) |
 | vurgulu altyazı | `PY PR/scripts/audio/asr_local.py captions --words <words.json>[@sn] … --keywords "<a,b>" --out …` (parçada ≤ 1 vurgu; 1.5.0) |
 | A/B testi uygunluğu | `PY PR/scripts/analytics/budget.py --ab ab.json` ({cells, daily_total, expected_cpr, cpr_source, days?}) |
@@ -85,7 +86,7 @@ yetmezse ElevenLabs voice-isolator (ücretli).
 |---|---|---|---|
 | Ürün fotoğrafını sahneye yerleştirme / arka plan (ürün değişmeden) | `gpt-image-2` (referanslı düzenleme) | `gemini-3-pro-image`, `flux-3-image` | ürün korunur; gerçek fotoğrafla yan yana |
 | Doku, zemin, son kart arka planı | `flux-3-image` | `recraft-v4.1`, `bytedance-seedream-5-pro` | marka paletine göre |
-| Arka plan kaldırma (maske) | `birefnet-v2-bg-removal` | — | `BehindSubjectText`, `Parallax25D` |
+| Arka plan kaldırma (maske) | yerel `cutout.py` (2.10.17; ücretsiz, fotoğraf bilgisayardan çıkmaz, ilk kullanımda indirme onayı) | `birefnet-v2-bg-removal` (ücretli; yalnızca kullanıcı indirmek istemezse ya da yerel sonuç uyarı verirse) | `BehindSubjectText`, `OutlineGlow`, `Spotlight` (`.urun.png`), `Parallax25D` (+ `.arka.png`) |
 | Görsel büyütme | `topaz-image-upscale` | — | |
 
 **Video (5.11)** — asla: ürün gerçekliğini kanıtlayan sahne, karşılaştırma iddiası, insan yüzü/AI karakter:

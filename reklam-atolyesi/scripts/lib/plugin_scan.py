@@ -114,18 +114,35 @@ def rows_from_disk() -> list[dict]:
     return rows
 
 
+FM_KEYS = ("name", "description", "when_to_use")
+
+
 def _frontmatter(p: Path) -> dict:
+    """SKILL.md ön bilgisinden ad, açıklama ve tetik metni (`when_to_use`). 2.10.17: Claude Code skill'i seçerken `when_to_use`'u da
+    okur; uzun tetik metni çoğu zaman oradadır. Çok satırlı değerler (`>`/`|` blokları ve girintili devam satırları) birleştirilir."""
     try:
         t = p.read_text(encoding="utf-8-sig", errors="replace")
     except OSError:
         return {}
-    m = re.match(r"\s*---\s*\n(.*?)\n---", t, re.S)
-    out = {}
+    m = re.match(r"\s*---\s*\r?\n(.*?)\r?\n---", t, re.S)
+    out: dict[str, str] = {}
+    key = None
     for ln in (m.group(1).splitlines() if m else []):
+        if ln[:1] in (" ", "\t"):
+            if key and ln.strip():
+                out[key] = (out[key] + " " + ln.strip()).strip()
+            continue
         k, sep, v = ln.partition(":")
-        if sep and k.strip() in ("name", "description") and not k.startswith(" "):
-            out[k.strip()] = v.strip().strip("'\"")
-    return out
+        key = k.strip() if sep and k.strip() in FM_KEYS else None
+        if key:
+            v = v.strip()
+            out[key] = "" if v in (">", "|", ">-", "|-", ">+", "|+") else v.strip("'\"")
+    return {k: v.strip("'\"") for k, v in out.items()}
+
+
+def trigger_text(fm: dict, fallback_name: str = "") -> str:
+    """Video deseni aranan metin: ad + açıklama + tetik metni (küçük harf)."""
+    return " ".join([fm.get("name") or fallback_name, fm.get("description", ""), fm.get("when_to_use", "")]).lower()
 
 
 def _as_list(v) -> list:
@@ -151,7 +168,7 @@ def inspect(install_path: str) -> dict:
         nm = fm.get("name") or f.parent.name
         if nm not in seen:
             seen.add(nm)
-            skills.append({"name": nm, "description": fm.get("description", "")[:400]})
+            skills.append({"name": nm, "description": fm.get("description", "")[:400], "when_to_use": fm.get("when_to_use", "")[:800]})
     events: set[str] = set()
     hook_sources = [base / "hooks" / "hooks.json"] + [base / h for h in _as_list(man.get("hooks")) if isinstance(h, str)]
     for h in hook_sources:
@@ -187,7 +204,7 @@ def classify(info: dict, extra_servers: dict | None = None, r: dict | None = Non
     r = r or rules()
     video = []
     for s in info.get("skills", []):
-        text = f"{s['name']} {s.get('description', '')}".lower()
+        text = trigger_text(s, s["name"])
         hit = next((p.pattern for p in r["_video_re"] if p.search(text)), None)
         if hit:
             video.append(s["name"])

@@ -1,7 +1,8 @@
 {
- "_doc": "Kurulu öteki plugin'lerin sınıflandırma tablosu (1.6.0; scripts/lib/plugin_scan.py). video: skill adı ya da açıklaması video üretimi/kurgu işini üstlenebilir (plan → render → QC kapılarını atlatma riski). paid_or_write: MCP sunucusu ücretli üretim ya da yayın/yazma sağlayıcısı; meta_guard ve cost_guard yalnızca ads_* ve creative_* araç adlarını korur, bu kalıba uymayan araçlar korumasızdır. hooks: araç kullanımına giren kanca olayları (bilgi). Desenler küçük harfe çevrilmiş metinde aranır; sağlayıcı adları sunucu adının ayraçlarla bölünmüş parçalarıyla eşleşir.",
+ "_doc": "Kurulu öteki plugin'lerin sınıflandırma tablosu (1.6.0; scripts/lib/plugin_scan.py). video: skill adı, açıklaması ya da tetik metni (`when_to_use`, 2.10.17) video üretimi/kurgu işini üstlenebilir; 2.10.17'den beri video dosyası çıktısı (mp4, webm; tek başına GIF sayılmaz, ekran kaydı araçlarında yaygın) ve görseli hareketlendirme de sayılır (plan → render → QC kapılarını atlatma riski). paid_or_write: MCP sunucusu ücretli üretim ya da yayın/yazma sağlayıcısı; meta_guard ve cost_guard yalnızca ads_* ve creative_* araç adlarını korur, bu kalıba uymayan araçlar korumasızdır. hooks: araç kullanımına giren kanca olayları (bilgi). Desenler küçük harfe çevrilmiş metinde aranır; sağlayıcı adları sunucu adının ayraçlarla bölünmüş parçalarıyla eşleşir.",
  "video_patterns": ["\\bremotion\\b", "\\bvideos?\\b", "\\bffmpeg\\b", "\\bsubtitles?\\b", "\\bcaptions?\\b", "altyaz", "\\bmotion[ -]graphics?\\b",
-                    "\\breels?\\b", "\\bkurgu\\b", "\\bmontaj\\b"],
+                    "\\breels?\\b", "\\bkurgu\\b", "\\bmontaj\\b",
+                    "\\bmp4\\b", "\\bwebm\\b", "\\blooping animations?\\b", "\\bcinemagraphs?\\b", "hareketlendir", "canland[ıi]r"],
  "paid_or_write_providers": ["elevenlabs", "meta", "facebook", "instagram", "fal", "replicate", "runway", "runwayml", "heygen", "openai", "gemini",
                              "luma", "kling", "higgsfield", "pika", "suno", "stability", "midjourney", "synthesia", "invideo", "descript"],
  "hook_events": ["PreToolUse", "PostToolUse", "PostToolUseFailure", "UserPromptSubmit", "UserPromptExpansion", "Stop"]

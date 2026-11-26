@@ -190,6 +190,19 @@ satırları. *Güven:* orta (birim testi; saha verisi yok).
 **Ders:** *Ne zaman:* bir denetim dış bir aracın çıktısını okuyorsa. *Ne yap:* araç başarısız olursa ya da beklenen satır gelmezse
 sonucu "temiz" değil "ölçülemedi" say. *Dayanak:* bu sürümün siyah kare/donma ve sarsıntı satırları. *Güven:* orta.
 
+## 2.10.17 (2026-11-27): yerel ürün ayırma ve görseli hareketlendiren skill'ler
+
+**Değişiklikler**
+
+| Bileşen | Tür | Etkilenen vaka / hücre | Gerekçe | Gözlenen fark | Harcama farkı | Karar |
+|---|---|---|---|---|---|---|
+| `scripts/compose/cutout.py`, `cutout_worker.py` (yeni), `skills/ref-production-recipes`, `skills/ref-remotion-components`, `scripts/setup/doctor.py` (`DATA_ALLOWED`), `scripts/setup/manifest.py` | işleyiş (üretim aracı) | elinde yalnızca ürün fotoğrafı olan profiller (yeni başlayan, tek kişilik marka, düşük bütçe) × fiziksel ürün; ajansta marka başına maliyet | Revize: beş dış video skill'i değerlendirmesi. Ürünü ayırmak yalnızca ücretli servisle mümkündü, arkadaki boşluk doldurulmuyordu (`Parallax25D` ürünü iki kez gösterebiliyordu) | Sentetik fotoğrafta gerçek modelle ürün alanı 1,0, arka plan 0,0; ürünün yeri çevre rengiyle doldu; 4 çekirdekte ≈ 13 sn; 1 ve 4 iş parçacığında maske bayt bayt aynı | ücretli arka plan kaldırma çağrısı yerine 0 kredi | ölçülecek (S09/S10'da ücretli arka plan kaldırma sayısı, kullanıcı kabulü) |
+| `scripts/lib/plugin_scan.py` (`_frontmatter`, `trigger_text`), `scripts/setup/doctor.py` (`global_skill_clash`), `hooks/plugin_clash.json` | işleyiş (kurulum) | başka skill'ler de kuran her profil × her ürün | Aynı revize: görseli döngü videoya çeviren bir skill ne adında ne kısa açıklamasında "video" taşıyordu, tetik metni okunmuyordu | Değerlendirilen beş skill'in 14 SKILL.md'sinden video yapan hepsi yakalanır; bu makinedeki 49 skill'den yalnız GIF kaydı yapan biri yeni desende yanlış pozitifti, GIF deseni bu yüzden alınmadı | yok | ölçülecek (kurulum kayıtlarında yanlış pozitif) |
+
+**Sahada:** henüz yok.
+
+**Ders:** ders yok.
+
 ## 2.10.16 (2026-11-27): video skill çakışması ve "önce kütüphanede ara"
 
 **Değişiklikler**
