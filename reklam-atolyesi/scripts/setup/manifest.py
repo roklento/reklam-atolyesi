@@ -218,6 +218,7 @@ SCRIPT_MAP = {
     "analytics: calibration": "scripts/analytics/calibration.py",
     "analytics: charts": "scripts/analytics/charts.py",
     "analytics: report": "scripts/analytics/report.py",
+    "analytics: canlı ilerleme panosu (yalnızca okur)": "scripts/analytics/pano.py",
     "memory: konsolidasyon, özet katlama, kullanım önizlemesi": "scripts/memory/memory_tools.py",
     "selftest: nötr sentetik fikstürler": "scripts/selftest/fixtures.py",
     "selftest: duman testi": "scripts/selftest/smoke.py",

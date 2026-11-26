@@ -168,6 +168,12 @@ alan adı gösterilmez, terim ilk geçtiğinde açıklanır. Sözlük ve örnekl
 Menü her işin sonunda kendiliğinden tekrar basılmaz; son satır: `Menüye dönmek için "menü" yaz.` Kullanıcı açıkça isterse ya da iş
 menüden başka bir seçim gerektiriyorsa `menu_render(session_id)` metni gösterilir.
 
+### 9. Canlı ilerleme panosu (2.10.18)
+Kampanya kurguya ya da ücretli üretime gelince (ya da kullanıcı "ne durumdayız" diye sık soruyorsa) bir kez öner: "İstersen üretimi tarayıcıda canlı izleyebileceğin bir sayfa açayım; aşamalar, sahneler ve harcanan kredi orada görünür."
+Evet derse `PY PR/scripts/analytics/pano.py --data-dir DD --profile-id <id> --izle` arka planda çalıştırılır (en çok 3 saat; sayfa
+5 sn'de bir kendini yeniler) ve çıktıdaki `kullaniciya` cümlesi dosya yoluyla verilir. Sayfa yalnızca okur: veritabanına yazmaz,
+dışarıya istek göndermez. Hayır derse tekrar sorulmaz. Durum sohbette verilmeye devam eder; sayfa sohbetin yerine geçmez.
+
 ## Çıktılar
 - `.sessions/<session_id>.json` (hook ve `menu_render` yazar): plugin modu, bağlı kimlikler, son ekran (`screen`), son menü — geçici;
   hafıza değildir.

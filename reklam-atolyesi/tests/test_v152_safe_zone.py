@@ -21,8 +21,8 @@ STYLE = json.loads((ROOT / "templates" / "style.json").read_text(encoding="utf-8
 
 def _plan(fmt: str = "9x16", captions: bool = True) -> dict:
     def sc(i, role, layers):
-        return {"id": f"s{i}", "role": role, "start_s": 2 * (i - 1), "dur_s": 2, "layers": layers}
-    return {"format": fmt, "duration_s": 14, "captions": {"on": captions, "preset": "keyword_upper"}, "scenes": [
+        return {"id": f"s{i}", "role": role, "start_s": 3 * (i - 1), "dur_s": 3, "layers": layers}  # 2.10.18: uzun yazıya okuma süresi
+    return {"format": fmt, "duration_s": 21, "captions": {"on": captions, "preset": "keyword_upper"}, "scenes": [
         sc(1, "hook", [{"type": "text", "text": "Yeni sezon başladı\nHemen keşfet"}]),
         sc(2, "reveal", [{"type": "text", "text": "Değişimi ilk sen gör"}]),
         sc(3, "offer", [{"type": "text", "text": "Bu hafta özel fiyat"},

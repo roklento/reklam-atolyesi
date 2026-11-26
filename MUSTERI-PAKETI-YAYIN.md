@@ -1,4 +1,4 @@
-# Müşteri paketi — 2.10.17
+# Müşteri paketi — 2.10.18
 
 `musteri-paketi/` müşteriye gönderilir: ilk kurulum `kur.cmd`, sonraki güncellemeler `guncelle.cmd`. Yarıda kalmış (doğrulaması
 tamamlanmamış) ilk kurulumda `kur.cmd` kayıtlı veri klasörüyle kaldığı yerden sürer (2.0.0).
@@ -17,10 +17,13 @@ Loglar otomatik gönderilmez; otomatik geri alma yapılmaz. Yedekler `backups`, 
 
 ## Yayın
 
-Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.17**.
+Dağıtım hedefi: `roklento/reklam-atolyesi` deposunun `main` dalı, sürüm **2.10.18**.
 Müşteri güncelleyicisi bu depoda yayımlanan sürümü alır.
 Güncelleyici, yeni hata bildirimi kodu bulunmayan eski sürüme gelirse başarı demek yerine açıklayıcı hata verir.
 Sonraki yayınlarda plugin sürümünü artırın ve manifesti güncel tutun.
+2.10.18 migration içermez, yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin gördüğü
+değişiklik: uzun yazılar videoda okunacak kadar ekranda kalır; AI ile hazırlanan ürün kliplerinde ürünün rengi, biçimi ve etiketi
+korunur, ürünün elde fotoğrafı olmayan yüzü uydurulmaz. İsterse üretimi tarayıcıda kendini yenileyen bir sayfadan izleyebilir.
 2.10.17 migration içermez, çekirdek ortama yeni bağımlılık yok. Müşteri paketi değişmedi (ZIP yeniden gönderilmez). Müşterinin
 gördüğü değişiklik: ürün fotoğrafından hareketli sahne hazırlanırken ürün arka plandan ücretsiz ve bilgisayarda ayrılır. İlk seferde
 "yaklaşık 300 MB'lık ücretsiz bir araç indirmem gerekiyor, indireyim mi?" diye sorulur; istemezse ücretli yol fiyatıyla önerilir.

@@ -126,7 +126,7 @@ TÜRMOB RG arşivi kopyası: https://www.turmob.org.tr/arsiv/mbs/resmigazete/299
 - **Instagram trend müzikleri** reklamda kullanılmaz.
 
 ## 6. Teslimat öncesi son kontrol listesi (S13)
-Yazılar güvenli alanda ve ≥ 1,5 sn · ses -14 LUFS, telefon hoparlöründe VO net · AI klipleri gerçek fotoğrafla karşılaştırıldı, bozulma
+Yazılar güvenli alanda ve okunacak kadar ekranda (uzunluğa göre, en az 1,5 sn) · ses -14 LUFS, telefon hoparlöründe VO net · AI klipleri gerçek fotoğrafla karşılaştırıldı, bozulma
 yok · iddia listesi kontrol edildi · AI içeren varyasyonlarda Meta açıklama/etiket talimatı güncel kurala uygun · ayırt edilmesi zor AI
 içerikte görünür açıklama · Meta reklam standartları (§8) uyarıları karara bağlandı · yazım ve Türkçe karakterler · yorum izinleri (satın alma doğrulaması dahil) ve kişi izinleri eşleşti · ses
 kararları uygulandı · rakipten türeyen konseptler uzaklık kuralını geçti; kreatifte rakip adı, logosu ya da varlığı yok.
